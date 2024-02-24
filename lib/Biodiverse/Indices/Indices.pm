@@ -61,7 +61,7 @@ sub get_metadata_calc_richness {
         name            => 'Richness',
         description     => 'Count the number of labels in the neighbour sets',
         type            => 'Lists and Counts',
-        pre_calc        => 'calc_abc',
+        pre_calc        => ['_calc_abc_any'],
         uses_nbr_lists  => 1,  #  how many sets of neighbour lists it must have
         distribution => 'nonnegative',
         indices         => {
@@ -192,7 +192,7 @@ sub get_metadata_is_dissimilarity_valid {
             }
         },
         type            => 'Taxonomic Dissimilarity and Comparison',
-        pre_calc        => 'calc_abc',
+        pre_calc        => ['_calc_abc_any'],
     );
 
     return $metadata_class->new(\%metadata);
@@ -283,7 +283,7 @@ sub get_metadata_calc_kulczynski2 {
             },
         },
         type            => 'Taxonomic Dissimilarity and Comparison',
-        pre_calc        => [qw /calc_abc is_dissimilarity_valid/],
+        pre_calc        => [qw /_calc_abc_any is_dissimilarity_valid/],
         uses_nbr_lists  => 2,
     );
 
@@ -329,7 +329,7 @@ sub get_metadata_calc_sorenson {
             }
         },
         type            => 'Taxonomic Dissimilarity and Comparison',
-        pre_calc        => [qw /calc_abc is_dissimilarity_valid/],
+        pre_calc        => [qw /_calc_abc_any is_dissimilarity_valid/],
         uses_nbr_lists  => 2,
     );
 
@@ -360,7 +360,7 @@ sub get_metadata_calc_jaccard {
         description     => 'Jaccard dissimilarity between the labels in neighbour sets 1 and 2.',
         type            => 'Taxonomic Dissimilarity and Comparison',
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
-        pre_calc        => [qw /calc_abc is_dissimilarity_valid/],
+        pre_calc        => [qw /_calc_abc_any is_dissimilarity_valid/],
         formula         => [
             '= 1 - \frac{A}{A + B + C}',
             $self->get_formula_explanation_ABC,
@@ -457,7 +457,7 @@ sub get_metadata_calc_nestedness_resultant {
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
         reference       => 'Baselga (2010) Glob Ecol Biogeog.  '
                            . 'https://doi.org/10.1111/j.1466-8238.2009.00490.x',
-        pre_calc        => [qw /calc_abc/],
+        pre_calc        => ['_calc_abc_any'],
         formula         => [
             '=\frac{ \left | B - C \right | }{ 2A + B + C } '
             . '\times \frac { A }{ A + min (B, C) }'
@@ -711,7 +711,7 @@ sub get_metadata_calc_beta_diversity {
         },
         type            => 'Taxonomic Dissimilarity and Comparison',
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
-        pre_calc        => 'calc_abc',
+        pre_calc        => ['_calc_abc_any'],
     );
 
     return $metadata_class->new(\%metadata);
@@ -742,7 +742,7 @@ sub get_metadata_calc_s2 {
         name            => 'S2',
         type            => 'Taxonomic Dissimilarity and Comparison',
         description     => "S2 dissimilarity between two sets of labels\n",
-        pre_calc        => 'calc_abc',
+        pre_calc        => ['_calc_abc_any'],
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
         reference   => 'Lennon et al. (2001) J Animal Ecol.  '
                         . 'https://doi.org/10.1046/j.0021-8790.2001.00563.x',
@@ -1396,7 +1396,7 @@ sub get_metadata_calc_abc_counts {
                 lumper      => 1,
             },
         },
-        pre_calc        => 'calc_abc',
+        pre_calc        => ['_calc_abc_any'],
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
     );  #  add to if needed
 
@@ -1405,7 +1405,6 @@ sub get_metadata_calc_abc_counts {
 
 sub calc_abc_counts {
     my $self = shift;
-
     my %args = @_;  #  rest of args into a hash
 
     my %results = (
@@ -1415,10 +1414,7 @@ sub calc_abc_counts {
         ABC_ABC => $args{ABC},
     );
 
-    return wantarray
-            ? %results
-            : \%results;
-
+    return wantarray ? %results : \%results;
 }
 
 #  for some indices where a, b, c & d are needed
@@ -1449,7 +1445,7 @@ sub get_metadata_calc_d {
         description     => $description,
         type            => 'Lists and Counts',
         uses_nbr_lists  => 1,
-        pre_calc        => 'calc_abc',
+        pre_calc        => ['_calc_abc_any'],
         indices         => {
             ABC_D => {
                 description  => 'Count of labels not in either neighbour set (D score)',
@@ -1469,7 +1465,7 @@ sub get_metadata_calc_elements_used {
         name            => 'Element counts',
         description     => "Counts of elements used in neighbour sets 1 and 2.\n",
         type            => 'Lists and Counts',
-        pre_calc        => 'calc_abc',
+        pre_calc        => ['_calc_abc_any'],
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         distribution => 'nonnegative',
         indices         => {
@@ -1573,7 +1569,7 @@ sub get_metadata_calc_element_lists_used {
             . 'The return types are inconsistent. New code should use '
             . 'calc_element_lists_used_as_arrays',
         type            => 'Lists and Counts',
-        pre_calc        => 'calc_abc',
+        pre_calc        => ['_calc_abc_any'],
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         indices         => {
             EL_LIST_SET1  => {
@@ -1637,7 +1633,7 @@ sub get_metadata_calc_element_lists_used_as_arrays {
         description     => "Arrays of elements used in neighbour sets 1 and 2.\n"
             . 'These form the basis for all the spatial calculations.',
         type            => 'Lists and Counts',
-        pre_calc        => 'calc_abc',
+        pre_calc        => ['_calc_abc_any'],
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         indices         => {
             EL_ARRAY_SET1  => {
@@ -1707,15 +1703,20 @@ sub _calc_abc_any {
     my $self = shift;
 
     my $cache_hash = $self->get_cached_value('AS_RESULTS_FROM_LOCAL');
-    my $cached
-        = List::Util::first {$cache_hash->{$_}}
-          qw/calc_abc calc_abc2 calc_abc3/;
+    my $cache_key
+        = List::Util::first {defined $cache_hash->{$_}}
+          (qw/calc_abc calc_abc2 calc_abc3/);
 
-    #  fall back to calc_abc if nothing had an explicit dependency
-    $cached ||= $self->calc_abc(@_);
+    # say STDERR 'NO previous cache key'
+    #     if !$cache_key;
 
-    # croak 'No previous calc_abc results found'
-    #     if !$cached;
+    #  fall back to calc_abc if nothing had an explicit abc dependency
+    my $cached = $cache_key
+        ? $cache_hash->{$cache_key}
+        : $self->calc_abc(@_);
+
+    croak 'No previous calc_abc results found'
+        if !$cached;
 
     return wantarray ? %$cached : $cached;
 }

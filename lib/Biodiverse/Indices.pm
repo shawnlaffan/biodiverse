@@ -11,7 +11,7 @@ use warnings;
 #use Devel::Symdump;
 #use Data::Dumper;
 use Scalar::Util qw /blessed weaken/;
-use List::MoreUtils qw /uniq/;
+use List::MoreUtils qw /uniq first_index/;
 use List::Util qw /sum any/;
 use English ( -no_match_vars );
 use Ref::Util qw { :all };
@@ -1021,6 +1021,20 @@ sub aggregate_calc_lists_by_type {
     foreach my $type (@types) {
         my $array   = $aggregated{$type};
         my @u_array = uniq @$array;
+        if ($type eq 'pre_calc'
+            and scalar @u_array
+            and any {$_ eq '_calc_abc_any'} @u_array
+        ) {
+            #  move first /calc_abc[23]?/ to front so
+            #  _calc_abc_any can grab results
+            state $re = qr{^calc_abc\d?};
+            if ($u_array[0] !~ $re) {
+                my $iter = first_index {$_ =~ $re} @u_array;
+                if ($iter > 0) {
+                    unshift @u_array, splice @u_array, $iter, 1;
+                }
+            }
+        }
         $aggregated{$type} = \@u_array;
     }
 

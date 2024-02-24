@@ -1688,6 +1688,38 @@ sub calc_element_lists_used_as_arrays {
 }
 
 
+sub get_metadata__calc_abc_any {
+
+    my %metadata = (
+        name            => '_calc_abc_any',
+        description     => 'Special sub for when we only need the keys, '
+                         . 'not the values, so can use any of /calc_abc[23]?/',
+        type            => 'not_for_gui',
+        indices         => {},
+        uses_nbr_lists  => 1,  #  how many sets of lists it must have
+        required_args   => [$RE_ABC_REQUIRED_ARGS],  #experimental - https://github.com/shawnlaffan/biodiverse/issues/336
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub _calc_abc_any {
+    my $self = shift;
+
+    my $cache_hash = $self->get_cached_value('AS_RESULTS_FROM_LOCAL');
+    my $cached
+        = List::Util::first {$cache_hash->{$_}}
+          qw/calc_abc calc_abc2 calc_abc3/;
+
+    #  fall back to calc_abc if nothing had an explicit dependency
+    $cached ||= $self->calc_abc(@_);
+
+    # croak 'No previous calc_abc results found'
+    #     if !$cached;
+
+    return wantarray ? %$cached : $cached;
+}
+
 sub get_metadata_calc_abc {
 
     my %metadata = (

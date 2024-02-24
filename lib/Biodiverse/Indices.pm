@@ -1533,11 +1533,16 @@ sub run_dependencies {
     my $tmp = $self->get_param('AS_RESULTS_FROM_GLOBAL') || {};
     my %as_results_from_global = %$tmp;    #  make a copy
 
+    state $cache_name_local_results = 'AS_RESULTS_FROM_LOCAL';
+
     #  Now we run the calculations at this level.
     #  We also keep track of what has been run
     #  to avoid repetition through multiple dependencies.
     my %results;
     my %as_results_from;
+    #  make sure this is new each iteration
+    $self->set_cached_value ($cache_name_local_results => \%as_results_from);
+
     foreach my $calc (@$calc_list) {
         my $calc_results;
 
@@ -1573,6 +1578,9 @@ sub run_dependencies {
         }
         $results{$calc} = $calc_results;
     }
+
+    #  We refresh each call above, but this ensures last one is cleaned up.
+    $self->delete_cached_value($cache_name_local_results);
 
     if ( $type eq 'pre_calc_global' ) {
         $self->set_param( AS_RESULTS_FROM_GLOBAL => \%as_results_from_global );

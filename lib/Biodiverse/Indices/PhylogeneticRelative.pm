@@ -453,7 +453,7 @@ sub get_metadata_calc_labels_not_on_trimmed_tree {
         },
         type            => 'Phylogenetic Indices (relative)',  #  keeps it clear of the other indices in the GUI
         pre_calc_global => [qw /get_labels_not_on_trimmed_tree/],
-        pre_calc        => ['calc_abc'],
+        pre_calc        => ['_calc_abc_any'],
         uses_nbr_lists  => 1,  #  how many lists it must have
     );
 
@@ -494,7 +494,7 @@ sub get_metadata_get_labels_not_on_trimmed_tree {
 
     my %metadata = (
         name            => 'get_labels_not_on_trimmed_tree',
-        description     => 'List of lables not on the trimmed tree',
+        description     => 'List of labels not on the trimmed tree',
         pre_calc_global => [qw /get_trimmed_tree/],
         indices => {
             labels_not_on_trimmed_tree => {

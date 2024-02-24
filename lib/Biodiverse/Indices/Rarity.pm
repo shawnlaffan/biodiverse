@@ -5,8 +5,10 @@ use 5.020;
 
 our $VERSION = '4.99_002';
 
-#  we need access to one sub from Endemism.pm
-use parent qw /Biodiverse::Indices::Endemism/;
+#  we need access to one sub from Endemism.pm,
+#  but since we are loaded by Indices.pm
+#  there is no need to inherit from it here.
+# use parent qw /Biodiverse::Indices::Endemism/;
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
@@ -114,7 +116,7 @@ sub get_metadata_calc_rarity_central_lists {
         description     => 'Lists used in rarity central calculations',
         name            => 'Rarity central lists',
         type            => 'Rarity',
-        pre_calc        => qw /_calc_rarity_central/,
+        pre_calc        => ['_calc_rarity_central'],
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         indices => {
             RAREC_WTLIST      => {
@@ -256,7 +258,7 @@ sub get_metadata_calc_rarity_whole_lists {
         description     => 'Lists used in rarity whole calculations',
         name            => 'Rarity whole lists',
         type            => 'Rarity',
-        pre_calc        => qw /_calc_rarity_whole/,
+        pre_calc        => '_calc_rarity_whole',
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         indices => {
             RAREW_WTLIST      => {

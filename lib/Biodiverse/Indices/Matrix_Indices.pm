@@ -32,7 +32,7 @@ sub get_metadata_calc_matrix_stats {
                             . 'Labels not in the matrix are ignored.',
         type            => 'Matrix',
         required_args   => {matrix_ref => 1}, #  must be set for it to be used
-        pre_calc        => 'calc_abc',
+        pre_calc        => ['calc_abc'],
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         indices         => {
             MX_MEAN      => {description => 'Mean'},
@@ -148,7 +148,7 @@ sub get_metadata_calc_compare_dissim_matrix_values {
                            . q{This calculation assumes a matrix of dissimilarities }
                            . q{and uses 0 as identical, so take care).},
         type            => 'Matrix',
-        pre_calc        => 'calc_abc',
+        pre_calc        => '_calc_abc_any',
         required_args   => ['matrix_ref'],
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
         indices => {

@@ -266,12 +266,18 @@ sub load_yaml_file {
     croak 'Loading from a YAML file is no longer supported';
 }
 
+#  Orig should never have used a hash.  Oh well.
+sub set_basedata_ref_aa {
+    my ($self, $ref) = @_;
+    $self->set_basedata_ref(BASEDATA_REF => $ref);
+}
+
 sub set_basedata_ref {
     my $self = shift;
     my %args = @_;
 
     $self->set_param (BASEDATA_REF => $args{BASEDATA_REF});
-    $self->weaken_basedata_ref;
+    $self->weaken_basedata_ref if defined $args{BASEDATA_REF};
 
     return;
 }
@@ -279,10 +285,7 @@ sub set_basedata_ref {
 sub get_basedata_ref {
     my $self = shift;
 
-    my $bd = $self->get_param ('BASEDATA_REF')
-           || Biodiverse::MissingBasedataRef->throw (
-              message => 'Parameter BASEDATA_REF not set'
-            );
+    my $bd = $self->get_param ('BASEDATA_REF');
     
     return $bd;
 }
@@ -2415,18 +2418,19 @@ sub compare_lists_by_item {
     \my %base_ref = $args{base_list_ref};
     \my %comp_ref = $args{comp_list_ref};
     \my %results   = $args{results_list_ref};
+    my ($diff, $increment);
 
   COMP_BY_ITEM:
     foreach my $index (keys %base_ref) {
 
         next COMP_BY_ITEM
-          if !(defined $base_ref{$index} && defined $comp_ref{$index});
+          if !(defined $comp_ref{$index} && defined $base_ref{$index});
 
         #  compare at 10 decimal place precision
         #  this also allows for serialisation which
         #     rounds the numbers to 15 decimals
-        my $diff = $base_ref{$index} - $comp_ref{$index};
-        my $increment = $diff > DEFAULT_PRECISION_SMALL ? 1 : 0;
+        $diff = $base_ref{$index} - $comp_ref{$index};
+        $increment = $diff > DEFAULT_PRECISION_SMALL ? 1 : 0;
 
         #  for debug, but leave just in case
         #carp "$element, $op\n$comp\n$base  " . ($comp - $base) if $increment;  
@@ -2438,18 +2442,18 @@ sub compare_lists_by_item {
         #   SUMX  is the sum of compared values
         #   SUMXX is the sum of squared compared values
         #   The latter two are used in z-score calcs
-        $results{"C_$index"} += $increment;
-        $results{"Q_$index"} ++;
-        $results{"P_$index"} =   $results{"C_$index"}
-                               / $results{"Q_$index"};
+        #  obfuscated to squeeze as much speed as we can
+        # $results{"C_$index"} += $increment;
+        # $results{"Q_$index"} ++;
+        $results{"P_$index"} =   ($results{"C_$index"} += $increment)
+                               / (++$results{"Q_$index"});
         # use original vals for sums
-        $results{"SUMX_$index"}  +=  $comp_ref{$index};  
-        $results{"SUMXX_$index"} += ($comp_ref{$index}**2);  
+        $results{"SUMX_$index"}  +=  $comp_ref{$index};
+        $results{"SUMXX_$index"} += ($comp_ref{$index}**2);
 
         #  track the number of ties
-        if (abs($diff) <= DEFAULT_PRECISION_SMALL) {
-            $results{"T_$index"} ++;
-        }
+        $results{"T_$index"} ++
+          if (abs($diff) <= DEFAULT_PRECISION_SMALL);
     }
     
     return;
@@ -2513,35 +2517,33 @@ sub get_zscore_from_comp_results {
     my %args = @_;
 
     #  could alias this
-    my $comp_list_ref = $args{comp_list_ref}
+    \my %comp_list_ref = $args{comp_list_ref}
       // croak "comp_list_ref argument not specified\n";
     #  need the observed values
-    my $base_list_ref = $args{base_list_ref}
+    \my %base_list_ref = $args{base_list_ref}
       // croak "base_list_ref argument not specified\n";
 
     my $results_list_ref = $args{results_list_ref} // {};
 
   KEY:
-    foreach my $q_key (grep {$_ =~ /^Q_/} keys %$comp_list_ref) {
-        my $index_name = substr $q_key, 2;
+    foreach my $index_name (keys %base_list_ref) {
 
-        my $n = $comp_list_ref->{$q_key};
+        my $n = $comp_list_ref{'Q_' . $index_name};
         next KEY if !$n;
 
         my $x_key  = 'SUMX_'  . $index_name;
         my $xx_key = 'SUMXX_' . $index_name;
 
         #  sum of x vals and x vals squared 
-        my $sumx  = $comp_list_ref->{$x_key};
-        my $sumxx = $comp_list_ref->{$xx_key};
+        my $sumx  = $comp_list_ref{$x_key};
+        my $sumxx = $comp_list_ref{$xx_key};
 
-        my $z_key = $index_name;
         #  n better be large, as we do not use n-1
-        my $variance = max (0, ($sumxx - ($sumx**2) / $n) / $n);
-        my $obs = $base_list_ref->{$index_name};
-        $results_list_ref->{$z_key}
-          = $variance
-          ? ($obs - ($sumx / $n)) / sqrt ($variance)
+        my $variance = ($sumxx - ($sumx**2) / $n) / $n;
+
+        $results_list_ref->{$index_name}
+          = $variance > 0
+          ? ($base_list_ref{$index_name} - ($sumx / $n)) / sqrt ($variance)
           : 0;
     }
 
@@ -2666,15 +2668,19 @@ sub get_sig_rank_from_comp_results {
     my $self = shift;
     my %args = @_;
     
-    #  could alias this
     \my %comp_list_ref = $args{comp_list_ref}
       // croak "comp_list_ref argument not specified\n";
 
     \my %results_list_ref = $args{results_list_ref} // {};
 
-    foreach my $c_key (grep {$_ =~ /^C_/} keys %comp_list_ref) {
-        
-        my $index_name = substr $c_key, 2;
+    #  base_list_ref will usually be shorter so fewer comparisons will be needed
+    my @keys = $args{base_list_ref}
+        ? grep {exists $comp_list_ref{'C_' . $_}} keys %{$args{base_list_ref}}
+        : map {substr $_, 2} grep {$_ =~ /^C_/} keys %comp_list_ref;
+
+    foreach my $index_name (@keys) {
+
+        my $c_key = 'C_' . $index_name;
 
         if (!defined $comp_list_ref{$c_key}) {
             $results_list_ref{$index_name} = undef;

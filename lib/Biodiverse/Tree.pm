@@ -2,7 +2,7 @@ package Biodiverse::Tree;
 
 #  Package to build and store trees.
 #  includes clustering methods
-use 5.010;
+use 5.020;
 
 use Carp;
 use strict;
@@ -2251,7 +2251,12 @@ sub convert_comparisons_to_significances {
                 );
             }
 
+            #  this will result in fewer greps inside the sig rank sub
+            my $base_ref_name = $list_name =~ s/.+>>//r;
+            my $base_list_ref = $base_node->get_list_ref_aa( $base_ref_name );
+
             $self->get_sig_rank_from_comp_results(
+                base_list_ref    => $base_list_ref,
                 comp_list_ref    => $comp_ref,
                 results_list_ref => $result_list_ref,    #  do it in-place
             );
@@ -2268,7 +2273,7 @@ sub convert_comparisons_to_zscores {
       if !defined $result_list_pfx;
 
     my $progress      = Biodiverse::Progress->new();
-    my $progress_text = "Calculating significances";
+    my $progress_text = "Calculating z-scores";
     $progress->update( $progress_text, 0 );
 
     # find all the relevant lists for this target name
@@ -3115,18 +3120,28 @@ sub clone_without_caches {
     
     #  maybe should generate a new version but blessing and parenting might take longer
     my %saved_node_caches;
+    my %params = $self->get_params_hash;
+
     my $new_tree = do {
         #  we have to delete the new tree's caches so avoid cloning them in the first place
         delete local $self->{_cache};
+        delete local $self->{PARAMS} or say STDERR 'woap?';
         #  seem not to be able to use delete local on compound structure
         #  or maybe it is the foreach loop even though postfix
         $saved_node_caches{$_} = delete $self->{TREE_BY_NAME}{$_}{_cache}
           foreach keys %{$self->{TREE_BY_NAME}};
         $self->clone;
     };
-    #  reinstate the caches
+
+    #  reinstate the caches and other settings on the original tree
+    #  could be done as a defer block with a more recent perl
     $self->{TREE_BY_NAME}{$_}{_cache} = $saved_node_caches{$_}
       foreach keys %{$self->{TREE_BY_NAME}};
+
+    #  assign the basic params
+    foreach my $param (qw /OUTSUFFIX OUTSUFFIX_YAML/) {
+        $new_tree->set_param($param => $params{$param});
+    }
 
     #  reset all the total length values
     $new_tree->reset_total_length;

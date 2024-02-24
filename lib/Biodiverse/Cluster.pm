@@ -2777,7 +2777,9 @@ sub sp_calc {
     );
 
     #  drop out if we have none to do
-    return if $indices_object->get_valid_calculation_count == 0;  
+    return if $indices_object->get_valid_calculation_count == 0;
+
+    $indices_object->set_hierarchical_mode(!$args{no_hierarchical_mode});
 
     delete $args{calculations};  #  saves passing it onwards when we call the calculations
     delete $args{analyses};      #  for backwards compat
@@ -2809,16 +2811,26 @@ sub sp_calc {
             $count / $to_do,
         );
 
+        #  needs a better name
+        my $current_node_details = {
+            name        => $node->get_name,
+            child_names => [map {$_->get_name} $node->get_children],
+        };
+
         my %sp_calc_values = $indices_object->run_calculations(
             %args,
-            element_list1 => [keys %{$node->get_terminal_elements}]
+            element_list1        => [ keys %{$node->get_terminal_elements} ],
+            current_node_details => $current_node_details,
         );
 
         foreach my $key (keys %sp_calc_values) {
             if (is_arrayref($sp_calc_values{$key}) 
                 || is_hashref($sp_calc_values{$key})) {
                 
-                $node->add_to_lists ($key => $sp_calc_values{$key});
+                $node->add_to_lists (
+                    $key    => $sp_calc_values{$key},
+                    use_ref => 1,
+                );
                 delete $sp_calc_values{$key};
             }
         }
@@ -2829,6 +2841,8 @@ sub sp_calc {
     $indices_object->run_postcalc_globals (%args);
     
     $self->delete_cached_metadata;
+
+    $indices_object->set_hierarchical_mode(0);
 
     return 1;
 }

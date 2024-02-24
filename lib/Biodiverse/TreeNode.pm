@@ -1559,15 +1559,12 @@ sub get_shared_ancestor {
 #  get the list of hashes in the nodes
 sub get_hash_lists {
     my $self = shift;
-    my %args = @_;
-    
-    my @list;
-    foreach my $tmp (keys %{$self}) {
-        next if $tmp =~ /^_/;  #  skip the internals
-        push @list, $tmp if is_hashref($self->{$tmp});
-    }
-    return @list if wantarray;
-    return \@list;
+
+    my @list
+      = grep {$_ !~ /^_/ and is_hashref $self->{$_}}
+        keys %$self;
+
+    return wantarray ? @list : \@list;
 }
 
 sub get_hash_lists_below {
@@ -1577,9 +1574,11 @@ sub get_hash_lists_below {
     my %hash_list;
     @hash_list{@list} = undef;
 
-    foreach my $child ($self->get_children) {
-        my $list_below = $child->get_hash_lists_below;
+    my @children = $self->get_children;
+    while (my $child = shift @children) {
+        my $list_below = $child->get_hash_lists;
         @hash_list{@$list_below} = undef;
+        push @children, $child->get_children;
     }
     
     return wantarray
@@ -2446,14 +2445,22 @@ sub add_to_lists {
             $self->{$list} = $values;
         }
         elsif (is_hashref($values)) {
-            $self->{$list} = {} if ! exists $self->{$list};
-            next if ! scalar keys %$values;
-            @{$self->{$list}}{keys %$values} = values %$values;  #  add using a slice
-        }
+            if (!$self->{$list}) {
+                $self->{$list} = {%$values};
+            }
+            else {
+                next if !scalar keys %$values;
+                @{$self->{$list}}{keys %$values} = values %$values;
+            }
+       }
         elsif (is_arrayref($values)) {
-            $self->{$list} = [] if ! exists $self->{$list};
-            next if ! scalar @$values;
-            push @{$self->{$list}}, @$values;
+            if (!$self->{$list}) {
+                $self->{$list} = [@$values];
+            }
+            else {
+                next if !scalar @$values;
+                push @{$self->{$list}}, @$values;
+            }
         }
         else {
             croak "add_to_lists warning, no valid list ref passed\n";

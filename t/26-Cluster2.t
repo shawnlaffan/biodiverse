@@ -216,6 +216,57 @@ sub test_rw_turnover_mx {
 }
 
 
+sub test_cluster_node_calcs {
+
+    my %args = @_;
+    my $bd = $args{basedata_ref} || get_basedata_object_from_site_data(CELL_SIZES => [300000, 300000]);
+
+    my $prng_seed = $args{prng_seed} || $default_prng_seed;
+    my $tree_ref  = $args{tree_ref} || get_tree_object_from_sample_data();
+
+    my $calcs = [qw/calc_pe calc_pd/];
+
+    my $cl1 = $bd->add_cluster_output (name => 'cl1');
+    $cl1->run_analysis (
+        prng_seed => $prng_seed,
+    );
+    $cl1->run_spatial_calculations (
+        tree_ref             => $tree_ref,
+        spatial_calculations => $calcs,
+        no_hierarchical_mode => 1,
+    );
+    my $cl2 = $bd->add_cluster_output (name => 'cl2');
+    $cl2->run_analysis (
+        prng_seed => $prng_seed,
+    );
+    $cl2->run_spatial_calculations (
+        tree_ref             => $tree_ref,
+        spatial_calculations => $calcs,
+        no_hierarchical_mode => 0,
+    );
+
+    my $node_hash1 = $cl1->get_node_hash;
+    my $node_hash2 = $cl2->get_node_hash;
+
+    is [sort keys %$node_hash1], [sort keys %$node_hash2], 'paranoia check: same node names';
+
+    my (%aggregate1, %aggregate2);
+    foreach my $node_name (sort keys %$node_hash1) {
+        my $node1 = $node_hash1->{$node_name};
+        my $node2 = $node_hash2->{$node_name};
+
+        foreach my $list_name (sort grep {$_ !~ /NODE_VALUES/}$node1->get_hash_lists) {
+            my $ref1 = $node1->get_list_ref_aa($list_name);
+            my $ref2 = $node2->get_list_ref_aa($list_name);
+            my $snapped1 = {map {$_ => sprintf "%.10f", $ref1->{$_}} keys %$ref1};
+            my $snapped2 = {map {$_ => sprintf "%.10f", $ref2->{$_}} keys %$ref2};
+            $aggregate1{$node_name}{$list_name} = $snapped1;
+            $aggregate2{$node_name}{$list_name} = $snapped2;
+        }
+    }
+    is \%aggregate2, \%aggregate1, 'same per-node index results with and without hierarchical mode';
+}
+
 __DATA__
 
 @@ CLUSTER_MINI_DATA

@@ -6,6 +6,9 @@ use 5.020;
 
 our $VERSION = '4.99_002';
 
+use experimental 'refaliasing';
+
+
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
 sub get_metadata_calc_endemism_central_normalised {
@@ -295,11 +298,24 @@ sub get_metadata_calc_endemism_central_hier_part {
 }
 
 sub calc_endemism_central_hier_part {
-    my $self = shift;
+    my ($self, %args) = @_;
+
+    #  If we have no nbrs in set 2 then we are the same as the "whole" variant.
+    #  So just grab its values if it has already been calculated.
+    if (!keys %{$args{label_hash2}}) {
+        my $cache_hash = $self->get_cached_value('AS_RESULTS_FROM_LOCAL');
+        my $cached = $cache_hash->{calc_endemism_whole_hier_part};
+        if ($cached) {
+            my %remapped;
+            @remapped{map {$_ =~ s/ENDW/ENDC/r} keys %$cached}
+                = values %$cached;
+            return wantarray ? %remapped : \%remapped;
+        }
+    }
 
     return $self->_calc_endemism_hier_part (
-        @_,
-        prefix        => 'ENDC_HPART_',
+        %args,
+        prefix => 'ENDC_HPART_',
     );
 }
 
@@ -314,11 +330,25 @@ sub get_metadata_calc_endemism_whole_hier_part {
 }
 
 sub calc_endemism_whole_hier_part {
-    my $self = shift;
+    my ($self, %args) = @_;
+
+    #  If we have no nbrs in set 2 then we are the same as the "central" variant.
+    #  So just grab its values if it has already been calculated.
+    if (!keys %{$args{label_hash2}}) {
+        my $cache_hash = $self->get_cached_value('AS_RESULTS_FROM_LOCAL');
+        my $cached = $cache_hash->{calc_endemism_central_hier_part};
+        if ($cached) {
+            # say STDERR join ' ', sort keys %$cached;
+            my %remapped;
+            @remapped{map {$_ =~ s/ENDC/ENDW/r} keys %$cached}
+                = values %$cached;
+            return wantarray ? %remapped : \%remapped;
+        }
+    }
 
     return $self->_calc_endemism_hier_part (
-        @_,
-        prefix        => 'ENDW_HPART_',
+        %args,
+        prefix => 'ENDW_HPART_',
     );
 }
 
@@ -404,6 +434,7 @@ sub metadata_for_calc_endemism_hier_part {
         formula         => $formula,
         pre_calc        => [
             "_calc_endemism_$endemism_type",
+            'calc_abc2',
         ],
         pre_calc_global => 'get_basedata_labels_as_tree',
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
@@ -429,21 +460,24 @@ sub _calc_endemism_hier_part {
 
     my @hash_ref_array = ();
     my @count_array    = ();
-    my $total_count    = 0;
-    while (my ($label, $wt) = each %$wt_list) {
-        my $contribution = $wt / $we;
-        $total_count ++;
-        my $node_ref = $tree->get_node_ref (node => $label);
-        my $node_name = $label;
+    my $total_count    = keys %$wt_list;
 
-        #  climb the tree and add the contributions
+    foreach my $label (keys %$wt_list) {
+        my $contribution = $wt_list->{$label} / $we;
+
+        my $node_ref = $tree->get_node_ref_aa ($label);
+
+        #  Climb the tree and add the contributions.
+        #  Depth is off by one so the root is $i==-1.
         my $i = $depth;
-        while (! $node_ref->is_root_node) {
+        #  this call caches
+        my $path = $node_ref->get_path_name_array_to_root_node_aa;
+
+        foreach my $node_name (@$path) {
             $hash_ref_array[$i]{$node_name} += $contribution;
             $count_array[$i]{$node_name} ++;
             $i--;
-            $node_ref  = $node_ref->get_parent;
-            $node_name = $node_ref->get_name;
+            last if $i < 0;
         }
     }
 
@@ -548,6 +582,15 @@ sub get_metadata__calc_endemism_central {
 sub _calc_endemism_central {
     my $self = shift;
     my %args = @_;
+
+    #  If we have no nbrs in set 2 then we are the same as the "whole" variant.
+    #  So just grab its values if it has already been calculated.
+    if (!keys %{$args{label_hash2}}) {
+        my $cache_hash = $self->get_cached_value('AS_RESULTS_FROM_LOCAL');
+        my $cached = $cache_hash->{_calc_endemism_whole};
+        return wantarray ? %$cached : $cached
+            if $cached;
+    }
 
     return $self->_calc_endemism(%args, end_central => 1);
 }
@@ -688,8 +731,18 @@ sub get_metadata__calc_endemism_whole {
 
 #  wrapper sub
 sub _calc_endemism_whole {
-    my $self = shift;
-    return $self->_calc_endemism(@_, end_central => 0);
+    my ($self, %args) = @_;
+
+    #  If we have no nbrs in set 2 then we are the same as the "central" variant.
+    #  So just grab its values if it has already been calculated.
+    if (!keys %{$args{label_hash2}}) {
+        my $cache_hash = $self->get_cached_value('AS_RESULTS_FROM_LOCAL');
+        my $cached = $cache_hash->{_calc_endemism_central};
+        return wantarray ? %$cached : $cached
+          if $cached;
+    }
+
+    return $self->_calc_endemism(%args, end_central => 0);
 }
 
 #  Calculate endemism.  Private method called by others
@@ -701,8 +754,7 @@ sub _calc_endemism {
     my $bd = $self->get_basedata_ref;
 
     #  if element_list2 is specified and end_central == 1,
-    #  then it will consider those elements in the local range calculations,
-    #  but only use those labels that occur in the element_list1
+    #  then it will use the local ranges across sets 1 and 2
 
     my $local_ranges = $args{label_hash_all};
     my $label_list   = $args{end_central}
@@ -874,8 +926,9 @@ sub get_metadata__calc_endemism_absolute {
     my %metadata = (
         description     => $desc,
         name            => 'Absolute endemism, internals',
-        uses_nbr_lists  => 1,  #  how many sets of lists it must have
-        pre_calc        => ['calc_abc2'],
+        uses_nbr_lists  => 1, #  how many sets of lists it must have
+        pre_calc        => [ 'calc_abc2' ],
+        pre_calc_global => ['get_label_range_hash']
     );  #  add to if needed
 
     return $metadata_class->new(\%metadata);
@@ -889,9 +942,11 @@ sub _calc_endemism_absolute {
 
     my $bd = $self->get_basedata_ref;
 
-    my $local_ranges = $args{label_hash_all};
-    my $l_hash1 = $args{label_hash1};
-    my $l_hash2 = $args{label_hash2};
+    \my %local_ranges = $args{label_hash_all};
+    \my %l_hash1 = $args{label_hash1};
+    \my %l_hash2 = $args{label_hash2};
+
+    \my %ranges = $args{label_range_hash};
     
     #  allows us to use this for any other basedata get_* function
     my $function = 'get_range';
@@ -899,27 +954,28 @@ sub _calc_endemism_absolute {
     my ($end1, $end2, $end_all) = (0, 0, 0);
     my (%eh1, %eh2, %eh_all);
 
-    while (my ($sub_label, $local_range) = each %{$local_ranges}) {
-        my $range = $bd->$function (element => $sub_label);
+    foreach my $sub_label (keys %local_ranges) {
+        my $local_range = $local_ranges{$sub_label};
+        my $range       = $ranges{$sub_label};
 
         next if $range > $local_range;  #  cannot be absolutely endemic
 
         $end_all++;
         $eh_all{$sub_label} = $local_range;
 
-        if (exists $l_hash1->{$sub_label} and $range <= $l_hash1->{$sub_label}) {
+        if ($l_hash1{$sub_label} and $range <= $l_hash1{$sub_label}) {
             $end1++;
             $eh1{$sub_label} = $local_range;
         }
-        if (exists $l_hash2->{$sub_label} and $range <= $l_hash2->{$sub_label})  {
+        if ($l_hash2{$sub_label} and $range <= $l_hash2{$sub_label})  {
             $end2++;
             $eh2{$sub_label} = $local_range;
         }
     }
 
-    my $end1_p = eval {$end1 / scalar keys %$l_hash1};
-    my $end2_p = eval {$end2 / scalar keys %$l_hash2};
-    my $end_all_p = eval {$end_all / scalar keys %$local_ranges};
+    my $end1_p    = eval {$end1 / scalar keys %l_hash1};
+    my $end2_p    = eval {$end2 / scalar keys %l_hash2};
+    my $end_all_p = eval {$end_all / scalar keys %local_ranges};
 
     my %results = (
         END_ABS1         => $end1,

@@ -576,14 +576,20 @@ sub get_path_lengths_to_root_node {
     my $cache = !$args{no_cache};
     #$cache = 0;  #  turn it off for debug
     my $el_list = $args{el_list} // [];
-    
+
+    return $self->_get_path_lengths_to_root_node_hierarchical(%args)
+        if defined $args{current_node_details}
+            && $self->get_hierarchical_mode
+            && scalar @{$args{element_list1} //[]} > 1;
+
     #  have we cached it?
-    #my $use_path_cache = $cache && $self->get_pairwise_mode();
+    #  caching makes sense only if we have
+    #  only one element (group) containing labels
+    #  or we are in hierarchical mode, but that is handled separately
     my $use_path_cache
         =  $cache
         && $self->get_param('USE_PATH_LENGTH_CACHE_BY_GROUP')
-        && scalar @$el_list == 1;  #  caching makes sense only if we have
-                                   #  only one element (group) containing labels
+        && scalar @$el_list == 1;
 
     if ($use_path_cache) {
         my $cache_h   = $args{path_length_cache};
@@ -677,6 +683,33 @@ sub get_path_lengths_to_root_node {
     }
 
     return wantarray ? %$path_hash : $path_hash;
+}
+
+sub _get_path_lengths_to_root_node_hierarchical {
+    my ($self, %args) = @_;
+
+    my $node_data = $args{current_node_details}
+        // croak 'Must pass the current node details when in hierarchical mode';
+    my $node_name = $node_data->{name}
+        // croak 'Missing current node name in hierarchical mode';
+    my $child_names = $node_data->{child_names};
+
+    my $cache_h = $args{path_length_cache};
+
+    my %path_combined;
+
+    foreach my $child (@$child_names) {
+        my $path = $cache_h->{$child};
+        if (!$path) {
+            #  need to calculate it
+            delete local $args{current_node_details};
+            $path = $self->get_path_lengths_to_root_node(%args);
+        }
+        @path_combined{keys %$path} = values %$path;
+    }
+    $cache_h->{$node_name} = \%path_combined;
+
+    return wantarray ? %path_combined : \%path_combined;
 }
 
 
@@ -1626,6 +1659,15 @@ sub calc_labels_not_on_tree {
     my %args = @_;
 
     my $not_on_tree = $args{labels_not_on_tree};
+
+    if (!keys %$not_on_tree) {
+        my $res = {
+            PHYLO_LABELS_NOT_ON_TREE   => {},
+            PHYLO_LABELS_NOT_ON_TREE_N => 0,
+            PHYLO_LABELS_NOT_ON_TREE_P => 0,
+        };
+        return wantarray ? %$res : $res;
+    }
 
     my %labels1 = %{$args{label_hash_all}};
     my $richness = scalar keys %labels1;

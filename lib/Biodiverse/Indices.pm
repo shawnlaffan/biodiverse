@@ -12,7 +12,7 @@ use warnings;
 #use Data::Dumper;
 use Scalar::Util qw /blessed weaken/;
 use List::MoreUtils qw /uniq/;
-use List::Util qw /sum/;
+use List::Util qw /sum any/;
 use English ( -no_match_vars );
 use Ref::Util qw { :all };
 use JSON::MaybeXS;
@@ -794,18 +794,10 @@ sub parse_dependencies_for_calc {
                   $self->_convert_to_array( input => $required_args );
 
                 foreach my $required_arg ( sort @$reqd_args_a ) {
-                    my $re = qr /^($required_arg)$/
-                      ; #  match is used in the grep?  Was used in now-removed code.
-                    my $is_defined;
-                  CALC_ARG:
-                    foreach
-                      my $calc_arg ( sort grep { $_ =~ $re } keys %$calc_args )
-                    {
-                        if ( defined $calc_args->{$calc_arg} ) {
-                            $is_defined++;
-                            last CALC_ARG;
-                        }
-                    }
+                    my $re = qr /^($required_arg)$/;
+                    my $is_defined
+                        = any { $_ =~ $re && defined $calc_args->{$_}}
+                          sort keys %$calc_args;
 
                     if ( !$is_defined ) {
                         Biodiverse::Indices::MissingRequiredArguments->throw(
@@ -1533,11 +1525,16 @@ sub run_dependencies {
     my $tmp = $self->get_param('AS_RESULTS_FROM_GLOBAL') || {};
     my %as_results_from_global = %$tmp;    #  make a copy
 
+    state $cache_name_local_results = 'AS_RESULTS_FROM_LOCAL';
+
     #  Now we run the calculations at this level.
     #  We also keep track of what has been run
     #  to avoid repetition through multiple dependencies.
     my %results;
     my %as_results_from;
+    #  make sure this is new each iteration
+    $self->set_cached_value ($cache_name_local_results => \%as_results_from);
+
     foreach my $calc (@$calc_list) {
         my $calc_results;
 
@@ -1573,6 +1570,9 @@ sub run_dependencies {
         }
         $results{$calc} = $calc_results;
     }
+
+    #  We refresh each call above, but this ensures last one is cleaned up.
+    $self->delete_cached_value($cache_name_local_results);
 
     if ( $type eq 'pre_calc_global' ) {
         $self->set_param( AS_RESULTS_FROM_GLOBAL => \%as_results_from_global );
@@ -1663,6 +1663,9 @@ sub set_pairwise_mode {
 
     $self->{pairwise_mode} = $mode;
 
+    croak "Cannot have both pairwise and hierarchical modes on at the same time"
+        if $mode && $self->get_hierarchical_mode;
+
     return $mode;
 }
 
@@ -1670,6 +1673,24 @@ sub set_pairwise_mode {
 sub get_pairwise_mode {
     $_[0]->{pairwise_mode};
 }
+
+sub set_hierarchical_mode {
+    my ( $self, $mode ) = @_;
+
+    $self->{hierarchical_mode} = $mode;
+
+    croak "Cannot have both pairwise and hierarchical modes on at the same time"
+        if $mode && $self->get_pairwise_mode;
+
+    return $mode;
+}
+
+#  potential hot path so optimise to avoid arg handling
+sub get_hierarchical_mode {
+    $_[0]->{hierarchical_mode};
+}
+
+
 
 1;
 

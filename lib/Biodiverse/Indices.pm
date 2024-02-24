@@ -12,7 +12,7 @@ use warnings;
 #use Data::Dumper;
 use Scalar::Util qw /blessed weaken/;
 use List::MoreUtils qw /uniq/;
-use List::Util qw /sum/;
+use List::Util qw /sum any/;
 use English ( -no_match_vars );
 use Ref::Util qw { :all };
 use JSON::MaybeXS;
@@ -795,15 +795,9 @@ sub parse_dependencies_for_calc {
 
                 foreach my $required_arg ( sort @$reqd_args_a ) {
                     my $re = qr /^($required_arg)$/;
-                    my $is_defined;
-                  CALC_ARG:
-                    foreach
-                      my $calc_arg ( sort grep { $_ =~ $re } keys %$calc_args ) {
-                        if ( defined $calc_args->{$calc_arg} ) {
-                            $is_defined++;
-                            last CALC_ARG;
-                        }
-                    }
+                    my $is_defined
+                        = any { $_ =~ $re && defined $calc_args->{$_}}
+                          sort keys %$calc_args;
 
                     if ( !$is_defined ) {
                         Biodiverse::Indices::MissingRequiredArguments->throw(

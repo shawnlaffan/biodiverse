@@ -336,6 +336,22 @@ sub calc_phylo_rpe2 {
     my $self = shift;
     my %args = @_;
 
+    if (!@{$args{element_list2} // []}) {
+        #  We just copy the calc_phylo_rpe_central results
+        #  if there are no nbrs in set2
+        my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
+        if (my $cached = $cache_hash->{calc_phylo_rpe_central}) {
+            my %results;
+            foreach my $key (keys %$cached) {
+                #  will need to be changed if we rename the RPE indices
+                my $new_key = ($key =~ s/C$/2/r);
+                $results{$new_key} = $cached->{$key};
+            }
+            return wantarray ? %results : \%results;
+        }
+    }
+
+
     my $orig_tree_ref = $args{trimmed_tree};
     my $orig_total_tree_length = $orig_tree_ref->get_total_tree_length;
 

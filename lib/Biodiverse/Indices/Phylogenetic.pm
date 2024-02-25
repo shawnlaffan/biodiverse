@@ -2679,6 +2679,15 @@ sub _calc_phylo_abc_lists {
         el_list  => $args{element_list1},
     );
 
+    if (!@{$args{element_list2}}) {
+        my $res = {
+            PHYLO_A_LIST => {},
+            PHYLO_B_LIST => $nodes_in_path1,
+            PHYLO_C_LIST => {},
+        };
+        return wantarray ? %$res : $res;
+    }
+
     my $nodes_in_path2 = @{$args{element_list2}}
         ? $self->get_path_lengths_to_root_node (
             %args,

@@ -266,20 +266,30 @@ sub calc_phylo_rpe_central {
     my $self = shift;
     my %args = @_;
 
-    my %results = $self->calc_phylo_rpe2 (
-        %args,
-        PE_WE_P => $args{PEC_WE_P},
-        PE_WE   => $args{PEC_WE},
-        PE_RANGELIST       => $args{PEC_RANGELIST},
-        PE_LOCAL_RANGELIST => $args{PEC_LOCAL_RANGELIST},
-    );
+    my $results;
+
+    if (!@{$args{element_list2} // []}) {
+        #  We just copy the calc_phylo_rpe2 results
+        #  if there are no nbrs in set2
+        my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
+        $results = $cache_hash->{calc_phylo_rpe2};
+    }
+
+    if (!$results) {
+        $results = $self->calc_phylo_rpe2(
+            %args,
+            PE_WE_P            => $args{PEC_WE_P},
+            PE_WE              => $args{PEC_WE},
+            PE_RANGELIST       => $args{PEC_RANGELIST},
+            PE_LOCAL_RANGELIST => $args{PEC_LOCAL_RANGELIST},
+        );
+    }
 
     my %results2;
-    foreach my $key (keys %results) {
-        my $new_key = $key;
+    foreach my $key (keys %$results) {
         #  will need to be changed if we rename the RPE indices
-        $new_key =~ s/2$/C/;
-        $results2{$new_key} = $results{$key};
+        my $new_key = ($key =~ s/2$/C/r);
+        $results2{$new_key} = $results->{$key};
     }
 
     return wantarray ? %results2 : \%results2;

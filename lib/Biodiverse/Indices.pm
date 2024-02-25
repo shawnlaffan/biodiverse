@@ -1023,15 +1023,20 @@ sub aggregate_calc_lists_by_type {
         my @u_array = uniq @$array;
         if ($type eq 'pre_calc'
             and scalar @u_array
-            and any {$_ eq '_calc_abc_any'} @u_array
         ) {
-            #  move first /calc_abc[23]?/ to front so
-            #  _calc_abc_any can grab results
-            state $re = qr{^calc_abc\d?};
-            if ($u_array[0] !~ $re) {
-                my $iter = first_index {$_ =~ $re} @u_array;
-                if ($iter > 0) {
-                    unshift @u_array, splice @u_array, $iter, 1;
+            #  move first /calc_abc[23]/ to front so
+            #  calc_abc and _calc_abc_any can grab results
+            #  otherwise ensure calc_abc is at the front
+            #  for _calc_abc_any
+            state $re = qr{^calc_abc[23]};
+            my $iter23 = first_index {$_ =~ $re} @u_array;
+            if ($iter23 > 0) {
+                unshift @u_array, splice @u_array, $iter23, 1;
+            }
+            else {
+                my $iter1 = first_index {$_ eq 'calc_abc'} @u_array;
+                if ($iter1 > 0) {
+                    unshift @u_array, splice @u_array, $iter1, 1;
                 }
             }
         }

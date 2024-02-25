@@ -2918,22 +2918,18 @@ sub _calc_phylo_aed_t {
     my $self = shift;
     my %args = @_;
 
-    my $aed_hash   = $args{PHYLO_AED_LIST};
-    my $label_hash = $args{label_hash_all};
+    \my %aed_hash   = $args{PHYLO_AED_LIST};
+    \my %label_hash = $args{label_hash_all};
     my $aed_t;
     my %scores;
 
   LABEL:
-    foreach my $label (keys %$label_hash) {
-        my $abundance = $label_hash->{$label};
+    foreach my $label (keys %label_hash) {
+        next LABEL if !exists $aed_hash{$label};
 
-        next LABEL if !exists $aed_hash->{$label};
-
-        my $aed_score = $aed_hash->{$label};
-        my $weight    = $abundance * $aed_score;
-
+        my $weight      = $label_hash{$label} * $aed_hash{$label};
         $scores{$label} = $weight;
-        $aed_t += $weight;
+        $aed_t         += $weight;
     }
 
     my %results = (
@@ -2986,20 +2982,20 @@ sub calc_phylo_aed {
     my $self = shift;
     my %args = @_;
 
-    my $label_hash = $args{label_hash_all};
-    my $es_wts     = $args{ES_SCORES};
-    my $ed_wts     = $args{ED_SCORES};
-    my $aed_wts    = $args{AED_SCORES};
+    \my %label_hash = $args{label_hash_all};
+    \my %es_wts     = $args{ES_SCORES};
+    \my %ed_wts     = $args{ED_SCORES};
+    \my %aed_wts    = $args{AED_SCORES};
 
     my (%es, %ed, %aed);
     # now loop over the terminals and extract the weights (would slices be faster?)
     # Do we want the proportional values?  Divide by PD to get them.
   LABEL:
-    foreach my $label (keys %$label_hash) {
-        next LABEL if !exists $aed_wts->{$label};
-        $aed{$label} = $aed_wts->{$label};
-        $ed{$label}  = $ed_wts->{$label};
-        $es{$label}  = $es_wts->{$label};
+    foreach my $label (keys %label_hash) {
+        next LABEL if !exists $aed_wts{$label};
+        $aed{$label} = $aed_wts{$label};
+        $ed{$label}  = $ed_wts{$label};
+        $es{$label}  = $es_wts{$label};
     }
 
     my %results = (
@@ -3055,7 +3051,7 @@ sub get_aed_scores {
         my $node_ref = eval {
             $tree->get_node_ref (node => $label);
         };
-        if (my $e = $EVAL_ERROR) {  #  still needed? 
+        if (my $e = $EVAL_ERROR) {  #  still needed?
             next LABEL if Biodiverse::Tree::NotExistsNode->caught;
             croak $e;
         }

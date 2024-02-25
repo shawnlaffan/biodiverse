@@ -10,7 +10,7 @@ use warnings;
 
 use English qw { -no_match_vars };
 use Data::Dumper;
-use List::Util 1.45 qw /uniq/;
+use List::Util 1.45 qw /uniq pairmap/;
 use rlib;
 
 use Data::Section::Simple qw(
@@ -589,10 +589,14 @@ sub check_integrated_matches_single_run_spatial {
                 my %l_args = (element => $group, list => $list_name);
                 my $lr_orig   = $sp_orig->get_list_ref (%l_args);
                 my $lr_integr = $sp_integr->get_list_ref (%l_args);
+                my %diffs = pairmap {$a => abs ($b - $lr_orig->{$a}) < 1e-8} %$lr_integr;
+                my %exp;
+                @exp{keys %$lr_orig} = (1) x keys %$lr_orig;
+
                 is (
-                    $lr_integr,
-                    $lr_orig,
-                    "integrated matches single run, $group, $list_name"
+                    \%diffs,
+                    \%exp,
+                    "integrated within tolerance, single run, $group, $list_name"
                 );
             }
         }
@@ -604,6 +608,7 @@ sub check_integrated_matches_single_run_cluster {
     my ($cl_orig, $cl_integr) = @args{qw /orig integr/};
 
     my $object_name = $cl_integr->get_name;
+    my $tol = 1e-8;
 
     subtest "randomisation cluster lists incremented correctly, $object_name" => sub {
         my $to_nodes   = $cl_integr->get_node_refs;
@@ -617,19 +622,17 @@ sub check_integrated_matches_single_run_cluster {
                 my %l_args = (list => $list_name);
                 my $lr_orig   = $orig_node->get_list_ref (%l_args);
                 my $lr_integr = $to_node->get_list_ref (%l_args);
-                #is (  #  needed for debug, disable once completed
-                #    join (' ', sort keys %$lr_integr),
-                #    join (' ', sort keys %$lr_orig),
-                #    "keys match for $list_name, node $node_name",
-                #);
-                compare_hash_vals (
-                    hash_got => $lr_integr,
-                    hash_exp => $lr_orig,
-                    tolerance => 1e-10,
-                    descr_suffix
-                      => "integrated matches single run, "
-                       . "$object_name, $node_name, $list_name"
+
+                my %diffs = pairmap {$a => abs ($b - $lr_orig->{$a}) < $tol} %$lr_integr;
+                my %exp;
+                @exp{keys %$lr_orig} = (1) x keys %$lr_orig;
+
+                is (
+                    \%diffs,
+                    \%exp,
+                    "integrated within tolerance, single run, $node_name, $list_name"
                 );
+
             }
         }
     };

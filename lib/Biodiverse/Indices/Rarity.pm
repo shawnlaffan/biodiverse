@@ -165,6 +165,20 @@ sub _calc_rarity_central {
     my $self = shift;
     my %args = @_;
 
+    #  If we have no nbrs in set 2 then we are the same as the "whole" variant.
+    #  So just grab its values if it has already been calculated.
+    if (!keys %{$args{label_hash2}}) {
+        my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
+        if (my $cached = $cache_hash->{_calc_rarity_whole}) {
+            my %remapped;
+            foreach my $key (keys %$cached) {
+                my $key2 = ($key =~ s/^RAREW/RAREC/r);
+                $remapped{$key2} = $cached->{$key};
+            }
+            return wantarray ? %remapped : \%remapped;
+        }
+    }
+
     my %hash = $self->_calc_endemism (
         %args,
         end_central => 1,
@@ -294,6 +308,21 @@ sub calc_rarity_whole_lists {
 sub _calc_rarity_whole {
     my $self = shift;
     my %args = @_;
+
+    #  If we have no nbrs in set 2 then we are the same as the "whole" variant.
+    #  So just grab its values if it has already been calculated.
+    if (!keys %{$args{label_hash2}}) {
+        my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
+        if (my $cached = $cache_hash->{_calc_rarity_central}) {
+            my %remapped;
+            foreach my $key (keys %$cached) {
+                my $key2 = ($key =~ s/^RAREC/RAREW/r);
+                $remapped{$key2} = $cached->{$key};
+            }
+            return wantarray ? %remapped : \%remapped;
+        }
+    }
+
 
     my %hash = $self->_calc_endemism (
         %args,

@@ -1819,6 +1819,11 @@ sub _calc_abc_dispatcher {
             && @{$args{element_list2} // []} == 1
             && !$have_lb_lists;
 
+    return $self->_calc_abc_hierarchical_mode(%args)
+        if $args{current_node_details}
+            && !$have_lb_lists
+            && $self->get_hierarchical_mode;
+
     return $self->_calc_abc(%args)
         if is_hashref($args{element_list1})
             || @{$args{element_list1} // []} != 1
@@ -1952,6 +1957,87 @@ sub _calc_abc_pairwise_mode {
     );
 
     return wantarray ? %results : \%results;
+}
+
+sub _calc_abc_hierarchical_mode {
+    my ($self, %args) = @_;
+
+    my $count_samples = $args{count_samples};
+    my $count_labels  = !$count_samples && $args{count_labels};
+
+    my $node_data = $args{current_node_details}
+        // croak '_calc_abc: Must pass the current node details when in hierarchical mode';
+    my $node_name = $node_data->{name}
+        // croak '_calc_abc: Missing current node name in hierarchical mode';
+    my $child_names = $node_data->{child_names};
+
+    my $cache = $self->get_cached_value_dor_set_default_href (
+        '_calc_abc_hierarchical_mode_' . ($count_labels ? 2 : $count_samples ? 3 : 1)
+    );
+
+    #  if we are a tree terminal then we populate the cache
+    #  using the non-hierarch method
+    if (!@$child_names) {
+        delete local $args{current_node_details};
+        $cache->{$node_name} = $self->_calc_abc_dispatcher(%args);
+        return wantarray ? %{$cache->{$node_name}} : $cache->{$node_name};
+    }
+
+    my %label_hash1;
+
+    foreach my $set (@$child_names) {
+        #  use the cached results for a group if present
+        my $results_this_set = $cache->{$set};
+        if (!$results_this_set) {
+            #  fall back to non-hierarchical
+            delete local $args{current_node_details};
+            $results_this_set = $self->_calc_abc_dispatcher(%args);
+        }
+        my $lb_hash = $results_this_set->{label_hash1};
+
+        if (!%label_hash1) {  #  fresh start
+            %label_hash1 = %$lb_hash;
+        }
+        else {
+            if ($count_samples) {
+                pairmap {$label_hash1{$a} += $b} %$lb_hash;
+            }
+            else {
+                @label_hash1{keys %$lb_hash} = (1) x keys %$lb_hash;
+            }
+        }
+    }
+
+
+    #  Could use ref instead of copying?
+    my %label_list_master = %label_hash1;
+
+    #  a, b and c are simply differences of the lists
+    #  doubled letters are to avoid clashes with globals $a and $b
+    my $bb = scalar keys %label_hash1;
+
+    my $element_list1 = $args{element_list1};
+
+    my $results = {
+        A                 => 0,
+        B                 => $bb,
+        C                 => 0,
+        ABC               => $bb,
+
+        label_hash_all    => \%label_list_master,
+        label_hash1       => \%label_hash1,
+        label_hash2       => {},
+        element_list1     => $element_list1,
+        element_list2     => [],
+        element_list_all  => $element_list1,
+        element_count1    => scalar @$element_list1,
+        element_count2    => 0,
+        element_count_all => scalar @$element_list1,
+    };
+
+    $cache->{$node_name} = $results;
+
+    return wantarray ? %$results : $results;
 }
 
 sub _calc_abc {  #  required by all the other indices, as it gets the labels in the elements

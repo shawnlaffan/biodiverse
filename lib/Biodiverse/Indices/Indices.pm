@@ -1738,6 +1738,22 @@ sub get_metadata_calc_abc {
 sub calc_abc {  #  wrapper for _calc_abc - use the other wrappers for actual GUI stuff
     my ($self, %args) = @_;
 
+    my $cache_hash = $self->get_cached_value('AS_RESULTS_FROM_LOCAL');
+    my $cached
+        = $cache_hash->{calc_abc2} || $cache_hash->{calc_abc3};
+
+    if ($cached) {
+        #  create a shallow copy and then override the label hashes
+        my %results = %$cached;
+        foreach my $key (qw/label_hash1 label_hash2 label_hash_all/) {
+            my $href = $results{$key};
+            my %h;
+            @h{keys %$href} = (1) x scalar keys %{$href};
+            $results{$key} = \%h;
+        }
+        return wantarray ? %results : \%results;
+    }
+
     delete @args{qw/count_samples count_labels}/};
 
     return $self->_calc_abc_dispatcher(%args);

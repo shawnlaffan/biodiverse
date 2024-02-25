@@ -761,7 +761,8 @@ sub _calc_endemism {
         ? $args{label_hash1}
         : $args{label_hash_all};
 
-    #  allows us to use this for any other basedata get_* function
+    #  Allows us to use this for any other basedata get_* function.
+    #  calc_rarity is an example of this.
     my $function   = $args{function} || 'get_range';
     my $range_hash = $args{label_range_hash} || {};
 

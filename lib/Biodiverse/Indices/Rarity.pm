@@ -173,9 +173,8 @@ sub _calc_rarity_central {
     );
 
     my %hash2;
-    while (my ($key, $value) = each %hash) {
-        my $key2 = $key;
-        $key2 =~ s/^END/RAREC/;
+    foreach my $key (keys %hash) {
+        my $key2 = ($key =~ s/^END/RAREC/r);
         $hash2{$key2} = $hash{$key};
     }
 
@@ -304,9 +303,8 @@ sub _calc_rarity_whole {
     );
 
     my %hash2;
-    while (my ($key, $value) = each %hash) {
-        my $key2 = $key;
-        $key2 =~ s/^END/RAREW/;
+    foreach my $key (keys %hash) {
+        my $key2 = ($key =~ s/^END/RAREW/r);
         $hash2{$key2} = $hash{$key};
     }
 

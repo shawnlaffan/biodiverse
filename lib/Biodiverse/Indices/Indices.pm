@@ -1702,7 +1702,7 @@ sub get_metadata__calc_abc_any {
 sub _calc_abc_any {
     my $self = shift;
 
-    my $cache_hash = $self->get_cached_value('AS_RESULTS_FROM_LOCAL');
+    my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
     my $cache_key
         = List::Util::first {defined $cache_hash->{$_}}
           (qw/calc_abc calc_abc2 calc_abc3/);
@@ -1738,7 +1738,7 @@ sub get_metadata_calc_abc {
 sub calc_abc {  #  wrapper for _calc_abc - use the other wrappers for actual GUI stuff
     my ($self, %args) = @_;
 
-    my $cache_hash = $self->get_cached_value('AS_RESULTS_FROM_LOCAL');
+    my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
     my $cached
         = $cache_hash->{calc_abc2} || $cache_hash->{calc_abc3};
 

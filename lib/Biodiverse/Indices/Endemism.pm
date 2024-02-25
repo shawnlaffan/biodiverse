@@ -303,7 +303,7 @@ sub calc_endemism_central_hier_part {
     #  If we have no nbrs in set 2 then we are the same as the "whole" variant.
     #  So just grab its values if it has already been calculated.
     if (!keys %{$args{label_hash2}}) {
-        my $cache_hash = $self->get_cached_value('AS_RESULTS_FROM_LOCAL');
+        my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
         my $cached = $cache_hash->{calc_endemism_whole_hier_part};
         if ($cached) {
             my %remapped;
@@ -335,7 +335,7 @@ sub calc_endemism_whole_hier_part {
     #  If we have no nbrs in set 2 then we are the same as the "central" variant.
     #  So just grab its values if it has already been calculated.
     if (!keys %{$args{label_hash2}}) {
-        my $cache_hash = $self->get_cached_value('AS_RESULTS_FROM_LOCAL');
+        my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
         my $cached = $cache_hash->{calc_endemism_central_hier_part};
         if ($cached) {
             # say STDERR join ' ', sort keys %$cached;
@@ -586,7 +586,7 @@ sub _calc_endemism_central {
     #  If we have no nbrs in set 2 then we are the same as the "whole" variant.
     #  So just grab its values if it has already been calculated.
     if (!keys %{$args{label_hash2}}) {
-        my $cache_hash = $self->get_cached_value('AS_RESULTS_FROM_LOCAL');
+        my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
         my $cached = $cache_hash->{_calc_endemism_whole};
         return wantarray ? %$cached : $cached
             if $cached;
@@ -736,7 +736,7 @@ sub _calc_endemism_whole {
     #  If we have no nbrs in set 2 then we are the same as the "central" variant.
     #  So just grab its values if it has already been calculated.
     if (!keys %{$args{label_hash2}}) {
-        my $cache_hash = $self->get_cached_value('AS_RESULTS_FROM_LOCAL');
+        my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
         my $cached = $cache_hash->{_calc_endemism_central};
         return wantarray ? %$cached : $cached
           if $cached;

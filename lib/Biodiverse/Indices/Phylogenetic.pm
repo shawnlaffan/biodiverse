@@ -1603,7 +1603,7 @@ sub get_metadata_calc_labels_on_tree {
         },
         type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
         pre_calc_global => [qw /get_labels_not_on_tree/],
-        pre_calc        => ['_calc_abc_any'],
+        pre_calc        => ['calc_abc'],
         uses_nbr_lists  => 1,  #  how many lists it must have
         required_args   => ['tree_ref'],
     );

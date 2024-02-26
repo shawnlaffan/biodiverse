@@ -61,7 +61,7 @@ sub get_metadata_calc_richness {
         name            => 'Richness',
         description     => 'Count the number of labels in the neighbour sets',
         type            => 'Lists and Counts',
-        pre_calc        => 'calc_abc',
+        pre_calc        => ['_calc_abc_any'],
         uses_nbr_lists  => 1,  #  how many sets of neighbour lists it must have
         distribution => 'nonnegative',
         indices         => {
@@ -192,7 +192,7 @@ sub get_metadata_is_dissimilarity_valid {
             }
         },
         type            => 'Taxonomic Dissimilarity and Comparison',
-        pre_calc        => 'calc_abc',
+        pre_calc        => ['_calc_abc_any'],
     );
 
     return $metadata_class->new(\%metadata);
@@ -283,7 +283,7 @@ sub get_metadata_calc_kulczynski2 {
             },
         },
         type            => 'Taxonomic Dissimilarity and Comparison',
-        pre_calc        => [qw /calc_abc is_dissimilarity_valid/],
+        pre_calc        => [qw /_calc_abc_any is_dissimilarity_valid/],
         uses_nbr_lists  => 2,
     );
 
@@ -329,7 +329,7 @@ sub get_metadata_calc_sorenson {
             }
         },
         type            => 'Taxonomic Dissimilarity and Comparison',
-        pre_calc        => [qw /calc_abc is_dissimilarity_valid/],
+        pre_calc        => [qw /_calc_abc_any is_dissimilarity_valid/],
         uses_nbr_lists  => 2,
     );
 
@@ -360,7 +360,7 @@ sub get_metadata_calc_jaccard {
         description     => 'Jaccard dissimilarity between the labels in neighbour sets 1 and 2.',
         type            => 'Taxonomic Dissimilarity and Comparison',
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
-        pre_calc        => [qw /calc_abc is_dissimilarity_valid/],
+        pre_calc        => [qw /_calc_abc_any is_dissimilarity_valid/],
         formula         => [
             '= 1 - \frac{A}{A + B + C}',
             $self->get_formula_explanation_ABC,
@@ -457,7 +457,7 @@ sub get_metadata_calc_nestedness_resultant {
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
         reference       => 'Baselga (2010) Glob Ecol Biogeog.  '
                            . 'https://doi.org/10.1111/j.1466-8238.2009.00490.x',
-        pre_calc        => [qw /calc_abc/],
+        pre_calc        => ['_calc_abc_any'],
         formula         => [
             '=\frac{ \left | B - C \right | }{ 2A + B + C } '
             . '\times \frac { A }{ A + min (B, C) }'
@@ -711,7 +711,7 @@ sub get_metadata_calc_beta_diversity {
         },
         type            => 'Taxonomic Dissimilarity and Comparison',
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
-        pre_calc        => 'calc_abc',
+        pre_calc        => ['_calc_abc_any'],
     );
 
     return $metadata_class->new(\%metadata);
@@ -742,7 +742,7 @@ sub get_metadata_calc_s2 {
         name            => 'S2',
         type            => 'Taxonomic Dissimilarity and Comparison',
         description     => "S2 dissimilarity between two sets of labels\n",
-        pre_calc        => 'calc_abc',
+        pre_calc        => ['_calc_abc_any'],
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
         reference   => 'Lennon et al. (2001) J Animal Ecol.  '
                         . 'https://doi.org/10.1046/j.0021-8790.2001.00563.x',
@@ -1396,7 +1396,7 @@ sub get_metadata_calc_abc_counts {
                 lumper      => 1,
             },
         },
-        pre_calc        => 'calc_abc',
+        pre_calc        => ['_calc_abc_any'],
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
     );  #  add to if needed
 
@@ -1405,7 +1405,6 @@ sub get_metadata_calc_abc_counts {
 
 sub calc_abc_counts {
     my $self = shift;
-
     my %args = @_;  #  rest of args into a hash
 
     my %results = (
@@ -1415,10 +1414,7 @@ sub calc_abc_counts {
         ABC_ABC => $args{ABC},
     );
 
-    return wantarray
-            ? %results
-            : \%results;
-
+    return wantarray ? %results : \%results;
 }
 
 #  for some indices where a, b, c & d are needed
@@ -1449,7 +1445,7 @@ sub get_metadata_calc_d {
         description     => $description,
         type            => 'Lists and Counts',
         uses_nbr_lists  => 1,
-        pre_calc        => 'calc_abc',
+        pre_calc        => ['_calc_abc_any'],
         indices         => {
             ABC_D => {
                 description  => 'Count of labels not in either neighbour set (D score)',
@@ -1469,7 +1465,7 @@ sub get_metadata_calc_elements_used {
         name            => 'Element counts',
         description     => "Counts of elements used in neighbour sets 1 and 2.\n",
         type            => 'Lists and Counts',
-        pre_calc        => 'calc_abc',
+        pre_calc        => ['_calc_abc_any'],
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         distribution => 'nonnegative',
         indices         => {
@@ -1573,7 +1569,7 @@ sub get_metadata_calc_element_lists_used {
             . 'The return types are inconsistent. New code should use '
             . 'calc_element_lists_used_as_arrays',
         type            => 'Lists and Counts',
-        pre_calc        => 'calc_abc',
+        pre_calc        => ['_calc_abc_any'],
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         indices         => {
             EL_LIST_SET1  => {
@@ -1637,7 +1633,7 @@ sub get_metadata_calc_element_lists_used_as_arrays {
         description     => "Arrays of elements used in neighbour sets 1 and 2.\n"
             . 'These form the basis for all the spatial calculations.',
         type            => 'Lists and Counts',
-        pre_calc        => 'calc_abc',
+        pre_calc        => ['_calc_abc_any'],
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         indices         => {
             EL_ARRAY_SET1  => {
@@ -1688,6 +1684,43 @@ sub calc_element_lists_used_as_arrays {
 }
 
 
+sub get_metadata__calc_abc_any {
+
+    my %metadata = (
+        name            => '_calc_abc_any',
+        description     => 'Special sub for when we only need the keys, '
+                         . 'not the values, so can use any of /calc_abc[23]?/',
+        type            => 'not_for_gui',
+        indices         => {},
+        uses_nbr_lists  => 1,  #  how many sets of lists it must have
+        required_args   => [$RE_ABC_REQUIRED_ARGS],  #experimental - https://github.com/shawnlaffan/biodiverse/issues/336
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub _calc_abc_any {
+    my $self = shift;
+
+    my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
+    my $cache_key
+        = List::Util::first {defined $cache_hash->{$_}}
+          (qw/calc_abc calc_abc2 calc_abc3/);
+
+    # say STDERR 'NO previous cache key'
+    #     if !$cache_key;
+
+    #  fall back to calc_abc if nothing had an explicit abc dependency
+    my $cached = $cache_key
+        ? $cache_hash->{$cache_key}
+        : $self->calc_abc(@_);
+
+    croak 'No previous calc_abc results found'
+        if !$cached;
+
+    return wantarray ? %$cached : $cached;
+}
+
 sub get_metadata_calc_abc {
 
     my %metadata = (
@@ -1704,6 +1737,22 @@ sub get_metadata_calc_abc {
 
 sub calc_abc {  #  wrapper for _calc_abc - use the other wrappers for actual GUI stuff
     my ($self, %args) = @_;
+
+    my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
+    my $cached
+        = $cache_hash->{calc_abc2} || $cache_hash->{calc_abc3};
+
+    if ($cached) {
+        #  create a shallow copy and then override the label hashes
+        my %results = %$cached;
+        foreach my $key (qw/label_hash1 label_hash2 label_hash_all/) {
+            my $href = $results{$key};
+            my %h;
+            @h{keys %$href} = (1) x scalar keys %{$href};
+            $results{$key} = \%h;
+        }
+        return wantarray ? %results : \%results;
+    }
 
     delete @args{qw/count_samples count_labels}/};
 
@@ -1769,6 +1818,11 @@ sub _calc_abc_dispatcher {
             && @{$args{element_list1} // []} == 1
             && @{$args{element_list2} // []} == 1
             && !$have_lb_lists;
+
+    return $self->_calc_abc_hierarchical_mode(%args)
+        if $args{current_node_details}
+            && !$have_lb_lists
+            && $self->get_hierarchical_mode;
 
     return $self->_calc_abc(%args)
         if is_hashref($args{element_list1})
@@ -1903,6 +1957,87 @@ sub _calc_abc_pairwise_mode {
     );
 
     return wantarray ? %results : \%results;
+}
+
+sub _calc_abc_hierarchical_mode {
+    my ($self, %args) = @_;
+
+    my $count_samples = $args{count_samples};
+    my $count_labels  = !$count_samples && $args{count_labels};
+
+    my $node_data = $args{current_node_details}
+        // croak '_calc_abc: Must pass the current node details when in hierarchical mode';
+    my $node_name = $node_data->{name}
+        // croak '_calc_abc: Missing current node name in hierarchical mode';
+    my $child_names = $node_data->{child_names};
+
+    my $cache = $self->get_cached_value_dor_set_default_href (
+        '_calc_abc_hierarchical_mode_' . ($count_labels ? 2 : $count_samples ? 3 : 1)
+    );
+
+    #  if we are a tree terminal then we populate the cache
+    #  using the non-hierarch method
+    if (!@$child_names) {
+        delete local $args{current_node_details};
+        $cache->{$node_name} = $self->_calc_abc_dispatcher(%args);
+        return wantarray ? %{$cache->{$node_name}} : $cache->{$node_name};
+    }
+
+    my %label_hash1;
+
+    foreach my $set (@$child_names) {
+        #  use the cached results for a group if present
+        my $results_this_set = $cache->{$set};
+        if (!$results_this_set) {
+            #  fall back to non-hierarchical
+            delete local $args{current_node_details};
+            $results_this_set = $self->_calc_abc_dispatcher(%args);
+        }
+        my $lb_hash = $results_this_set->{label_hash1};
+
+        if (!%label_hash1) {  #  fresh start
+            %label_hash1 = %$lb_hash;
+        }
+        else {
+            if ($count_samples) {
+                pairmap {$label_hash1{$a} += $b} %$lb_hash;
+            }
+            else {
+                @label_hash1{keys %$lb_hash} = (1) x keys %$lb_hash;
+            }
+        }
+    }
+
+
+    #  Could use ref instead of copying?
+    my %label_list_master = %label_hash1;
+
+    #  a, b and c are simply differences of the lists
+    #  doubled letters are to avoid clashes with globals $a and $b
+    my $bb = scalar keys %label_hash1;
+
+    my $element_list1 = $args{element_list1};
+
+    my $results = {
+        A                 => 0,
+        B                 => $bb,
+        C                 => 0,
+        ABC               => $bb,
+
+        label_hash_all    => \%label_list_master,
+        label_hash1       => \%label_hash1,
+        label_hash2       => {},
+        element_list1     => $element_list1,
+        element_list2     => [],
+        element_list_all  => $element_list1,
+        element_count1    => scalar @$element_list1,
+        element_count2    => 0,
+        element_count_all => scalar @$element_list1,
+    };
+
+    $cache->{$node_name} = $results;
+
+    return wantarray ? %$results : $results;
 }
 
 sub _calc_abc {  #  required by all the other indices, as it gets the labels in the elements

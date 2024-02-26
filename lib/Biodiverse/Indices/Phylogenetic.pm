@@ -204,7 +204,7 @@ sub get_metadata_calc_last_shared_ancestor_props {
         type            => 'Phylogenetic Indices',
         required_args   => ['tree_ref'],
         pre_calc        => [
-            'calc_abc', 'get_sub_tree_as_hash',
+            '_calc_abc_any', 'get_sub_tree_as_hash',
             'get_last_shared_ancestor_from_subtree',
         ],
         uses_nbr_lists  => 1,  #  how many lists it must have
@@ -1646,7 +1646,7 @@ sub get_metadata_calc_labels_not_on_tree {
         },
         type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
         pre_calc_global => [qw /get_labels_not_on_tree/],
-        pre_calc        => ['calc_abc'],
+        pre_calc        => ['_calc_abc_any'],
         uses_nbr_lists  => 1,  #  how many lists it must have
         required_args   => ['tree_ref'],
     );
@@ -2533,7 +2533,7 @@ sub get_metadata_calc_phylo_abc {
         description     =>  'Calculate the shared and not shared branch lengths between two sets of labels',
         type            =>  'Phylogenetic Turnover',
         # pre_calc        =>  [qw /_calc_phylo_abc_lists calc_abc/],
-        pre_calc        =>  [qw /calc_abc/],
+        pre_calc        =>  ['_calc_abc_any'],
         pre_calc_global =>  [qw /get_trimmed_tree get_path_length_cache set_path_length_cache_by_group_flag/],
         uses_nbr_lists  =>  2,  #  how many sets of lists it must have
         distribution    => 'nonnegative',  # default
@@ -2678,6 +2678,15 @@ sub _calc_phylo_abc_lists {
         tree_ref => $tree,
         el_list  => $args{element_list1},
     );
+
+    if (!@{$args{element_list2}}) {
+        my $res = {
+            PHYLO_A_LIST => {},
+            PHYLO_B_LIST => $nodes_in_path1,
+            PHYLO_C_LIST => {},
+        };
+        return wantarray ? %$res : $res;
+    }
 
     my $nodes_in_path2 = @{$args{element_list2}}
         ? $self->get_path_lengths_to_root_node (
@@ -2909,22 +2918,18 @@ sub _calc_phylo_aed_t {
     my $self = shift;
     my %args = @_;
 
-    my $aed_hash   = $args{PHYLO_AED_LIST};
-    my $label_hash = $args{label_hash_all};
+    \my %aed_hash   = $args{PHYLO_AED_LIST};
+    \my %label_hash = $args{label_hash_all};
     my $aed_t;
     my %scores;
 
   LABEL:
-    foreach my $label (keys %$label_hash) {
-        my $abundance = $label_hash->{$label};
+    foreach my $label (keys %label_hash) {
+        next LABEL if !exists $aed_hash{$label};
 
-        next LABEL if !exists $aed_hash->{$label};
-
-        my $aed_score = $aed_hash->{$label};
-        my $weight    = $abundance * $aed_score;
-
+        my $weight      = $label_hash{$label} * $aed_hash{$label};
         $scores{$label} = $weight;
-        $aed_t += $weight;
+        $aed_t         += $weight;
     }
 
     my %results = (
@@ -2945,7 +2950,7 @@ sub get_metadata_calc_phylo_aed {
         name            =>  'Evolutionary distinctiveness',
         description     =>  $descr,
         type            =>  'Phylogenetic Indices',
-        pre_calc        => [qw /calc_abc/],
+        pre_calc        => ['_calc_abc_any'],
         pre_calc_global => [qw /get_aed_scores/],
         uses_nbr_lists  =>  1,
         reference       => 'Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x',
@@ -2977,20 +2982,20 @@ sub calc_phylo_aed {
     my $self = shift;
     my %args = @_;
 
-    my $label_hash = $args{label_hash_all};
-    my $es_wts     = $args{ES_SCORES};
-    my $ed_wts     = $args{ED_SCORES};
-    my $aed_wts    = $args{AED_SCORES};
+    \my %label_hash = $args{label_hash_all};
+    \my %es_wts     = $args{ES_SCORES};
+    \my %ed_wts     = $args{ED_SCORES};
+    \my %aed_wts    = $args{AED_SCORES};
 
     my (%es, %ed, %aed);
     # now loop over the terminals and extract the weights (would slices be faster?)
     # Do we want the proportional values?  Divide by PD to get them.
   LABEL:
-    foreach my $label (keys %$label_hash) {
-        next LABEL if !exists $aed_wts->{$label};
-        $aed{$label} = $aed_wts->{$label};
-        $ed{$label}  = $ed_wts->{$label};
-        $es{$label}  = $es_wts->{$label};
+    foreach my $label (keys %label_hash) {
+        next LABEL if !exists $aed_wts{$label};
+        $aed{$label} = $aed_wts{$label};
+        $ed{$label}  = $ed_wts{$label};
+        $es{$label}  = $es_wts{$label};
     }
 
     my %results = (
@@ -3046,7 +3051,7 @@ sub get_aed_scores {
         my $node_ref = eval {
             $tree->get_node_ref (node => $label);
         };
-        if (my $e = $EVAL_ERROR) {  #  still needed? 
+        if (my $e = $EVAL_ERROR) {  #  still needed?
             next LABEL if Biodiverse::Tree::NotExistsNode->caught;
             croak $e;
         }

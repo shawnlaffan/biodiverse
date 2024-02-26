@@ -11,7 +11,7 @@ use warnings;
 #use Devel::Symdump;
 #use Data::Dumper;
 use Scalar::Util qw /blessed weaken/;
-use List::MoreUtils qw /uniq/;
+use List::MoreUtils qw /uniq first_index/;
 use List::Util qw /sum any/;
 use English ( -no_match_vars );
 use Ref::Util qw { :all };
@@ -1021,6 +1021,25 @@ sub aggregate_calc_lists_by_type {
     foreach my $type (@types) {
         my $array   = $aggregated{$type};
         my @u_array = uniq @$array;
+        if ($type eq 'pre_calc'
+            and scalar @u_array
+        ) {
+            #  move first /calc_abc[23]/ to front so
+            #  calc_abc and _calc_abc_any can grab results
+            #  otherwise ensure calc_abc is at the front
+            #  for _calc_abc_any
+            state $re = qr{^calc_abc[23]};
+            my $iter23 = first_index {$_ =~ $re} @u_array;
+            if ($iter23 > 0) {
+                unshift @u_array, splice @u_array, $iter23, 1;
+            }
+            else {
+                my $iter1 = first_index {$_ eq 'calc_abc'} @u_array;
+                if ($iter1 > 0) {
+                    unshift @u_array, splice @u_array, $iter1, 1;
+                }
+            }
+        }
         $aggregated{$type} = \@u_array;
     }
 
@@ -1533,7 +1552,7 @@ sub run_dependencies {
     my %results;
     my %as_results_from;
     #  make sure this is new each iteration
-    $self->set_cached_value ($cache_name_local_results => \%as_results_from);
+    $self->set_param ($cache_name_local_results => \%as_results_from);
 
     foreach my $calc (@$calc_list) {
         my $calc_results;
@@ -1572,7 +1591,7 @@ sub run_dependencies {
     }
 
     #  We refresh each call above, but this ensures last one is cleaned up.
-    $self->delete_cached_value($cache_name_local_results);
+    $self->delete_param ($cache_name_local_results);
 
     if ( $type eq 'pre_calc_global' ) {
         $self->set_param( AS_RESULTS_FROM_GLOBAL => \%as_results_from_global );

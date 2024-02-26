@@ -143,7 +143,7 @@ sub get_metadata_calc_lbprop_lists {
         description     => $desc,
         name            => 'Label property lists',
         type            => 'Element Properties',
-        pre_calc        => ['calc_abc'],
+        pre_calc        => ['_calc_abc_any'],
         uses_nbr_lists  => 1,
         indices         => \%indices,
     );

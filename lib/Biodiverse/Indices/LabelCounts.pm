@@ -103,7 +103,7 @@ sub get_metadata_calc_label_count_quantile_position {
             },
         },
         type            => 'Lists and Counts',
-        pre_calc        => [qw /calc_element_lists_used calc_abc/],
+        pre_calc        => [qw /calc_element_lists_used _calc_abc_any/],
         required_args   => ['processing_element'],
         uses_nbr_lists  => 1,
     );  

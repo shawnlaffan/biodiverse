@@ -266,20 +266,30 @@ sub calc_phylo_rpe_central {
     my $self = shift;
     my %args = @_;
 
-    my %results = $self->calc_phylo_rpe2 (
-        %args,
-        PE_WE_P => $args{PEC_WE_P},
-        PE_WE   => $args{PEC_WE},
-        PE_RANGELIST       => $args{PEC_RANGELIST},
-        PE_LOCAL_RANGELIST => $args{PEC_LOCAL_RANGELIST},
-    );
+    my $results;
+
+    if (!@{$args{element_list2} // []}) {
+        #  We just copy the calc_phylo_rpe2 results
+        #  if there are no nbrs in set2
+        my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
+        $results = $cache_hash->{calc_phylo_rpe2};
+    }
+
+    if (!$results) {
+        $results = $self->calc_phylo_rpe2(
+            %args,
+            PE_WE_P            => $args{PEC_WE_P},
+            PE_WE              => $args{PEC_WE},
+            PE_RANGELIST       => $args{PEC_RANGELIST},
+            PE_LOCAL_RANGELIST => $args{PEC_LOCAL_RANGELIST},
+        );
+    }
 
     my %results2;
-    foreach my $key (keys %results) {
-        my $new_key = $key;
+    foreach my $key (keys %$results) {
         #  will need to be changed if we rename the RPE indices
-        $new_key =~ s/2$/C/;
-        $results2{$new_key} = $results{$key};
+        my $new_key = ($key =~ s/2$/C/r);
+        $results2{$new_key} = $results->{$key};
     }
 
     return wantarray ? %results2 : \%results2;
@@ -325,6 +335,22 @@ sub get_metadata_calc_phylo_rpe2 {
 sub calc_phylo_rpe2 {
     my $self = shift;
     my %args = @_;
+
+    if (!@{$args{element_list2} // []}) {
+        #  We just copy the calc_phylo_rpe_central results
+        #  if there are no nbrs in set2
+        my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
+        if (my $cached = $cache_hash->{calc_phylo_rpe_central}) {
+            my %results;
+            foreach my $key (keys %$cached) {
+                #  will need to be changed if we rename the RPE indices
+                my $new_key = ($key =~ s/C$/2/r);
+                $results{$new_key} = $cached->{$key};
+            }
+            return wantarray ? %results : \%results;
+        }
+    }
+
 
     my $orig_tree_ref = $args{trimmed_tree};
     my $orig_total_tree_length = $orig_tree_ref->get_total_tree_length;
@@ -453,7 +479,7 @@ sub get_metadata_calc_labels_not_on_trimmed_tree {
         },
         type            => 'Phylogenetic Indices (relative)',  #  keeps it clear of the other indices in the GUI
         pre_calc_global => [qw /get_labels_not_on_trimmed_tree/],
-        pre_calc        => ['calc_abc'],
+        pre_calc        => ['_calc_abc_any'],
         uses_nbr_lists  => 1,  #  how many lists it must have
     );
 
@@ -494,7 +520,7 @@ sub get_metadata_get_labels_not_on_trimmed_tree {
 
     my %metadata = (
         name            => 'get_labels_not_on_trimmed_tree',
-        description     => 'List of lables not on the trimmed tree',
+        description     => 'List of labels not on the trimmed tree',
         pre_calc_global => [qw /get_trimmed_tree/],
         indices => {
             labels_not_on_trimmed_tree => {

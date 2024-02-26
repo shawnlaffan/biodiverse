@@ -5,8 +5,10 @@ use 5.020;
 
 our $VERSION = '4.99_002';
 
-#  we need access to one sub from Endemism.pm
-use parent qw /Biodiverse::Indices::Endemism/;
+#  we need access to one sub from Endemism.pm,
+#  but since we are loaded by Indices.pm
+#  there is no need to inherit from it here.
+# use parent qw /Biodiverse::Indices::Endemism/;
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
@@ -114,7 +116,7 @@ sub get_metadata_calc_rarity_central_lists {
         description     => 'Lists used in rarity central calculations',
         name            => 'Rarity central lists',
         type            => 'Rarity',
-        pre_calc        => qw /_calc_rarity_central/,
+        pre_calc        => ['_calc_rarity_central'],
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         indices => {
             RAREC_WTLIST      => {
@@ -163,6 +165,20 @@ sub _calc_rarity_central {
     my $self = shift;
     my %args = @_;
 
+    #  If we have no nbrs in set 2 then we are the same as the "whole" variant.
+    #  So just grab its values if it has already been calculated.
+    if (!keys %{$args{label_hash2}}) {
+        my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
+        if (my $cached = $cache_hash->{_calc_rarity_whole}) {
+            my %remapped;
+            foreach my $key (keys %$cached) {
+                my $key2 = ($key =~ s/^RAREW/RAREC/r);
+                $remapped{$key2} = $cached->{$key};
+            }
+            return wantarray ? %remapped : \%remapped;
+        }
+    }
+
     my %hash = $self->_calc_endemism (
         %args,
         end_central => 1,
@@ -171,9 +187,8 @@ sub _calc_rarity_central {
     );
 
     my %hash2;
-    while (my ($key, $value) = each %hash) {
-        my $key2 = $key;
-        $key2 =~ s/^END/RAREC/;
+    foreach my $key (keys %hash) {
+        my $key2 = ($key =~ s/^END/RAREC/r);
         $hash2{$key2} = $hash{$key};
     }
 
@@ -256,7 +271,7 @@ sub get_metadata_calc_rarity_whole_lists {
         description     => 'Lists used in rarity whole calculations',
         name            => 'Rarity whole lists',
         type            => 'Rarity',
-        pre_calc        => qw /_calc_rarity_whole/,
+        pre_calc        => '_calc_rarity_whole',
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         indices => {
             RAREW_WTLIST      => {
@@ -294,6 +309,21 @@ sub _calc_rarity_whole {
     my $self = shift;
     my %args = @_;
 
+    #  If we have no nbrs in set 2 then we are the same as the "whole" variant.
+    #  So just grab its values if it has already been calculated.
+    if (!keys %{$args{label_hash2}}) {
+        my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
+        if (my $cached = $cache_hash->{_calc_rarity_central}) {
+            my %remapped;
+            foreach my $key (keys %$cached) {
+                my $key2 = ($key =~ s/^RAREC/RAREW/r);
+                $remapped{$key2} = $cached->{$key};
+            }
+            return wantarray ? %remapped : \%remapped;
+        }
+    }
+
+
     my %hash = $self->_calc_endemism (
         %args,
         end_central => 0,
@@ -302,9 +332,8 @@ sub _calc_rarity_whole {
     );
 
     my %hash2;
-    while (my ($key, $value) = each %hash) {
-        my $key2 = $key;
-        $key2 =~ s/^END/RAREW/;
+    foreach my $key (keys %hash) {
+        my $key2 = ($key =~ s/^END/RAREW/r);
         $hash2{$key2} = $hash{$key};
     }
 

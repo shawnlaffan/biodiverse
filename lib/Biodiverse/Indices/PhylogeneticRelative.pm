@@ -363,10 +363,9 @@ sub calc_phylo_rpe2 {
     my $null_total_tree_length = $null_tree_ref->get_total_tree_length;
 
     my $pe_p_score = $args{PE_WE_P};
-    my $pe_score   = $args{PE_WE};
 
     #  no point calculating anything if PE is undef
-    if (!defined $pe_score) {
+    if (!defined $pe_p_score) {
         my %results = (
             PHYLO_RPE2      => undef,
             PHYLO_RPE_NULL2 => undef,

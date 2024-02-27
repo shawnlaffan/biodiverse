@@ -447,16 +447,7 @@ sub weaken_param {
 sub delete_params {
     my $self = shift;
 
-    my $count = 0;
-    foreach my $param (@_) {  #  should only delete those that exist...
-        if (delete $self->{PARAMS}{$param}) {
-            $count ++;
-            print "Deleted parameter $param from $self\n"
-                if $self->get_param('PARAM_CHANGE_WARN');
-        }
-    }  #  inefficient, as we could use a hash slice to do all in one hit, but allows better feedback
-
-    return $count;
+    scalar delete @{$self->{PARAMS}}{@_};
 }
 
 #  an internal apocalyptic sub.  use only for destroy methods

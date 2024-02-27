@@ -396,7 +396,8 @@ sub calc_phylo_rpe2 {
 
     {
         no warnings qw /numeric uninitialized/;
-        $null       = eval {$pe_null / $null_total_tree_length};  #  equiv to PE_WE_P for the equalised tree
+        #  null is equiv to PE_WE_P for the equalised tree
+        $null       = eval {$pe_null / $null_total_tree_length};
         $phylo_rpe2 = eval {$pe_p_score / $null};
         $diff       = eval {$orig_total_tree_length * ($pe_p_score - $null)};
     }

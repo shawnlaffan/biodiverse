@@ -25,7 +25,6 @@ sub _calc_pe {
 
     my $tree_ref         = $args{trimmed_tree};
     my $results_cache    = $args{PE_RESULTS_CACHE};
-    \my %node_ranges     = $args{node_range};
     \my %rw_node_lengths = $args{inverse_range_weighted_node_lengths};
 
     my $bd = $args{basedata_ref} || $self->get_basedata_ref;
@@ -142,12 +141,6 @@ sub _calc_pe {
     if (scalar @$element_list_all > 1) {
         $results{PE_WE}     = $PE_WE;
         $results{PE_WTLIST} = \%wts;
-        my %nranges = %node_ranges{keys %wts};
-        $results{PE_RANGELIST} = \%nranges;
-    }
-    else {
-        my %nranges = %node_ranges{keys %{$results{PE_WTLIST}}};
-        $results{PE_RANGELIST} = \%nranges;
     }
 
     #  need to set these
@@ -238,12 +231,6 @@ sub _calc_pe_hierarchical {
     if (scalar @$element_list_all > 1) {
         $results{PE_WE}     = $PE_WE;
         $results{PE_WTLIST} = \%wts;
-        my %nranges = %node_ranges{keys %wts};
-        $results{PE_RANGELIST} = \%nranges;
-    }
-    else {
-        my %nranges = %node_ranges{keys %{$results{PE_WTLIST}}};
-        $results{PE_RANGELIST} = \%nranges;
     }
 
     #  need to set these

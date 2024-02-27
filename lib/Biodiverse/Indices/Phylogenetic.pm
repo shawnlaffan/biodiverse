@@ -772,7 +772,8 @@ sub get_metadata_calc_pe_lists {
         name            => 'Phylogenetic Endemism lists',
         reference       => 'Rosauer et al (2009) Mol. Ecol. https://doi.org/10.1111/j.1365-294X.2009.04311.x',
         type            => 'Phylogenetic Endemism Indices', 
-        pre_calc        => ['_calc_pe'],  
+        pre_calc        => ['_calc_pe'],
+        pre_calc_global => [ 'get_node_range_hash' ],
         uses_nbr_lists  => 1,
         distribution    => 'nonnegative',
         indices         => {
@@ -800,6 +801,12 @@ sub calc_pe_lists {
 
     my @keys = qw /PE_WTLIST PE_RANGELIST PE_LOCAL_RANGELIST/;
     my %results = %args{@keys};
+    #  PE_RANGELIST used to be done in _calc_pe
+    if (!$results{PE_RANGELIST}) {
+        \my %ranges = $args{node_range};
+        my %h = %ranges{keys %{$results{PE_WTLIST}}};
+        $results{PE_RANGELIST} = \%h;
+    }
 
     return wantarray ? %results : \%results;
 }
@@ -888,7 +895,7 @@ END_PEC_DESC
         name            => 'Phylogenetic Endemism central lists',
         reference       => 'Rosauer et al (2009) Mol. Ecol. https://doi.org/10.1111/j.1365-294X.2009.04311.x',
         type            => 'Phylogenetic Endemism Indices',
-        pre_calc        => [qw /_calc_pe _calc_phylo_abc_lists/],
+        pre_calc        => [qw /_calc_pe calc_pe_lists _calc_phylo_abc_lists/],
         uses_nbr_lists  => 1,  #  how many lists it must have
         distribution => 'nonnegative',
         indices         => {
@@ -1417,7 +1424,7 @@ EOD
         name            => 'Phylogenetic Endemism single',
         reference       => 'Rosauer et al (2009) Mol. Ecol. https://doi.org/10.1111/j.1365-294X.2009.04311.x',
         type            => 'Phylogenetic Endemism Indices',
-        pre_calc        => ['_calc_pe'],
+        pre_calc        => ['_calc_pe', 'calc_pe_lists'],
         pre_calc_global => ['get_trimmed_tree'],
         uses_nbr_lists  => 1,
         indices         => {

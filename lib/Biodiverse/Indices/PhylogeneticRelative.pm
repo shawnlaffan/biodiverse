@@ -283,7 +283,6 @@ sub calc_phylo_rpe_central {
             %args,
             PE_WE_P            => $args{PEC_WE_P},
             PE_WE              => $args{PEC_WE},
-            PE_RANGELIST       => $args{PEC_RANGELIST},
             PE_LOCAL_RANGELIST => $args{PEC_LOCAL_RANGELIST},
         );
     }

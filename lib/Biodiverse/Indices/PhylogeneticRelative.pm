@@ -340,6 +340,18 @@ sub calc_phylo_rpe2 {
     my $self = shift;
     my %args = @_;
 
+    my $pe_p_score = $args{PE_WE_P};
+
+    #  no point calculating anything if PE is undef
+    if (!defined $pe_p_score) {
+        my %results = (
+            PHYLO_RPE2      => undef,
+            PHYLO_RPE_NULL2 => undef,
+            PHYLO_RPE_DIFF2 => undef,
+        );
+        return wantarray ? %results : \%results;
+    }
+
     if (!@{$args{element_list2} // []}) {
         #  We just copy the calc_phylo_rpe_central results
         #  if there are no nbrs in set2
@@ -355,24 +367,11 @@ sub calc_phylo_rpe2 {
         }
     }
 
-
     my $orig_tree_ref = $args{trimmed_tree};
     my $orig_total_tree_length = $orig_tree_ref->get_total_tree_length;
 
     my $null_tree_ref = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED};
     my $null_total_tree_length = $null_tree_ref->get_total_tree_length;
-
-    my $pe_p_score = $args{PE_WE_P};
-
-    #  no point calculating anything if PE is undef
-    if (!defined $pe_p_score) {
-        my %results = (
-            PHYLO_RPE2      => undef,
-            PHYLO_RPE_NULL2 => undef,
-            PHYLO_RPE_DIFF2 => undef,
-        );
-        return wantarray ? %results : \%results;
-    }
 
     my $default_eq_len      = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH};
     \my %node_ranges_local  = $args{PE_LOCAL_RANGELIST};

@@ -684,7 +684,7 @@ sub get_trimmed_tree_eq_branch_lengths_node_length_hash {
 
 sub get_metadata_get_trimmed_tree_range_inverse_hash {
     my %metadata = (
-        name  => 'get_trimmed_tree_range_inverses',
+        name  => 'get_trimmed_tree_range_inverse_hash',
         description
               => "Get a hash of the node range inverse values\n"
             . "Forms the basis of the RPE calcs for equal area cells",
@@ -725,8 +725,8 @@ sub get_metadata_get_trimmed_tree_range_inverse_hash_nonzero_len {
             . "Forms the basis of the RPE calcs for equal area cells",
         pre_calc_global => ['get_node_range_hash', 'get_trimmed_tree'],
         indices => {
-            trimmed_tree_range_inverse_hash => {
-                description => 'Hash of trimmed tree range inverse values',
+            trimmed_tree_range_inverse_hash_nonzero_len => {
+                description => 'Hash of trimmed tree range inverse values for nodes with non-zero length',
             },
         },
     );

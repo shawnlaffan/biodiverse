@@ -308,7 +308,7 @@ sub get_metadata_calc_phylo_rpe2 {
         name            => 'Relative Phylogenetic Endemism, type 2',
         reference       => 'Mishler et al. (2014) https://doi.org/10.1038/ncomms5473',
         type            => 'Phylogenetic Indices (relative)',
-        pre_calc        => [qw /calc_pe calc_pe_lists calc_elements_used/],
+        pre_calc        => [qw /_calc_pe calc_elements_used/],
         pre_calc_global => [qw /
             get_trimmed_tree
             get_trimmed_tree_with_equalised_branch_lengths

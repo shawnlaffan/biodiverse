@@ -374,33 +374,24 @@ sub calc_phylo_rpe2 {
         return wantarray ? %results : \%results;
     }
 
-    my $node_ranges_local  = $args{PE_LOCAL_RANGELIST};
-    my $node_ranges_global = $args{PE_RANGELIST};
-    my $null_node_len_hash = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH_HASH};
-    my $default_eq_len     = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH};
-    \my %range_inverse     = $args{trimmed_tree_range_inverse_hash_nonzero_len};
+    my $default_eq_len      = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH};
+    \my %node_ranges_local  = $args{PE_LOCAL_RANGELIST};
+    \my %range_inverse      = $args{trimmed_tree_range_inverse_hash_nonzero_len};
     
     #  Get the PE score assuming equal branch lengths
     my ($pe_null, $null, $phylo_rpe2, $diff);
 
     #  First condition optimises for the common case where all local ranges are 1
     if (($args{EL_COUNT_ALL} // $args{EL_COUNT_SET1} // 0) == 1) {
-        $pe_null += $_ foreach @range_inverse{keys %$node_ranges_local};
+        $pe_null += $_ foreach @range_inverse{keys %node_ranges_local};
         $pe_null *= $default_eq_len;
-    }
-    elsif (0 && HAVE_BD_UTILS) {
-        $pe_null = Biodiverse::Utils::get_rpe_null (
-            $null_node_len_hash,
-            $node_ranges_local,
-            $node_ranges_global,
-        );
     }
     else {
         #  postfix for speed
         $pe_null
             += $range_inverse{$_}
-             * $node_ranges_local->{$_}
-                foreach keys %$node_ranges_local;
+             * $node_ranges_local{$_}
+                foreach keys %node_ranges_local;
         $pe_null *= $default_eq_len;
     }
 

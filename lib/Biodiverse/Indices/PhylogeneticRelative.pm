@@ -382,7 +382,6 @@ sub calc_phylo_rpe2 {
     #  First condition optimises for the common case where all local ranges are 1
     if (($args{EL_COUNT_ALL} // $args{EL_COUNT_SET1} // 0) == 1) {
         $pe_null += $_ foreach @range_inverse{keys %node_ranges_local};
-        $pe_null *= $default_eq_len;
     }
     else {
         #  postfix for speed
@@ -390,8 +389,8 @@ sub calc_phylo_rpe2 {
             += $range_inverse{$_}
              * $node_ranges_local{$_}
                 foreach keys %node_ranges_local;
-        $pe_null *= $default_eq_len;
     }
+    $pe_null *= $default_eq_len if $pe_null;
 
     {
         no warnings qw /numeric uninitialized/;

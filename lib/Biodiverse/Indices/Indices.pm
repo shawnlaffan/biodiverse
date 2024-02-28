@@ -1813,20 +1813,22 @@ sub _calc_abc_dispatcher {
         // $args{label_list2}
     );
 
+    state $empty_array = [];
+
     return $self->_calc_abc_pairwise_mode(%args)
-        if $self->get_pairwise_mode
-            && @{$args{element_list1} // []} == 1
-            && @{$args{element_list2} // []} == 1
-            && !$have_lb_lists;
+        if   @{$args{element_list1} // $empty_array} == 1
+          && @{$args{element_list2} // $empty_array} == 1
+          && $self->get_pairwise_mode
+          && !$have_lb_lists;
 
     return $self->_calc_abc_hierarchical_mode(%args)
         if $args{current_node_details}
-            && !$have_lb_lists
-            && $self->get_hierarchical_mode;
+          && !$have_lb_lists
+          && $self->get_hierarchical_mode;
 
     return $self->_calc_abc(%args)
         if is_hashref($args{element_list1})
-            || @{$args{element_list1} // []} != 1
+            || @{$args{element_list1} // $empty_array} != 1
             || defined $args{element_list2}
             || $have_lb_lists;
 

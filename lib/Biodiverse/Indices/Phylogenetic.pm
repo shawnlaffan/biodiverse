@@ -664,10 +664,18 @@ sub get_path_lengths_to_root_node {
     #  but first option is faster still
     my $len_hash = $tree_ref->get_node_length_hash;
     if (HAVE_BD_UTILS_108) {
-        #  get keys and vals in one call
-        Biodiverse::Utils::XS::add_hash_keys_and_vals_until_exists_AoA (
-            $path_hash, \@collected_paths, $len_hash,
-        );
+        #  sometimes there are no paths
+        if (@collected_paths) {
+            #  direct assign the first (could do first few, or the longest but that needs another scan)
+            my $first = shift @collected_paths;
+            @$path_hash{@$first} = @$len_hash{@$first};
+            if (@collected_paths) {
+                #  get keys and vals in one call
+                Biodiverse::Utils::XS::add_hash_keys_and_vals_until_exists_AoA(
+                    $path_hash, \@collected_paths, $len_hash,
+                );
+            }
+        }
     }
     elsif (HAVE_BD_UTILS) {
         Biodiverse::Utils::copy_values_from ($path_hash, $len_hash);

@@ -656,21 +656,20 @@ sub get_metadata_get_trimmed_tree_eq_branch_lengths_node_length_hash {
     return $metadata_class->new(\%metadata);
 }
 
-#  should just be a wrapper around Tree::get_node_length_hash
 sub get_trimmed_tree_eq_branch_lengths_node_length_hash {
     my $self = shift;
     my %args = @_;
     
     my $tree_ref = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED}
       // croak 'Missing TREE_REF_EQUALISED_BRANCHES_TRIMMED arg';
-    my $node_hash = $tree_ref->get_node_hash;
-    
-    my (%len_hash, $nonzero_length);
-    foreach my $node_name (keys %$node_hash) {
-        my $node_ref = $node_hash->{$node_name};
-        my $length   = $node_ref->get_length;
-        $len_hash{$node_name} = $length;
-        $nonzero_length ||= $length;
+
+    \my %len_hash = $tree_ref->get_node_length_hash;
+
+    my $nonzero_length;
+
+    foreach my $len (values %len_hash) {
+        $nonzero_length ||= $len;
+        last if $len;
     }
     
     my %results = (
@@ -737,14 +736,14 @@ sub get_trimmed_tree_range_inverse_hash_nonzero_len {
     my %args = @_;
 
     my $tree        = $args{trimmed_tree};
-    my $node_ranges = $args{node_range};
+    \my %node_ranges = $args{node_range};
+    \my %length_hash = $tree->get_node_length_hash;
 
     my %range_weighted;
 
-    foreach my $name (keys %$node_ranges) {
-        my $range = $node_ranges->{$name} || next;
-        my $numerator = $tree->get_node_ref_aa($name)->get_length ? 1 : 0;
-        $range_weighted{$name} = $numerator / $range;
+    foreach my $name (keys %node_ranges) {
+        my $range = $node_ranges{$name} || next;
+        $range_weighted{$name} = ($length_hash{$name} ? 1 : 0) / $range;
     }
 
     my %results = (trimmed_tree_range_inverse_hash_nonzero_len => \%range_weighted);

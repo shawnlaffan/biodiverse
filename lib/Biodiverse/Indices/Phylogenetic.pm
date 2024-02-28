@@ -1783,14 +1783,14 @@ sub get_inverse_range_weighted_path_lengths {
     my %args = @_;
     
     my $tree = $args{tree_ref};
-    my $node_ranges = $args{node_range};
-    
+    \my %node_ranges = $args{node_range};
+    \my %node_length_hash = $tree->get_node_length_hash;
+
     my %range_weighted;
-    
-    foreach my $node ($tree->get_node_refs) {
-        my $name = $node->get_name;
-        next if !$node_ranges->{$name};
-        $range_weighted{$name} = $node->get_length / $node_ranges->{$name};
+
+    foreach my $name (keys %node_length_hash) {
+        next if !$node_ranges{$name};
+        $range_weighted{$name} = $node_length_hash{$name} / $node_ranges{$name};
     }
     
     my %results = (inverse_range_weighted_node_lengths => \%range_weighted);

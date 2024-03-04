@@ -2694,7 +2694,9 @@ sub _calc_phylo_abc_lists {
         el_list  => $args{element_list1},
     );
 
-    if (!@{$args{element_list2}}) {
+    #  $args{C} is the count of labels unique to set 2
+    #  so if it is zero then we can short-circuit.
+    if ($args{C} == 0) {
         my $res = {
             PHYLO_A_LIST => {},
             PHYLO_B_LIST => $nodes_in_path1,
@@ -2703,14 +2705,12 @@ sub _calc_phylo_abc_lists {
         return wantarray ? %$res : $res;
     }
 
-    my $nodes_in_path2 = @{$args{element_list2}}
-        ? $self->get_path_lengths_to_root_node (
-            %args,
-            labels   => $label_hash2,
-            tree_ref => $tree,
-            el_list  => $args{element_list2},
-        )
-        : {};
+    my $nodes_in_path2 = $self->get_path_lengths_to_root_node (
+        %args,
+        labels   => $label_hash2,
+        tree_ref => $tree,
+        el_list  => $args{element_list2},
+    );
 
     my %results;
     #  one day we can clean this all up

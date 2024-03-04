@@ -2668,7 +2668,7 @@ sub get_metadata__calc_phylo_abc_lists {
         name            =>  'Phylogenetic ABC lists',
         description     =>  'Calculate the sets of shared and not shared branches between two sets of labels',
         type            =>  'Phylogenetic Indices',
-        pre_calc        =>  'calc_abc',
+        pre_calc        =>  '_calc_abc_any',
         pre_calc_global =>  [qw /get_trimmed_tree get_path_length_cache set_path_length_cache_by_group_flag/],
         uses_nbr_lists  =>  1,  #  how many sets of lists it must have
         required_args   => {tree_ref => 1},

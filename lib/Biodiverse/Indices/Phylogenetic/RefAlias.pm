@@ -34,10 +34,12 @@ sub _calc_pe {
 
     my (%wts, %local_ranges, %results);
 
+    my $el_count = @$element_list_all;
+
     #  prob a micro-optimisation, but might avoid
     #  some looping below when collating weights
     #  and one group has many more labels than the other
-    if (@$element_list_all == 2) {
+    if ($el_count == 2) {
         my $count0 = $bd->get_richness_aa ($element_list_all->[0]);
         my $count1 = $bd->get_richness_aa ($element_list_all->[1]);
         if ($count1 > $count0) {
@@ -103,7 +105,7 @@ sub _calc_pe {
 
         #  Avoid some redundant slicing and dicing when we have only one group
         #  Pays off when processing large data sets
-        if (scalar @$element_list_all == 1) {
+        if ($el_count == 1) {
             #  no need to collate anything so make a shallow copy
             @results{keys %$results_this_gp} = values %$results_this_gp;
             #  but we do need to add to the local range hash
@@ -137,7 +139,7 @@ sub _calc_pe {
     }
 
     #  need the collated versions for multiple elements
-    if (scalar @$element_list_all > 1) {
+    if ($el_count > 1) {
         $wts{$_} = $rw_node_lengths{$_} * $local_ranges{$_}
             for keys %local_ranges;
         $results{PE_WTLIST} = \%wts;

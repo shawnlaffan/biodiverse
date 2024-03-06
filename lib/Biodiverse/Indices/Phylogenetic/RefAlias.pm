@@ -114,16 +114,15 @@ sub _calc_pe {
             # refalias might be a nano-optimisation here...
             \my %wt_hash = $results_this_gp->{PE_WTLIST};
 
-            # weights need to be summed,
-            # unless we are starting from a blank slate
-            if (keys %wts) {
-                foreach my $node (keys %wt_hash) {
-                    $wts{$node} += $wt_hash{$node};
-                    $local_ranges{$node}++;
-                }
+            #  Local ranges need to be summed unless
+            #  we are starting from a blank slate.
+            #  Weights are aggregated later.
+            if (keys %local_ranges) {
+                #  postfix for speed
+                $local_ranges{$_}++
+                    foreach keys %wt_hash;
             }
             else {
-                %wts = %wt_hash;
                 @local_ranges{keys %wt_hash} = (1) x scalar keys %wt_hash;
             }
         }
@@ -139,8 +138,10 @@ sub _calc_pe {
 
     #  need the collated versions for multiple elements
     if (scalar @$element_list_all > 1) {
-        $results{PE_WE}     = $PE_WE;
+        $wts{$_} = $rw_node_lengths{$_} * $local_ranges{$_}
+            for keys %local_ranges;
         $results{PE_WTLIST} = \%wts;
+        $results{PE_WE}     = $PE_WE;
     }
 
     #  need to set these

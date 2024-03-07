@@ -427,56 +427,35 @@ sub calc_phylo_rpe2 {
     #  Get the PE score assuming equal branch lengths
     my ($pe_null, $null, $phylo_rpe2, $diff);
 
-    #  Hopefully a temporary check until we rejig the central calc.
-    #  Central mode is also the same as whole mode if all labels are
-    #  in both nbr sets or there is one nbr set
-    if (!$args{rpe_central_mode} || !@{$args{element_list2} // []} || (!$args{C} // 1) ) {
-        my $results_cache    = $args{RPE_RESULTS_CACHE};
-        my $pe_results_cache = $args{PE_RESULTS_CACHE};
+    my $results_cache    = $args{RPE_RESULTS_CACHE};
+    my $pe_results_cache = $args{PE_RESULTS_CACHE};
 
-        foreach my $group (@$element_list_all) {
-            my $results_this_gp;
-            #  use the cached results for a group if present
-            if (exists $results_cache->{$group}) {
-                $results_this_gp = $results_cache->{$group};
-            }
-            #  else build them and cache them
-            else {
-                #  precalcs mean this should exist
-                my $pe_cached = $pe_results_cache->{$group}
-                    // croak "PE cache entry for $group not yet calculated";
-                my $nodes_in_path = $pe_cached->{PE_WTLIST};
-
-                my $gp_score;
-                $gp_score += $_ foreach @range_inverse{keys %$nodes_in_path};
-                $gp_score *= $default_eq_len if $gp_score;
-
-                $results_this_gp = { RPE_WE => $gp_score };
-
-                $results_cache->{$group} = $results_this_gp;
-            }
-
-            if (defined $results_this_gp->{RPE_WE}) {
-                $pe_null += $results_this_gp->{RPE_WE};
-            }
-
+    foreach my $group (@$element_list_all) {
+        my $results_this_gp;
+        #  use the cached results for a group if present
+        if (exists $results_cache->{$group}) {
+            $results_this_gp = $results_cache->{$group};
         }
-    }
-    else {
-        \my %node_ranges_local  = $args{PE_LOCAL_RANGELIST};
-
-        #  First condition optimises for the common case where all local ranges are 1
-        if (($args{EL_COUNT_ALL} // $args{EL_COUNT_SET1} // 0) == 1) {
-            $pe_null += $_ foreach @range_inverse{keys %node_ranges_local};
-        }
+        #  else build them and cache them
         else {
-            #  postfix for speed
-            $pe_null
-                += $range_inverse{$_}
-                * $node_ranges_local{$_}
-                foreach keys %node_ranges_local;
+            #  precalcs mean this should exist
+            my $pe_cached = $pe_results_cache->{$group}
+                // croak "PE cache entry for $group not yet calculated";
+            my $nodes_in_path = $pe_cached->{PE_WTLIST};
+
+            my $gp_score;
+            $gp_score += $_ foreach @range_inverse{keys %$nodes_in_path};
+            $gp_score *= $default_eq_len if $gp_score;
+
+            $results_this_gp = { RPE_WE => $gp_score };
+
+            $results_cache->{$group} = $results_this_gp;
         }
-        $pe_null *= $default_eq_len if $pe_null;
+
+        if (defined $results_this_gp->{RPE_WE}) {
+            $pe_null += $results_this_gp->{RPE_WE};
+        }
+
     }
 
     {

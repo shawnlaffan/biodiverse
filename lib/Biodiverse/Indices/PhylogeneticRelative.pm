@@ -277,17 +277,62 @@ sub calc_phylo_rpe_central {
         #  We just copy the calc_phylo_rpe2 results
         #  if there are no nbrs in set2
         my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
-        $results = $cache_hash->{calc_phylo_rpe2};
+        $results = $cache_hash->{calc_phylo_rpe2}
+            // $self->calc_phylo_rpe2(
+                %args,
+                PE_WE_P            => $args{PEC_WE_P},
+                PE_WE              => $args{PEC_WE},
+                PE_LOCAL_RANGELIST => $args{PEC_LOCAL_RANGELIST},
+            );
     }
 
     if (!$results) {
-        $results = $self->calc_phylo_rpe2(
-            %args,
-            PE_WE_P            => $args{PEC_WE_P},
-            PE_WE              => $args{PEC_WE},
-            PE_LOCAL_RANGELIST => $args{PEC_LOCAL_RANGELIST},
-            rpe_central_mode   => 1,  #  temporary we hope
-        );
+        my $pe_p_score = $args{PEC_WE_P};
+
+        my $orig_tree_ref = $args{trimmed_tree};
+        my $orig_total_tree_length = $orig_tree_ref->get_total_tree_length;
+
+        my $null_tree_ref = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED};
+        my $null_total_tree_length = $null_tree_ref->get_total_tree_length;
+
+        my $default_eq_len = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH};
+        \my %range_inverse = $args{trimmed_tree_range_inverse_hash_nonzero_len};
+
+        #  Get the PE score assuming equal branch lengths
+        my ($pe_null, $null, $phylo_rpe2, $diff);
+
+        #  need to work over the lists
+        \my %node_ranges_local  = $args{PEC_LOCAL_RANGELIST};
+
+        #  First condition optimises for the common case where all local ranges are 1
+        if (($args{EL_COUNT_ALL} // $args{EL_COUNT_SET1} // 0) == 1) {
+            $pe_null += $_ foreach @range_inverse{keys %node_ranges_local};
+        }
+        else {
+            #  postfix for speed
+            $pe_null
+                += $range_inverse{$_}
+                * $node_ranges_local{$_}
+                foreach keys %node_ranges_local;
+        }
+        $pe_null *= $default_eq_len if $pe_null;
+
+        {
+            no warnings qw /numeric uninitialized/;
+            #  null is equiv to PE_WE_P for the equalised tree
+            $null       = eval {$pe_null / $null_total_tree_length};
+            $phylo_rpe2 = eval {$pe_p_score / $null};
+            $diff       = eval {$orig_total_tree_length * ($pe_p_score - $null)};
+        }
+        #if (defined $pe_nullx) {
+        #say STDERR "$pe_null $pe_nullx";
+        #}
+        $results = {
+            PHYLO_RPE2      => $phylo_rpe2,
+            PHYLO_RPE_NULL2 => $null,
+            PHYLO_RPE_DIFF2 => $diff,
+        };
+
     }
 
     my %results2;

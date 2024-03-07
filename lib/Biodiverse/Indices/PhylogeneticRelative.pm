@@ -238,12 +238,14 @@ sub get_metadata_calc_phylo_rpe_central {
         name            => 'Relative Phylogenetic Endemism, central',
         reference       => 'Mishler et al. (2014) https://doi.org/10.1038/ncomms5473',
         type            => 'Phylogenetic Indices (relative)',
-        pre_calc        => [qw /calc_pe_central calc_pe_central_lists calc_elements_used/],
+        pre_calc        => [qw /calc_pe_central calc_pe_central_lists calc_elements_used _calc_abc_any/],
         pre_calc_global => [qw /
             get_trimmed_tree
             get_trimmed_tree_with_equalised_branch_lengths
             get_trimmed_tree_eq_branch_lengths_node_length_hash
             get_trimmed_tree_range_inverse_hash_nonzero_len
+            get_pe_element_cache
+            get_rpe_element_cache
         /],
         uses_nbr_lists  => 1,
         indices         => {
@@ -271,7 +273,7 @@ sub calc_phylo_rpe_central {
 
     my $results;
 
-    if (!@{$args{element_list2} // []}) {
+    if (!@{$args{element_list2} // []} || !($args{C} // 1)) {
         #  We just copy the calc_phylo_rpe2 results
         #  if there are no nbrs in set2
         my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
@@ -284,6 +286,7 @@ sub calc_phylo_rpe_central {
             PE_WE_P            => $args{PEC_WE_P},
             PE_WE              => $args{PEC_WE},
             PE_LOCAL_RANGELIST => $args{PEC_LOCAL_RANGELIST},
+            rpe_central_mode   => 1,  #  temporary we hope
         );
     }
 
@@ -308,12 +311,14 @@ sub get_metadata_calc_phylo_rpe2 {
         name            => 'Relative Phylogenetic Endemism, type 2',
         reference       => 'Mishler et al. (2014) https://doi.org/10.1038/ncomms5473',
         type            => 'Phylogenetic Indices (relative)',
-        pre_calc        => [qw /_calc_pe calc_elements_used/],
+        pre_calc        => [qw /_calc_pe calc_elements_used _calc_abc_any/],
         pre_calc_global => [qw /
             get_trimmed_tree
             get_trimmed_tree_with_equalised_branch_lengths
             get_trimmed_tree_eq_branch_lengths_node_length_hash
             get_trimmed_tree_range_inverse_hash_nonzero_len
+            get_pe_element_cache
+            get_rpe_element_cache
         /],
         uses_nbr_lists  => 1,
         indices         => {
@@ -351,9 +356,9 @@ sub calc_phylo_rpe2 {
         return wantarray ? %results : \%results;
     }
 
-    if (!@{$args{element_list2} // []}) {
+    if (!@{$args{element_list2} // []} || !($args{C} // 1) ) {
         #  We just copy the calc_phylo_rpe_central results
-        #  if there are no nbrs in set2
+        #  if there are no nbrs or no different labels in set2
         my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
         if (my $cached = $cache_hash->{calc_phylo_rpe_central}) {
             my %results;
@@ -372,25 +377,65 @@ sub calc_phylo_rpe2 {
     my $null_tree_ref = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED};
     my $null_total_tree_length = $null_tree_ref->get_total_tree_length;
 
-    my $default_eq_len      = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH};
-    \my %node_ranges_local  = $args{PE_LOCAL_RANGELIST};
-    \my %range_inverse      = $args{trimmed_tree_range_inverse_hash_nonzero_len};
-    
+    my $default_eq_len = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH};
+    \my %range_inverse = $args{trimmed_tree_range_inverse_hash_nonzero_len};
+
+    my $element_list_all = $args{element_list_all};
+
     #  Get the PE score assuming equal branch lengths
     my ($pe_null, $null, $phylo_rpe2, $diff);
 
-    #  First condition optimises for the common case where all local ranges are 1
-    if (($args{EL_COUNT_ALL} // $args{EL_COUNT_SET1} // 0) == 1) {
-        $pe_null += $_ foreach @range_inverse{keys %node_ranges_local};
+    #  Hopefully a temporary check until we rejig the central calc.
+    #  Central mode is also the same as whole mode if all labels are
+    #  in both nbr sets or there is one nbr set
+    if (!$args{rpe_central_mode} || !@{$args{element_list2} // []} || (!$args{C} // 1) ) {
+        my $results_cache    = $args{RPE_RESULTS_CACHE};
+        my $pe_results_cache = $args{PE_RESULTS_CACHE};
+
+        foreach my $group (@$element_list_all) {
+            my $results_this_gp;
+            #  use the cached results for a group if present
+            if (exists $results_cache->{$group}) {
+                $results_this_gp = $results_cache->{$group};
+            }
+            #  else build them and cache them
+            else {
+                #  precalcs mean this should exist
+                my $pe_cached = $pe_results_cache->{$group}
+                    // croak "PE cache entry for $group not yet calculated";
+                my $nodes_in_path = $pe_cached->{PE_WTLIST};
+
+                my $gp_score;
+                $gp_score += $_ foreach @range_inverse{keys %$nodes_in_path};
+                $gp_score *= $default_eq_len if $gp_score;
+
+                $results_this_gp = { RPE_WE => $gp_score };
+
+                $results_cache->{$group} = $results_this_gp;
+            }
+
+            if (defined $results_this_gp->{RPE_WE}) {
+                $pe_null += $results_this_gp->{RPE_WE};
+            }
+
+        }
     }
     else {
-        #  postfix for speed
-        $pe_null
-            += $range_inverse{$_}
-             * $node_ranges_local{$_}
+        \my %node_ranges_local  = $args{PE_LOCAL_RANGELIST};
+
+        #  First condition optimises for the common case where all local ranges are 1
+        if (($args{EL_COUNT_ALL} // $args{EL_COUNT_SET1} // 0) == 1) {
+            $pe_null += $_ foreach @range_inverse{keys %node_ranges_local};
+        }
+        else {
+            #  postfix for speed
+            $pe_null
+                += $range_inverse{$_}
+                * $node_ranges_local{$_}
                 foreach keys %node_ranges_local;
+        }
+        $pe_null *= $default_eq_len if $pe_null;
     }
-    $pe_null *= $default_eq_len if $pe_null;
 
     {
         no warnings qw /numeric uninitialized/;
@@ -751,5 +796,31 @@ sub get_trimmed_tree_range_inverse_hash_nonzero_len {
     return wantarray ? %results : \%results;
 }
 
+
+
+sub get_metadata_get_rpe_element_cache {
+
+    my %metadata = (
+        name        => 'get_rpe_element_cache',
+        description => 'Create a hash in which to cache the PE_alt scores for each element',
+        indices     => {
+            RPE_RESULTS_CACHE => {
+                description => 'The hash in which to cache the PE_alt scores for each element'
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+#  create a hash in which to cache the PE scores for each element
+#  this is called as a global precalc and then used or modified by each element as needed
+sub get_rpe_element_cache {
+    my $self = shift;
+    my %args = @_;
+
+    my %results = (RPE_RESULTS_CACHE => {});
+    return wantarray ? %results : \%results;
+}
 
 1;

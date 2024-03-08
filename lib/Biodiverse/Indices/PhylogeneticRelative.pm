@@ -273,7 +273,8 @@ sub calc_phylo_rpe_central {
 
     if (!@{$args{element_list2} // []} || !($args{C} // 1)) {
         #  We just copy the calc_phylo_rpe2 results
-        #  if there are no nbrs in set2
+        #  if there are no nbrs in set2 or all the
+        #  labels are common
         my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
         my $results = $cache_hash->{calc_phylo_rpe2}
             // $self->calc_phylo_rpe2(

@@ -1703,22 +1703,13 @@ sub _calc_abc_any {
     my $self = shift;
 
     my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
-    my $cache_key
-        = List::Util::first {defined $cache_hash->{$_}}
-          (qw/calc_abc calc_abc2 calc_abc3/);
 
-    # say STDERR 'NO previous cache key'
-    #     if !$cache_key;
+    my $results = $cache_hash->{calc_abc}
+        // $cache_hash->{calc_abc2}
+        // $cache_hash->{calc_abc3}
+        // $self->calc_abc(@_);
 
-    #  fall back to calc_abc if nothing had an explicit abc dependency
-    my $cached = $cache_key
-        ? $cache_hash->{$cache_key}
-        : $self->calc_abc(@_);
-
-    croak 'No previous calc_abc results found'
-        if !$cached;
-
-    return wantarray ? %$cached : $cached;
+    return wantarray ? %$results : $results;
 }
 
 sub get_metadata_calc_abc {

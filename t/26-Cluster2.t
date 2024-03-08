@@ -219,12 +219,12 @@ sub test_rw_turnover_mx {
 sub test_cluster_node_calcs {
 
     my %args = @_;
-    my $bd = $args{basedata_ref} || get_basedata_object_from_site_data(CELL_SIZES => [300000, 300000]);
+    my $bd = $args{basedata_ref} || get_basedata_object_from_site_data(CELL_SIZES => [400000, 400000]);
 
     my $prng_seed = $args{prng_seed} || $default_prng_seed;
     my $tree_ref  = $args{tree_ref} || get_tree_object_from_sample_data();
 
-    my $calcs = [qw/calc_pe calc_pd/];
+    my $calcs = [qw/calc_pe calc_pe_lists calc_phylo_rpe2 calc_pe_central_lists calc_pd/];
 
     my $cl1 = $bd->add_cluster_output (name => 'cl1');
     $cl1->run_analysis (

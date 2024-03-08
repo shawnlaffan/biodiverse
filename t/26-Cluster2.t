@@ -250,6 +250,7 @@ sub test_cluster_node_calcs {
 
     is [sort keys %$node_hash1], [sort keys %$node_hash2], 'paranoia check: same node names';
 
+    my $prec = "%.10f";
     my (%aggregate1, %aggregate2);
     foreach my $node_name (sort keys %$node_hash1) {
         my $node1 = $node_hash1->{$node_name};
@@ -258,8 +259,8 @@ sub test_cluster_node_calcs {
         foreach my $list_name (sort grep {$_ !~ /NODE_VALUES/}$node1->get_hash_lists) {
             my $ref1 = $node1->get_list_ref_aa($list_name);
             my $ref2 = $node2->get_list_ref_aa($list_name);
-            my $snapped1 = {map {$_ => sprintf "%.10f", $ref1->{$_}} keys %$ref1};
-            my $snapped2 = {map {$_ => sprintf "%.10f", $ref2->{$_}} keys %$ref2};
+            my $snapped1 = {map {$_ => snap_to_precision ($ref1->{$_}, $prec)} keys %$ref1};
+            my $snapped2 = {map {$_ => snap_to_precision ($ref2->{$_}, $prec)} keys %$ref2};
             $aggregate1{$node_name}{$list_name} = $snapped1;
             $aggregate2{$node_name}{$list_name} = $snapped2;
         }

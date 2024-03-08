@@ -331,9 +331,7 @@ sub calc_phylo_rpe_central {
         $phylo_rpe2 = eval {$pe_p_score / $null};
         $diff       = eval {$orig_total_tree_length * ($pe_p_score - $null)};
     }
-    #if (defined $pe_nullx) {
-    #say STDERR "$pe_null $pe_nullx";
-    #}
+
     my $results = {
         PHYLO_RPEC      => $phylo_rpe2,
         PHYLO_RPE_NULLC => $null,

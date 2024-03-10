@@ -346,16 +346,10 @@ sub _calc_pe_lists_per_element_set {
         $results[$i]
             = $have_cache
             ? $cache->{$elements[0]}
-            : {  #  messy but we need results from both
-                $self->_calc_pe(
-                    %args,
-                    element_list_all => $args{$list_name},
-                ),
-                $self->_calc_pe_lists(
-                    %args,
-                    element_list_all => $args{$list_name},
-                ),
-            };
+            : $self->_calc_pe_lists(
+                %args,
+                element_list_all => $args{$list_name},
+            );
           $cache->{$elements[0]} = $results[$i]
             if @elements == 1;
     }

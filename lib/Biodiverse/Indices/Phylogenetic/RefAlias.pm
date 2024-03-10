@@ -218,8 +218,13 @@ sub _calc_pe_lists {
     my (%wts, %local_ranges, %results);
 
     foreach my $group (@$element_list_all) {
-        #  this is populated by _calc_pe
+        #  this is populated by _calc_pe under the calc dependency system
         my $results_this_gp = $results_cache->{$group};
+        #  but can be called directly so need to handle that and populate the cache
+        if (!exists $results_this_gp->{PE_WTLIST}) {
+            $self->_calc_pe(%args);
+            $results_this_gp = $results_cache->{$group};
+        }
 
         #  Avoid some redundant slicing and dicing when we have only one group
         #  Pays off when processing large data sets
@@ -274,7 +279,13 @@ sub _calc_pe_lists_hierarchical {
     my (%wts, %local_ranges, %results);
 
     foreach my $group (@$child_names) {
+        #  this is populated by _calc_pe under the calc dependency system
         my $results_this_gp = $results_cache->{$group};
+        #  but can be called directly so need to handle that and populate the cache
+        if (!exists $results_this_gp->{PE_WTLIST}) {
+            $self->_calc_pe(%args);
+            $results_this_gp = $results_cache->{$group};
+        }
 
         #  Avoid some redundant slicing and dicing when we have only one group
         #  Pays off when processing large data sets

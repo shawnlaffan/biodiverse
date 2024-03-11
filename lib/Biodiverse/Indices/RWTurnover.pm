@@ -341,16 +341,15 @@ sub _calc_pe_lists_per_element_set {
   BY_LIST:
     foreach my $list_name (qw /element_list1 element_list2/) {
         $i++;  #  start at 1 so we match the numbered names
-        my $el_list = $args{$list_name} // next BY_LIST;
-        \my @elements = $el_list;  #  FIXME
+        \my @elements = $args{$list_name} // next BY_LIST;
         my $have_cache = (@elements == 1 && $cache->{$elements[0]});
         $results[$i]
             = $have_cache
             ? $cache->{$elements[0]}
-            : $self->_calc_pe(
+            : $self->_calc_pe_lists(
                 %args,
-                element_list_all => \@elements,
-              );
+                element_list_all => $args{$list_name},
+            );
           $cache->{$elements[0]} = $results[$i]
             if @elements == 1;
     }

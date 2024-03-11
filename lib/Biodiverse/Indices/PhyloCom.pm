@@ -347,7 +347,7 @@ sub _calc_phylo_mpd_mntd {
     #  Save some cycles if all the weights are the same.
     #  If we ever implement dissim then we can also check label_hash2.
     if ($use_wts && $label_hashrefs_are_same) {
-        if (not List::Util::any {$_ != 1} values %$label_hash1) {
+        if (List::Util::all {$_ == 1} values %$label_hash1) {
             $use_wts = undef;
         }
     }

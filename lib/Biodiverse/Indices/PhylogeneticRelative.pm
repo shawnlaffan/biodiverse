@@ -3,6 +3,8 @@ use 5.022;
 use strict;
 use warnings;
 
+use experimental qw/refaliasing/;
+
 use English qw /-no_match_vars/;
 
 use List::Util qw /sum first/;
@@ -236,11 +238,14 @@ sub get_metadata_calc_phylo_rpe_central {
         name            => 'Relative Phylogenetic Endemism, central',
         reference       => 'Mishler et al. (2014) https://doi.org/10.1038/ncomms5473',
         type            => 'Phylogenetic Indices (relative)',
-        pre_calc        => [qw /calc_pe_central calc_pe_central_lists calc_elements_used/],
+        pre_calc        => [qw /calc_pe_central calc_pe_central_lists calc_elements_used _calc_abc_any/],
         pre_calc_global => [qw /
             get_trimmed_tree
             get_trimmed_tree_with_equalised_branch_lengths
             get_trimmed_tree_eq_branch_lengths_node_length_hash
+            get_trimmed_tree_range_inverse_hash_nonzero_len
+            get_pe_element_cache
+            get_rpe_element_cache
         /],
         uses_nbr_lists  => 1,
         indices         => {
@@ -266,33 +271,74 @@ sub calc_phylo_rpe_central {
     my $self = shift;
     my %args = @_;
 
-    my $results;
-
-    if (!@{$args{element_list2} // []}) {
+    if (!@{$args{element_list2} // []} || !($args{C} // 1)) {
         #  We just copy the calc_phylo_rpe2 results
-        #  if there are no nbrs in set2
+        #  if there are no nbrs in set2 or all the
+        #  labels are common
         my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
-        $results = $cache_hash->{calc_phylo_rpe2};
+        my $results = $cache_hash->{calc_phylo_rpe2}
+            // $self->calc_phylo_rpe2(
+                %args,
+                PE_WE_P            => $args{PEC_WE_P},
+                PE_WE              => $args{PEC_WE},
+                PE_LOCAL_RANGELIST => $args{PEC_LOCAL_RANGELIST},
+            );
+
+        my %results2;
+        foreach my $key (keys %$results) {
+            #  will need to be changed if we rename the RPE indices
+            my $new_key = ($key =~ s/2$/C/r);
+            $results2{$new_key} = $results->{$key};
+        }
+
+        return wantarray ? %results2 : \%results2;
     }
 
-    if (!$results) {
-        $results = $self->calc_phylo_rpe2(
-            %args,
-            PE_WE_P            => $args{PEC_WE_P},
-            PE_WE              => $args{PEC_WE},
-            PE_RANGELIST       => $args{PEC_RANGELIST},
-            PE_LOCAL_RANGELIST => $args{PEC_LOCAL_RANGELIST},
-        );
+    my $pe_p_score = $args{PEC_WE_P};
+
+    my $orig_tree_ref = $args{trimmed_tree};
+    my $orig_total_tree_length = $orig_tree_ref->get_total_tree_length;
+
+    my $null_tree_ref = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED};
+    my $null_total_tree_length = $null_tree_ref->get_total_tree_length;
+
+    my $default_eq_len = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH};
+    \my %range_inverse = $args{trimmed_tree_range_inverse_hash_nonzero_len};
+
+    #  Get the PE score assuming equal branch lengths
+    my ($pe_null, $null, $phylo_rpe2, $diff);
+
+    #  need to work over the lists
+    \my %node_ranges_local  = $args{PEC_LOCAL_RANGELIST};
+
+    #  First condition optimises for the common case where all local ranges are 1
+    if (($args{EL_COUNT_ALL} // $args{EL_COUNT_SET1} // 0) == 1) {
+        $pe_null += $_ foreach @range_inverse{keys %node_ranges_local};
+    }
+    else {
+        #  postfix for speed
+        $pe_null
+            += $range_inverse{$_}
+            * $node_ranges_local{$_}
+            foreach keys %node_ranges_local;
+    }
+    $pe_null *= $default_eq_len if $pe_null;
+
+    {
+        no warnings qw /numeric uninitialized/;
+        #  null is equiv to PE_WE_P for the equalised tree
+        $null       = eval {$pe_null / $null_total_tree_length};
+        $phylo_rpe2 = eval {$pe_p_score / $null};
+        $diff       = eval {$orig_total_tree_length * ($pe_p_score - $null)};
     }
 
-    my %results2;
-    foreach my $key (keys %$results) {
-        #  will need to be changed if we rename the RPE indices
-        my $new_key = ($key =~ s/2$/C/r);
-        $results2{$new_key} = $results->{$key};
-    }
+    my $results = {
+        PHYLO_RPEC      => $phylo_rpe2,
+        PHYLO_RPE_NULLC => $null,
+        PHYLO_RPE_DIFFC => $diff,
+    };
 
-    return wantarray ? %results2 : \%results2;
+    return wantarray ? %$results : $results;
 }
 
 
@@ -306,11 +352,14 @@ sub get_metadata_calc_phylo_rpe2 {
         name            => 'Relative Phylogenetic Endemism, type 2',
         reference       => 'Mishler et al. (2014) https://doi.org/10.1038/ncomms5473',
         type            => 'Phylogenetic Indices (relative)',
-        pre_calc        => [qw /calc_pe calc_pe_lists calc_elements_used/],
+        pre_calc        => [qw /_calc_pe calc_elements_used _calc_abc_any/],
         pre_calc_global => [qw /
             get_trimmed_tree
             get_trimmed_tree_with_equalised_branch_lengths
             get_trimmed_tree_eq_branch_lengths_node_length_hash
+            get_trimmed_tree_range_inverse_hash_nonzero_len
+            get_pe_element_cache
+            get_rpe_element_cache
         /],
         uses_nbr_lists  => 1,
         indices         => {
@@ -336,9 +385,21 @@ sub calc_phylo_rpe2 {
     my $self = shift;
     my %args = @_;
 
-    if (!@{$args{element_list2} // []}) {
+    my $pe_p_score = $args{PE_WE_P};
+
+    #  no point calculating anything if PE is undef
+    if (!defined $pe_p_score) {
+        my %results = (
+            PHYLO_RPE2      => undef,
+            PHYLO_RPE_NULL2 => undef,
+            PHYLO_RPE_DIFF2 => undef,
+        );
+        return wantarray ? %results : \%results;
+    }
+
+    if (!@{$args{element_list2} // []} || !($args{C} // 1) ) {
         #  We just copy the calc_phylo_rpe_central results
-        #  if there are no nbrs in set2
+        #  if there are no nbrs or no different labels in set2
         my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
         if (my $cached = $cache_hash->{calc_phylo_rpe_central}) {
             my %results;
@@ -351,62 +412,55 @@ sub calc_phylo_rpe2 {
         }
     }
 
-
     my $orig_tree_ref = $args{trimmed_tree};
     my $orig_total_tree_length = $orig_tree_ref->get_total_tree_length;
 
     my $null_tree_ref = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED};
     my $null_total_tree_length = $null_tree_ref->get_total_tree_length;
 
-    my $pe_p_score = $args{PE_WE_P};
-    my $pe_score   = $args{PE_WE};
+    my $default_eq_len = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH};
+    \my %range_inverse = $args{trimmed_tree_range_inverse_hash_nonzero_len};
 
-    #  no point calculating anything if PE is undef
-    if (!defined $pe_score) {
-        my %results = (
-            PHYLO_RPE2      => undef,
-            PHYLO_RPE_NULL2 => undef,
-            PHYLO_RPE_DIFF2 => undef,
-        );
-        return wantarray ? %results : \%results;
-    }
+    my $element_list_all = $args{element_list_all};
 
-    my $node_ranges_local  = $args{PE_LOCAL_RANGELIST};
-    my $node_ranges_global = $args{PE_RANGELIST};
-    my $null_node_len_hash = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH_HASH};
-    my $default_eq_len     = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH};
-    
     #  Get the PE score assuming equal branch lengths
     my ($pe_null, $null, $phylo_rpe2, $diff);
 
-    #  First condition optimises for the common case where all local ranges are 1
-    my $zero_len_branch_names = $null_tree_ref->get_zero_node_length_hash;
-    if (($args{EL_COUNT_ALL} // $args{EL_COUNT_SET1} // 0) == 1
-        && scalar keys %$zero_len_branch_names < 10  #  arbitrary number
-        ) {
-        delete local @$node_ranges_global{keys %$zero_len_branch_names};
-        $pe_null += (1 / $_) foreach values %$node_ranges_global;
-        $pe_null *= $default_eq_len;
-        #say STDERR 'jjjj';
-    }
-    elsif (HAVE_BD_UTILS) {
-        $pe_null = Biodiverse::Utils::get_rpe_null (
-            $null_node_len_hash,
-            $node_ranges_local,
-            $node_ranges_global,
-        );
-    }
-    else {
-        foreach my $null_node (keys %$node_ranges_global) {
-            $pe_null += $null_node_len_hash->{$null_node}
-                      * $node_ranges_local->{$null_node}
-                      / $node_ranges_global->{$null_node};
+    my $results_cache    = $args{RPE_RESULTS_CACHE};
+    my $pe_results_cache = $args{PE_RESULTS_CACHE};
+
+    foreach my $group (@$element_list_all) {
+        my $results_this_gp;
+        #  use the cached results for a group if present
+        if (exists $results_cache->{$group}) {
+            $results_this_gp = $results_cache->{$group};
         }
+        #  else build them and cache them
+        else {
+            #  precalcs mean this should exist
+            my $pe_cached = $pe_results_cache->{$group}
+                // croak "PE cache entry for $group not yet calculated";
+            my $nodes_in_path = $pe_cached->{PE_WTLIST};
+
+            my $gp_score;
+            $gp_score += $_ foreach @range_inverse{keys %$nodes_in_path};
+            $gp_score *= $default_eq_len if $gp_score;
+
+            $results_this_gp = { RPE_WE => $gp_score };
+
+            $results_cache->{$group} = $results_this_gp;
+        }
+
+        if (defined $results_this_gp->{RPE_WE}) {
+            $pe_null += $results_this_gp->{RPE_WE};
+        }
+
     }
 
     {
         no warnings qw /numeric uninitialized/;
-        $null       = eval {$pe_null / $null_total_tree_length};  #  equiv to PE_WE_P for the equalised tree
+        #  null is equiv to PE_WE_P for the equalised tree
+        $null       = eval {$pe_null / $null_total_tree_length};
         $phylo_rpe2 = eval {$pe_p_score / $null};
         $diff       = eval {$orig_total_tree_length * ($pe_p_score - $null)};
     }
@@ -667,21 +721,20 @@ sub get_metadata_get_trimmed_tree_eq_branch_lengths_node_length_hash {
     return $metadata_class->new(\%metadata);
 }
 
-#  should just be a wrapper around Tree::get_node_length_hash
 sub get_trimmed_tree_eq_branch_lengths_node_length_hash {
     my $self = shift;
     my %args = @_;
     
     my $tree_ref = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED}
       // croak 'Missing TREE_REF_EQUALISED_BRANCHES_TRIMMED arg';
-    my $node_hash = $tree_ref->get_node_hash;
-    
-    my (%len_hash, $nonzero_length);
-    foreach my $node_name (keys %$node_hash) {
-        my $node_ref = $node_hash->{$node_name};
-        my $length   = $node_ref->get_length;
-        $len_hash{$node_name} = $length;
-        $nonzero_length ||= $length;
+
+    \my %len_hash = $tree_ref->get_node_length_hash;
+
+    my $nonzero_length;
+
+    foreach my $len (values %len_hash) {
+        $nonzero_length ||= $len;
+        last if $len;
     }
     
     my %results = (
@@ -692,5 +745,102 @@ sub get_trimmed_tree_eq_branch_lengths_node_length_hash {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_get_trimmed_tree_range_inverse_hash {
+    my %metadata = (
+        name  => 'get_trimmed_tree_range_inverse_hash',
+        description
+              => "Get a hash of the node range inverse values\n"
+            . "Forms the basis of the RPE calcs for equal area cells",
+        pre_calc_global => ['get_node_range_hash'],
+        indices => {
+            trimmed_tree_range_inverse_hash => {
+                description => 'Hash of trimmed tree range inverse values',
+            },
+        },
+    );
+    return $metadata_class->new(\%metadata);
+}
+
+sub get_trimmed_tree_range_inverse_hash {
+    my $self = shift;
+    my %args = @_;
+
+    # my $tree = $args{TRIMMED_TREE};
+    my $node_ranges = $args{node_range};
+
+    my %range_weighted;
+
+    foreach my $name (keys %$node_ranges) {
+        my $range = $node_ranges->{$name} || next;
+        $range_weighted{$name} = 1 / $range;
+    }
+
+    my %results = (trimmed_tree_range_inverse_hash => \%range_weighted);
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_get_trimmed_tree_range_inverse_hash_nonzero_len {
+    my %metadata = (
+        name  => 'get_trimmed_tree_range_inverses_nonzero_len',
+        description
+              => "Get a hash of the node range inverse values for non-zero lengths\n"
+            . "Forms the basis of the RPE calcs for equal area cells",
+        pre_calc_global => ['get_node_range_hash', 'get_trimmed_tree'],
+        indices => {
+            trimmed_tree_range_inverse_hash_nonzero_len => {
+                description => 'Hash of trimmed tree range inverse values for nodes with non-zero length',
+            },
+        },
+    );
+    return $metadata_class->new(\%metadata);
+}
+
+sub get_trimmed_tree_range_inverse_hash_nonzero_len {
+    my $self = shift;
+    my %args = @_;
+
+    my $tree        = $args{trimmed_tree};
+    \my %node_ranges = $args{node_range};
+    \my %length_hash = $tree->get_node_length_hash;
+
+    my %range_weighted;
+
+    foreach my $name (keys %node_ranges) {
+        my $range = $node_ranges{$name} || next;
+        $range_weighted{$name} = ($length_hash{$name} ? 1 : 0) / $range;
+    }
+
+    my %results = (trimmed_tree_range_inverse_hash_nonzero_len => \%range_weighted);
+
+    return wantarray ? %results : \%results;
+}
+
+
+
+sub get_metadata_get_rpe_element_cache {
+
+    my %metadata = (
+        name        => 'get_rpe_element_cache',
+        description => 'Create a hash in which to cache the PE_alt scores for each element',
+        indices     => {
+            RPE_RESULTS_CACHE => {
+                description => 'The hash in which to cache the PE_alt scores for each element'
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+#  create a hash in which to cache the PE scores for each element
+#  this is called as a global precalc and then used or modified by each element as needed
+sub get_rpe_element_cache {
+    my $self = shift;
+    my %args = @_;
+
+    my %results = (RPE_RESULTS_CACHE => {});
+    return wantarray ? %results : \%results;
+}
 
 1;

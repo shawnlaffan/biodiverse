@@ -3095,20 +3095,17 @@ sub clone_tree_with_equalised_branch_lengths {
 
     my $name = $args{name} // ( $self->get_param('NAME') . ' EQ' );
 
-    my $non_zero_len = $args{node_length};
+    my $non_zero_len = $args{node_length}
+     // ($self->get_total_tree_length / ( $self->get_nonzero_length_count || 1 ));
 
-    if ( !defined $non_zero_len ) {
-        # my $non_zero_node_count = grep { $_->get_length } $self->get_node_refs;
-        #  this caches
-        my $non_zero_node_count = $self->get_nonzero_length_count;
-        $non_zero_len =
-          $self->get_total_tree_length / ( $non_zero_node_count || 1 );
-    }
+    \my %orig_node_length_hash = $self->get_node_length_hash;
 
     my $new_tree = $self->clone_without_caches;
+    \my %new_node_hash = $new_tree->get_node_hash;
 
-    foreach my $node ( $new_tree->get_node_refs ) {
-        $node->set_length_aa ( $node->get_length ? $non_zero_len : 0 );
+    foreach my $name ( keys %new_node_hash ) {
+        my $node = $new_node_hash{$name};
+        $node->set_length_aa ( $orig_node_length_hash{$name} ? $non_zero_len : 0 );
     }
     $new_tree->rename( new_name => $name );
 

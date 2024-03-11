@@ -1703,22 +1703,13 @@ sub _calc_abc_any {
     my $self = shift;
 
     my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
-    my $cache_key
-        = List::Util::first {defined $cache_hash->{$_}}
-          (qw/calc_abc calc_abc2 calc_abc3/);
 
-    # say STDERR 'NO previous cache key'
-    #     if !$cache_key;
+    my $results = $cache_hash->{calc_abc}
+        // $cache_hash->{calc_abc2}
+        // $cache_hash->{calc_abc3}
+        // $self->calc_abc(@_);
 
-    #  fall back to calc_abc if nothing had an explicit abc dependency
-    my $cached = $cache_key
-        ? $cache_hash->{$cache_key}
-        : $self->calc_abc(@_);
-
-    croak 'No previous calc_abc results found'
-        if !$cached;
-
-    return wantarray ? %$cached : $cached;
+    return wantarray ? %$results : $results;
 }
 
 sub get_metadata_calc_abc {
@@ -1813,20 +1804,22 @@ sub _calc_abc_dispatcher {
         // $args{label_list2}
     );
 
+    state $empty_array = [];
+
     return $self->_calc_abc_pairwise_mode(%args)
-        if $self->get_pairwise_mode
-            && @{$args{element_list1} // []} == 1
-            && @{$args{element_list2} // []} == 1
-            && !$have_lb_lists;
+        if   @{$args{element_list1} // $empty_array} == 1
+          && @{$args{element_list2} // $empty_array} == 1
+          && $self->get_pairwise_mode
+          && !$have_lb_lists;
 
     return $self->_calc_abc_hierarchical_mode(%args)
         if $args{current_node_details}
-            && !$have_lb_lists
-            && $self->get_hierarchical_mode;
+          && !$have_lb_lists
+          && $self->get_hierarchical_mode;
 
     return $self->_calc_abc(%args)
         if is_hashref($args{element_list1})
-            || @{$args{element_list1} // []} != 1
+            || @{$args{element_list1} // $empty_array} != 1
             || defined $args{element_list2}
             || $have_lb_lists;
 

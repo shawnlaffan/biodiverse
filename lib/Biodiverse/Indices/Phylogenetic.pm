@@ -664,10 +664,18 @@ sub get_path_lengths_to_root_node {
     #  but first option is faster still
     my $len_hash = $tree_ref->get_node_length_hash;
     if (HAVE_BD_UTILS_108) {
-        #  get keys and vals in one call
-        Biodiverse::Utils::XS::add_hash_keys_and_vals_until_exists_AoA (
-            $path_hash, \@collected_paths, $len_hash,
-        );
+        #  sometimes there are no paths
+        if (@collected_paths) {
+            #  direct assign the first (could do first few, or the longest but that needs another scan)
+            my $first = shift @collected_paths;
+            @$path_hash{@$first} = @$len_hash{@$first};
+            if (@collected_paths) {
+                #  get keys and vals in one call
+                Biodiverse::Utils::XS::add_hash_keys_and_vals_until_exists_AoA(
+                    $path_hash, \@collected_paths, $len_hash,
+                );
+            }
+        }
     }
     elsif (HAVE_BD_UTILS) {
         Biodiverse::Utils::copy_values_from ($path_hash, $len_hash);
@@ -772,7 +780,8 @@ sub get_metadata_calc_pe_lists {
         name            => 'Phylogenetic Endemism lists',
         reference       => 'Rosauer et al (2009) Mol. Ecol. https://doi.org/10.1111/j.1365-294X.2009.04311.x',
         type            => 'Phylogenetic Endemism Indices', 
-        pre_calc        => ['_calc_pe'],  
+        pre_calc        => [qw /_calc_pe_lists/],
+        pre_calc_global => [ 'get_node_range_hash' ],
         uses_nbr_lists  => 1,
         distribution    => 'nonnegative',
         indices         => {
@@ -800,6 +809,12 @@ sub calc_pe_lists {
 
     my @keys = qw /PE_WTLIST PE_RANGELIST PE_LOCAL_RANGELIST/;
     my %results = %args{@keys};
+    #  PE_RANGELIST used to be done in _calc_pe
+    if (!$results{PE_RANGELIST}) {
+        \my %ranges = $args{node_range};
+        my %h = %ranges{keys %{$results{PE_WTLIST}}};
+        $results{PE_RANGELIST} = \%h;
+    }
 
     return wantarray ? %results : \%results;
 }
@@ -830,7 +845,7 @@ END_PEC_DESC
         name            => 'Phylogenetic Endemism central',
         reference       => 'Rosauer et al (2009) Mol. Ecol. https://doi.org/10.1111/j.1365-294X.2009.04311.x',
         type            => 'Phylogenetic Endemism Indices',
-        pre_calc        => [qw /_calc_pe _calc_phylo_abc_lists/],
+        pre_calc        => [qw /_calc_pe _calc_pe_lists _calc_phylo_abc_lists/],
         pre_calc_global => [qw /get_trimmed_tree/],
         uses_nbr_lists  => 1,  #  how many lists it must have
         formula         => $formula,
@@ -888,7 +903,7 @@ END_PEC_DESC
         name            => 'Phylogenetic Endemism central lists',
         reference       => 'Rosauer et al (2009) Mol. Ecol. https://doi.org/10.1111/j.1365-294X.2009.04311.x',
         type            => 'Phylogenetic Endemism Indices',
-        pre_calc        => [qw /_calc_pe _calc_phylo_abc_lists/],
+        pre_calc        => [qw /_calc_pe calc_pe_lists _calc_phylo_abc_lists/],
         uses_nbr_lists  => 1,  #  how many lists it must have
         distribution => 'nonnegative',
         indices         => {
@@ -1100,7 +1115,7 @@ sub get_metadata_calc_pe_clade_contributions {
         name            => 'PE clade contributions',
         reference       => '',
         type            => 'Phylogenetic Endemism Indices', 
-        pre_calc        => ['_calc_pe', 'get_sub_tree_as_hash'],
+        pre_calc        => [qw/_calc_pe _calc_pe_lists get_sub_tree_as_hash/],
         pre_calc_global => ['get_trimmed_tree'],
         uses_nbr_lists  => 1,
         distribution    => 'nonnegative',  # default
@@ -1417,7 +1432,7 @@ EOD
         name            => 'Phylogenetic Endemism single',
         reference       => 'Rosauer et al (2009) Mol. Ecol. https://doi.org/10.1111/j.1365-294X.2009.04311.x',
         type            => 'Phylogenetic Endemism Indices',
-        pre_calc        => ['_calc_pe'],
+        pre_calc        => [qw/_calc_pe calc_pe_lists/],
         pre_calc_global => ['get_trimmed_tree'],
         uses_nbr_lists  => 1,
         indices         => {
@@ -1768,14 +1783,14 @@ sub get_inverse_range_weighted_path_lengths {
     my %args = @_;
     
     my $tree = $args{tree_ref};
-    my $node_ranges = $args{node_range};
-    
+    \my %node_ranges = $args{node_range};
+    \my %node_length_hash = $tree->get_node_length_hash;
+
     my %range_weighted;
-    
-    foreach my $node ($tree->get_node_refs) {
-        my $name = $node->get_name;
-        next if !$node_ranges->{$name};
-        $range_weighted{$name} = $node->get_length / $node_ranges->{$name};
+
+    foreach my $name (keys %node_length_hash) {
+        next if !$node_ranges{$name};
+        $range_weighted{$name} = $node_length_hash{$name} / $node_ranges{$name};
     }
     
     my %results = (inverse_range_weighted_node_lengths => \%range_weighted);
@@ -2653,7 +2668,7 @@ sub get_metadata__calc_phylo_abc_lists {
         name            =>  'Phylogenetic ABC lists',
         description     =>  'Calculate the sets of shared and not shared branches between two sets of labels',
         type            =>  'Phylogenetic Indices',
-        pre_calc        =>  'calc_abc',
+        pre_calc        =>  '_calc_abc_any',
         pre_calc_global =>  [qw /get_trimmed_tree get_path_length_cache set_path_length_cache_by_group_flag/],
         uses_nbr_lists  =>  1,  #  how many sets of lists it must have
         required_args   => {tree_ref => 1},
@@ -2679,7 +2694,9 @@ sub _calc_phylo_abc_lists {
         el_list  => $args{element_list1},
     );
 
-    if (!@{$args{element_list2}}) {
+    #  $args{C} is the count of labels unique to set 2
+    #  so if it is zero then we can short-circuit.
+    if ($args{C} == 0) {
         my $res = {
             PHYLO_A_LIST => {},
             PHYLO_B_LIST => $nodes_in_path1,
@@ -2688,14 +2705,12 @@ sub _calc_phylo_abc_lists {
         return wantarray ? %$res : $res;
     }
 
-    my $nodes_in_path2 = @{$args{element_list2}}
-        ? $self->get_path_lengths_to_root_node (
-            %args,
-            labels   => $label_hash2,
-            tree_ref => $tree,
-            el_list  => $args{element_list2},
-        )
-        : {};
+    my $nodes_in_path2 = $self->get_path_lengths_to_root_node (
+        %args,
+        labels   => $label_hash2,
+        tree_ref => $tree,
+        el_list  => $args{element_list2},
+    );
 
     my %results;
     #  one day we can clean this all up

@@ -2340,9 +2340,14 @@ sub calculate_canape {
     # find all the relevant lists for this target name
     my $list_name        = 'SPATIAL_RESULTS';
     my $p_rank_list_name = $result_list_pfx . '>>p_rank>>' . $list_name;
-    my $result_list_name = $result_list_pfx . '>>CANAPE>>';
+    # my $result_list_name = $result_list_pfx . '>>CANAPE>>';
+    my %result_list_names = (
+        "${result_list_pfx}>>CANAPE>>" => undef,
+        "${result_list_pfx}>>CANAPE_DIFF>>" => {RPE => 'PHYLO_RPE_DIFF2'},
+    );
 
-  NODE:
+
+    NODE:
     foreach my $node ( $self->get_node_refs ) {
 
         my $p_rank_list_ref
@@ -2352,22 +2357,25 @@ sub calculate_canape {
 
         my $base_list_ref = $node->get_list_ref_aa ($list_name);
 
-        # this will vivify it
-        my $result_list_ref =
-          $node->get_list_ref_aa( $result_list_name );
-        if ( !$result_list_ref ) {
-            $result_list_ref = {};
-            $node->add_to_lists(
-                $result_list_name => $result_list_ref,
-                use_ref           => 1,
+        foreach my $result_list_name (keys %result_list_names) {
+            # this will vivify it
+            my $result_list_ref =
+                $node->get_list_ref_aa($result_list_name);
+            if (!$result_list_ref) {
+                $result_list_ref = {};
+                $node->add_to_lists(
+                    $result_list_name => $result_list_ref,
+                    use_ref           => 1,
+                );
+            }
+
+            $self->assign_canape_codes_from_p_rank_results(
+                p_rank_list_ref  => $p_rank_list_ref,
+                base_list_ref    => $base_list_ref,
+                results_list_ref => $result_list_ref, #  do it in-place
+                index_names      => $result_list_names{$result_list_name},
             );
         }
-
-        $self->assign_canape_codes_from_p_rank_results (
-            p_rank_list_ref  => $p_rank_list_ref,
-            base_list_ref    => $base_list_ref,
-            results_list_ref => $result_list_ref,  #  do it in-place
-        );
     }
 }
 

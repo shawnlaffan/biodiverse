@@ -225,7 +225,12 @@ sub calculate_canape {
 
     my $list_name        = 'SPATIAL_RESULTS';
     my $p_rank_list_name = $result_list_pfx . '>>p_rank>>' . $list_name;
-    my $result_list_name = $result_list_pfx . '>>CANAPE>>';
+    # my $result_list_name = $result_list_pfx . '>>CANAPE>>';
+
+    my %result_list_names = (
+        "${result_list_pfx}>>CANAPE>>" => undef,
+        "${result_list_pfx}>>CANAPE_DIFF>>" => {RPE => 'PHYLO_RPE_DIFF2'},
+    );
 
     COMP_BY_ELEMENT:
     foreach my $element ($self->get_element_list) {
@@ -251,7 +256,7 @@ sub calculate_canape {
         next COMP_BY_ELEMENT         #  should check earlier that we have run the relevant calcs
           if not List::Util::all
             {exists $base_list_ref->{$_}}
-            (qw/PE_WE_P PHYLO_RPE_NULL2 PHYLO_RPE2/);
+            (qw/PE_WE_P PHYLO_RPE_NULL2 PHYLO_RPE2/);  # diff?
 
         my $p_rank_list_ref = $self->get_list_ref (
             element     => $element,
@@ -259,41 +264,44 @@ sub calculate_canape {
             autovivify  => 0,
         );
 
-        my $result_list_ref = $self->get_list_ref (
-            element => $element,
-            list    => $result_list_name,
-        );
-
-        $self->assign_canape_codes_from_p_rank_results (
-            p_rank_list_ref  => $p_rank_list_ref,
-            base_list_ref    => $base_list_ref,
-            results_list_ref => $result_list_ref,  #  do it in-place
-        );
-
-        #  if results from both base and comp
-        #  are recycled then we can recycle the comparisons
-        if ($recycled_results) {
-            my $nbrs = $self->get_list_ref (
-                element => $element,
-                list    => 'RESULTS_SAME_AS',
-            );
-
-            my $results_ref = $self->get_list_ref (
+        foreach my $result_list_name (keys %result_list_names) {
+            my $result_list_ref = $self->get_list_ref(
                 element => $element,
                 list    => $result_list_name,
             );
 
-            BY_RECYCLED_NBR:
-            foreach my $nbr (keys %$nbrs) {
-                $self->add_to_lists (
-                    element           => $nbr,
-                    $result_list_name => $results_ref,
-                    use_ref           => 1,
+            $self->assign_canape_codes_from_p_rank_results(
+                p_rank_list_ref   => $p_rank_list_ref,
+                base_list_ref     => $base_list_ref,
+                results_list_ref  => $result_list_ref, #  do it in-place
+                index_names       => $result_list_names{$result_list_name},
+            );
+
+            #  if results from both base and comp
+            #  are recycled then we can recycle the comparisons
+            if ($recycled_results) {
+                my $nbrs = $self->get_list_ref(
+                    element => $element,
+                    list    => 'RESULTS_SAME_AS',
                 );
+
+                my $results_ref = $self->get_list_ref(
+                    element => $element,
+                    list    => $result_list_name,
+                );
+
+                BY_RECYCLED_NBR:
+                foreach my $nbr (keys %$nbrs) {
+                    $self->add_to_lists(
+                        element           => $nbr,
+                        $result_list_name => $results_ref,
+                        use_ref           => 1,
+                    );
+                }
+                my $done_base_hash = $done_base{$list_name};
+                @{$done_base_hash}{keys %$nbrs}
+                    = values %$nbrs;
             }
-            my $done_base_hash = $done_base{$list_name};
-            @{$done_base_hash}{keys %$nbrs}
-                = values %$nbrs;
         }
     }
 

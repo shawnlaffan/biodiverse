@@ -2475,18 +2475,18 @@ sub assign_canape_codes_from_p_rank_results {
 
     my $results_list_ref = $args{results_list_ref} // {};
 
-    state $default_names = {
-        PE_obs => 'PE_WE',
-        PE_alt => 'PHYLO_RPE_NULL2',
-        RPE    => 'PHYLO_RPE2',
-    };
-    \my %index_names = $args{index_names} // $default_names;
+    # state $default_names = {
+    #     PE_obs => 'PE_WE',
+    #     PE_alt => 'PHYLO_RPE_NULL2',
+    #     RPE    => 'PHYLO_RPE2',
+    # };
+    \my %index_names = ($args{index_names} // {});
 
     my $canape_code;
-    if (defined $base_list_ref->{$index_names{PE_obs}}) {
-        my $PE_sig_obs = $p_rank_list_ref->{$index_names{PE_obs}} // 0.5;
-        my $PE_sig_alt = $p_rank_list_ref->{$index_names{PE_alt}} // 0.5;
-        my $RPE_sig    = $p_rank_list_ref->{$index_names{RPE}}    // 0.5;
+    if (defined $base_list_ref->{$index_names{PE_obs} // 'PE_WE'}) {
+        my $PE_sig_obs = $p_rank_list_ref->{$index_names{PE_obs} // 'PE_WE'} // 0.5;
+        my $PE_sig_alt = $p_rank_list_ref->{$index_names{PE_alt} // 'PHYLO_RPE_NULL2'} // 0.5;
+        my $RPE_sig    = $p_rank_list_ref->{$index_names{RPE}    // 'PHYLO_RPE2'}  // 0.5;
 
         $canape_code
             = $PE_sig_obs <= 0.95 && $PE_sig_alt <= 0.95 ? 0  #  non-sig

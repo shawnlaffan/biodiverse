@@ -251,12 +251,12 @@ sub calculate_canape {
             autovivify  => 0,
         );
 
-        next COMP_BY_ELEMENT if !$base_list_ref; #  nothing to compare with...
-        next COMP_BY_ELEMENT if is_arrayref($base_list_ref);  #  skip arrays - should never be the case for this list
-        next COMP_BY_ELEMENT         #  should check earlier that we have run the relevant calcs
-          if not List::Util::all
-            {exists $base_list_ref->{$_}}
-            (qw/PE_WE_P PHYLO_RPE_NULL2 PHYLO_RPE2/);  # diff?
+        next COMP_BY_ELEMENT if !$base_list_ref
+            or is_arrayref($base_list_ref)
+            or not (
+                defined $base_list_ref->{PE_WE_P}
+                and defined $base_list_ref->{PHYLO_RPE2}
+            );
 
         my $p_rank_list_ref = $self->get_list_ref (
             element     => $element,

@@ -190,7 +190,9 @@ sub calculate_canape {
     return 1 if not scalar @$e_list;
 
     #  check if we have the relevant calcs here
-    return if !$self->check_canape_protocol_is_valid;
+    my $valid_canape_types = $self->get_valid_canape_types // {};
+
+    return if !keys %$valid_canape_types;
 
     my $progress = Biodiverse::Progress->new();
     my $progress_text = "Calculating Canape";
@@ -225,11 +227,32 @@ sub calculate_canape {
 
     my $list_name        = 'SPATIAL_RESULTS';
     my $p_rank_list_name = $result_list_pfx . '>>p_rank>>' . $list_name;
-    # my $result_list_name = $result_list_pfx . '>>CANAPE>>';
 
     my %result_list_names = (
-        "${result_list_pfx}>>CANAPE>>" => undef,
-        "${result_list_pfx}>>CANAPE_DIFF>>" => {RPE => 'PHYLO_RPE_DIFF2'},
+        $valid_canape_types->{normal} ? (
+            "${result_list_pfx}>>CANAPE>>" => {
+                PE_obs => 'PE_WE',
+                PE_alt => 'PHYLO_RPE2',
+                RPE    => 'PHYLO_RPE_NULL2',
+            },
+            "${result_list_pfx}>>CANAPE_DIFF>>" => {
+                PE_obs => 'PE_WE',
+                PE_alt => 'PHYLO_RPE2',
+                RPE    => 'PHYLO_RPE_DIFF2',
+            }
+        ) : (),
+        $valid_canape_types->{central} ? (
+            "${result_list_pfx}>>CANAPE_CENTRAL>>" => {
+                PE_obs => 'PEC_WE',
+                PE_alt => 'PHYLO_RPEC',
+                RPE    => 'PHYLO_RPE_NULLC',
+            },
+            "${result_list_pfx}>>CANAPE_DIFF_CENTRAL>>" => {
+                PE_obs => 'PEC_WE',
+                PE_alt => 'PHYLO_RPEC',
+                RPE    => 'PHYLO_RPE_DIFFC',
+            },
+        ) : (),
     );
 
     COMP_BY_ELEMENT:
@@ -252,11 +275,7 @@ sub calculate_canape {
         );
 
         next COMP_BY_ELEMENT if !$base_list_ref
-            or is_arrayref($base_list_ref)
-            or not (
-                defined $base_list_ref->{PE_WE_P}
-                and defined $base_list_ref->{PHYLO_RPE2}
-            );
+            or is_arrayref($base_list_ref);
 
         my $p_rank_list_ref = $self->get_list_ref (
             element     => $element,

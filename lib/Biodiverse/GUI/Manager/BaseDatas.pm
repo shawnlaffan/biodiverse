@@ -695,11 +695,11 @@ sub get_resolution_table_widget {
 
         my $is_text_axis = 0;
 
-        my $init_value = $cellsize;
+        my $init_value = 0 + $cellsize;
 
-        my $min_val   = $cellsize;
+        my $min_val   = 0 + $cellsize;
         my $max_val   = 10E10;
-        my $step_incr = $cellsize;
+        my $step_incr = 0 + $cellsize;
 
         if ( $cellsize == 0 ) {    #  allow some change for points
                 #  avoid precision issues later on when predicting offsets
@@ -734,6 +734,8 @@ sub get_resolution_table_widget {
             $step_incr,  $page_incr, 0,
         );
         my $widget = Gtk2::SpinButton->new( $adj, $init_value, 10, );
+        say join ' ', $init_value, $min_val,   $max_val,
+            $step_incr,  $page_incr, 0;
 
         $table->attach( $label,  0, 1, $rows, $rows + 1, 'shrink', [], 0, 0 );
         $table->attach( $widget, 1, 2, $rows, $rows + 1, 'shrink', [], 0, 0 );
@@ -771,7 +773,7 @@ sub get_resolution_table_widget {
 
     #  attach signal handlers
     my $j = -1;
-    # ensure it is a valid multiple from origin
+    # ensure it is a valid multiple of this axis resolution
     foreach my $widget (@resolution_widgets) {
         $j++;
         $widget->signal_connect (

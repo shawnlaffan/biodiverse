@@ -2343,6 +2343,7 @@ sub calculate_canape {
     my $list_name        = 'SPATIAL_RESULTS';
     my $p_rank_list_name = $result_list_pfx . '>>p_rank>>' . $list_name;
 
+    #  duplicate of code in Spatial.pm - needs a refactor
     my %result_list_names = (
         $valid_canape_types->{normal} ? (
             "${result_list_pfx}>>CANAPE>>" => {

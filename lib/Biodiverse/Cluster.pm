@@ -1484,7 +1484,7 @@ sub cluster_matrix_elements {
         while (defined $node1) {
 
             my $text = sprintf
-                "Clustering\n%s\n(%d rows remaining)\nMost similar value is %.3f",
+                "Clustering\n%s\n(%d rows remaining)\nMost similar value is %.6g",
                 $progress_text,
                 $remaining - $extra_zeroes_count - 1,
                 $most_similar_val;

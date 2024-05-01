@@ -777,19 +777,11 @@ sub get_resolution_table_widget {
         $widget->signal_connect (
             'value-changed' => sub {
                 my $val = $widget->get_value;
-                #  Avoid fmod - it causes grief with 0.2 cell sizes
-                #  prob due to floating point issues.
-                #  Precision should be configurable...
-                my $offset = ($val - $origins_array[$j])
-                            / $cellsize_array[$j];
-                if ($cellsize_array[$j] < 1) {
-                    $offset = ($offset * 10e10 + 0.5) / 10e10;
-                }
-                $offset -= int $offset;
-                #  effectively zero given cell size constraints
-                if ($offset > 10e-10) {
-                    $val -= $offset;
-                    $widget->set_value ($val);
+                if (fmod ($self->round_to_precision_aa ($val / $cellsize_array[$j], 1e11), 1)) {
+                    my $remainder = fmod ($val, $cellsize_array[$j]);
+                    if (abs ($remainder) > 1e-12) {
+                        $widget->set_value($val - $remainder);
+                    }
                 }
                 return;
             }
@@ -932,13 +924,15 @@ sub get_origin_table_widget {
         $widget->signal_connect (
             'value-changed' => sub {
                 my $val = $widget->get_value;
-                my $fmod = fmod (
-                  ($val - $origins_array[$j]),
-                  $cellsize_array[$j],
-                );
-                if ($fmod) {
-                    $val -= $fmod;
-                    $widget->set_value ($val);
+                my $val_in_cell_units
+                    = $self->round_to_precision_aa (($val - $origins_array[$j]) / $cellsize_array[$j], 1e11);
+
+                if (fmod ($val_in_cell_units, 1)) {
+                    my $remainder = fmod ($val - $origins_array[$j], $cellsize_array[$j]);
+                    say join ' ', $val, $val_in_cell_units, $remainder;
+                    if (abs ($remainder) > 1e-12) {
+                        $widget->set_value($val - $remainder);
+                    }
                 }
                 return;
             }

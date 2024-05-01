@@ -117,13 +117,13 @@ END_PROGRESS_TEXT
         }
     }
 
-    printf "[RANDOMISE] Randomise using curveball algorithm for %s labels from %s groups\n",
-        scalar @sorted_labels, scalar @sorted_groups;
+    say "[RANDOMISE] Randomise using curveball algorithm for $n_labels labels from $n_groups groups";
 
     #  No need to consider groups that cannot be swapped out.
     #  Could use a binary search but this is only done once per iteration.
     if (keys %has_max_richness) {
         @sorted_groups = grep {!exists $has_max_richness{$_}} @sorted_groups;
+        $n_groups = scalar @sorted_groups;
     }
 
     $progress_bar->reset;
@@ -154,12 +154,12 @@ END_PROGRESS_TEXT
     ) {
         $attempts++;
 
-        my $group1 = $sorted_groups[int $rand->rand (scalar @sorted_groups)];
-        my $group2 = $sorted_groups[int $rand->rand (scalar @sorted_groups)];
+        my $group1 = $sorted_groups[int $rand->rand ($n_groups)];
+        my $group2 = $sorted_groups[int $rand->rand ($n_groups)];
         while ($group1 eq $group2) {
             #  handle pathological case of only one group
-            last MAIN_ITER if scalar @sorted_groups == 1;
-            $group2 = $sorted_groups[int $rand->rand (scalar @sorted_groups)];
+            last MAIN_ITER if $n_groups == 1;
+            $group2 = $sorted_groups[int $rand->rand ($n_groups)];
         }
 
         my \%labels1 = $lb_hash{$group1};

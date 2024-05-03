@@ -158,6 +158,20 @@ sub calc_phylo_rw_turnover {
 
     \my %list1 = $args{PE_WTLIST_PER_ELEMENT_SET1};
     \my %list2 = $args{PE_WTLIST_PER_ELEMENT_SET2};
+
+    #  both sets must contain branches
+    if (not (keys %list1 and keys %list2)) {
+        my %results = (
+            PHYLO_RW_TURNOVER_A => undef,
+            PHYLO_RW_TURNOVER_B => undef,
+            PHYLO_RW_TURNOVER_C => undef,
+            PHYLO_RW_TURNOVER   => undef,
+        );
+
+        return wantarray ? %results : \%results;
+    }
+
+
     my ($aa, $bb, $cc) = (0, 0, 0);
 
     if ($self->get_pairwise_mode) {
@@ -181,9 +195,6 @@ sub calc_phylo_rw_turnover {
             (exists $list1{$_} and $aa += $list2{$_}) 
               foreach keys %list2;
         }
-        #  Avoid precision issues later when $aa is
-        #  essentially zero given numeric precision
-        $aa ||= 0;
         $bb = $sum_i - $aa;
         $cc = $sum_j - $aa;
         $aa *= 2;  #  needs to be double counted now
@@ -197,25 +208,19 @@ sub calc_phylo_rw_turnover {
         #  postfix for speed
         (!exists $list1{$_} and $cc += $list2{$_})
           foreach keys %list2;
-        #  Avoid precision issues later when $aa is
-        #  essentially zero given numeric precision
-        $aa ||= 0;
     }
 
-    #  precision as per $aa above
-    $bb ||= 0;
-    $cc ||= 0;
 
     # my $dissim_is_valid = ($aa || $bb) && ($aa || $cc);
+    my $turnover = ($aa || $bb) && ($aa || $cc)  #  avoid divide by zero
+        ? (1 - ($aa / ($aa + $bb + $cc)) || 0)  #  more precision...
+        : undef;
+    $turnover = 0 if $turnover && $turnover < 0;  #  we can get precision issues
     my %results = (
         PHYLO_RW_TURNOVER_A => $aa,
         PHYLO_RW_TURNOVER_B => $bb,
         PHYLO_RW_TURNOVER_C => $cc,
-        PHYLO_RW_TURNOVER   => eval {
-            ($aa || $bb) && ($aa || $cc)  #  avoid divide by zero
-            ? 1 - (($aa / ($aa + $bb + $cc)) || 0)  #  more precision...
-            : undef
-        },
+        PHYLO_RW_TURNOVER   => $turnover,
     );
 
     return wantarray ? %results : \%results;

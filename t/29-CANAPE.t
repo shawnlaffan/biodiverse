@@ -94,52 +94,53 @@ sub test_rand_structured_richness_same {
 
     
     my $lists_no_canape = $sp_no_canape->get_list_names_across_elements;
-    is ((scalar grep {/>>CANAPE>>/} keys %$lists_no_canape), 0, 'no unexpected CANAPE list');
+    is ((scalar grep {/>>CANAPE.*?>>/} keys %$lists_no_canape), 0, 'no unexpected CANAPE list');
 
     my $lists_has_canape = $sp_has_canape->get_list_names_across_elements;
-    my @canape_list_names = grep {/>>CANAPE>>/} keys %$lists_has_canape;
-    is (scalar @canape_list_names, 1, 'has CANAPE list');
+    my @canape_list_names = grep {/>>CANAPE.*?>>/} keys %$lists_has_canape;
+    is (scalar @canape_list_names, 2, 'has CANAPE list');
     
     my @index_keys = qw /CANAPE_CODE NEO PALAEO MIXED SUPER/;
-    foreach my $element ($sp_has_canape->get_element_list_sorted) {
-        my $listref = $sp_has_canape->get_list_ref (
-            element => $element,
-            list    => $canape_list_names[0],
-            autovivify => 0,
-        );
+    foreach my $list_name (@canape_list_names) {
+        foreach my $element ($sp_has_canape->get_element_list_sorted) {
+            my $listref = $sp_has_canape->get_list_ref(
+                element    => $element,
+                list       => $list_name,
+                autovivify => 0,
+            );
 
-        if (!defined $listref->{CANAPE_CODE}) {
-            is [@$listref{@index_keys}],
-                [undef, undef, undef, undef, undef],
-                "expected values undef, $element";
-        }
-        elsif ($listref->{CANAPE_CODE} == 0) {
-            is [@$listref{@index_keys}],
-                [0, 0, 0, 0, 0],
-                "expected values non-sig, $element";
-        }
-        elsif ($listref->{CANAPE_CODE} == 1) {
-            is [@$listref{@index_keys}],
-                [1, 1, 0, 0, 0],
-                "expected values neo, $element";
-        }
-        elsif ($listref->{CANAPE_CODE} == 2) {
-            is [@$listref{@index_keys}],
-                [2, 0, 1, 0, 0],
-                "expected values palaeo, $element";
-        }
-        elsif ($listref->{CANAPE_CODE} == 3) {
-            is [@$listref{@index_keys}],
-                [3, 0, 0, 1, 0],
-                "expected values mixed, $element";
-        }
-        elsif ($listref->{CANAPE_CODE} == 4) {
-            is [@$listref{@index_keys}],
-                [4, 0, 0, 0, 1],
-                "expected values super, $element";
+            if (!defined $listref->{CANAPE_CODE}) {
+                is [ @$listref{@index_keys} ],
+                    [ undef, undef, undef, undef, undef ],
+                    "expected values undef, $element";
+            }
+            elsif ($listref->{CANAPE_CODE} == 0) {
+                is [ @$listref{@index_keys} ],
+                    [ 0, 0, 0, 0, 0 ],
+                    "expected values non-sig, $element";
+            }
+            elsif ($listref->{CANAPE_CODE} == 1) {
+                is [ @$listref{@index_keys} ],
+                    [ 1, 1, 0, 0, 0 ],
+                    "expected values neo, $element";
+            }
+            elsif ($listref->{CANAPE_CODE} == 2) {
+                is [ @$listref{@index_keys} ],
+                    [ 2, 0, 1, 0, 0 ],
+                    "expected values palaeo, $element";
+            }
+            elsif ($listref->{CANAPE_CODE} == 3) {
+                is [ @$listref{@index_keys} ],
+                    [ 3, 0, 0, 1, 0 ],
+                    "expected values mixed, $element";
+            }
+            elsif ($listref->{CANAPE_CODE} == 4) {
+                is [ @$listref{@index_keys} ],
+                    [ 4, 0, 0, 0, 1 ],
+                    "expected values super, $element";
+            }
         }
     }
-
     return;
 }
 

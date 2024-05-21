@@ -190,7 +190,9 @@ sub calculate_canape {
     return 1 if not scalar @$e_list;
 
     #  check if we have the relevant calcs here
-    return if !$self->check_canape_protocol_is_valid;
+    my $valid_canape_types = $self->get_valid_canape_types // {};
+
+    return if !keys %$valid_canape_types;
 
     my $progress = Biodiverse::Progress->new();
     my $progress_text = "Calculating Canape";
@@ -225,7 +227,33 @@ sub calculate_canape {
 
     my $list_name        = 'SPATIAL_RESULTS';
     my $p_rank_list_name = $result_list_pfx . '>>p_rank>>' . $list_name;
-    my $result_list_name = $result_list_pfx . '>>CANAPE>>';
+
+    my %result_list_names = (
+        $valid_canape_types->{normal} ? (
+            "${result_list_pfx}>>CANAPE>>" => {
+                PE_obs => 'PE_WE',
+                PE_alt => 'PHYLO_RPE2',
+                RPE    => 'PHYLO_RPE_NULL2',
+            },
+            "${result_list_pfx}>>CANAPE_DIFF>>" => {
+                PE_obs => 'PE_WE',
+                PE_alt => 'PHYLO_RPE2',
+                RPE    => 'PHYLO_RPE_DIFF2',
+            }
+        ) : (),
+        $valid_canape_types->{central} ? (
+            "${result_list_pfx}>>CANAPE_CENTRAL>>" => {
+                PE_obs => 'PEC_WE',
+                PE_alt => 'PHYLO_RPEC',
+                RPE    => 'PHYLO_RPE_NULLC',
+            },
+            "${result_list_pfx}>>CANAPE_DIFF_CENTRAL>>" => {
+                PE_obs => 'PEC_WE',
+                PE_alt => 'PHYLO_RPEC',
+                RPE    => 'PHYLO_RPE_DIFFC',
+            },
+        ) : (),
+    );
 
     COMP_BY_ELEMENT:
     foreach my $element ($self->get_element_list) {
@@ -246,12 +274,8 @@ sub calculate_canape {
             autovivify  => 0,
         );
 
-        next COMP_BY_ELEMENT if !$base_list_ref; #  nothing to compare with...
-        next COMP_BY_ELEMENT if is_arrayref($base_list_ref);  #  skip arrays - should never be the case for this list
-        next COMP_BY_ELEMENT         #  should check earlier that we have run the relevant calcs
-          if not List::Util::all
-            {exists $base_list_ref->{$_}}
-            (qw/PE_WE_P PHYLO_RPE_NULL2 PHYLO_RPE2/);
+        next COMP_BY_ELEMENT if !$base_list_ref
+            or is_arrayref($base_list_ref);
 
         my $p_rank_list_ref = $self->get_list_ref (
             element     => $element,
@@ -259,41 +283,44 @@ sub calculate_canape {
             autovivify  => 0,
         );
 
-        my $result_list_ref = $self->get_list_ref (
-            element => $element,
-            list    => $result_list_name,
-        );
-
-        $self->assign_canape_codes_from_p_rank_results (
-            p_rank_list_ref  => $p_rank_list_ref,
-            base_list_ref    => $base_list_ref,
-            results_list_ref => $result_list_ref,  #  do it in-place
-        );
-
-        #  if results from both base and comp
-        #  are recycled then we can recycle the comparisons
-        if ($recycled_results) {
-            my $nbrs = $self->get_list_ref (
-                element => $element,
-                list    => 'RESULTS_SAME_AS',
-            );
-
-            my $results_ref = $self->get_list_ref (
+        foreach my $result_list_name (keys %result_list_names) {
+            my $result_list_ref = $self->get_list_ref(
                 element => $element,
                 list    => $result_list_name,
             );
 
-            BY_RECYCLED_NBR:
-            foreach my $nbr (keys %$nbrs) {
-                $self->add_to_lists (
-                    element           => $nbr,
-                    $result_list_name => $results_ref,
-                    use_ref           => 1,
+            $self->assign_canape_codes_from_p_rank_results(
+                p_rank_list_ref   => $p_rank_list_ref,
+                base_list_ref     => $base_list_ref,
+                results_list_ref  => $result_list_ref, #  do it in-place
+                index_names       => $result_list_names{$result_list_name},
+            );
+
+            #  if results from both base and comp
+            #  are recycled then we can recycle the comparisons
+            if ($recycled_results) {
+                my $nbrs = $self->get_list_ref(
+                    element => $element,
+                    list    => 'RESULTS_SAME_AS',
                 );
+
+                my $results_ref = $self->get_list_ref(
+                    element => $element,
+                    list    => $result_list_name,
+                );
+
+                BY_RECYCLED_NBR:
+                foreach my $nbr (keys %$nbrs) {
+                    $self->add_to_lists(
+                        element           => $nbr,
+                        $result_list_name => $results_ref,
+                        use_ref           => 1,
+                    );
+                }
+                my $done_base_hash = $done_base{$list_name};
+                @{$done_base_hash}{keys %$nbrs}
+                    = values %$nbrs;
             }
-            my $done_base_hash = $done_base{$list_name};
-            @{$done_base_hash}{keys %$nbrs}
-                = values %$nbrs;
         }
     }
 

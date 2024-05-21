@@ -12,7 +12,7 @@ no warnings 'experimental::refaliasing';
 use Carp;
 use English ( -no_match_vars );
 
-use constant ON_WINDOWS => ($OSNAME eq 'MSWin32'); 
+use constant ON_WINDOWS => ($OSNAME eq 'MSWin32');
 use if ON_WINDOWS, 'Win32::LongPath';
 
 #use Data::Dumper  qw /Dumper/;
@@ -40,7 +40,7 @@ BEGIN {
     eval 'use threads';
 }
 
-use Math::Random::MT::Auto;  
+use Math::Random::MT::Auto;
 
 #use Regexp::Common qw /number/;
 
@@ -81,7 +81,7 @@ sub clone {
         # Should also use Sereal here
         $cloneref = Clone::clone ($args{data});
     }
-    
+
     croak $e if $e;
 
     return $cloneref;
@@ -90,16 +90,16 @@ sub clone {
 sub rename_object {
     my $self = shift;
     my %args = @_;
-    
+
     my $new_name = $args{name} // $args{new_name};
     my $old_name = $self->get_param ('NAME');
-    
+
     $self->set_param (NAME => $new_name);
-    
+
     my $type = blessed $self;
 
     print "Renamed $type '$old_name' to '$new_name'\n";
-    
+
     return;
 }
 
@@ -112,7 +112,7 @@ sub set_last_update_time {
     my $self = shift;
     my $time = shift || time;
     $self->set_param (LAST_UPDATE_TIME => $time);
-    
+
     return;
 }
 
@@ -123,17 +123,17 @@ sub load_file {
     my %args = @_;
 
     croak "Argument 'file' not defined, cannot load from file\n"
-      if ! defined ($args{file});
-      
+        if ! defined ($args{file});
+
     croak "File $args{file} does not exist or is not readable\n"
-      if !$self->file_is_readable (file_name => $args{file});
+        if !$self->file_is_readable (file_name => $args{file});
 
     (my $suffix) = $args{file} =~ /(\..+?)$/;
 
     my @importer_funcs
-      = $suffix =~ /s$/ ? qw /load_sereal_file load_storable_file/
-      : $suffix =~ /y$/ ? qw /load_yaml_file/
-      : qw /load_sereal_file load_storable_file/;
+        = $suffix =~ /s$/ ? qw /load_sereal_file load_storable_file/
+        : $suffix =~ /y$/ ? qw /load_yaml_file/
+        : qw /load_sereal_file load_storable_file/;
 
     my $object;
     my @errs;
@@ -145,10 +145,10 @@ sub load_file {
         }
         last if defined $object;
     }
-    
+
     croak "Unable to open object file $args{file}\n"
-         . join "\n", @errs
-      if !$object;
+        . join "\n", @errs
+        if !$object;
 
     return $object;
 }
@@ -158,7 +158,7 @@ sub load_sereal_file {
     my %args = @_;
 
     croak "argument 'file' not defined\n"
-      if !defined ($args{file});
+        if !defined ($args{file});
 
     #my $suffix = $args{suffix} || $self->get_param('OUTSUFFIX') || $EMPTY_STRING;
     my $expected_suffix
@@ -169,10 +169,10 @@ sub load_sereal_file {
 
     my $file = path($args{file})->absolute;
     croak "[BASEDATA] File $file does not exist\n"
-      if !$self->file_exists_aa ($file);
+        if !$self->file_exists_aa ($file);
 
     croak "[BASEDATA] File $file does not have the correct suffix\n"
-       if !$args{ignore_suffix} && ($file !~ /\.$expected_suffix$/);
+        if !$args{ignore_suffix} && ($file !~ /\.$expected_suffix$/);
 
     #  load data from sereal file, ignores rest of the args
     use Sereal::Decoder;
@@ -236,13 +236,13 @@ sub load_storable_file {
 
     croak "Unicode file names not supported for Storable format,"
         . "please rename $file and try again\n"
-      if !-e $file && $self->file_exists_aa ($file);
+        if !-e $file && $self->file_exists_aa ($file);
 
     croak "File $file does not exist\n"
-      if !-e $file;
+        if !-e $file;
 
     croak "File $file does not have the correct suffix\n"
-      if !$args{ignore_suffix} && ($file !~ /$suffix$/);
+        if !$args{ignore_suffix} && ($file !~ /$suffix$/);
 
     #  attempt reconstruction of code refs -
     #  NOTE THAT THIS IS NOT YET SAFE FROM MALICIOUS DATA
@@ -286,14 +286,14 @@ sub get_basedata_ref {
     my $self = shift;
 
     my $bd = $self->get_param ('BASEDATA_REF');
-    
+
     return $bd;
 }
 
 
 sub weaken_basedata_ref {
     my $self = shift;
-    
+
     my $success;
 
     #  avoid memory leak probs with circular refs
@@ -301,9 +301,9 @@ sub weaken_basedata_ref {
         $success = $self->weaken_param ('BASEDATA_REF');
 
         warn "[BaseStruct] Unable to weaken basedata ref\n"
-          if ! $success;
+            if ! $success;
     }
-    
+
     return $success;
 }
 
@@ -346,10 +346,10 @@ sub load_params {  # read in the parameters file, set the PARAMS subhash.
     local $/ = undef;
     my $data = <$fh>;
     $fh->close;
-    
+
     my %params = eval ($data);
     $self->set_param(%params);
-    
+
     return;
 }
 
@@ -385,7 +385,7 @@ sub exists_param {
     my $self = shift;
     my $param = shift;
     croak "param not specified\n" if !defined $param;
-    
+
     my $x = exists $self->{PARAMS}{$param};
     return $x;
 }
@@ -393,7 +393,7 @@ sub exists_param {
 sub get_params_hash {
     my $self = shift;
     my $params = $self->{PARAMS};
-    
+
     return wantarray ? %$params : $params;
 }
 
@@ -485,37 +485,37 @@ sub increment_param {
 our %user_defined_params;
 #BEGIN {
 
-    #  load user defined indices, but only if the ignore flag is not set
-    #if (     exists $ENV{BIODIVERSE_DEFAULT_PARAMS}
-    #    && ! $ENV{BIODIVERSE_DEFAULT_PARAMS_IGNORE}) {
-    #    print "[COMMON] Checking and loading user defined globals";
-    #    my $x;
-    #    if (-e $ENV{BIODIVERSE_DEFAULT_PARAMS}) {
-    #        print " from file $ENV{BIODIVERSE_DEFAULT_PARAMS}\n";
-    #        local $/ = undef;
-    #        open (my $fh, '<', $ENV{BIODIVERSE_DEFAULT_PARAMS});
-    #        $x = eval (<$fh>);
-    #        close ($fh);
-    #    }
-        #else {
-        #    print " directly from environment variable\n";
-        #    $x = eval "$ENV{BIODIVERSE_DEFAULT_PARAMS}";
-        #}
-    #    if ($@) {
-    #        my $msg = "[COMMON] Problems with environment variable "
-    #                . "BIODIVERSE_DEFAULT_PARAMS "
-    #                . " - check the filename or syntax\n"
-    #                . $@
-    #                . "\n$ENV{BIODIVERSE_DEFAULT_PARAMS}\n";
-    #        croak $msg;
-    #    }
-    #    use Data::Dumper ();
-    #    print "Default parameters are:\n", Data::Dumper::Dumper ($x);
-    #
-    #    if (is_hashref($x)) {
-    #        @user_defined_params{keys %$x} = values %$x;
-    #    }
-    #}
+#  load user defined indices, but only if the ignore flag is not set
+#if (     exists $ENV{BIODIVERSE_DEFAULT_PARAMS}
+#    && ! $ENV{BIODIVERSE_DEFAULT_PARAMS_IGNORE}) {
+#    print "[COMMON] Checking and loading user defined globals";
+#    my $x;
+#    if (-e $ENV{BIODIVERSE_DEFAULT_PARAMS}) {
+#        print " from file $ENV{BIODIVERSE_DEFAULT_PARAMS}\n";
+#        local $/ = undef;
+#        open (my $fh, '<', $ENV{BIODIVERSE_DEFAULT_PARAMS});
+#        $x = eval (<$fh>);
+#        close ($fh);
+#    }
+#else {
+#    print " directly from environment variable\n";
+#    $x = eval "$ENV{BIODIVERSE_DEFAULT_PARAMS}";
+#}
+#    if ($@) {
+#        my $msg = "[COMMON] Problems with environment variable "
+#                . "BIODIVERSE_DEFAULT_PARAMS "
+#                . " - check the filename or syntax\n"
+#                . $@
+#                . "\n$ENV{BIODIVERSE_DEFAULT_PARAMS}\n";
+#        croak $msg;
+#    }
+#    use Data::Dumper ();
+#    print "Default parameters are:\n", Data::Dumper::Dumper ($x);
+#
+#    if (is_hashref($x)) {
+#        @user_defined_params{keys %$x} = values %$x;
+#    }
+#}
 #}
 
 #  assign any user defined default params
@@ -523,29 +523,29 @@ our %user_defined_params;
 sub set_default_params {
     my $self = shift;
     my $package = ref ($self);
-    
+
     return if ! exists $user_defined_params{$package};
-    
+
     #  make a clone to avoid clashes with multiple objects
     #  receiving the same data structures
     my $params = $self->clone (data => $user_defined_params{$package});
-    
-    $self->set_params (%$params);  
-    
+
+    $self->set_params (%$params);
+
     return;
 }
 
 sub get_analysis_args_from_object {
     my $self = shift;
     my %args = @_;
-    
+
     my $object = $args{object};
 
     my $get_copy = $args{get_copy} // 1;
 
     my $analysis_args;
     my $p_key;
-  ARGS_PARAM:
+    ARGS_PARAM:
     for my $key (qw/ANALYSIS_ARGS SP_CALC_ARGS/) {
         $analysis_args = $object->get_param ($key);
         $p_key = $key;
@@ -567,9 +567,9 @@ sub get_analysis_args_from_object {
 #  Allow for back-compat.
 sub get_spatial_conditions {
     my $self = shift;
-    
+
     my $conditions =  $self->get_param ('SPATIAL_CONDITIONS')
-                   // $self->get_param ('SPATIAL_PARAMS');
+        // $self->get_param ('SPATIAL_PARAMS');
 
     return $conditions;
 }
@@ -586,7 +586,7 @@ sub get_def_query {
 
 sub delete_spatial_index {
     my $self = shift;
-    
+
     my $name = $self->get_param ('NAME');
 
     if ($self->get_param ('SPATIAL_INDEX')) {
@@ -661,7 +661,7 @@ sub set_last_file_serialisation_format {
     my ($self, $format) = @_;
 
     croak "Invalid serialisation format name passed"
-      if not ($format // '') =~ /^(?:sereal|storable)$/;
+        if not ($format // '') =~ /^(?:sereal|storable)$/;
 
     return $self->set_param(LAST_FILE_SERIALISATION_FORMAT => $format);
 }
@@ -678,9 +678,9 @@ sub save_to {
     my $self = shift;
     my %args = @_;
     my $file_name = $args{filename}
-                    || $args{OUTPFX}
-                    || $self->get_param('NAME')
-                    || $self->get_param('OUTPFX');
+        || $args{OUTPFX}
+        || $self->get_param('NAME')
+        || $self->get_param('OUTPFX');
 
     croak "Argument 'filename' not specified\n" if ! defined $file_name;
 
@@ -693,7 +693,7 @@ sub save_to {
     if ($suffix eq $EMPTY_STRING
         || ! defined $suffix
         || none  {$suffix eq $_} @suffixes
-        ) {
+    ) {
         $suffix = $storable_suffix;
         $file_name .= '.' . $suffix;
     }
@@ -705,13 +705,13 @@ sub save_to {
     if (!defined $method) {
         my $last_fmt_is_sereal = $self->get_last_file_serialisation_format eq 'sereal';
         $method
-          = $suffix eq $yaml_suffix ? 'save_to_yaml'
-          : $last_fmt_is_sereal     ? 'save_to_sereal' 
-          : 'save_to_storable';
+            = $suffix eq $yaml_suffix ? 'save_to_yaml'
+            : $last_fmt_is_sereal     ? 'save_to_sereal'
+            : 'save_to_storable';
     }
 
     croak "Invalid save method name $method\n"
-      if not $method =~ /^save_to_\w+$/;
+        if not $method =~ /^save_to_\w+$/;
 
     my $result = eval {$self->$method (filename => $tmp_file_name)};
     croak $EVAL_ERROR if $EVAL_ERROR;
@@ -719,7 +719,7 @@ sub save_to {
     print "[COMMON] Renaming $tmp_file_name to $file_name ... ";
     my $success = rename ($tmp_file_name, $file_name);
     croak "Unable to rename $tmp_file_name to $file_name\n"
-      if !$success;
+        if !$success;
     print "Done\n";
 
     return $file_name;
@@ -764,7 +764,7 @@ sub save_to_sereal {
 
 #  Dump the whole object to a Storable file.
 #  Get the prefix from $self{PARAMS}, or some other default.
-sub save_to_storable {  
+sub save_to_storable {
     my $self = shift;
     my %args = @_;
 
@@ -789,7 +789,7 @@ sub save_to_storable {
 
 #  Dump the whole object to a yaml file.
 #  Get the prefix from $self{PARAMS}, or some other default.
-sub save_to_yaml {  
+sub save_to_yaml {
     my $self = shift;
     my %args = @_;
 
@@ -808,7 +808,7 @@ sub save_to_yaml {
     return $file;
 }
 
-sub save_to_data_dumper {  
+sub save_to_data_dumper {
     my $self = shift;
     my %args = @_;
 
@@ -832,7 +832,7 @@ sub save_to_data_dumper {
 
 
 #  dump a data structure to a yaml file.
-sub dump_to_yaml {  
+sub dump_to_yaml {
     my $self = shift;
     my %args = @_;
 
@@ -852,7 +852,7 @@ sub dump_to_yaml {
 }
 
 #  dump a data structure to a yaml file.
-sub dump_to_json {  
+sub dump_to_json {
     my $self = shift;
     my %args = @_;
 
@@ -865,7 +865,7 @@ sub dump_to_json {
         my $file = path($args{filename})->absolute;
         say "WRITING TO JSON FILE $file";
         open (my $fh, '>', $file)
-          or croak "Cannot open $file to write to, $!\n";
+            or croak "Cannot open $file to write to, $!\n";
         print {$fh} JSON::MaybeXS::encode_json ($data);
         $fh->close;
     }
@@ -885,7 +885,7 @@ sub escape_filename {
     my $string = $args{string};
 
     croak "Argument 'string' undefined\n"
-      if !defined $string;
+        if !defined $string;
 
     use URI::Escape::XS qw/uri_escape/;
     my $escaped_string;
@@ -896,13 +896,13 @@ sub escape_filename {
         }
         $escaped_string .= $letter;
     }
-    
+
     return $escaped_string;
 }
 
 sub get_tooltip_sparse_normal {
     my $self = shift;
-    
+
     my $tool_tip =<<"END_MX_TOOLTIP"
 
 Explanation:
@@ -943,7 +943,7 @@ Element,Axis_0,Axis_1,Value
 1.5:2.5,1.5,2.5,Label2,23,Label3,2
 
 END_MX_TOOLTIP
-;
+    ;
 
     return $tool_tip;
 }
@@ -999,14 +999,14 @@ sub write_table {
 sub get_csv_object_for_export {
     my $self = shift;
     my %args = @_;
-    
+
     my $sep_char = $args{sep_char}
-                    || $self->get_param ('OUTPUT_SEP_CHAR')
-                    || q{,};
+        || $self->get_param ('OUTPUT_SEP_CHAR')
+        || q{,};
 
     my $quote_char = $args{quote_char}
-                    || $self->get_param ('OUTPUT_QUOTE_CHAR')
-                    || q{"};
+        || $self->get_param ('OUTPUT_QUOTE_CHAR')
+        || q{"};
 
     if ($quote_char =~ /space/) {
         $quote_char = "\ ";
@@ -1021,7 +1021,7 @@ sub get_csv_object_for_export {
     elsif ($sep_char =~ /tab/) {
         $sep_char = "\t";
     }
-    
+
     my $csv_obj = $self->get_csv_object (
         %args,
         sep_char   => $sep_char,
@@ -1134,20 +1134,20 @@ sub list2csv {  #  return a csv string from a list of values
     my %args = @_;
 
     my $csv_line = $args{csv_object}
-      // $self->get_csv_object (
+        // $self->get_csv_object (
         quote_char => q{'},
         sep_char   => q{,},
         @_
-      );
+    );
 
     return $csv_line->string
-      if $csv_line->combine(@{$args{list}});
+        if $csv_line->combine(@{$args{list}});
 
     croak "list2csv CSV combine() failed for some reason: "
-          . ($csv_line->error_input // '')
-          . ", line "
-          . ($. // '')
-          . "\n";
+        . ($csv_line->error_input // '')
+        . ", line "
+        . ($. // '')
+        . "\n";
 
 }
 
@@ -1157,7 +1157,7 @@ sub csv2list {
     my %args = @_;
 
     my $csv_obj = $args{csv_object}
-                // $self->get_csv_object (%args);
+        // $self->get_csv_object (%args);
 
     my $string = $args{string};
     $string = $$string if ref $string;
@@ -1234,7 +1234,7 @@ sub get_csv_object {
     my $csv = Text::CSV_XS->new({%args});
 
     croak Text::CSV_XS->error_diag ()
-      if ! defined $csv;
+        if ! defined $csv;
 
     return $csv;
 }
@@ -1275,9 +1275,9 @@ sub dequote_element {
     my $el     = $args{element};
 
     croak "quote_char argument is undefined\n"
-      if !defined $quotes;
+        if !defined $quotes;
     croak "element argument is undefined\n"
-      if !defined $el;
+        if !defined $el;
 
     if ($el =~ /^$quotes[^$quotes\s]+$quotes$/) {
         $el = substr ($el, 1);
@@ -1334,11 +1334,11 @@ sub array_to_hash_values {
     my %hash;
     my $start = "0" x ($args{num_digits} || length $#$list_ref);  #  make sure it has as many chars as the end val
     my $end = defined $args{num_digits}
-                        ? sprintf ("%0$args{num_digits}s", $#$list_ref) #  pad with zeroes
-                        : $#$list_ref;
+        ? sprintf ("%0$args{num_digits}s", $#$list_ref) #  pad with zeroes
+        : $#$list_ref;
     my @keys;
     for my $suffix ("$start" .. "$end") {  #  a clunky way to build it, but the .. operator won't play with underscores
-        push @keys, "$prefix\_$suffix"; 
+        push @keys, "$prefix\_$suffix";
     }
     if (is_arrayref($list_ref) && scalar @$list_ref) {  #  ref to array of non-zero length
         @hash{@keys} = $args{sort_array_lists} ? sort numerically @$list_ref : @$list_ref;  #  sort if needed
@@ -1400,15 +1400,15 @@ sub move_to_front_of_list {
 sub guess_field_separator {
     my $self = shift;
     my %args = @_;  #  these are passed straight through, except sep_char is overridden
-    
+
     my $lines_to_use = $args{lines_to_use} // 10;
 
     my $string = $args{string};
     $string = $$string if ref $string;
     #  try a sequence of separators, starting with the default parameter
     my @separators = defined $ENV{BIODIVERSE_FIELD_SEPARATORS}  #  these should be globals set by use_base
-                    ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
-                    : (',', "\t", ';', q{ });
+        ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
+        : (',', "\t", ';', q{ });
     my $eol = $args{eol} // $self->guess_eol(%args);
 
     my %sep_count;
@@ -1417,7 +1417,7 @@ sub guess_field_separator {
         next if ! length $string;
         #  skip if does not contain the separator
         #  - no point testing in this case
-        next if ! ($string =~ /$sep/);  
+        next if ! ($string =~ /$sep/);
 
         my $flds = eval {
             $self->csv2list (
@@ -1441,7 +1441,7 @@ sub guess_field_separator {
         %sep_count = reverse %sep_count;  #  should do it properly above
         my %checked;
 
-      SEP:
+        SEP:
         foreach my $sep (sort keys %sep_count) {
             #  check up to the first ten lines
             foreach my $string (@str_arr[1 .. min ($lines_to_use, $#str_arr)]) {
@@ -1469,7 +1469,7 @@ sub guess_field_separator {
             $separator = $poss_chars[0];
         }
         else {  #  get the one that matches
-          CHAR:
+            CHAR:
             foreach my $char (@poss_chars) {
                 if ($checked{$char} == $sep_count{$char}) {
                     $separator = $char;
@@ -1499,16 +1499,16 @@ sub guess_field_separator {
 
 sub guess_escape_char {
     my $self = shift;
-    my %args = @_;  
+    my %args = @_;
 
     my $string = $args{string};
     $string = $$string if ref $string;
 
     my $quote_char = $args{quotes} // $self->guess_quote_char (@_);
-    
+
     my $has_backslash = $string =~ /(\\+)$quote_char/s;
     #  even number of backslashes are self-escaping
-    if (not ((length ($1 // '')) % 2)) {  
+    if (not ((length ($1 // '')) % 2)) {
         $has_backslash = 0;
     }
     return $has_backslash ? '\\' : $quote_char;
@@ -1516,13 +1516,13 @@ sub guess_escape_char {
 
 sub guess_quote_char {
     my $self = shift;
-    my %args = @_;  
+    my %args = @_;
     my $string = $args{string};
     $string = $$string if ref $string;
     #  try a sequence of separators, starting with the default parameter
     my @q_types = defined $ENV{BIODIVERSE_QUOTES}
-                    ? @$ENV{BIODIVERSE_QUOTES}
-                    : qw /" '/;
+        ? @$ENV{BIODIVERSE_QUOTES}
+        : qw /" '/;
     my $eol = $args{eol} or $self->guess_eol(%args);
     #my @q_types = qw /' "/;
 
@@ -1539,7 +1539,7 @@ sub guess_quote_char {
                 my $l_count = () = $string =~ /$left/gs;
                 my $r_count = () = $string =~ /$left.*?$right/gs;
                 if ($l_count && $l_count == $r_count) {
-                    $q_count{$#cracked} = $q;  
+                    $q_count{$#cracked} = $q;
                 }
             }
             else {
@@ -1604,7 +1604,7 @@ sub guess_eol {
 }
 
 sub get_shortpath_filename {
-        my ($self, %args) = @_;
+    my ($self, %args) = @_;
 
     my $file_name = $args{file_name}
         // croak 'file_name not specified';
@@ -1621,30 +1621,30 @@ sub get_shortpath_filename {
 
 sub get_file_handle {
     my ($self, %args) = @_;
-    
+
     my $file_name = $args{file_name}
-      // croak 'file_name not specified';
+        // croak 'file_name not specified';
 
     my $mode = $args{mode} // $args{layers};
     $mode ||= '<';
     if ($args{use_bom}) {
         $mode .= ':via(File::BOM)';
     }
-    
+
     my $fh;
 
     if (ON_WINDOWS && !-e $file_name) {
         openL (\$fh, $mode, $file_name)
-          or die ("unable to open $file_name ($^E)");
+            or die ("unable to open $file_name ($^E)");
     }
     else {
         open $fh, $mode, $file_name
-          or die "Unable to open $file_name, $!";
+            or die "Unable to open $file_name, $!";
     }
-    
+
     croak "CANNOT GET FILE HANDLE FOR $file_name\n"
         . "MODE IS $mode\n"
-      if !$fh;
+        if !$fh;
 
     return $fh;
 }
@@ -1659,7 +1659,7 @@ sub file_exists {
     my $file_name = $args{file_name};
 
     return 1 if -e $file_name;
-    
+
     if (ON_WINDOWS) {
         return testL ('e', $file_name);
     }
@@ -1677,7 +1677,7 @@ sub file_is_readable {
     my $file_name = $args{file_name};
 
     return 1 if -r $file_name;
-    
+
     if (ON_WINDOWS) {
         #  Win32::LongPath always returns 1 for r
         return testL ('e', $file_name) && testL ('r', $file_name);
@@ -1702,7 +1702,7 @@ sub get_file_size {
     }
     elsif (ON_WINDOWS) {
         my $stat = statL ($file_name)
-          or die ("unable to get stat for $file_name ($^E)");
+            or die ("unable to get stat for $file_name ($^E)");
         $file_size = $stat->{size};
     }
     else {
@@ -1715,8 +1715,8 @@ sub get_file_size {
 sub unlink_file {
     my ($self, %args) = @_;
     my $file_name = $args{file_name}
-      // croak 'file_name arg not specified';
-    
+        // croak 'file_name arg not specified';
+
     my $count = 0;
     if (ON_WINDOWS) {
         $count = unlinkL ($file_name) or die "unable to delete file ($^E)";
@@ -1737,15 +1737,15 @@ sub get_book_struct_from_spreadsheet_file {
 
     my $book;
     my $file = $args{file_name}
-      // croak 'file_name argument not passed';
-    
+        // croak 'file_name argument not passed';
+
     #  stringify any Path::Class etc objects
     $file = "$file";
 
     #  Could set second condition as a fallback if first parse fails
     #  but it seems to work pretty well in practice.
     if ($file =~ /\.xlsx$/ and $self->file_exists_aa($file)) {
-                #  handle unicode on windows
+        #  handle unicode on windows
         my $f = $self->get_shortpath_filename (file_name => $file);
         $book = $self->get_book_struct_from_xlsx_file (filename => $f);
     }
@@ -1769,7 +1769,7 @@ sub get_book_struct_from_spreadsheet_file {
 
     # assuming undef on fail
     croak "[BASEDATA] Failed to read $file as a SpreadSheet\n"
-      if !defined $book;
+        if !defined $book;
 
     return $book;
 }
@@ -1843,7 +1843,7 @@ sub get_csv_object_using_guesswork {
     }
     elsif (!defined $string) {
         croak "Both arguments 'string' and 'fname' not specified\n"
-          if !defined $fname;
+            if !defined $fname;
 
         my $first_char_set = '';
 
@@ -1879,7 +1879,7 @@ sub get_csv_object_using_guesswork {
     $quote_char //= $self->guess_quote_char (string => $string, eol => $eol);
     #  if all else fails...
     $quote_char //= $self->get_param ('QUOTES');
-    
+
     my $escape_char = $self->guess_escape_char (string => $string, quote_char => $quote_char);
     $escape_char //= $quote_char;
 
@@ -1913,8 +1913,8 @@ sub get_next_line_set {
     my $csv                 = $args{csv_object};
 
     my $progress_pfx = "Loading next $target_line_count lines \n"
-                    . "of $file_name into memory\n"
-                    . $size_comment;
+        . "of $file_name into memory\n"
+        . $size_comment;
 
     $progress_bar->update ($progress_pfx, 0);
 
@@ -1948,12 +1948,12 @@ sub get_metadata {
     my %args = @_;
 
     croak 'get_metadata called in list context'
-      if wantarray;
-    
+        if wantarray;
+
     my $use_cache = !$args{no_use_cache};
     my ($cache, $metadata);
     my $subname = $args{sub};
-    
+
     #  Some metadata depends on given arguments,
     #  and these could change across the life of an object.
     if (blessed ($self) && $use_cache) {
@@ -1975,12 +1975,12 @@ sub get_metadata {
 
     return $metadata;
 }
-    
+
 sub get_cached_metadata {
     my $self = shift;
 
     my $cache
-      = $self->get_cached_value_dor_set_default_href ('METADATA_CACHE');
+        = $self->get_cached_value_dor_set_default_href ('METADATA_CACHE');
     #  reset the cache if the versions differ (typically they would be older),
     #  this ensures new options are loaded
     $cache->{__VERSION} //= 0;
@@ -1993,7 +1993,7 @@ sub get_cached_metadata {
 
 sub delete_cached_metadata {
     my $self = shift;
-    
+
     delete $self->{_cache}{METADATA_CACHE};
 }
 
@@ -2035,9 +2035,9 @@ sub get_args {
 
     $sub_args //= {};
 
-#my $wa = wantarray;
-#$indices_wantarray ++ if $wa;
-#croak "get_args called in list context " if $wa;
+    #my $wa = wantarray;
+    #$indices_wantarray ++ if $wa;
+    #croak "get_args called in list context " if $wa;
     return wantarray ? %$sub_args : $sub_args;
 }
 
@@ -2059,7 +2059,7 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
     my $sep_char    = $args{sep_char} || $self->get_param('JOIN_CHAR');
 
     #  need to add rule to cope with zero resolution
-    
+
     foreach my $depth (0 .. $#$minima) {
         #  go through each element of @$so_far and append one of the values from this level
         my @this_depth;
@@ -2070,8 +2070,8 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
 
         #  need to fix the precision for some floating point comparisons
         for (my $value = $min;
-             ($self->round_to_precision_aa ($value, $precision->[$depth])) <= $max;
-             $value += $res) {
+            ($self->round_to_precision_aa ($value, $precision->[$depth])) <= $max;
+            $value += $res) {
 
             my $val = $self->round_to_precision_aa ($value, $precision->[$depth]);
             if ($depth > 0) {
@@ -2085,7 +2085,7 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
             }
             last if $min == $max;  #  avoid infinite loop
         }
-    
+
         $so_far = \@this_depth;
     }
 
@@ -2109,16 +2109,16 @@ sub get_surrounding_elements {
     foreach my $i (0..$#{$coord_ref}) {
         $minima[$i] = $precision->[$i]
             ? $self->round_to_precision_aa (
-                  $coord_ref->[$i] - ($resolutions->[$i] * $distance),
-                  $precision->[$i],
-              )
+            $coord_ref->[$i] - ($resolutions->[$i] * $distance),
+            $precision->[$i],
+        )
             : $coord_ref->[$i] - ($resolutions->[$i] * $distance);
         $maxima[$i] = $precision->[$i]
             ? $self->round_to_precision_aa (
-                  $coord_ref->[$i] + ($resolutions->[$i] * $distance),
-                  $precision->[$i],
-              )
-           : $coord_ref->[$i] + ($resolutions->[$i] * $distance);
+            $coord_ref->[$i] + ($resolutions->[$i] * $distance),
+            $precision->[$i],
+        )
+            : $coord_ref->[$i] + ($resolutions->[$i] * $distance);
     }
 
     return $self->get_poss_elements (
@@ -2140,7 +2140,7 @@ sub get_list_as_flat_hash {
     #  check the first one
     my $list_reftype = reftype ($list) // 'undef';
     croak "list arg must be a hash or array ref, not $list_reftype\n"
-      if not (is_arrayref($list) or is_hashref($list));
+        if not (is_arrayref($list) or is_hashref($list));
 
     my @refs = ($list);  #  start with this
     my %flat_hash;
@@ -2213,7 +2213,7 @@ sub get_subs_with_prefix {
 
     my $prefix = $args{prefix};
     croak "prefix not defined\n" if not defined $prefix;
-    
+
     my $methods = Class::Inspector->methods ($args{class} or blessed ($self));
 
     my %subs = map {$_ => 1} grep {$_ =~ /^$prefix/} @$methods;
@@ -2235,7 +2235,7 @@ sub initialise_rand {
     my %args = @_;
     my $seed  = $args{seed};
     my $state = $self->get_param ('RAND_LAST_STATE')
-                || $args{state};
+        || $args{state};
 
     say "[COMMON] Ignoring PRNG seed argument ($seed) because the PRNG state is defined"
         if defined $seed and defined $state;
@@ -2253,7 +2253,7 @@ sub initialise_rand {
         Biodiverse::PRNG::InvalidStateVector->throw (Biodiverse::PRNG::InvalidStateVector->description);
     }
     croak $e if $e;
- 
+
     if (! defined $self->get_param ('RAND_INIT_STATE')) {
         $self->store_rand_state_init (rand_object => $rand);
     }
@@ -2280,7 +2280,7 @@ sub store_rand_state {  #  we cannot store the object itself, as it does not ser
 }
 
 #  Store the initial rand state (assumes it is called at the right time...)
-sub store_rand_state_init {  
+sub store_rand_state_init {
     my $self = shift;
     my %args = @_;
 
@@ -2301,7 +2301,7 @@ sub store_rand_state_init {
 sub describe {
     my $self = shift;
     return if !$self->can('_describe');
-    
+
     return $self->_describe;
 }
 
@@ -2375,7 +2375,7 @@ sub find_circular_refs {
 sub set_precision {
     my $self = shift;
     my %args = @_;
-    
+
     my $num = sprintf (($args{precision} // '%.10f'), $args{value});
     #$num =~ s{,}{.};  #  replace any comma with a decimal due to locale woes - #GH774
 
@@ -2396,8 +2396,8 @@ sub set_precision_aa {
 use constant DEFAULT_PRECISION => 1e10;
 sub round_to_precision_aa {
     $_[2]
-      ? POSIX::round ($_[1] * $_[2]) / $_[2]
-      : POSIX::round ($_[1] * DEFAULT_PRECISION) / DEFAULT_PRECISION;
+        ? POSIX::round ($_[1] * $_[2]) / $_[2]
+        : POSIX::round ($_[1] * DEFAULT_PRECISION) / DEFAULT_PRECISION;
 }
 use constant DEFAULT_PRECISION_SMALL => 1e-10;
 
@@ -2411,11 +2411,11 @@ sub compare_lists_by_item {
     \my %results   = $args{results_list_ref};
     my ($diff, $increment);
 
-  COMP_BY_ITEM:
+    COMP_BY_ITEM:
     foreach my $index (keys %base_ref) {
 
         next COMP_BY_ITEM
-          if !(defined $comp_ref{$index} && defined $base_ref{$index});
+            if !(defined $comp_ref{$index} && defined $base_ref{$index});
 
         #  compare at 10 decimal place precision
         #  this also allows for serialisation which
@@ -2437,16 +2437,16 @@ sub compare_lists_by_item {
         # $results{"C_$index"} += $increment;
         # $results{"Q_$index"} ++;
         $results{"P_$index"} =   ($results{"C_$index"} += $increment)
-                               / (++$results{"Q_$index"});
+            / (++$results{"Q_$index"});
         # use original vals for sums
         $results{"SUMX_$index"}  +=  $comp_ref{$index};
         $results{"SUMXX_$index"} += ($comp_ref{$index}**2);
 
         #  track the number of ties
         $results{"T_$index"} ++
-          if (abs($diff) <= DEFAULT_PRECISION_SMALL);
+            if (abs($diff) <= DEFAULT_PRECISION_SMALL);
     }
-    
+
     return;
 }
 
@@ -2462,25 +2462,50 @@ sub check_canape_protocol_is_valid {
     # || ($vk{calc_phylo_rpe_central} && $vk{calc_pe_central}) ;  #  central later
 }
 
+sub get_valid_canape_types  {
+    my $self = shift;
+
+    #  argh the hard coding of index names...
+    my $analysis_args = $self->get_param('SP_CALC_ARGS') || $self->get_param('ANALYSIS_ARGS');
+    my $valid_calcs   = $analysis_args->{calculations} // $analysis_args->{spatial_calculations} // [];
+    my %vk;
+    @vk{@$valid_calcs} = (1) x @$valid_calcs;
+    my $result = {};
+    if ($vk{calc_phylo_rpe2} && $vk{calc_pe}) {
+        $result->{normal}++;
+    }
+    if ($vk{calc_phylo_rpe_central} && $vk{calc_pe_central}) {
+        $result->{central}++;
+    }
+    return $result;
+}
+
 sub assign_canape_codes_from_p_rank_results {
     my $self = shift;
     my %args = @_;
 
     #  could alias this
     my $p_rank_list_ref = $args{p_rank_list_ref}
-      // croak "p_rank_list_ref argument not specified\n";
+        // croak "p_rank_list_ref argument not specified\n";
     #  need the observed values
     my $base_list_ref = $args{base_list_ref}
-      // croak "base_list_ref argument not specified\n";
+        // croak "base_list_ref argument not specified\n";
 
     my $results_list_ref = $args{results_list_ref} // {};
 
+    # state $default_names = {
+    #     PE_obs => 'PE_WE',
+    #     PE_alt => 'PHYLO_RPE_NULL2',
+    #     RPE    => 'PHYLO_RPE2',
+    # };
+    \my %index_names = ($args{index_names} // {});
+
     my $canape_code;
-    if (defined $base_list_ref->{PE_WE}) {
-        my $PE_sig_obs = $p_rank_list_ref->{PE_WE} // 0.5;
-        my $PE_sig_alt = $p_rank_list_ref->{PHYLO_RPE_NULL2} // 0.5;
-        my $RPE_sig    = $p_rank_list_ref->{PHYLO_RPE2} // 0.5;
-        
+    if (defined $base_list_ref->{$index_names{PE_obs} // 'PE_WE'}) {
+        my $PE_sig_obs = $p_rank_list_ref->{$index_names{PE_obs} // 'PE_WE'} // 0.5;
+        my $PE_sig_alt = $p_rank_list_ref->{$index_names{PE_alt} // 'PHYLO_RPE_NULL2'} // 0.5;
+        my $RPE_sig    = $p_rank_list_ref->{$index_names{RPE}    // 'PHYLO_RPE2'}  // 0.5;
+
         $canape_code
             = $PE_sig_obs <= 0.95 && $PE_sig_alt <= 0.95 ? 0  #  non-sig
             : $RPE_sig < 0.025 ? 1                            #  neo
@@ -2509,14 +2534,14 @@ sub get_zscore_from_comp_results {
 
     #  could alias this
     \my %comp_list_ref = $args{comp_list_ref}
-      // croak "comp_list_ref argument not specified\n";
+        // croak "comp_list_ref argument not specified\n";
     #  need the observed values
     \my %base_list_ref = $args{base_list_ref}
-      // croak "base_list_ref argument not specified\n";
+        // croak "base_list_ref argument not specified\n";
 
     my $results_list_ref = $args{results_list_ref} // {};
 
-  KEY:
+    KEY:
     foreach my $index_name (keys %base_list_ref) {
 
         my $n = $comp_list_ref{'Q_' . $index_name};
@@ -2533,9 +2558,9 @@ sub get_zscore_from_comp_results {
         my $variance = ($sumxx - ($sumx**2) / $n) / $n;
 
         $results_list_ref->{$index_name}
-          = $variance > 0
-          ? ($base_list_ref{$index_name} - ($sumx / $n)) / sqrt ($variance)
-          : 0;
+            = $variance > 0
+            ? ($base_list_ref{$index_name} - ($sumx / $n)) / sqrt ($variance)
+            : 0;
     }
 
     return wantarray ? %$results_list_ref : $results_list_ref;
@@ -2544,10 +2569,10 @@ sub get_zscore_from_comp_results {
 sub get_significance_from_comp_results {
     my $self = shift;
     my %args = @_;
-    
+
     #  could alias this
     my $comp_list_ref = $args{comp_list_ref}
-      // croak "comp_list_ref argument not specified\n";
+        // croak "comp_list_ref argument not specified\n";
 
     my $results_list_ref = $args{results_list_ref} // {};
 
@@ -2557,7 +2582,7 @@ sub get_significance_from_comp_results {
         @sig_thresh_lo_1t = sort {$a <=> $b} @{$args{thresholds}};
         @sig_thresh_hi_1t = map {1 - $_} @sig_thresh_lo_1t;
         @sig_thresh_lo_2t = map {$_ / 2} @sig_thresh_lo_1t;
-        @sig_thresh_hi_2t = map {1 - ($_ / 2)} @sig_thresh_lo_1t;    
+        @sig_thresh_hi_2t = map {1 - ($_ / 2)} @sig_thresh_lo_1t;
     }
     else {
         @sig_thresh_lo_1t = (0.01, 0.05);
@@ -2580,12 +2605,12 @@ sub get_significance_from_comp_results {
         my $p_high = $comp_list_ref->{$p_key};
         #  proportion observed lower than random 
         my $p_low
-          =   ($comp_list_ref->{$c_key} + ($comp_list_ref->{$t_key} // 0))
+            =   ($comp_list_ref->{$c_key} + ($comp_list_ref->{$t_key} // 0))
             /  $comp_list_ref->{$q_key};
 
         $results_list_ref->{$sig_1t_name} = undef;
         $results_list_ref->{$sig_2t_name} = undef;
-        
+
         if (my $sig_hi_1t = first {$p_high > $_} @sig_thresh_hi_1t) {
             $results_list_ref->{$sig_1t_name} = 1 - $sig_hi_1t;
             if (my $sig_hi_2t = first {$p_high > $_} @sig_thresh_hi_2t) {
@@ -2607,10 +2632,10 @@ sub get_significance_from_comp_results {
 sub get_sig_rank_threshold_from_comp_results {
     my $self = shift;
     my %args = @_;
-    
+
     #  could alias this
     my $comp_list_ref = $args{comp_list_ref}
-      // croak "comp_list_ref argument not specified\n";
+        // croak "comp_list_ref argument not specified\n";
 
     my $results_list_ref = $args{results_list_ref} // {};
 
@@ -2618,7 +2643,7 @@ sub get_sig_rank_threshold_from_comp_results {
     #  this is recalculated every call - cheap, but perhaps should be optimised or cached?
     if ($args{thresholds}) {
         @sig_thresh_lo = sort {$a <=> $b} @{$args{thresholds}};
-        @sig_thresh_hi = map  {1 - $_}    @sig_thresh_lo;        
+        @sig_thresh_hi = map  {1 - $_}    @sig_thresh_lo;
     }
     else {
         @sig_thresh_lo = (0.005, 0.01, 0.025, 0.05);
@@ -2638,7 +2663,7 @@ sub get_sig_rank_threshold_from_comp_results {
         my $p_high = $comp_list_ref->{$p_key};
         #  proportion observed lower than random 
         my $p_low
-          =   ($comp_list_ref->{$c_key} + ($comp_list_ref->{$t_key} // 0))
+            =   ($comp_list_ref->{$c_key} + ($comp_list_ref->{$t_key} // 0))
             /  $comp_list_ref->{$q_key};
 
         if (   my $sig_hi = first {$p_high > $_} @sig_thresh_hi) {
@@ -2658,9 +2683,9 @@ sub get_sig_rank_threshold_from_comp_results {
 sub get_sig_rank_from_comp_results {
     my $self = shift;
     my %args = @_;
-    
+
     \my %comp_list_ref = $args{comp_list_ref}
-      // croak "comp_list_ref argument not specified\n";
+        // croak "comp_list_ref argument not specified\n";
 
     \my %results_list_ref = $args{results_list_ref} // {};
 
@@ -2688,7 +2713,7 @@ sub get_sig_rank_from_comp_results {
 
             #  proportion observed lower than random 
             $results_list_ref{$index_name}
-              =   ($comp_list_ref{$c_key} + ($comp_list_ref{$t_key} // 0))
+                =   ($comp_list_ref{$c_key} + ($comp_list_ref{$t_key} // 0))
                 /  $comp_list_ref{$q_key};
         }
     }
@@ -2772,7 +2797,7 @@ sub get_sig_rank_from_comp_results {
 
 sub rgb_12bit_to_8bit_aa {
     my ($self, $colour) = @_;
-    
+
     return $colour if !defined $colour || $colour !~ /^#[a-fA-F\d]{12}$/;
 
     my $proper_form_string = "#";
@@ -2791,7 +2816,7 @@ sub rgb_12bit_to_8bit  {
     #  only worry about #RRRRGGGGBBBB
     return $colour if !defined $colour || $colour !~ /^#[a-fA-F\d]{12}$/;
 
-    return $self->rgb_12bit_to_8bit_aa ($colour);    
+    return $self->rgb_12bit_to_8bit_aa ($colour);
 }
 
 #  make this a state var internal to the sub

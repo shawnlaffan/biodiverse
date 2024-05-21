@@ -1245,7 +1245,7 @@ sub set_colour_mode_from_list_and_index {
     my $mode
         = $list =~ />>z_scores>>/                      ? 'zscore'
         : $list =~ />>p_rank>>/                        ? 'prank'
-        : $list =~ />>CANAPE>>/ && $index =~ /^CANAPE/ ? 'canape'
+        : $list =~ />>CANAPE.*?>>/ && $index =~ /^CANAPE/ ? 'canape'
         : $indices_object->index_is_zscore (%h)        ? 'zscore'
         : $indices_object->index_is_ratio (%h)         ? 'ratio'
         : $indices_object->index_is_divergent (%h)     ? 'divergent'

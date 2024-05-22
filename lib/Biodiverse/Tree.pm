@@ -2348,25 +2348,25 @@ sub calculate_canape {
         $valid_canape_types->{normal} ? (
             "${result_list_pfx}>>CANAPE>>" => {
                 PE_obs => 'PE_WE',
-                PE_alt => 'PHYLO_RPE2',
-                RPE    => 'PHYLO_RPE_NULL2',
+                PE_alt => 'PHYLO_RPE_NULL2',
+                RPE    => 'PHYLO_RPE2',
             },
             "${result_list_pfx}>>CANAPE_DIFF>>" => {
                 PE_obs => 'PE_WE',
-                PE_alt => 'PHYLO_RPE2',
-                RPE    => 'PHYLO_RPE_DIFF2',
+                PE_alt => 'PHYLO_RPE_DIFF2',
+                RPE    => 'PHYLO_RPE2',
             }
         ) : (),
         $valid_canape_types->{central} ? (
             "${result_list_pfx}>>CANAPE_CENTRAL>>" => {
                 PE_obs => 'PEC_WE',
-                PE_alt => 'PHYLO_RPEC',
-                RPE    => 'PHYLO_RPE_NULLC',
+                PE_alt => 'PHYLO_RPE_NULLC',
+                RPE    => 'PHYLO_RPEC',
             },
             "${result_list_pfx}>>CANAPE_DIFF_CENTRAL>>" => {
                 PE_obs => 'PEC_WE',
-                PE_alt => 'PHYLO_RPEC',
-                RPE    => 'PHYLO_RPE_DIFFC',
+                PE_alt => 'PHYLO_RPE_DIFFC',
+                RPE    => 'PHYLO_RPEC',
             },
         ) : (),
     );

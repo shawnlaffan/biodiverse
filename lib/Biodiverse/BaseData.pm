@@ -2263,23 +2263,73 @@ sub get_groups_without_label_as_hash {
     return wantarray ? %groups : \%groups;
 }
 
+sub get_empty_group_count {
+    my $self = shift;
+    my $gps = $self->get_empty_groups;
+    return scalar @$gps;
+}
+
 sub get_empty_groups {
     my $self = shift;
     #my %args = @_;
+    state $cache_key = 'LIST_OF_EMPTY_GROUPS';
+
+    if (my $cached = $self->get_cached_value ($cache_key)) {
+        return wantarray ? @$cached : $cached;
+    }
 
     my @gps = grep { !$self->get_richness_aa( $_ ) } $self->get_groups;
+
+    $self->set_cached_value($cache_key => \@gps);
 
     return wantarray ? @gps : \@gps;
 }
 
+sub get_rangeless_label_count {
+    my $self = shift;
+    my $lbs = $self->get_rangeless_labels;
+    return scalar @$lbs;
+}
+
 sub get_rangeless_labels {
     my $self = shift;
-    #my %args = @_;
+
+    state $cache_key = 'LIST_OF_RANGELESS_LABELS';
+
+    if (my $cached = $self->get_cached_value ($cache_key)) {
+        return wantarray ? @$cached : $cached;
+    }
 
     my $lb = $self->get_labels_ref;
-    my @elements = grep { !$lb->get_variety_aa( $_ ) } $self->get_labels;
+    my @labels = grep { !$lb->get_variety_aa( $_ ) } $self->get_labels;
 
-    return wantarray ? @elements : \@elements;
+    $self->set_cached_value($cache_key => \@labels);
+
+    return wantarray ? @labels : \@labels;
+}
+
+sub get_labels_with_nonzero_ranges {
+    my $self = shift;
+
+    state $cache_name = 'LIST_OF_LABELS_WITH_NONZERO_RANGES';
+    my $cached = $self->get_cached_value($cache_name);
+
+    return wantarray ? @$cached : $cached
+        if $cached;
+
+    my $labels = $self->get_labels;
+    my $rangeless_labels = $self->get_rangeless_labels;
+
+    return wantarray ? @$labels : $labels
+        if @$rangeless_labels == 0;
+
+    my %lb_hash;
+    @lb_hash{@$labels} = ();
+    my @lb = grep {!exists $lb_hash{$_}} @$rangeless_labels;
+
+    $self->set_cached_value ($cache_name => \@lb);
+
+    return wantarray ? @lb : \@lb;
 }
 
 sub get_labels_in_group {    #  get a list of the labels that occur in $group

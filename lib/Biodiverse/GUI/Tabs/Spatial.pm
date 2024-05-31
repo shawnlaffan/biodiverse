@@ -380,6 +380,13 @@ sub get_tree_menu_items {
             active   => 0,
         },
         {
+            type     => 'Gtk2::MenuItem',
+            label    => 'Set colour for undefined list values',
+            tooltip  => 'Set the colour used to display list values that are undefined.',
+            event    => 'activate',
+            callback => \&on_tree_undef_colour_changed,
+        },
+        {
             type  => 'submenu_radio_group',
             label => 'Colour mode',
             items => [  #  could be refactored
@@ -2637,6 +2644,29 @@ sub on_tree_colour_mode_changed {
     #  dendrogram or it gets zero size and is
     #  not visible
     $self->{dendrogram}->update_legend;
+
+    return;
+}
+
+sub on_tree_undef_colour_changed {
+    my ($self, $menu_item) = @_;
+
+    return if !$menu_item;
+
+    # Pop up dialog for choosing the hue to use in saturation mode
+    my $colour_dialog = Gtk2::ColorSelectionDialog->new('Select colour');
+    my $colour_select = $colour_dialog->get_color_selection();
+    if (my $current_colour = $self->get_dendrogram_colour_for_undef) {
+        $colour_select->set_current_color ($current_colour);
+    }
+    $colour_dialog->show_all();
+    my $response = $colour_dialog->run;
+    if ($response eq 'ok') {
+        my $hue = $colour_select->get_current_color();
+        $self->set_dendrogram_colour_for_undef ($hue);
+        $self->{dendrogram}->update_legend;
+    }
+    $colour_dialog->destroy();
 
     return;
 }

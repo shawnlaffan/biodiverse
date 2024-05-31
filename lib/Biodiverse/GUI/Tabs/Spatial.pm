@@ -589,6 +589,7 @@ sub init_dendrogram {
 
     #  cannot colour more than one in a phylogeny
     $self->{dendrogram}->set_num_clusters (1);
+    $self->set_dendrogram_colour_for_undef(COLOUR_GRAY);  #  default
 
     $self->{no_dendro_legend_for} = {
         map {$_ => 1, "<i>$_</i>" => 1}
@@ -820,6 +821,21 @@ sub init_dendrogram_legend {
     #  we used to do more here
     return;
 }
+
+sub set_dendrogram_colour_for_undef {
+    my ($self, $colour) = @_;
+    my $dendrogram = $self->{dendrogram};
+    return if !$dendrogram;
+    $dendrogram->get_legend->set_colour_for_undef($colour // COLOUR_GRAY);
+}
+
+sub get_dendrogram_colour_for_undef {
+    my $self = shift;
+    my $dendrogram = $self->{dendrogram};
+    return if !$dendrogram;
+    $dendrogram->get_legend->get_colour_for_undef;
+}
+
 
 sub init_grid {
     my $self = shift;
@@ -1841,6 +1857,8 @@ sub colour_branches_on_dendrogram {
 
     my %done;
 
+    my $colour_for_undef = $legend->get_colour_for_undef // COLOUR_BLACK;
+
   LABEL:
     foreach my $label (keys %$listref) {
         next LABEL if $done{$label};
@@ -1864,7 +1882,7 @@ sub colour_branches_on_dendrogram {
             $colour_ref
                 = defined $val
                 ? $legend->$colour_method ($val, @minmax_args)
-                : COLOUR_BLACK;
+                : $colour_for_undef;
 
             $dendrogram->highlight_node ($node_ref, $colour_ref);
             $dendrogram->set_node_colour(

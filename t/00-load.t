@@ -73,12 +73,14 @@ my @aliens = qw /
     Alien::proj   Alien::libtiff   Alien::spatialite
     Alien::freexl
 /;
+my %optional = map {$_ => 1} qw /Alien::spatialite Alien::freexl/;
 my $longest_name = max map {length} @aliens;
 foreach my $alien (@aliens) {
     eval "require $alien; 1";
     if ($@) {
         #diag "$alien not installed";
-        diag sprintf "%-${longest_name}s: not installed", $alien;
+        my $optional_text = $optional{$alien} ? "(optional module)" : '';
+        diag sprintf "%-${longest_name}s: not installed $optional_text", $alien;
         next;
     }
     diag sprintf "%-${longest_name}s: version:%7s, install type: %s",

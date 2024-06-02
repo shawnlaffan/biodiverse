@@ -298,6 +298,9 @@ sub test_cluster_node_calcs {
         [sort @lists1],
         "Node lists differ after recalculation of indices";
 
+    is ((scalar grep {/>>/} @lists1), 46, 'output contained randomisation lists');
+    is ((scalar grep {/>>/} @lists2),  0, 'no randomisation lists remaining after recalc');
+
     foreach my $node ($cl1->get_node_refs) {
         my $sp_res_ref = $node->get_list_ref_aa('SPATIAL_RESULTS');
         @sp_res_keys2{keys %$sp_res_ref} = undef;

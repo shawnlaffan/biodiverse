@@ -1893,6 +1893,7 @@ sub override_cached_spatial_calculations_arg {
     my %new_analysis_args = %$analysis_args;
     $new_analysis_args{spatial_calculations} = $spatial_calculations;
     $self->set_param (ANALYSIS_ARGS => \%new_analysis_args);
+    $self->set_param (SP_CALC_COUNT => 0);
 
     return $spatial_calculations;
 }
@@ -2757,6 +2758,8 @@ sub sp_calc {
 
     my $indices_object = Biodiverse::Indices->new(BASEDATA_REF => $bd);
 
+    my $prev_sp_calc_count = $self->get_param('SP_CALC_COUNT');
+
     if (! exists $args{calculations}) {
         if (defined $args{analyses}) {
             warn "Use of argument 'analyses' is deprecated from version 0.13\n"
@@ -2797,6 +2800,31 @@ sub sp_calc {
     my $count = 0;
     my $tree_name = $self->get_param ('NAME');
 
+    #  If we are a re-run then we need to clean up first.
+    #  But we only track this from version 4.99_003 so also
+    #  go looking if the number of previous runs is undef.
+    my $existing_list_indices;
+    if ($prev_sp_calc_count || !defined $prev_sp_calc_count) {
+        $existing_list_indices = $self->find_list_indices_across_nodes(
+            indices_object => $indices_object
+        );
+        if (keys %$existing_list_indices) {
+            #  and any randomisation lists
+            if (my @rand_names = $bd->get_randomisation_output_names) {
+                #  should be refined
+                my $names = join '|', @rand_names;
+                my $re = qr/^(?:$names)>>/;
+                my @rand_lists = grep {$_ =~ $re} $self->get_list_names_below;
+                @$existing_list_indices{@rand_lists} = ();
+            }
+            #  now make it an array as that is what is needed below
+            $existing_list_indices = [ keys %$existing_list_indices ];
+        }
+        else {
+            $existing_list_indices = undef;
+        }
+    }
+
     print "[CLUSTER] Progress (% of $to_do nodes):     ";
     my $progress_bar = Biodiverse::Progress->new();
     \my @node_refs = $self->get_node_refs;
@@ -2804,6 +2832,10 @@ sub sp_calc {
     #  loop though the nodes and calculate the outputs
     foreach my $node (rnkeysort {$_->get_depth} @node_refs) {
         $count ++;
+
+        if ($existing_list_indices) {
+            $node->delete_lists(lists => $existing_list_indices);
+        }
 
         $progress_bar->update (
             "Cluster spatial analysis\n"
@@ -2834,7 +2866,10 @@ sub sp_calc {
                 delete $sp_calc_values{$key};
             }
         }
-        $node->add_to_lists (SPATIAL_RESULTS => \%sp_calc_values);
+        $node->add_to_lists (
+            SPATIAL_RESULTS => \%sp_calc_values,
+            use_ref => 1,  #  ensure we override if recalculating
+        );
     }
 
     #  run any global post_calcs
@@ -2843,6 +2878,9 @@ sub sp_calc {
     $self->delete_cached_metadata;
 
     $indices_object->set_hierarchical_mode(0);
+
+    $prev_sp_calc_count++;
+    $self->set_param(SP_CALC_COUNT => $prev_sp_calc_count);
 
     return 1;
 }

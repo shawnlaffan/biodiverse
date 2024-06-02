@@ -228,18 +228,14 @@ sub test_cluster_node_calcs {
 
     my $cl1 = $bd->add_cluster_output (name => 'cl1');
     $cl1->run_analysis (
-        prng_seed => $prng_seed,
-    );
-    $cl1->run_spatial_calculations (
+        prng_seed            => $prng_seed,
         tree_ref             => $tree_ref,
         spatial_calculations => $calcs,
         no_hierarchical_mode => 1,
     );
     my $cl2 = $bd->add_cluster_output (name => 'cl2');
     $cl2->run_analysis (
-        prng_seed => $prng_seed,
-    );
-    $cl2->run_spatial_calculations (
+        prng_seed            => $prng_seed,
         tree_ref             => $tree_ref,
         spatial_calculations => $calcs,
         no_hierarchical_mode => 0,
@@ -266,6 +262,55 @@ sub test_cluster_node_calcs {
         }
     }
     is \%aggregate2, \%aggregate1, 'same per-node index results with and without hierarchical mode';
+
+    #  we need some rand lists to make sure they get cleaned up
+    for my $i (1..2) {
+        my $rand = $bd->add_randomisation_output(name => 'testing' . $i);
+        my $success = $rand->run_analysis(
+            function   => 'rand_csr_by_group',
+            iterations => 1,
+        );
+        ok($success, "ran randomisation $i successfully");
+    }
+
+    #  now test we clean up when re-run
+    my @lists1 = $cl1->get_list_names_below;
+    my (%sp_res_keys1, %sp_res_keys2);
+    foreach my $node ($cl1->get_node_refs) {
+        my $sp_res_ref = $node->get_list_ref_aa('SPATIAL_RESULTS');
+        @sp_res_keys1{keys %$sp_res_ref} = undef;
+    }
+
+    my $list_indices1 = $cl1->find_list_indices_across_nodes;
+    # diag join ' ', sort keys %$list_indices1;
+
+    $calcs = [qw/calc_pd/];
+    $cl1->run_analysis (
+        tree_ref             => $tree_ref,
+        spatial_calculations => $calcs,
+        no_hierarchical_mode => 1,
+    );
+    my @lists2 = $cl1->get_list_names_below;
+
+    # diag join ' ', sort @lists1;
+    # diag join ' ', sort @lists2;
+    isnt [sort @lists2],
+        [sort @lists1],
+        "Node lists differ after recalculation of indices";
+
+    foreach my $node ($cl1->get_node_refs) {
+        my $sp_res_ref = $node->get_list_ref_aa('SPATIAL_RESULTS');
+        @sp_res_keys2{keys %$sp_res_ref} = undef;
+    }
+
+    isnt [sort keys %sp_res_keys2],
+        [sort keys %sp_res_keys1],
+        "SPATIAL_RESULTS contents differ after recalculation of indices";
+
+    my $list_indices2 = $cl1->find_list_indices_across_nodes;
+    isnt $list_indices2, $list_indices1, "List indices across nodes not the same";
+    # diag join ' ', sort keys %$list_indices2;
+
 }
 
 __DATA__

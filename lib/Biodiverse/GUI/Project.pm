@@ -1519,10 +1519,10 @@ sub delete_overlay {
 
 sub add_overlay {
     my $self = shift;
-    my $name = shift;
+    my $entry = shift;
 
-    $self->{overlay_objects}{$name} = undef;
-    push @{ $self->{OVERLAYS} }, $name;
+    $self->{overlay_objects}{$entry->{name}} = undef;
+    push @{ $self->{OVERLAYS} }, $entry;
 
     return;
 }
@@ -1534,13 +1534,14 @@ sub init_overlay_hash {
     my $existing_overlays = [];
     my @missing_overlays;
 
-    foreach my $name ( @{ $self->{OVERLAYS} } ) {
+    foreach my $entry ( @{ $self->{OVERLAYS} } ) {
+        my $name = is_hashref $entry ? $entry->{name} : $entry;
 
         if ( Biodiverse::Common->file_is_readable (file_name => $name) ) {
 
             # Set hash entry to undef - will load on demand
             $self->{overlay_objects}{$name} = undef;
-            push @$existing_overlays, $name;
+            push @$existing_overlays, $entry;
         }
         else {
             print "[Project] Missing overlay: $name\n";

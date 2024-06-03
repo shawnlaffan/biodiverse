@@ -1,5 +1,6 @@
 package Biodiverse::GUI::Overlays;
 
+use 5.010;
 use strict;
 use warnings;
 use Gtk2;
@@ -91,6 +92,7 @@ sub init_overlay_list {
 
     my $col_name = Gtk2::TreeViewColumn->new();
     my $name_renderer = Gtk2::CellRendererText->new ();
+    #$name_renderer->signal_connect('toggled' => \&_update_colour_for_selection, $model);
     $col_name->set_title('File name');
     $col_name->pack_start($name_renderer, 1);
     $col_name->add_attribute($name_renderer,  text => 0);
@@ -132,6 +134,19 @@ sub _plot_poly_toggled {
     # toggle the value
     $model->set ($iter, COL_PLOT_POLY, !$bool);
 }
+
+# sub _update_colour_for_selection {
+#     my ($cell, $path_str, $model) = @_;
+#
+#     my $path = Gtk2::TreePath->new_from_string ($path_str);
+#
+#     # get toggled iter
+#     my $iter = $model->get_iter ($path);
+#     my $colour = $model->get ($iter, COL_PLOT_COLOUR);
+#
+#     # toggle the value
+#     $model->set ($iter, COL_PLOT_POLY, !$bool);
+# }
 
 # Make the object tree that appears on the left
 sub make_overlay_model {
@@ -177,7 +192,9 @@ sub get_selection {
     my $plot_as_poly = $model->get($iter, COL_PLOT_POLY);
     my $array_iter = $path->to_string;  #  only works for a simple tree
 
-    return wantarray ? ($iter, $name, $plot_as_poly, $array_iter) : $name;
+    return wantarray
+        ? (iter => $iter, filename => $name, plot_as_poly => $plot_as_poly, array_iter => $array_iter)
+        : $name;
 }
 
 
@@ -262,7 +279,9 @@ sub on_delete {
     my $args = shift;
     my ($list, $project) = @$args;
 
-    my ($iter, $filename, undef, $array_iter) = get_selection($list);
+    # my ($iter, $filename, undef, $array_iter) = get_selection($list);
+    my %results = get_selection($list);
+    my ($iter, $filename, $array_iter) = @results{qw/iter filename array_iter/};
     return if not defined $filename;
     $project->delete_overlay($filename, $array_iter);
     $list->get_model->remove($iter);
@@ -287,7 +306,10 @@ sub on_set {
     my $args = shift;
     my ($list, $project, $grid, $dlg, $colour_button) = @$args;
 
-    my ($iter, $filename, $plot_as_poly) = get_selection($list);
+    # my ($iter, $filename, $plot_as_poly, $array_iter) = get_selection($list);
+    my %results = get_selection($list);
+    my ($iter, $filename, $plot_as_poly, $array_iter)
+        = @results{qw /iter filename plot_as_poly array_iter/};
 
     my $colour = $colour_button->get_color;
 

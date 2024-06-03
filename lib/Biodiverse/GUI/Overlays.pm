@@ -24,7 +24,7 @@ sub show_dialog {
 
     # Create dialog
     my $gui = Biodiverse::GUI::GUIManager->instance;
-    my $overlay_components = $gui->{overlay_components};
+    my $overlay_components = $gui->get_overlay_components;
 
     if ($overlay_components) {
         my $dlg = $overlay_components->{dialog};
@@ -40,10 +40,10 @@ sub show_dialog {
     my $colour_button = $dlgxml->get_object('colorbutton_overlays');
     $dlg->set_transient_for($gui->get_object('wndMain'));
 
-    $gui->{overlay_components} = {
+    $gui->set_overlay_components ({
         dialog        => $dlg, 
         colour_button => $colour_button,
-    };
+    });
 
     $colour_button->set_color($last_selected_colour);
 
@@ -276,7 +276,7 @@ sub on_clear {
     my $args = shift;
     my ($list, $project, $grid, $dlg) = @$args;
 
-    $grid->set_overlay(undef);
+    $grid->set_overlay();
     $dlg->hide();
 
     return;

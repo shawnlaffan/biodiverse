@@ -14,6 +14,9 @@ use Biodiverse::GUI::Project;
 my $default_colour       = Gtk2::Gdk::Color->parse('#001169');
 my $last_selected_colour = $default_colour;
 
+use constant COL_FNAME     => 0;
+use constant COL_PLOT_POLY => 1;
+
 sub show_dialog {
     my $grid = shift;
 
@@ -70,11 +73,21 @@ sub init_overlay_list {
     my $tree = $dlgxml->get_object('treeOverlays');
 
     my $col_name = Gtk2::TreeViewColumn->new();
-    my $name_renderer = Gtk2::CellRendererText->new();
-    $col_name->set_title('Filename');
+    my $name_renderer = Gtk2::CellRendererText->new ();
+    $col_name->set_title('File name');
     $col_name->pack_start($name_renderer, 1);
     $col_name->add_attribute($name_renderer,  text => 0);
     $tree->insert_column($col_name, -1);
+
+    my $col_plot_poly = Gtk2::TreeViewColumn->new();
+    $col_plot_poly->set_title('Plot as polygon');
+    my $poly_renderer = Gtk2::CellRendererToggle->new();
+    $col_plot_poly->pack_start($poly_renderer, 0);
+    $poly_renderer->signal_connect('toggled' => \&_plot_poly_toggled, $model);
+    $col_plot_poly->set_attributes($poly_renderer,
+        'active' => 1,
+    );
+    $tree->insert_column($col_plot_poly, -1);
 
     #  fiddling around with colour selection
     #my $colColour = Gtk2::TreeViewColumn->new();
@@ -84,25 +97,39 @@ sub init_overlay_list {
     #$colColour->add_attribute($colour_button, text => 0);
     #$tree->insert_column($colColour, -1);
 
-    $tree->set_headers_visible(0);
+    $tree->set_headers_visible(1);
     $tree->set_model($model);
 
     return $tree;
 }
 
+sub _plot_poly_toggled {
+    my ($cell, $path_str, $model) = @_;
+
+    my $path = Gtk2::TreePath->new_from_string ($path_str);
+
+    # get toggled iter
+    my $iter = $model->get_iter ($path);
+    my ($bool) = $model->get ($iter, COL_PLOT_POLY);
+
+    # toggle the value
+    $model->set ($iter, COL_PLOT_POLY, !$bool);
+}
+
 # Make the object tree that appears on the left
 sub make_overlay_model {
+    my $project = shift;
+
     my $model = Gtk2::ListStore->new(
         'Glib::String',
-        #'Glib::Boolean',  #  fiddling around with colour selection
+        'Glib::Boolean',
     );
-    my $project = shift;
 
     my $overlays = $project->get_overlay_list();
 
     foreach my $name (@{$overlays}) {
         my $iter = $model->append;
-        $model->set($iter, 0, $name);
+        $model->set($iter, 0, $name, 1, 1);
     }
 
 
@@ -120,9 +147,10 @@ sub get_selection {
     return if not $path;
 
     my $iter = $model->get_iter($path);
-    my $name = $model->get($iter, 0);
+    my $name = $model->get($iter, COL_FNAME);
+    my $plot_as_poly = $model->get($iter, COL_PLOT_POLY);
 
-    return wantarray ? ($name, $iter) : $name;
+    return wantarray ? ($iter, $name, $plot_as_poly) : $name;
 }
 
 
@@ -164,7 +192,7 @@ sub on_add {
 
     if (!_shp_type_is_point($filename)) {
         my $iter = $list->get_model->append;
-        $list->get_model->set($iter, 0, $filename);
+        $list->get_model->set($iter, COL_FNAME, $filename);
         my $sel = $list->get_selection;
         $sel->select_iter($iter);
 
@@ -193,12 +221,21 @@ sub _shp_type_is_point {
     return $type =~/point/i;
 }
 
+sub _shp_type_is_polygon {
+    my $name = shift;
+
+    my $shpfile = Geo::ShapeFile->new ($name);
+    my $type = $shpfile->shape_type_text;
+
+    return $type =~/polygon/i;
+}
+
 sub on_delete {
     my $button = shift;
     my $args = shift;
     my ($list, $project) = @$args;
 
-    my ($filename, $iter) = get_selection($list);
+    my ($iter, $filename) = get_selection($list);
     return if not $filename;
     $project->delete_overlay($filename);
     $list->get_model->remove($iter);
@@ -223,7 +260,7 @@ sub on_set {
     my $args = shift;
     my ($list, $project, $grid, $dlg, $colour_button) = @$args;
 
-    my $filename = get_selection($list);
+    my ($iter, $filename, $plot_as_poly) = get_selection($list);
 
     my $colour = $colour_button->get_color;
 
@@ -232,7 +269,11 @@ sub on_set {
     return if not $filename;
 
     print "[Overlay] Setting overlay to $filename\n";
-    $grid->set_overlay( $project->get_overlay($filename), $colour );
+    $grid->set_overlay(
+        shapefile    => $project->get_overlay($filename),
+        colour       => $colour,
+        plot_as_poly => $plot_as_poly,
+    );
     #$dlg->destroy();
 
     $last_selected_colour = $colour;

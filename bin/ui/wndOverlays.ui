@@ -121,13 +121,13 @@
             </child>
             <child>
               <object class="GtkButton" id="btnDelete">
-                <property name="label">gtk-delete</property>
+                <property name="label">Remove</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">True</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip-text" translatable="yes">Delete selected file from the list</property>
+                <property name="tooltip-text" translatable="yes">Remove selected entry from the list</property>
                 <property name="use_stock">True</property>
               </object>
               <packing>

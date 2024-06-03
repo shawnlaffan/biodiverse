@@ -1551,7 +1551,7 @@ sub init_overlay_hash {
     # Tell user if any missing
     if ( scalar @missing_overlays > 0 ) {
         my $text =
-"The following overlays are missing and have been deleted from the project:\n";
+"The following overlays are missing and have been removed from the project:\n";
         foreach my $name (@missing_overlays) {
             $text .= "  $name\n";
         }

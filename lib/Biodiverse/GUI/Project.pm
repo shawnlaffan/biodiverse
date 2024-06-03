@@ -1477,7 +1477,7 @@ sub get_overlay_list {
     return $self->{OVERLAYS};
 }
 
-sub get_overlay {
+sub get_overlay_shape_object {
     my $self = shift;
     my $name = shift;
 

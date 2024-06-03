@@ -16,7 +16,7 @@ my $last_selected_colour = $default_colour;
 
 use constant COL_FNAME     => 0;
 use constant COL_PLOT_POLY => 1;
-use constant COL_COLOUR    => 1;
+# use constant COL_COLOUR    => 2;
 
 sub show_dialog {
     my $grid = shift;
@@ -130,7 +130,7 @@ sub make_overlay_model {
 
     foreach my $name (@{$overlays}) {
         my $iter = $model->append;
-        $model->set($iter, 0, $name, 1, 1);
+        $model->set($iter, COL_FNAME, $name, COL_PLOT_POLY, 0);
     }
 
 
@@ -272,7 +272,7 @@ sub on_set {
 
     print "[Overlay] Setting overlay to $filename\n";
     $grid->set_overlay(
-        shapefile    => $project->get_overlay($filename),
+        shapefile    => $project->get_overlay_shape_object($filename),
         colour       => $colour,
         plot_as_poly => $plot_as_poly,
     );

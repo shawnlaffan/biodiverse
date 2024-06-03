@@ -61,6 +61,7 @@ BEGIN {
         gladexml => undef,    # Main window widgets
         tabs => [],    # Stores refs to Tabs objects. In order of page index.
         progress_bars => undef,
+        overlay_components => undef,
         test_val      => ''
     };
     bless $singleton, 'Biodiverse::GUI::GUIManager';

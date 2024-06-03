@@ -5,6 +5,7 @@ use warnings;
 use Gtk2;
 #use Data::Dumper;
 use Geo::ShapeFile;
+use Ref::Util qw/is_hashref/;
 
 our $VERSION = '4.99_002';
 
@@ -23,11 +24,26 @@ sub show_dialog {
 
     # Create dialog
     my $gui = Biodiverse::GUI::GUIManager->instance;
+    my $overlay_components = $gui->{overlay_components};
+
+    if ($overlay_components) {
+        my $dlg = $overlay_components->{dialog};
+        my $colour_button = $overlay_components->{colour_button};
+        $colour_button->set_color($last_selected_colour);
+        $dlg->show_all;
+        return;
+    }
+
     my $dlgxml = Gtk2::Builder->new();
     $dlgxml->add_from_file($gui->get_gtk_ui_file('wndOverlays.ui'));
     my $dlg = $dlgxml->get_object('wndOverlays');
     my $colour_button = $dlgxml->get_object('colorbutton_overlays');
-    $dlg->set_transient_for( $gui->get_object('wndMain') );
+    $dlg->set_transient_for($gui->get_object('wndMain'));
+
+    $gui->{overlay_components} = {
+        dialog        => $dlg, 
+        colour_button => $colour_button,
+    };
 
     $colour_button->set_color($last_selected_colour);
 
@@ -128,11 +144,20 @@ sub make_overlay_model {
 
     my $overlays = $project->get_overlay_list();
 
-    foreach my $name (@{$overlays}) {
+    foreach my $entry (@{$overlays}) {
         my $iter = $model->append;
-        $model->set($iter, COL_FNAME, $name, COL_PLOT_POLY, 0);
+        if (!is_hashref $entry) {  # previous versions did not store these
+            $entry = {
+                name         => $entry,
+                plot_as_poly => 0,
+            };
+        }
+        $model->set(
+            $iter,
+            COL_FNAME,     $entry->{name},
+            COL_PLOT_POLY, $entry->{plot_as_poly}
+        );
     }
-
 
     return $model;
 }
@@ -194,11 +219,11 @@ sub on_add {
 
     if (!_shp_type_is_point($filename)) {
         my $iter = $list->get_model->append;
-        $list->get_model->set($iter, COL_FNAME, $filename);
+        $list->get_model->set($iter, COL_FNAME, $filename, COL_PLOT_POLY, 0);
         my $sel = $list->get_selection;
         $sel->select_iter($iter);
 
-        $project->add_overlay($filename);
+        $project->add_overlay({name => $filename});
     }
     else {  #  warn about points - one day we will fix this
         my $error = "Selected shapefile is a point type.";
@@ -252,7 +277,7 @@ sub on_clear {
     my ($list, $project, $grid, $dlg) = @$args;
 
     $grid->set_overlay(undef);
-    $dlg->destroy();
+    $dlg->hide();
 
     return;
 }
@@ -266,7 +291,7 @@ sub on_set {
 
     my $colour = $colour_button->get_color;
 
-    $dlg->destroy;
+    $dlg->hide;
 
     return if not $filename;
 
@@ -287,7 +312,7 @@ sub on_cancel {
     my $button = shift;
     my $dlg    = shift;
 
-    $dlg->destroy;
+    $dlg->hide;
 
     return;
 }

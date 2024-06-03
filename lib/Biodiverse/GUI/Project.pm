@@ -1499,17 +1499,20 @@ sub get_overlay {
 sub delete_overlay {
     my $self = shift;
     my $name = shift;
+    my $array_iter = shift;
 
-    # Remove from list
-    foreach my $i ( 0 .. $#{ $self->{OVERLAYS} } ) {
-        if ( $self->{OVERLAYS}[$i] eq $name ) {
-            splice( @{ $self->{OVERLAYS} }, $i, 1 );
-            last;
-        }
+    my $overlays = $self->{OVERLAYS};
+
+    # Remove from list unless not found or possible
+    $array_iter //= List::Util::first {$_ eq $name} @$overlays;
+    return if $array_iter < 0 || $array_iter > $#$overlays;
+
+    splice( @$overlays, $array_iter, 1 );
+
+    # remove from hash if no longer needed
+    if (!grep {$_ eq $name} @$overlays) {
+        delete $self->{overlay_objects}{$name};
     }
-
-    # remove from hash
-    delete $self->{overlay_objects}{$name};
 
     return;
 }

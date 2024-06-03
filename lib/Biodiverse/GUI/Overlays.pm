@@ -16,6 +16,7 @@ my $last_selected_colour = $default_colour;
 
 use constant COL_FNAME     => 0;
 use constant COL_PLOT_POLY => 1;
+use constant COL_COLOUR    => 1;
 
 sub show_dialog {
     my $grid = shift;
@@ -149,8 +150,9 @@ sub get_selection {
     my $iter = $model->get_iter($path);
     my $name = $model->get($iter, COL_FNAME);
     my $plot_as_poly = $model->get($iter, COL_PLOT_POLY);
+    my $array_iter = $path->to_string;  #  only works for a simple tree
 
-    return wantarray ? ($iter, $name, $plot_as_poly) : $name;
+    return wantarray ? ($iter, $name, $plot_as_poly, $array_iter) : $name;
 }
 
 
@@ -235,9 +237,9 @@ sub on_delete {
     my $args = shift;
     my ($list, $project) = @$args;
 
-    my ($iter, $filename) = get_selection($list);
-    return if not $filename;
-    $project->delete_overlay($filename);
+    my ($iter, $filename, undef, $array_iter) = get_selection($list);
+    return if not defined $filename;
+    $project->delete_overlay($filename, $array_iter);
     $list->get_model->remove($iter);
 
     return;

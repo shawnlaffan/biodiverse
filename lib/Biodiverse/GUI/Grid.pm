@@ -627,8 +627,11 @@ sub set_overlay {
     }
     
     if ($shapefile) {
-        my @args = @{ $self->{dataset_info} };
-        $self->load_shapefile(@args, $shapefile, $colour);
+        $self->load_shapefile(
+            dataset_info => $self->{dataset_info},
+            file   => $shapefile,
+            colour => $colour,
+        );
     }
 
     return;
@@ -649,7 +652,12 @@ EOL
 }
 
 sub load_shapefile {
-    my ($self, $min_x, $min_y, $max_x, $max_y, $cell_x, $cell_y, $shapefile, $colour) = @_;
+    my ($self, %args) = @_;
+    # my ($self, $min_x, $min_y, $max_x, $max_y, $cell_x, $cell_y, $shapefile, $colour) = @_;
+    my $info = $args{info} // $self->{dataset_info};
+    my ($min_x, $min_y, $max_x, $max_y, $cell_x, $cell_y) = @$info;
+    my $shapefile = $args{file};
+    my $colour    = $args{colour};
 
     my @rect = (
         $min_x - $cell_x,
@@ -692,6 +700,7 @@ sub load_shapefile {
     );
 
     $shapefile_group->raise_to_top();
+    # $shapefile_group->lower_to_bottom();
     $self->{shapefile_group} = $shapefile_group;
 
     # Add all shapes
@@ -736,6 +745,7 @@ sub load_shapefile {
                 my $poly = Gnome2::Canvas::Item->new (
                     $shapefile_group,
                     'Gnome2::Canvas::Line',
+                    # 'Gnome2::Canvas::Polygon',
                     points          => \@plot_points,
                     fill_color_gdk  => $colour,
                 );

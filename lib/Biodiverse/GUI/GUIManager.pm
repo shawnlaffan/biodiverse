@@ -61,6 +61,7 @@ BEGIN {
         gladexml => undef,    # Main window widgets
         tabs => [],    # Stores refs to Tabs objects. In order of page index.
         progress_bars => undef,
+        overlay_components => undef,
         test_val      => ''
     };
     bless $singleton, 'Biodiverse::GUI::GUIManager';
@@ -329,6 +330,16 @@ sub show_progress {
     if ( $self->{progress_bars} ) {
         $self->{progress_bars}->{window}->show_all;
     }
+}
+
+sub get_overlay_components {
+    my ($self) = @_;
+    return $self->{overlay_components};
+}
+
+sub set_overlay_components {
+    my ($self, $components) = @_;
+    $self->{overlay_components} = $components;
 }
 
 ##########################################################

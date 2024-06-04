@@ -1477,7 +1477,7 @@ sub get_overlay_list {
     return $self->{OVERLAYS};
 }
 
-sub get_overlay {
+sub get_overlay_shape_object {
     my $self = shift;
     my $name = shift;
 
@@ -1499,27 +1499,30 @@ sub get_overlay {
 sub delete_overlay {
     my $self = shift;
     my $name = shift;
+    my $array_iter = shift;
 
-    # Remove from list
-    foreach my $i ( 0 .. $#{ $self->{OVERLAYS} } ) {
-        if ( $self->{OVERLAYS}[$i] eq $name ) {
-            splice( @{ $self->{OVERLAYS} }, $i, 1 );
-            last;
-        }
+    my $overlays = $self->{OVERLAYS};
+
+    # Remove from list unless not found or possible
+    $array_iter //= List::Util::first {$_ eq $name} @$overlays;
+    return if $array_iter < 0 || $array_iter > $#$overlays;
+
+    splice( @$overlays, $array_iter, 1 );
+
+    # remove from hash if no longer needed
+    if (!grep {$_ eq $name} @$overlays) {
+        delete $self->{overlay_objects}{$name};
     }
-
-    # remove from hash
-    delete $self->{overlay_objects}{$name};
 
     return;
 }
 
 sub add_overlay {
     my $self = shift;
-    my $name = shift;
+    my $entry = shift;
 
-    $self->{overlay_objects}{$name} = undef;
-    push @{ $self->{OVERLAYS} }, $name;
+    $self->{overlay_objects}{$entry->{name}} = undef;
+    push @{ $self->{OVERLAYS} }, $entry;
 
     return;
 }
@@ -1531,13 +1534,14 @@ sub init_overlay_hash {
     my $existing_overlays = [];
     my @missing_overlays;
 
-    foreach my $name ( @{ $self->{OVERLAYS} } ) {
+    foreach my $entry ( @{ $self->{OVERLAYS} } ) {
+        my $name = is_hashref $entry ? $entry->{name} : $entry;
 
         if ( Biodiverse::Common->file_is_readable (file_name => $name) ) {
 
             # Set hash entry to undef - will load on demand
             $self->{overlay_objects}{$name} = undef;
-            push @$existing_overlays, $name;
+            push @$existing_overlays, $entry;
         }
         else {
             print "[Project] Missing overlay: $name\n";
@@ -1551,7 +1555,7 @@ sub init_overlay_hash {
     # Tell user if any missing
     if ( scalar @missing_overlays > 0 ) {
         my $text =
-"The following overlays are missing and have been deleted from the project:\n";
+"The following overlays are missing and have been removed from the project:\n";
         foreach my $name (@missing_overlays) {
             $text .= "  $name\n";
         }

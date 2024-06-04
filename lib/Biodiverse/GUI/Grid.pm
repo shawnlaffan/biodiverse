@@ -616,9 +616,8 @@ sub get_base_struct {
 
 # Draws a polygonal shapefile
 sub set_overlay {
-    my $self      = shift;
-    my $shapefile = shift;
-    my $colour    = shift || OVERLAY_COLOUR;
+    my ($self, %args) = @_;
+
 
     # Delete any existing
     if ($self->{shapefile_group}) {
@@ -626,9 +625,12 @@ sub set_overlay {
         delete $self->{shapefile_group};
     }
     
-    if ($shapefile) {
-        my @args = @{ $self->{dataset_info} };
-        $self->load_shapefile(@args, $shapefile, $colour);
+    if (defined $args{shapefile}) {
+        $self->load_shapefile(
+            colour       => OVERLAY_COLOUR,  #  default
+            dataset_info => $self->{dataset_info},
+            %args,
+        );
     }
 
     return;
@@ -649,7 +651,13 @@ EOL
 }
 
 sub load_shapefile {
-    my ($self, $min_x, $min_y, $max_x, $max_y, $cell_x, $cell_y, $shapefile, $colour) = @_;
+    my ($self, %args) = @_;
+
+    my $info = $args{info} // $self->{dataset_info};
+    my ($min_x, $min_y, $max_x, $max_y, $cell_x, $cell_y) = @$info;
+    my $shapefile = $args{shapefile};
+    my $colour    = $args{colour};
+    my $plot_as_poly = $args{plot_as_poly};
 
     my @rect = (
         $min_x - $cell_x,
@@ -691,7 +699,16 @@ sub load_shapefile {
         y => 0,
     );
 
-    $shapefile_group->raise_to_top();
+    my $is_polygon = $shapefile->shape_type_text =~ m/polygon/i;
+
+    my $canvas_shape_type = 'Gnome2::Canvas::Line';
+    if ($is_polygon && $plot_as_poly) {
+        $canvas_shape_type = 'Gnome2::Canvas::Polygon';
+        $shapefile_group->lower_to_bottom();
+    }
+    else {
+        $shapefile_group->raise_to_top();
+    }
     $self->{shapefile_group} = $shapefile_group;
 
     # Add all shapes
@@ -735,7 +752,7 @@ sub load_shapefile {
             if (@plot_points > 2) { # must have more than one point (two coords)
                 my $poly = Gnome2::Canvas::Item->new (
                     $shapefile_group,
-                    'Gnome2::Canvas::Line',
+                    $canvas_shape_type,
                     points          => \@plot_points,
                     fill_color_gdk  => $colour,
                 );

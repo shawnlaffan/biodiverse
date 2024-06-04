@@ -321,23 +321,23 @@ sub on_add {
     }
     $open->destroy;
 
-    if (!_shp_type_is_point($filename)) {
-        my $iter = $list->get_model->append;
-        $list->get_model->set($iter, COL_FNAME, $filename, COL_PLOT_POLY, 0);
-        my $sel = $list->get_selection;
-        $sel->select_iter($iter);
-
-        $project->add_overlay({name => $filename});
-    }
-    else {  #  warn about points - one day we will fix this
-        my $error = "Selected shapefile is a point type.";
-        $error .= "\n\nBiodiverse currently only supports polygon and polyline overlays.";
+    if (_shp_type_is_point($filename)) {
+        my $error = "Unable to display shapefiles of type point.";
+        $error .= "\n\nBiodiverse currently only supports polygon and polyline overlays.\n";
         my $gui = Biodiverse::GUI::GUIManager->instance;
         $gui->report_error (
             $error,
             'Unsupported file type',
         );
+        return;
     }
+
+    my $iter = $list->get_model->append;
+    $list->get_model->set($iter, COL_FNAME, $filename, COL_PLOT_POLY, 0);
+    my $sel = $list->get_selection;
+    $sel->select_iter($iter);
+
+    $project->add_overlay({name => $filename});
 
     return;
 }

@@ -27,11 +27,19 @@ sub show_dialog {
     # Create dialog
     my $gui = Biodiverse::GUI::GUIManager->instance;
     my $overlay_components = $gui->get_overlay_components;
+    my $project = $gui->get_project;
 
     if ($overlay_components) {
-        my $dlg = $overlay_components->{dialog};
+        my $dlg           = $overlay_components->{dialog};
         my $colour_button = $overlay_components->{colour_button};
         $colour_button->set_color($last_selected_colour);
+
+        set_button_actions (
+            project => $project,
+            grid    => $grid,
+            %$overlay_components,
+        );
+
         $dlg->show_all;
         return;
     }
@@ -42,48 +50,80 @@ sub show_dialog {
     my $colour_button = $dlgxml->get_object('colorbutton_overlays');
     $dlg->set_transient_for($gui->get_object('wndMain'));
 
-    $gui->set_overlay_components ({
-        dialog        => $dlg, 
-        colour_button => $colour_button,
-    });
-
     $colour_button->set_color($last_selected_colour);
 
-    my $project = $gui->get_project;
     my $model = make_overlay_model($project);
     my $list = init_overlay_list($dlgxml, $model);
 
-    # Connect buttons
-    $dlgxml->get_object('btnAdd')->signal_connect(
-        clicked => \&on_add,
-        [$list, $project],
-    );
-    $dlgxml->get_object('btnDelete')->signal_connect(
-        clicked => \&on_delete,
-        [$list, $project],
-    );
-    $dlgxml->get_object('btnClear')->signal_connect(
-        clicked => \&on_clear,
-        [$list, $project, $grid, $dlg],
-    );
-    $dlgxml->get_object('btnSet')->signal_connect(
-        clicked => \&on_set,
-        [$list, $project, $grid, $dlg, $colour_button],
-    );
-    $dlgxml->get_object('btnOverlayCancel')->signal_connect(
-        clicked => \&on_cancel,
-        $dlg,
-    );
-    $dlgxml->get_object('btn_overlay_set_default_colour')->signal_connect(
-        clicked => \&on_set_default_colour,
-        $colour_button,
+    my %buttons = map {$_ => $dlgxml->get_object($_)}
+        (qw /btnAdd btnDelete btnClear btnSet btnOverlayCancel btn_overlay_set_default_colour/);
+    my %components = (
+        dialog        => $dlg,
+        colour_button => $colour_button,
+        list          => $list,
+        buttons       => \%buttons,
     );
 
+    my $signals = set_button_actions (
+        %components,
+        project       => $project,
+        grid          => $grid,
+    );
+
+    #  store some but not all components we set actions for
+    $gui->set_overlay_components ({
+        %components,
+        signals       => $signals,
+    });
 
     $dlg->set_modal(1);
     $dlg->show_all();
 
     return;
+}
+
+sub set_button_actions {
+    my %args = @_;
+    my ($list, $project, $grid, $dlg, $colour_button)
+        = @args{qw /list project grid dialog colour_button/};
+
+    my $buttons = $args{buttons};
+    my $signals = $args{signals} // {};
+    # Connect buttons
+
+    #  these are always the same
+    $signals->{btnAdd} //= $buttons->{btnAdd}->signal_connect(
+        clicked => \&on_add,
+        [$list, $project],
+    );
+    $signals->{btnDelete} //= $buttons->{btnDelete}->signal_connect(
+        clicked => \&on_delete,
+        [$list, $project],
+    );
+    $signals->{btnOverlayCancel} //= $buttons->{btnOverlayCancel}->signal_connect(
+        clicked => \&on_cancel,
+        $dlg,
+    );
+    $signals->{btn_overlay_set_default_colour}
+        //= $buttons->{btn_overlay_set_default_colour}->signal_connect(
+        clicked => \&on_set_default_colour,
+        $colour_button,
+    );
+
+    #  these vary by grid so need to be disconnected first or we mess up other plots
+    foreach my $btn (qw/btnClear btnSet/) {
+        my $id = $signals->{$btn} // next;
+        $buttons->{$btn}->signal_handler_disconnect($id);
+    }
+    $signals->{btnClear} = $buttons->{btnClear}->signal_connect(
+        clicked => \&on_clear,
+        [$list, $project, $grid, $dlg],
+    );
+    $signals->{btnSet} = $buttons->{btnSet}->signal_connect(
+        clicked => \&on_set,
+        [$list, $project, $grid, $dlg, $colour_button],
+    );
+    return $signals;
 }
 
 sub init_overlay_list {

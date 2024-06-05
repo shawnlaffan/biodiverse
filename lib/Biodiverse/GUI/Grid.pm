@@ -657,7 +657,8 @@ sub load_shapefile {
     my ($min_x, $min_y, $max_x, $max_y, $cell_x, $cell_y) = @$info;
     my $shapefile = $args{shapefile};
     my $colour    = $args{colour};
-    my $plot_as_poly = $args{plot_as_poly};
+    my $plot_on_top  = !!$args{plot_on_top};
+    my $plot_as_poly = $args{type} =~ /polygon/i;
 
     my @rect = (
         $min_x - $cell_x,
@@ -699,15 +700,16 @@ sub load_shapefile {
         y => 0,
     );
 
-    my $is_polygon = $shapefile->shape_type_text =~ m/polygon/i;
+    my $canvas_shape_type
+        = $plot_as_poly
+        ? 'Gnome2::Canvas::Polygon'
+        : 'Gnome2::Canvas::Line';
 
-    my $canvas_shape_type = 'Gnome2::Canvas::Line';
-    if ($is_polygon && $plot_as_poly) {
-        $canvas_shape_type = 'Gnome2::Canvas::Polygon';
-        $shapefile_group->lower_to_bottom();
+    if ($plot_on_top) {
+        $shapefile_group->raise_to_top();
     }
     else {
-        $shapefile_group->raise_to_top();
+        $shapefile_group->lower_to_bottom();
     }
     $self->{shapefile_group} = $shapefile_group;
 

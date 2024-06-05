@@ -135,6 +135,10 @@ sub save {
     delete local $self->{models};
     delete local $self->{overlay_objects};
 
+    my $tbl = eval {Biodiverse::GUI::Overlays::get_settings_table()};
+    warn $@ if $@;
+    local $self->{OVERLAYS} = $tbl;
+
     #  make a copy so we don't interfere with the current display settings
     #  not needed if the code de-refs work properly
     #my $copy = $self->clone;

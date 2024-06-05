@@ -17,9 +17,10 @@ my $default_colour       = Gtk2::Gdk::Color->parse('#001169');
 my $last_selected_colour = $default_colour;
 
 use constant COL_FNAME       => 0;
-use constant COL_PLOT_POLY   => 1;
-use constant COL_PLOT_COLOUR => 2;
-use constant COL_PLOT_COLOUR_BK => 3;
+use constant COL_FTYPE       => 1;
+use constant COL_PLOT_ON_TOP => 2;
+use constant COL_PLOT_COLOUR => 3;
+use constant COL_PLOT_COLOUR_BK => 4;
 
 sub show_dialog {
     my $grid = shift;
@@ -139,15 +140,22 @@ sub init_overlay_list {
     $col_name->add_attribute($name_renderer,  text => COL_FNAME);
     $tree->insert_column($col_name, -1);
 
-    my $col_plot_poly = Gtk2::TreeViewColumn->new();
-    $col_plot_poly->set_title('Plot as polygon');
-    my $poly_renderer = Gtk2::CellRendererToggle->new();
-    $col_plot_poly->pack_start($poly_renderer, 0);
-    $poly_renderer->signal_connect('toggled' => \&_plot_poly_toggled, $model);
-    $col_plot_poly->set_attributes($poly_renderer,
-        'active' => 1,
+    my $col_type = Gtk2::TreeViewColumn->new();
+    my $type_renderer = Gtk2::CellRendererText->new ();
+    $col_type->set_title('Type');
+    $col_type->pack_start($type_renderer, 1);
+    $col_type->add_attribute($type_renderer,  text => COL_FTYPE);
+    $tree->insert_column($col_type, -1);
+
+    my $col_plot_on_top = Gtk2::TreeViewColumn->new();
+    $col_plot_on_top->set_title('Plot above cells');
+    my $plot_on_top_renderer = Gtk2::CellRendererToggle->new();
+    $col_plot_on_top->pack_start($plot_on_top_renderer, 0);
+    $plot_on_top_renderer->signal_connect('toggled' => \&_plot_on_top, $model);
+    $col_plot_on_top->set_attributes($plot_on_top_renderer,
+        'active' => COL_PLOT_ON_TOP,
     );
-    $tree->insert_column($col_plot_poly, -1);
+    $tree->insert_column($col_plot_on_top, -1);
 
     # my $col_colour = Gtk2::TreeViewColumn->new();
     # my $colour_renderer_toggle = Gtk2::CellRendererToggle->new();
@@ -174,20 +182,23 @@ sub init_overlay_list {
     return $tree;
 }
 
-sub _plot_poly_toggled {
+sub _plot_on_top {
     my ($cell, $path_str, $model) = @_;
 
     my $path = Gtk2::TreePath->new_from_string ($path_str);
 
     # get toggled iter
     my $iter = $model->get_iter ($path);
-    my ($bool) = $model->get ($iter, COL_PLOT_POLY);
+    my ($bool) = $model->get ($iter, COL_PLOT_ON_TOP);
 
     # toggle the value
-    $model->set ($iter, COL_PLOT_POLY, !$bool);
+    $model->set($iter, COL_PLOT_ON_TOP, !$bool);
+
+    return;
 }
 
 sub _update_colour_for_selection {
+    return;
     my ($cell, $path_str, $model) = @_;
 
     my $path = Gtk2::TreePath->new_from_string ($path_str);
@@ -233,6 +244,7 @@ sub make_overlay_model {
 
     my $model = Gtk2::ListStore->new(
         'Glib::String',
+        'Glib::String',
         'Glib::Boolean',
         # 'Glib::Boolean',  #  next two are colour stuff
         # 'Glib::String',
@@ -245,7 +257,8 @@ sub make_overlay_model {
         if (!is_hashref $entry) {  # previous versions did not store these
             $entry = {
                 name         => $entry,
-                plot_as_poly => 0,
+                type         => 'polyline',
+                plot_on_top  => !!1,
                 # has_colour   => undef,
                 # colour       => undef,
             };
@@ -255,7 +268,8 @@ sub make_overlay_model {
         $model->set(
             $iter,
             COL_FNAME,       $entry->{name},
-            COL_PLOT_POLY,   $entry->{plot_as_poly},
+            COL_FTYPE,       $entry->{type} // 'polyline',
+            COL_PLOT_ON_TOP, !!$entry->{plot_on_top},
             # COL_PLOT_COLOUR, !!$entry->{colour},
             # COL_PLOT_COLOUR_BK, ($entry->{colour} // 'white'),
         );
@@ -270,17 +284,18 @@ sub get_selection {
     my $tree = shift;
 
     my $selection = $tree->get_selection();
-    my $model = $tree->get_model();
     my $path = $selection->get_selected_rows();
     return if not $path;
 
-    my $iter = $model->get_iter($path);
-    my $name = $model->get($iter, COL_FNAME);
-    my $plot_as_poly = $model->get($iter, COL_PLOT_POLY);
-    my $array_iter = $path->to_string;  #  only works for a simple tree
+    my $model = $tree->get_model();
+    my $iter  = $model->get_iter($path);
+    my $name  = $model->get($iter, COL_FNAME);
+    my $type  = $model->get($iter, COL_FTYPE);
+    my $plot_on_top = $model->get($iter, COL_PLOT_ON_TOP);
+    my $array_iter  = $path->to_string;  #  only works for a simple tree
 
     return wantarray
-        ? (iter => $iter, filename => $name, plot_as_poly => $plot_as_poly, array_iter => $array_iter)
+        ? (iter => $iter, filename => $name, type => $type, plot_on_top => $plot_on_top, array_iter => $array_iter)
         : $name;
 }
 
@@ -332,12 +347,21 @@ sub on_add {
         return;
     }
 
+    #  load as a polyline
     my $iter = $list->get_model->append;
-    $list->get_model->set($iter, COL_FNAME, $filename, COL_PLOT_POLY, 0);
+    $list->get_model->set($iter, COL_FNAME, $filename, COL_FTYPE, 'polyline', COL_PLOT_ON_TOP, 1);
     my $sel = $list->get_selection;
     $sel->select_iter($iter);
+    $project->add_overlay({name => $filename, type => 'polyline', plot_on_top => 1});
 
-    $project->add_overlay({name => $filename});
+    #  also load as polygon
+    if (_shp_type_is_polygon($filename)) {
+        $iter = $list->get_model->append;
+        $list->get_model->set($iter, COL_FNAME, $filename, COL_FTYPE, 'polygon', COL_PLOT_ON_TOP, 0);
+        $sel = $list->get_selection;
+        $sel->select_iter($iter);
+        $project->add_overlay({ name => $filename, type => 'polygon', plot_on_top => => 0 });
+    }
 
     return;
 }
@@ -395,8 +419,8 @@ sub on_set {
 
     # my ($iter, $filename, $plot_as_poly, $array_iter) = get_selection($list);
     my %results = get_selection($list);
-    my ($iter, $filename, $plot_as_poly, $array_iter)
-        = @results{qw /iter filename plot_as_poly array_iter/};
+    my ($iter, $filename, $type, $plot_on_top, $array_iter)
+        = @results{qw /iter filename type plot_on_top array_iter/};
 
     my $colour = $colour_button->get_color;
 
@@ -406,9 +430,10 @@ sub on_set {
 
     print "[Overlay] Setting overlay to $filename\n";
     $grid->set_overlay(
-        shapefile    => $project->get_overlay_shape_object($filename),
-        colour       => $colour,
-        plot_as_poly => $plot_as_poly,
+        shapefile   => $project->get_overlay_shape_object($filename),
+        colour      => $colour,
+        plot_on_top => $plot_on_top,
+        type        => $type,
     );
     #$dlg->destroy();
 

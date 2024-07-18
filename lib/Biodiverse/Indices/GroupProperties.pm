@@ -398,10 +398,10 @@ sub _get_gistar_score {
     my $expected = $W * $global_data->{mean};
 
     my $numerator = $sum - $expected;
+    my $sd = $global_data->{standard_deviation} // $global_data->{sd};
 
     my $denominator = $W
-        ? $global_data->{standard_deviation}
-            * sqrt (
+        ? $sd * sqrt (
                 (($n * $S1) - $W ** 2)
                 / ($n - 1)
             )

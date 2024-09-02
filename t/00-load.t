@@ -38,6 +38,7 @@ sub Wanted {
     return if $filename !~ m/Biodiverse/;
     return if $filename =~ m/Task/;    #  ignore Task files
     return if $filename =~ m/Bundle/;  #  ignore Bundle files
+    return if $filename =~ m/PARModules.pm$/;  #  only needed for exe building
     #  avoid ref/data alias as only one works at a time
     return if $filename =~ m/(?:Data|Ref)Alias\.pm$/;
     #  ignore GUI files

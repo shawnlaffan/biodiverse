@@ -8,6 +8,8 @@ our $VERSION = '4.99_002';
 
 use Ref::Util qw { :all };
 
+use experimental 'for_list';
+
 use Statistics::Descriptive::PDL 0.12;
 my $stats_class = 'Statistics::Descriptive::PDL';
 $stats_class = 'Statistics::Descriptive::PDL::SampleWeighted';
@@ -69,8 +71,8 @@ sub get_lbp_stats_objects {
         my $count = $label_hash_all->{$label};
 
         PROPERTY:
-        foreach my $prop (keys %$properties) {
-            my $value = $properties->{$prop};
+        foreach my ($prop, $value) (%$properties) {
+            # my $value = $properties->{$prop};
             next PROPERTY if ! defined $value;
 
             if ($use_weighted_stats) {

@@ -10,6 +10,8 @@ use Carp;
 
 our $VERSION = '4.99_002';
 
+use experimental 'for_list';
+
 use Statistics::Descriptive::PDL::SampleWeighted 0.11;
 my $stats_class_weighted = 'Statistics::Descriptive::PDL::SampleWeighted';
 
@@ -67,8 +69,8 @@ sub get_gpp_stats_objects {
         next GROUP if ! defined $properties;
 
         PROPERTY:
-        foreach my $prop (keys %$properties) {
-            my $value = $properties->{$prop};
+        foreach my ($prop, $value) (%$properties) {
+            #my $value = $properties->{$prop};
             next PROPERTY if ! defined $value;
 
             my $data_ref = $data{$prop};

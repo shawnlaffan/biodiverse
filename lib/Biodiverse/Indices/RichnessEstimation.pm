@@ -1,13 +1,13 @@
 package Biodiverse::Indices::RichnessEstimation;
 
-use 5.016;
+use 5.036;
 
 use strict;
 use warnings;
 use Carp;
 
 use List::Util qw /max min sum/;
-use experimental qw /refaliasing/;
+use experimental qw /refaliasing for_list/;
 
 use parent 'Biodiverse::Common::ColourPalettes';
 
@@ -1004,10 +1004,10 @@ sub _calc_ace_confidence_intervals {
     }
     else {
         my ($part1, $part2, $P) = (0, 0, 0);
-        foreach my $f (keys %$freq_counts) {
-            $part1 += $freq_counts->{$f} * (exp(-$f) - exp(-2*$f));
-            $part2 += $f * exp (-$f) * $freq_counts->{$f};
-            $P     += $freq_counts->{$f} * exp (-$f) / $richness;
+        foreach my ($f, $val) (%$freq_counts) {
+            $part1 += $val * (exp(-$f) - exp(-2*$f));
+            $part2 += $f * exp (-$f) * $val;
+            $P     += $val * exp (-$f) / $richness;
         }
         my $n = sum values %$label_hash;
         my $var_obs = $part1 - $part2**2 / $n;  # should be passed as an arg?

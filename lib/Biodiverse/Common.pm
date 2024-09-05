@@ -2,7 +2,7 @@ package Biodiverse::Common;
 
 #  a set of common functions for the Biodiverse library
 
-use 5.022;
+use 5.036;
 use strict;
 use warnings;
 

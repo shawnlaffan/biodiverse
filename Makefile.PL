@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use 5.010;
+use 5.036;
 use ExtUtils::MakeMaker;
 
 #  these are from the cpanfile
@@ -76,6 +76,7 @@ my %WriteMakefileArgs = (
     "AUTHOR"   => 'Shawn Laffan <shawnlaffan@gmail.com>',
     "NAME"     => "Biodiverse",
     "VERSION_FROM" => "lib/App/Biodiverse.pm",
+    MIN_PERL_VERSION => '5.036',
     "CONFIGURE_REQUIRES" => {
         %common_reqs,
     },

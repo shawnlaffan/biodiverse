@@ -9,6 +9,8 @@ use warnings;
 use feature 'refaliasing';
 no warnings 'experimental::refaliasing';
 
+use experimental 'for_list';
+
 use Carp;
 use English ( -no_match_vars );
 
@@ -2408,19 +2410,19 @@ sub compare_lists_by_item {
 
     \my %base_ref = $args{base_list_ref};
     \my %comp_ref = $args{comp_list_ref};
-    \my %results   = $args{results_list_ref};
-    my ($diff, $increment);
+    \my %results  = $args{results_list_ref};
+    my $diff;
 
     COMP_BY_ITEM:
-    foreach my $index (keys %base_ref) {
+    foreach my ($index, $base_val) (%base_ref) {
 
         next COMP_BY_ITEM
-            if !(defined $comp_ref{$index} && defined $base_ref{$index});
+            if !(defined $comp_ref{$index} && defined $base_val);
 
         #  compare at 10 decimal place precision
         #  this also allows for serialisation which
         #     rounds the numbers to 15 decimals
-        $diff = $base_ref{$index} - $comp_ref{$index};
+        $diff = $base_val - $comp_ref{$index};
 
         #  for debug, but leave just in case
         #carp "$element, $op\n$comp\n$base  " . ($comp - $base) if $increment;  

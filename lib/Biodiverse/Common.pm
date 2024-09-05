@@ -2421,7 +2421,6 @@ sub compare_lists_by_item {
         #  this also allows for serialisation which
         #     rounds the numbers to 15 decimals
         $diff = $base_ref{$index} - $comp_ref{$index};
-        $increment = $diff > DEFAULT_PRECISION_SMALL ? 1 : 0;
 
         #  for debug, but leave just in case
         #carp "$element, $op\n$comp\n$base  " . ($comp - $base) if $increment;  
@@ -2436,7 +2435,7 @@ sub compare_lists_by_item {
         #  obfuscated to squeeze as much speed as we can
         # $results{"C_$index"} += $increment;
         # $results{"Q_$index"} ++;
-        $results{"P_$index"} =   ($results{"C_$index"} += $increment)
+        $results{"P_$index"} =   ($results{"C_$index"} += $diff > DEFAULT_PRECISION_SMALL)
             / (++$results{"Q_$index"});
         # use original vals for sums
         $results{"SUMX_$index"}  +=  $comp_ref{$index};

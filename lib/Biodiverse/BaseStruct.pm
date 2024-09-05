@@ -11,6 +11,8 @@ use warnings;
 use Carp;
 use 5.010;
 
+use experimental 'for_list';
+
 use English ( -no_match_vars );
 
 #use Data::Dumper ();
@@ -1131,8 +1133,8 @@ sub add_to_lists {  #  add to a list, create if not already there.
     my $use_ref = delete $args{use_ref};  
     #  should it be in its own sub?
 
-    foreach my $list_name (keys %args) {
-        my $list_values = $args{$list_name};
+    foreach my ($list_name, $list_values) (%args) {
+        # my $list_values = $args{$list_name};
         if ($use_ref) {
             $self->{ELEMENTS}{$element}{$list_name} = $list_values;
         }

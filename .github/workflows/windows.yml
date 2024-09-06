@@ -48,7 +48,7 @@ jobs:
       - name: CPANM local probe stuff
         run: |
           #echo $env:PATH
-          $env:PERL5LIB = c:\cx\lib\perl5
+          $env:PERL5LIB = "c:\cx\lib\perl5"
           echo $env:PERL5LIB
           cpanm Acme
           perl -MAcme -E'say $INC{q{Acme.pm}}'

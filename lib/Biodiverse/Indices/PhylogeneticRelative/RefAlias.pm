@@ -4,8 +4,7 @@ use warnings;
 
 our $VERSION = '4.99_002';
 
-use feature 'refaliasing';
-no warnings 'experimental::refaliasing';
+use experimental 'refaliasing';
 
 sub _calc_phylo_rpe1_inner {
     my ($self, %args) = @_;

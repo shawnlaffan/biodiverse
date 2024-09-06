@@ -7,10 +7,7 @@ use Carp qw/croak/;
 
 our $VERSION = '4.99_002';
 
-use feature 'refaliasing';
-no warnings 'experimental::refaliasing';
-
-use experimental 'for_list';
+use experimental qw/refaliasing for_list/;
 
 use List::Util qw /sum/;
 

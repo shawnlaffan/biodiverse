@@ -6,10 +6,7 @@ use 5.036;
 use strict;
 use warnings;
 
-use feature 'refaliasing';
-no warnings 'experimental::refaliasing';
-
-use experimental 'for_list';
+use experimental qw/refaliasing for_list/;
 
 use Carp;
 use English ( -no_match_vars );

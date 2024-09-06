@@ -8,10 +8,7 @@ use warnings;
 use English qw /-no_match_vars/;
 use Carp;
 
-use feature 'refaliasing';
-no warnings 'experimental::refaliasing';
-
-use experimental 'for_list';
+use experimental qw /refaliasing for_list/;
 
 use Biodiverse::Progress;
 

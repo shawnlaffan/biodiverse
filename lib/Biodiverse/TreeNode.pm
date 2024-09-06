@@ -4,10 +4,7 @@ use strict;
 use warnings;
 no warnings 'recursion';
 
-use feature 'refaliasing';
-no warnings 'experimental::refaliasing';
-
-use experimental 'for_list';
+use experimental qw /refaliasing for_list/;
 
 use English qw ( -no_match_vars );
 use Ref::Util qw { :all };

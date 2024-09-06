@@ -3,8 +3,7 @@ use strict;
 use warnings;
 use 5.022;
 
-use feature 'refaliasing';
-no warnings 'experimental::refaliasing';
+use experimental 'refaliasing';
 
 use List::Util qw /sum min max/;
 #use List::MoreUtils qw /apply pairwise/;

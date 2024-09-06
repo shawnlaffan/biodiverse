@@ -16,10 +16,7 @@ use Sort::Key qw /keysort rnkeysort rikeysort/;
 use Sort::Key::Natural qw /natkeysort/;
 use POSIX qw /floor ceil/;
 
-use feature 'refaliasing';
-no warnings 'experimental::refaliasing';
-
-use experimental 'for_list';
+use experimental qw/refaliasing for_list/;
 
 use English qw ( -no_match_vars );
 

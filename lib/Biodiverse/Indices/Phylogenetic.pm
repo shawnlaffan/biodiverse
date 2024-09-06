@@ -11,6 +11,8 @@ use Carp;
 use feature 'refaliasing';
 no warnings 'experimental::refaliasing';
 
+use experimental 'for_list';
+
 use Biodiverse::Progress;
 
 use List::Util 1.33 qw /any sum min max/;
@@ -1464,10 +1466,8 @@ sub calc_pe_single {
     my $tree = $args{trimmed_tree};
     my $pe_single;
 
-    foreach my $node_name (keys %$node_ranges) {
-        my $range    = $node_ranges->{$node_name};
+    foreach my ($node_name, $range) (%$node_ranges) {
         my $node_ref = $tree->get_node_ref_aa ($node_name);
-        #$wts{$node_name} = $node_ref->get_length;
         $pe_single += $node_ref->get_length / $range;
     }
     
@@ -2906,8 +2906,8 @@ sub calc_phylo_aed_t_wtlists {
     my $aed_t     = $args{PHYLO_AED_T};
     my $p_wt_list = {};
 
-    foreach my $label (keys %$wt_list) {
-        $p_wt_list->{$label} = $wt_list->{$label} / $aed_t;
+    foreach my ($label, $wt) (%$wt_list) {
+        $p_wt_list->{$label} = $wt / $aed_t;
     }
 
     my %results = (
@@ -3134,10 +3134,8 @@ sub get_tree_node_length_hash {
     my $node_hash = $tree_ref->get_node_hash;
     
     my %len_hash;
-    foreach my $node_name (keys %$node_hash) {
-        my $node_ref = $node_hash->{$node_name};
-        my $length   = $node_ref->get_length;
-        $len_hash{$node_name} = $length;
+    foreach my ($node_name, $node_ref) (%$node_hash) {
+        $len_hash{$node_name} = $node_ref->get_length;
     }
     
     my %results = (TREE_NODE_LENGTH_HASH => \%len_hash);
@@ -3213,8 +3211,8 @@ sub calc_phylo_abundance {
         my $path_lengths = $node_ref->get_path_lengths_to_root_node;
         my $abundance    = $abundance_hash->{$label};
         
-        foreach my $node_name (keys %$path_lengths) {
-            my $val = $abundance * $path_lengths->{$node_name};
+        foreach my ($node_name, $length) (%$path_lengths) {
+            my $val = $abundance * $length;
             $pd_abundance_hash{$node_name} += $val;
             $pd_abundance += $val;
         }

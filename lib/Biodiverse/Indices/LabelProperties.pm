@@ -413,8 +413,7 @@ sub calc_lbprop_gistar {
     my $global_hash   = $args{LBPROP_GLOBAL_SUMMARY_STATS};
     my %local_objects = %{$args{LBPROP_STATS_OBJECTS}};
 
-    foreach my $prop (keys %$global_hash) {
-        my $global_data = $global_hash->{$prop};
+    foreach my ($prop, $global_data) (%$global_hash) {
         #  bodgy - need generic method
         my $local_data = $local_objects{'LBPROP_STATS_' . $prop . '_DATA'};
 

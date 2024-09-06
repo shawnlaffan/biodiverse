@@ -14,6 +14,8 @@ use Sort::Key qw /nkeysort/;
 use feature 'refaliasing';
 no warnings 'experimental::refaliasing';
 
+use experimental 'for_list';
+
 our $VERSION = '4.99_002';
 
 use Biodiverse::Matrix::LowMem;

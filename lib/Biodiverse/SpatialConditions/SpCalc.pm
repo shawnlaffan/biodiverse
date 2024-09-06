@@ -6,6 +6,8 @@ use 5.022;
 
 our $VERSION = '4.99_002';
 
+use experimental 'for_list';
+
 use Carp;
 use English qw /-no_match_vars/;
 
@@ -2382,8 +2384,7 @@ sub sp_points_in_same_cluster {
         #  tree object also caches
         my $target_nodes
           = $root->group_nodes_below (%args);
-        foreach my $node_name (keys %$target_nodes) {
-            my $node      = $target_nodes->{$node_name};
+        foreach my ($node_name, $node) (%$target_nodes) {
             my $terminals = $node->get_terminal_elements;
             @$by_element{keys %$terminals} = ($node_name) x keys %$terminals;
         }

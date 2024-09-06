@@ -48,65 +48,66 @@ jobs:
       - name: CPANM local probe stuff
         run: |
           #echo $env:PATH
+          $env:PERL5LIB = c:\cx\lib\perl5
           echo $env:PERL5LIB
           cpanm Acme
           perl -MAcme -E'say $INC{q{Acme.pm}}'
           ls env:PERL*
-
-      #  Was giving grief.  Hurts not to leave here.
-      - name: Install dependencies Sereal
-        run: |
-          #echo $env:PATH
-          echo $env:PERL5LIB
-          cpanm --installdeps Sereal::Decoder
-          cpanm Sereal::Decoder
-          cpanm --installdeps Sereal::Encoder
-          cpanm Sereal::Encoder
-          cpanm Sereal
-
-      - name: Install dependencies Alien::MSYS
-        run: |
-          cpanm Alien::Build::Plugin::Fetch::Cache
-          cpanm --notest Alien::MSYS
-
-      - name: Install dependencies Alien::sqlite
-        run: |
-          echo $env:PATH
-          cpanm --notest --installdeps Alien::sqlite
-          cpanm -v Alien::sqlite
-
-      - name: Install dependencies Alien::proj
-        run: |
-          #cpanm -v --notest https://github.com/shawnlaffan/perl-alien-proj.git
-          cpanm --notest --installdeps Alien::proj
-          cpanm -v --notest Alien::proj
-
-      - name: Install dependencies Alien::geos::af
-        run: |
-          cpanm --notest --installdeps Alien::geos::af
-          cpanm -v Alien::geos::af
-
-      - name: Install dependencies Alien::gdal
-        run: |
-          cpanm --notest --installdeps Alien::gdal
-          echo "ALIEN_GDAL_CONFIG_ARGS=--with-hide_internal_symbols" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          #  qhull issues on gdal 3.5, maybe fixed in 3.6
-          # $env:ALIEN_GDAL_CONFIG_ARGS = "--with-hide-internal-symbols=yes --without-gnm --without-qhull"
-          Get-PSDrive C | Select-Object Used,Free
-          #  clunky path override
-          #  $env:PATH = "C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin;$env:PATH"
-          cpanm -v Alien::gdal
-          Get-PSDrive C | Select-Object Used,Free
-          
-      - name: Install task deps
-        run: |
-          #cpanm --notest Task::Biodiverse::NoGUI
-          cpanm --notest --no-man-pages PDL
-          cpanm --notest --installdeps .
-          cpanm --installdeps .
-  
-      # Runs a set of commands using the runners shell
-      - name: Run tests
-        run: |
-          prove -l 
+#
+#      #  Was giving grief.  Hurts not to leave here.
+#      - name: Install dependencies Sereal
+#        run: |
+#          #echo $env:PATH
+#          echo $env:PERL5LIB
+#          cpanm --installdeps Sereal::Decoder
+#          cpanm Sereal::Decoder
+#          cpanm --installdeps Sereal::Encoder
+#          cpanm Sereal::Encoder
+#          cpanm Sereal
+#
+#      - name: Install dependencies Alien::MSYS
+#        run: |
+#          cpanm Alien::Build::Plugin::Fetch::Cache
+#          cpanm --notest Alien::MSYS
+#
+#      - name: Install dependencies Alien::sqlite
+#        run: |
+#          echo $env:PATH
+#          cpanm --notest --installdeps Alien::sqlite
+#          cpanm -v Alien::sqlite
+#
+#      - name: Install dependencies Alien::proj
+#        run: |
+#          #cpanm -v --notest https://github.com/shawnlaffan/perl-alien-proj.git
+#          cpanm --notest --installdeps Alien::proj
+#          cpanm -v --notest Alien::proj
+#
+#      - name: Install dependencies Alien::geos::af
+#        run: |
+#          cpanm --notest --installdeps Alien::geos::af
+#          cpanm -v Alien::geos::af
+#
+#      - name: Install dependencies Alien::gdal
+#        run: |
+#          cpanm --notest --installdeps Alien::gdal
+#          echo "ALIEN_GDAL_CONFIG_ARGS=--with-hide_internal_symbols" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+#          #  qhull issues on gdal 3.5, maybe fixed in 3.6
+#          # $env:ALIEN_GDAL_CONFIG_ARGS = "--with-hide-internal-symbols=yes --without-gnm --without-qhull"
+#          Get-PSDrive C | Select-Object Used,Free
+#          #  clunky path override
+#          #  $env:PATH = "C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin;$env:PATH"
+#          cpanm -v Alien::gdal
+#          Get-PSDrive C | Select-Object Used,Free
+#
+#      - name: Install task deps
+#        run: |
+#          #cpanm --notest Task::Biodiverse::NoGUI
+#          cpanm --notest --no-man-pages PDL
+#          cpanm --notest --installdeps .
+#          cpanm --installdeps .
+#
+#      # Runs a set of commands using the runners shell
+#      - name: Run tests
+#        run: |
+#          prove -l
           

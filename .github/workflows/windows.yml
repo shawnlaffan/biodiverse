@@ -9,10 +9,10 @@ on:
   pull_request:
 
 env:
-#  PERL5LIB: c:\cx\lib\perl5
-#  PERL_LOCAL_LIB_ROOT: c:/cx
-#  PERL_MB_OPT: --install_base C:/cx
-#  PERL_MM_OPT: INSTALL_BASE=C:/cx
+  PERL5LIB: c:\cx\lib\perl5
+  PERL_LOCAL_LIB_ROOT: c:/cx
+  PERL_MB_OPT: --install_base C:/cx
+  PERL_MM_OPT: INSTALL_BASE=C:/cx
   #ALIEN_BUILD_PRELOAD: Fetch::Cache
   AUTOMATED_TESTING: 1
 
@@ -51,6 +51,7 @@ jobs:
           echo $env:PERL5LIB
           cpanm Acme
           perl -MAcme -E'say $INC{q{Acme.pm}}'
+          ls env:PERL*
 
       #  Was giving grief.  Hurts not to leave here.
       - name: Install dependencies Sereal

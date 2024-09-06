@@ -45,13 +45,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-${{ hashFiles('perlversion.txt') }}
 
+      - name: CPANM local probe stuff
+        run: |
+          #echo $env:PATH
+          echo $env:PERL5LIB
+          cpanm Acme
+          perl -MAcme -E"say $INC{'Acme.pm'}"
+
       #  Was giving grief.  Hurts not to leave here.
       - name: Install dependencies Sereal
         run: |
           #echo $env:PATH
           echo $env:PERL5LIB
-          cpanm Acme
-          dir D:\a\biodiverse\biodiverse\local
           cpanm --installdeps Sereal::Decoder
           cpanm Sereal::Decoder
           cpanm --installdeps Sereal::Encoder

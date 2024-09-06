@@ -50,7 +50,7 @@ jobs:
           #echo $env:PATH
           echo $env:PERL5LIB
           cpanm Acme
-          perl -MAcme -E"say $INC{'Acme.pm'}"
+          perl -MAcme -E'say $INC{q{Acme.pm}}'
 
       #  Was giving grief.  Hurts not to leave here.
       - name: Install dependencies Sereal

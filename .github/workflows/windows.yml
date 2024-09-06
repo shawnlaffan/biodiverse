@@ -50,6 +50,7 @@ jobs:
         run: |
           #echo $env:PATH
           echo $env:PERL5LIB
+          dir D:\a\biodiverse\biodiverse\local
           cpanm --installdeps Sereal::Decoder
           cpanm Sereal::Decoder
           cpanm --installdeps Sereal::Encoder

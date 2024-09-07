@@ -40,7 +40,7 @@ jobs:
       - name: Cache CPAN modules
         uses: actions/cache@v4
         with:
-          path: D:\a\biodiverse\biodiverse\local
+          path: C:\cx
           key: ${{ runner.os }}-build-${{ hashFiles('perlversion.txt') }}
           restore-keys: |
             ${{ runner.os }}-build-${{ hashFiles('perlversion.txt') }}
@@ -48,7 +48,8 @@ jobs:
       - name: CPANM local probe stuff
         run: |
           #echo $env:PATH
-          $env:PERL5LIB = "c:\cx\lib\perl5"
+#          $env:PERL5LIB = "c:\cx\lib\perl5"
+          echo "c:\cx\lib\perl5" | Out-File -FilePath $env:PERL5LIB -Encoding utf8 -Append
           echo $env:PERL5LIB
           cpanm Acme
           perl -MAcme -E'say $INC{q{Acme.pm}}'

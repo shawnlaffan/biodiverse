@@ -1,0 +1,27 @@
+name: Windows
+
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - '*'
+  pull_request:
+
+env:
+  AUTOMATED_TESTING: 1
+
+jobs:
+  perl:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: "5.38"
+          install-modules-with: cpanm
+          install-modules-args: --with-develop --with-configure --verbose
+
+      - run: prove -l t

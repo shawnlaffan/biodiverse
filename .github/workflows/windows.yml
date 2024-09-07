@@ -27,8 +27,6 @@ jobs:
         with:
           perl-version: "5.38"
           distribution: strawberry
-        env:
-          PERL5LIB: C:\cx\lib\perl
 
       - name: perl -V
         run: perl -V

@@ -1,7 +1,8 @@
 use strict;
 use warnings;
 use 5.010;
-use ExtUtils::MakeMaker;
+# use ExtUtils::MakeMaker;
+use ExtUtils::MakeMaker::CPANfile;
 
 #  these are from the cpanfile
 #  need to look at https://metacpan.org/pod/ExtUtils::MakeMaker::CPANfile
@@ -76,18 +77,18 @@ my %WriteMakefileArgs = (
     "AUTHOR"   => 'Shawn Laffan <shawnlaffan@gmail.com>',
     "NAME"     => "Biodiverse",
     "VERSION_FROM" => "lib/App/Biodiverse.pm",
-    "CONFIGURE_REQUIRES" => {
-        %common_reqs,
-    },
-    "BUILD_REQUIRES" => {
-        %common_reqs,
-    },
-    "TEST_REQUIRES" => {
-        %test_reqs,
-    },
-    "PREREQ_PM" => {
-        %common_reqs,
-    },
+    # "CONFIGURE_REQUIRES" => {
+    #     %common_reqs,
+    # },
+    # "BUILD_REQUIRES" => {
+    #     %common_reqs,
+    # },
+    # "TEST_REQUIRES" => {
+    #     %test_reqs,
+    # },
+    # "PREREQ_PM" => {
+    #     %common_reqs,
+    # },
     META_MERGE => {
         'meta-spec' => { version => 2 },
         resources => {

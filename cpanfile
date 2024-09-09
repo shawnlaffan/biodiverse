@@ -1,3 +1,5 @@
+requires 'ExtUtils::MakeMaker' => '6.17';
+
 requires "Class::Inspector";
 requires "Clone", "0.35";
 requires "Cpanel::JSON::XS", "3";
@@ -54,6 +56,7 @@ requires "Statistics::Descriptive::PDL", "0.15";
 suggests "Data::Recursive";
 
 #test_requires => sub {
+on test => sub {
     requires "Test::Lib";
     requires "Test::TempDir::Tiny";
     requires "Test2::Suite";
@@ -69,7 +72,7 @@ suggests "Data::Recursive";
     requires 'Test::Deep::NoTest';
     #requires "Test::Exception";
     requires 'Alien::Build::Plugin::Fetch::Cache';
-#};
+};
 
 feature 'GUI', 'GUI packages' => sub {
     requires 'Browser::Start';

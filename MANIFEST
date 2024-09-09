@@ -33,7 +33,6 @@ bin/ui/vboxRandomisePage.ui
 bin/ui/wndCellPopup.ui
 bin/ui/wndMain.ui
 bin/ui/wndOverlays.ui
-biodiverse.iml
 Biodiverse_extensions.txt
 BiodiverseGUI.bat
 cpanfile
@@ -70,6 +69,7 @@ data/Example_tree_with_colours.nex
 data/gp_props.csv
 data/Readme.txt
 data/tree_with_nonmatching_names.nex
+diffdiff.diff
 example_scripts/add_matrix_to_basedata.pl
 example_scripts/aggregate_env_data_table.pl
 example_scripts/collapse_trees_in_nexus.pl
@@ -85,6 +85,8 @@ example_scripts/run_num_labels.pl
 example_scripts/use_label_ranges_as_spatial_conditions.pl
 extent_test.tif
 goocanvas2_test.pl
+gtk2_treeview_renderer.pl
+indices.json
 Installation.txt
 lib/App/Biodiverse.pm
 lib/Biodiverse/BaseData.pm
@@ -95,6 +97,8 @@ lib/Biodiverse/BaseStruct.pm
 lib/Biodiverse/BaseStruct/Export.pm
 lib/Biodiverse/Cluster.pm
 lib/Biodiverse/Common.pm
+lib/Biodiverse/Common/Caching.pm
+lib/Biodiverse/Common/ColourPalettes.pm
 lib/Biodiverse/Config.pm
 lib/Biodiverse/Config/PARModules.pm
 lib/Biodiverse/ElementProperties.pm
@@ -137,7 +141,7 @@ lib/Biodiverse/Index.pm
 lib/Biodiverse/Indices.pm
 lib/Biodiverse/Indices/Endemism.pm
 lib/Biodiverse/Indices/GroupProperties.pm
-lib/Biodiverse/Indices/Hierarchical_Labels.pm
+lib/Biodiverse/Indices/HierarchicalLabels.pm
 lib/Biodiverse/Indices/Indices.pm
 lib/Biodiverse/Indices/LabelCounts.pm
 lib/Biodiverse/Indices/LabelProperties.pm
@@ -164,6 +168,7 @@ lib/Biodiverse/Metadata/Randomisation.pm
 lib/Biodiverse/Metadata/SpatialConditions.pm
 lib/Biodiverse/Progress.pm
 lib/Biodiverse/Randomise.pm
+lib/Biodiverse/Randomise/CurveBall.pm
 lib/Biodiverse/Randomise/IndependentSwaps.pm
 lib/Biodiverse/ReadNexus.pm
 lib/Biodiverse/RegionGrower.pm

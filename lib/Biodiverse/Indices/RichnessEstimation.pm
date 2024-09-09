@@ -150,7 +150,7 @@ sub calc_chao1 {
     elsif ($variance_uses_eq8) {
         my %sums;
         {
-            no Faster::Maths;
+            # no Faster::Maths;
             $sums{$_}++ for values %$label_hash;
         }
 
@@ -324,7 +324,7 @@ sub calc_chao2 {
     elsif ($variance_uses_eq12) {  #  same structure as eq8 - could refactor
         my %sums;
         {
-            no Faster::Maths;
+            # no Faster::Maths;
             $sums{$_}++ for values %$label_hash;
         }
         my ($part1, $part2);
@@ -402,7 +402,7 @@ sub _calc_chao_confidence_intervals {
         my $P = 0;
         my %sums;
         {
-            no Faster::Maths;
+            # no Faster::Maths;
             $sums{$_}++ foreach values %$label_hash;
         }
         #  set CIs to undefined if we only have singletons/uniques
@@ -783,7 +783,7 @@ sub _get_ice_differential {
     my $si;
 
     {
-        no Faster::Maths;
+        # no Faster::Maths;
         $n_infreq //=
             sum
             map $_ * $freq_counts->{$_},
@@ -911,7 +911,7 @@ sub _get_ace_differential {
 
     my $si;
     {
-        no Faster::Maths;
+        # no Faster::Maths;
         $n_rare //=
             sum
             map {$_ * $F{$_}}
@@ -1055,7 +1055,7 @@ sub calc_hurlbert_es {
 
     my $N;
     {
-        no Faster::Maths;
+        # no Faster::Maths;
         $N += $_ for values %$label_hash;
     }
 

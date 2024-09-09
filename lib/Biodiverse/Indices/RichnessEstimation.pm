@@ -15,7 +15,8 @@ use parent 'Biodiverse::Common::ColourPalettes';
 #  and possibly other conditions.  These are all localised inside blocks
 #  where it is lexically disabled.
 #  see https://rt.cpan.org/Public/Dist/Display.html?Name=Faster-Maths
-use Faster::Maths;
+#  also under CI, so disable now
+# use Faster::Maths;
 #no if ($Faster::Maths::VERSION le '0.02') => 'Faster::Maths';
 
 our $VERSION = '4.99_002';

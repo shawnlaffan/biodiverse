@@ -24,6 +24,7 @@ jobs:
           install-modules-with: cpanm
           install-modules-args: --with-develop --with-configure --verbose
 
-      - run:
+      - run: |
           #echo 1
+          perl -E'say join q{ }, @INC'
           prove -l t

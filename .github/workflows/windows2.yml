@@ -25,5 +25,5 @@ jobs:
           install-modules-args: --with-develop --with-configure --verbose
 
       - run:
-          echo 1
-          #prove -l t
+          #echo 1
+          prove -l t

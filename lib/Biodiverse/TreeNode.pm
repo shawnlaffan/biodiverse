@@ -1,11 +1,10 @@
 package Biodiverse::TreeNode;
-use 5.022;
+use 5.036;
 use strict;
 use warnings;
 no warnings 'recursion';
 
-use feature 'refaliasing';
-no warnings 'experimental::refaliasing';
+use experimental qw /refaliasing for_list/;
 
 use English qw ( -no_match_vars );
 use Ref::Util qw { :all };
@@ -2769,8 +2768,8 @@ sub _get_len_sum_by_tip_count_hash {
     $hash->{$self->get_terminal_element_count} += $self->get_length;
     foreach my $child ($self->get_children) {
         my $ch_hash = $child->_get_len_sum_by_tip_count_hash;
-        foreach my $tc (keys %$ch_hash) {
-            $hash->{$tc} += $ch_hash->{$tc};
+        foreach my ($tc, $val) (%$ch_hash) {
+            $hash->{$tc} += $val;
         }
     }
     $self->set_cached_value($cache_key => $hash);

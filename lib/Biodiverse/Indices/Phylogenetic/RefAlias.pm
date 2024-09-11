@@ -7,8 +7,7 @@ use Carp qw/croak/;
 
 our $VERSION = '4.99_002';
 
-use feature 'refaliasing';
-no warnings 'experimental::refaliasing';
+use experimental qw/refaliasing for_list/;
 
 use List::Util qw /sum/;
 
@@ -303,8 +302,8 @@ sub _calc_pe_lists_hierarchical {
             # weights need to be summed,
             # unless we are starting from a blank slate
             if (keys %wts) {
-                foreach my $node (keys %wt_hash) {
-                    $wts{$node} += $wt_hash{$node};
+                foreach my ($node, $node_wt) (%wt_hash) {
+                    $wts{$node} += $node_wt;
                 }
             }
             else {

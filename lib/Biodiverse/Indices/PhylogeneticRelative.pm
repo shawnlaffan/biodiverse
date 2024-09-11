@@ -3,7 +3,7 @@ use 5.022;
 use strict;
 use warnings;
 
-use experimental qw/refaliasing/;
+use experimental qw/refaliasing for_list/;
 
 use English qw /-no_match_vars/;
 
@@ -770,8 +770,8 @@ sub get_trimmed_tree_range_inverse_hash {
 
     my %range_weighted;
 
-    foreach my $name (keys %$node_ranges) {
-        my $range = $node_ranges->{$name} || next;
+    foreach my ($name, $range) (%$node_ranges) {
+        next if !$range;
         $range_weighted{$name} = 1 / $range;
     }
 

@@ -8,6 +8,8 @@ our $VERSION = '4.99_002';
 
 use Ref::Util qw { :all };
 
+use experimental 'for_list';
+
 use Statistics::Descriptive::PDL 0.12;
 my $stats_class = 'Statistics::Descriptive::PDL';
 $stats_class = 'Statistics::Descriptive::PDL::SampleWeighted';
@@ -69,8 +71,8 @@ sub get_lbp_stats_objects {
         my $count = $label_hash_all->{$label};
 
         PROPERTY:
-        foreach my $prop (keys %$properties) {
-            my $value = $properties->{$prop};
+        foreach my ($prop, $value) (%$properties) {
+            # my $value = $properties->{$prop};
             next PROPERTY if ! defined $value;
 
             if ($use_weighted_stats) {
@@ -411,8 +413,7 @@ sub calc_lbprop_gistar {
     my $global_hash   = $args{LBPROP_GLOBAL_SUMMARY_STATS};
     my %local_objects = %{$args{LBPROP_STATS_OBJECTS}};
 
-    foreach my $prop (keys %$global_hash) {
-        my $global_data = $global_hash->{$prop};
+    foreach my ($prop, $global_data) (%$global_hash) {
         #  bodgy - need generic method
         my $local_data = $local_objects{'LBPROP_STATS_' . $prop . '_DATA'};
 

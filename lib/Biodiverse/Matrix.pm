@@ -11,7 +11,7 @@ use 5.010;
 our $VERSION = '4.99_002';
 
 use English ( -no_match_vars );
-use experimental qw /refaliasing/;
+use experimental qw /refaliasing for_list/;
 
 use Carp;
 
@@ -136,8 +136,7 @@ sub _duplicate {
             text => 'Cloning matrix ' . $self->get_param('NAME') );
     }
 
-    foreach my $key ( keys %$byelement ) {
-        my $hashref = $byelement->{$key};
+    foreach my ($key, $hashref) (%$byelement ) {
         my %c_hash;
         keys %c_hash = keys %$hashref;    #  pre-allocate the buckets
         %c_hash = %$hashref;
@@ -150,8 +149,7 @@ sub _duplicate {
     my $to_do       = scalar keys %$byvalue;
     my $target_text = "Target is $to_do value index keys";
 
-    foreach my $val_key ( keys %$byvalue ) {
-        my $val_hashref = $byvalue->{$val_key};
+    foreach my ($val_key, $val_hashref) ( %$byvalue ) {
         my %c_val_hash;
         keys %c_val_hash = keys %$val_hashref;    #  pre-allocate the buckets
 
@@ -160,8 +158,7 @@ sub _duplicate {
             $progress->update( $target_text, $i / $to_do );
         }
 
-        foreach my $e_key ( keys %$val_hashref ) {
-            my $hashref = $val_hashref->{$e_key};
+        foreach my ($e_key, $hashref) ( %$val_hashref ) {
             my %c_hash;
             keys %c_hash = keys %$hashref;        #  pre-allocate the buckets
             %c_hash = %$hashref;
@@ -596,8 +593,8 @@ sub get_element_pairs_with_value {
     #  could special case $val_key == 0 when index precision is %.2g
     #  and we know we only have defined values
 
-    foreach my $el1 (keys %$element_hash) {
-        foreach my $el2 ( keys %{$element_hash->{$el1}} ) {
+    foreach my ($el1, $href) (%$element_hash) {
+        foreach my $el2 ( keys %$href ) {
             #  Deliberately micro-optimised code
             #  to reduce book-keeping overheads.
             #  Note that stringification implicitly uses %.15f precision

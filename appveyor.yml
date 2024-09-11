@@ -4,13 +4,15 @@ branches:
 skip_tags: true
 
 cache:
-  - C:\Strawberry
+  - C:\Strawberry538
   #- C:\Strawberry -> appveyor.yml
 
 install:
-  - if not exist "C:\strawberry" appveyor-retry choco install strawberryperl --version 5.30.2.1
-  #- appveyor-retry choco upgrade strawberryperl --version 5.28.1.1
-  - set ST=C:\Strawberry
+  - set ST=C:\Strawberry538
+  - if exist %ST% del /Q %ST%
+  - if not exist %ST% appveyor-retry choco install strawberryperl --version 5.38.0 --install-arguments="INSTALLDIR=""C:\Strawberry538"""
+#  - appveyor-retry choco upgrade strawberryperl --version 5.38.0
+  - refreshenv
   - set PATH=%ST%\perl\bin;%ST%\perl\site\bin;%ST%\c\bin;%PATH%
   - path
   - cd C:\projects\%APPVEYOR_PROJECT_NAME%
@@ -31,14 +33,14 @@ install:
   - cpanm -v Alien::libtiff
   - cpanm -v Alien::proj
   
-  - set ALIEN_GDAL_CONFIG_ARGS=--without-spatialite --without-gnm --without-qhull
+#  - set ALIEN_GDAL_CONFIG_ARGS=--without-spatialite --without-gnm --without-qhull
   - cpanm -v Alien::gdal
-  
+
   - cpanm --notest --installdeps .
   - cpanm --installdeps .
 
 
 build_script:
   - prove -l
-  #- perl -e "1"
+#  - perl -e "1"
 

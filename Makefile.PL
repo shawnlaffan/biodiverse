@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use 5.010;
+use 5.036;
 use ExtUtils::MakeMaker;
 
 #  these are from the cpanfile
@@ -13,7 +13,7 @@ my %common_reqs = (
     "Data::Compare"         => 0,
     "Exception::Class"      => 0,
     "Exporter::Easy"        => 0,
-    "Faster::Maths"         => 0,
+    #"Faster::Maths"         => 0,
     "File::BOM" => 0,
     "File::Find::Rule" => 0,
     "Geo::Converter::dms2dd" => "0.05",
@@ -76,6 +76,7 @@ my %WriteMakefileArgs = (
     "AUTHOR"   => 'Shawn Laffan <shawnlaffan@gmail.com>',
     "NAME"     => "Biodiverse",
     "VERSION_FROM" => "lib/App/Biodiverse.pm",
+    MIN_PERL_VERSION => '5.036',
     "CONFIGURE_REQUIRES" => {
         %common_reqs,
     },

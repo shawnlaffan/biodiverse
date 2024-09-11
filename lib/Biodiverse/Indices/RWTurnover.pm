@@ -4,8 +4,7 @@ use warnings;
 #use autovivification;
 
 use 5.022;
-use feature 'refaliasing';
-no warnings 'experimental::refaliasing';
+use experimental 'refaliasing';
 
 use Carp;
 use List::Util qw /sum reduce/;

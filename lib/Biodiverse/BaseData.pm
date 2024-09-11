@@ -25,7 +25,7 @@ use Ref::Util qw { :all };
 use Sort::Key::Natural qw /natkeysort/;
 
 
-use experimental qw /refaliasing declared_refs/;
+use experimental qw /refaliasing declared_refs for_list/;
 
 
 use English qw { -no_match_vars };
@@ -1967,8 +1967,7 @@ sub delete_sub_elements_collated_by_group {
 
     my %labels_processed;
 
-    foreach my $group ( keys %$gp_lb_hash ) {
-        my $label_subhash = $gp_lb_hash->{$group};
+    foreach my ($group, $label_subhash) ( %$gp_lb_hash ) {
         foreach my $label ( keys %$label_subhash ) {
             $labels_processed{$label}++;
             $labels_ref->delete_sub_element_aa( $label, $group );

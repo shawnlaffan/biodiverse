@@ -8,7 +8,7 @@ requires "Excel::ValueReader::XLSX";
 requires "Exception::Class";
 requires "Exporter::Easy";
 #requires "FFI::Platypus::Declare";
-requires "Faster::Maths";
+#  requires "Faster::Maths";  #  disabled for now
 requires "File::BOM";
 requires "File::Find::Rule";
 requires "Geo::Converter::dms2dd", "0.05";

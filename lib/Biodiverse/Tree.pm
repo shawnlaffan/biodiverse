@@ -16,9 +16,7 @@ use Sort::Key qw /keysort rnkeysort rikeysort/;
 use Sort::Key::Natural qw /natkeysort/;
 use POSIX qw /floor ceil/;
 
-use feature 'refaliasing';
-no warnings 'experimental::refaliasing';
-
+use experimental qw/refaliasing for_list/;
 
 use English qw ( -no_match_vars );
 
@@ -527,8 +525,7 @@ sub get_node_length_hash {
 
     my %len_hash;
     my $node_hash = $self->get_node_hash;
-    foreach my $node_name ( keys %$node_hash ) {
-        my $node_ref = $node_hash->{$node_name};
+    foreach my ($node_name, $node_ref) ( %$node_hash ) {
         $len_hash{$node_name} = $node_ref->get_length;
     }
 
@@ -3353,7 +3350,7 @@ sub get_nti_expected_mean {
 
     my $s = $self->get_terminal_element_count;
     my $cb_bnok_one_arg = $self->get_bnok_ratio_callback_one_val(r => $r, s => $s);
-    my $cb_bnok_two_arg = $self->get_bnok_ratio_callback_two_val(r => $r, s => $s);
+    # my $cb_bnok_two_arg = $self->get_bnok_ratio_callback_two_val(r => $r, s => $s);
 
     \my %tip_count_cache
       = $self->get_cached_value_dor_set_default_aa (NODE_TIP_COUNT_CACHE => {});
@@ -3363,8 +3360,7 @@ sub get_nti_expected_mean {
 
     my $sum;
     my $node_hash = $self->get_node_hash;
-    foreach my $name (keys %$node_hash) {
-        my $node = $node_hash->{$name};
+    foreach my ($name, $node) (%$node_hash) {
         my $se
           = $tip_count_cache{$name}
             //= $node->get_terminal_element_count;

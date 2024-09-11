@@ -22,7 +22,7 @@ use Sort::Key::Natural qw /natsort/;
 use Path::Tiny qw /path/;
 
 
-use experimental qw /declared_refs/;
+use experimental qw /declared_refs for_list/;
 
 use Geo::GDAL::FFI;
 #  silence some used-once warnings - very clunky
@@ -1640,8 +1640,7 @@ sub get_most_similar_pair {
     my $csv = $self->get_csv_object;
     my @pairs;
     my $pair_key_cache = $self->get_cached_value_dor_set_default_aa ('TIE_BREAKER_STRINGIFIED_PAIR_KEYS', {});
-    foreach my $name1 (keys %$keys_ref) {
-        my $ref = $keys_ref->{$name1};
+    foreach my ($name1, $ref) (%$keys_ref) {
         foreach my $name2 (keys %$ref) {
             my $stringified
                 = $pair_key_cache->{$name1}{$name2}
@@ -1941,8 +1940,7 @@ sub get_outputs_with_same_index_and_spatial_conditions {
         no_regexp => 1,
     );
     my %required;
-    foreach my $calc (keys %required_args) {
-        my $r = $required_args{$calc};
+    foreach my ($calc, $r) (%required_args) {
         @required{keys %$r} = values %$r;
     }
 
@@ -2855,12 +2853,11 @@ sub sp_calc {
             current_node_details => $current_node_details,
         );
 
-        foreach my $key (keys %sp_calc_values) {
-            if (is_arrayref($sp_calc_values{$key}) 
-                || is_hashref($sp_calc_values{$key})) {
+        foreach my ($key, $ref) (%sp_calc_values) {
+            if (is_arrayref($ref) || is_hashref($ref)) {
                 
                 $node->add_to_lists (
-                    $key    => $sp_calc_values{$key},
+                    $key    => $ref,
                     use_ref => 1,
                 );
                 delete $sp_calc_values{$key};

@@ -11,8 +11,7 @@ use List::MoreUtils qw /any minmax pairwise/;
 use Scalar::Util qw /blessed/;
 use Sort::Key qw /nkeysort/;
 
-use feature 'refaliasing';
-no warnings 'experimental::refaliasing';
+use experimental qw/refaliasing for_list/;
 
 our $VERSION = '4.99_002';
 

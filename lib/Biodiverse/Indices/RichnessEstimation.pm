@@ -1,13 +1,13 @@
 package Biodiverse::Indices::RichnessEstimation;
 
-use 5.016;
+use 5.036;
 
 use strict;
 use warnings;
 use Carp;
 
 use List::Util qw /max min sum/;
-use experimental qw /refaliasing/;
+use experimental qw /refaliasing for_list/;
 
 use parent 'Biodiverse::Common::ColourPalettes';
 
@@ -15,7 +15,8 @@ use parent 'Biodiverse::Common::ColourPalettes';
 #  and possibly other conditions.  These are all localised inside blocks
 #  where it is lexically disabled.
 #  see https://rt.cpan.org/Public/Dist/Display.html?Name=Faster-Maths
-use Faster::Maths;
+#  also under CI, so disable now
+# use Faster::Maths;
 #no if ($Faster::Maths::VERSION le '0.02') => 'Faster::Maths';
 
 our $VERSION = '4.99_002';
@@ -149,7 +150,7 @@ sub calc_chao1 {
     elsif ($variance_uses_eq8) {
         my %sums;
         {
-            no Faster::Maths;
+            # no Faster::Maths;
             $sums{$_}++ for values %$label_hash;
         }
 
@@ -323,7 +324,7 @@ sub calc_chao2 {
     elsif ($variance_uses_eq12) {  #  same structure as eq8 - could refactor
         my %sums;
         {
-            no Faster::Maths;
+            # no Faster::Maths;
             $sums{$_}++ for values %$label_hash;
         }
         my ($part1, $part2);
@@ -401,7 +402,7 @@ sub _calc_chao_confidence_intervals {
         my $P = 0;
         my %sums;
         {
-            no Faster::Maths;
+            # no Faster::Maths;
             $sums{$_}++ foreach values %$label_hash;
         }
         #  set CIs to undefined if we only have singletons/uniques
@@ -782,7 +783,7 @@ sub _get_ice_differential {
     my $si;
 
     {
-        no Faster::Maths;
+        # no Faster::Maths;
         $n_infreq //=
             sum
             map $_ * $freq_counts->{$_},
@@ -910,7 +911,7 @@ sub _get_ace_differential {
 
     my $si;
     {
-        no Faster::Maths;
+        # no Faster::Maths;
         $n_rare //=
             sum
             map {$_ * $F{$_}}
@@ -1004,10 +1005,10 @@ sub _calc_ace_confidence_intervals {
     }
     else {
         my ($part1, $part2, $P) = (0, 0, 0);
-        foreach my $f (keys %$freq_counts) {
-            $part1 += $freq_counts->{$f} * (exp(-$f) - exp(-2*$f));
-            $part2 += $f * exp (-$f) * $freq_counts->{$f};
-            $P     += $freq_counts->{$f} * exp (-$f) / $richness;
+        foreach my ($f, $val) (%$freq_counts) {
+            $part1 += $val * (exp(-$f) - exp(-2*$f));
+            $part2 += $f * exp (-$f) * $val;
+            $P     += $val * exp (-$f) / $richness;
         }
         my $n = sum values %$label_hash;
         my $var_obs = $part1 - $part2**2 / $n;  # should be passed as an arg?
@@ -1054,7 +1055,7 @@ sub calc_hurlbert_es {
 
     my $N;
     {
-        no Faster::Maths;
+        # no Faster::Maths;
         $N += $_ for values %$label_hash;
     }
 

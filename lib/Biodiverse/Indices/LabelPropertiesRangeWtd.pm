@@ -2,6 +2,8 @@ package Biodiverse::Indices::LabelPropertiesRangeWtd;
 use strict;
 use warnings;
 
+use experimental 'for_list';
+
 use Carp;
 
 our $VERSION = '4.99_002';
@@ -231,8 +233,8 @@ sub calc_lbprop_gistar_abc2 {
     my $global_hash   = $args{LBPROP_GLOBAL_SUMMARY_STATS_RANGE_WEIGHTED};
     my %local_objects = %{$args{LBPROP_STATS_OBJECTS_ABC2}};
 
-    foreach my $prop (keys %$global_hash) {
-        my $global_data = $global_hash->{$prop};
+    foreach my ($prop, $global_data) (%$global_hash) {
+        # my $global_data = $global_hash->{$prop};
         #  bodgy - need generic method
         my $local_data = $local_objects{'LBPROP_STATS_' . $prop . '_DATA'};
 

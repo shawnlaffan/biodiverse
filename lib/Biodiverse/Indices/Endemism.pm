@@ -7,6 +7,7 @@ use 5.020;
 our $VERSION = '4.99_002';
 
 use experimental 'refaliasing';
+use experimental 'for_list';
 
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
@@ -955,8 +956,7 @@ sub _calc_endemism_absolute {
     my ($end1, $end2, $end_all) = (0, 0, 0);
     my (%eh1, %eh2, %eh_all);
 
-    foreach my $sub_label (keys %local_ranges) {
-        my $local_range = $local_ranges{$sub_label};
+    foreach my ($sub_label, $local_range) (%local_ranges) {
         my $range       = $ranges{$sub_label};
 
         next if $range > $local_range;  #  cannot be absolutely endemic

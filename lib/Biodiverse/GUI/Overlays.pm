@@ -356,6 +356,8 @@ sub on_add {
     }
     $open->destroy;
 
+    return if !defined $filename;
+
     if (_shp_type_is_point($filename)) {
         my $error = "Unable to display shapefiles of type point.";
         $error .= "\n\nBiodiverse currently only supports polygon and polyline overlays.\n";
@@ -380,7 +382,7 @@ sub on_add {
         $list->get_model->set($iter, COL_FNAME, $filename, COL_FTYPE, 'polygon', COL_PLOT_ON_TOP, 0);
         $sel = $list->get_selection;
         $sel->select_iter($iter);
-        $project->add_overlay({ name => $filename, type => 'polygon', plot_on_top => => 0 });
+        $project->add_overlay({ name => $filename, type => 'polygon', plot_on_top => 0 });
     }
 
     return;

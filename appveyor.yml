@@ -7,6 +7,9 @@ cache:
   - C:\Strawberry538
   #- C:\Strawberry -> appveyor.yml
 
+environment:
+  PERL_CPANM_HOME: c:\cpanm
+
 install:
   - set ST=C:\Strawberry538
   - if exist %ST% del /Q %ST%
@@ -22,6 +25,10 @@ install:
   #- ppm install --location http://biodiverse.unsw.edu.au/downloads/ppm PDL
   #- perl -MPDL -E"say 1"  #  check installation
   #- cpanm --notest --no-man-pages PDL
+
+  #  test issues https://github.com/tsee/extutils-cppguess/issues/30
+  - cpanm --notest ExtUtils::CppGuess
+
   
   #  aliens should be cached now
   - cpanm --quiet --notest Module::Compile

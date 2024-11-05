@@ -1020,6 +1020,10 @@ sub compare_cluster_calcs_per_node {
 sub get_common_rand_metadata {
     my $self = shift;
 
+    my $subset_parameters = $self->get_metadata_get_rand_structured_subset;
+    my $group_props_parameters  = $self->get_group_prop_metadata;
+    my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
+
     my @common = (
          bless ({
             name       => 'save_checkpoint',
@@ -1049,14 +1053,15 @@ sub get_common_rand_metadata {
 
     #@common = ();  #  override until we allow some args to be overridden on subsequent runs.
     push @common, (
-        bless ({
+        @$subset_parameters,
+        {
             name       => 'labels_not_to_randomise',
             label_text => 'Labels to not randomise',
             type       => 'text',
             default    => '',
             tooltip    => 'List of labels to not randomise, one per line',
-        }, $parameter_metadata_class),
-        bless ({
+        },
+        {
             name       => 'build_randomised_trees',
             label_text => 'Build randomised tree outputs',
             type       => 'boolean',
@@ -1066,8 +1071,14 @@ sub get_common_rand_metadata {
               => 'Rebuild any tree structures such as '
                . 'cluster and region grower analyses. '
                . 'These can be slow, so this is off by default.',
-        }, $parameter_metadata_class),
+        },
+        $group_props_parameters,
+        $tree_shuffle_parameters,
     );
+    for (@common) {
+        next if blessed $_;
+        bless $_, $parameter_rand_metadata_class;
+    }
 
     return wantarray ? @common : \@common;
 }
@@ -1092,13 +1103,13 @@ This is applied after the multiplier parameter so you have:
 END_TOOLTIP_ADDN
 ;
 
-    my $subset_parameters = $self->get_metadata_get_rand_structured_subset;
-    my $group_props_parameters  = $self->get_group_prop_metadata;
-    my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
+    # my $subset_parameters = $self->get_metadata_get_rand_structured_subset;
+    # my $group_props_parameters  = $self->get_group_prop_metadata;
+    # my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
     my $common_metadata  = $self->get_common_rand_metadata;
     
     my @parameters = (
-        @$subset_parameters,
+        # @$subset_parameters,
         {name       => 'richness_multiplier',
          type       => 'float',
          default    => 1,
@@ -1113,8 +1124,8 @@ END_TOOLTIP_ADDN
          tooltip    => $tooltip_addn,
          box_group  => 'Richness constraints',
          },
-        $group_props_parameters,
-        $tree_shuffle_parameters,
+        # $group_props_parameters,
+        # $tree_shuffle_parameters,
         @$common_metadata,
     );
     for (@parameters) {

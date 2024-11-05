@@ -224,7 +224,7 @@ END_PROGRESS_TEXT
 
 
     if ($attempts == $max_swap_attempts) {
-        say "[RANDOMISE] rand_curveball: max attempts theshold "
+        say "[RANDOMISE] rand_curveball: max attempts threshold "
             . "$max_swap_attempts reached.";
     }
     elsif ($moved_pairs >= $non_zero_mx_cells) {
@@ -233,9 +233,11 @@ END_PROGRESS_TEXT
     }
     say "[RANDOMISE] rand_curveball: ran $swap_count swaps across "
         . "$attempts attempts for basedata $name with $n_labels labels and "
-        . "$n_groups groups.\n"
-        . "[RANDOMISE]  Swapped $moved_pairs of the $non_zero_mx_cells group/label "
-        . "elements at least once.\n";
+        . "$n_groups groups";
+    if ($moved_pairs > 0) {
+        say "[RANDOMISE]  Swapped $moved_pairs of the $non_zero_mx_cells group/label "
+            . "elements at least once.\n";
+    }
 
     #  now we populate a new basedata
     my $new_bd = $self->get_new_bd_from_gp_lb_hash (

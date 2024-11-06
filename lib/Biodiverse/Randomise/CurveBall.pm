@@ -39,10 +39,27 @@ number of swaps.
 TOOLTIP_SWAP_ATTEMPTS
 ;
 
+sub get_curveball_spatial_allocation_metadata {
+    my $self = shift;
+
+    my $spatial_condition_param = bless {
+        name       => 'spatial_condition_for_swap_pairs',
+        label_text => "Spatial condition\nto define a target swap group\nneighbourhood",
+        default    => '# default is whole data set',
+        type       => 'spatial_conditions',
+        tooltip    => 'On selecting a first group, the second group to swap labels with '
+            . 'will be selected within the specified neighbourhood. '
+            . 'If left blank then any group can be selected.',
+    }, $parameter_rand_metadata_class;
+
+    return $spatial_condition_param;
+}
+
 sub get_metadata_rand_curveball {
     my $self = shift;
 
     my @parameters = (
+        $self->get_curveball_spatial_allocation_metadata,
         $self->get_common_independent_swaps_metadata,
         $self->get_common_rand_metadata,
     );

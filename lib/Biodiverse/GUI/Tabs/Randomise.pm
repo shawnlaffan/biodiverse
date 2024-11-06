@@ -385,8 +385,31 @@ sub on_function_changed {
         }
     }
 
+    $self->show_hide_box_group_labels;
+
     return;
 }
+
+sub show_hide_box_group_labels {
+    my $self = shift;
+    my $params_table = $self->get_parameters_table;
+    my $boxes = $params_table->{box_groups};
+    foreach my ($name, $box) (%$boxes) {
+        # say STDERR "$name, $box";
+        my $visible = 0;
+        $box->foreach (
+            sub {
+                $visible ||= $_[0]->get_visible;
+            }
+        );
+        # say "$name is visible: $visible";
+        my $label = $params_table->{box_group_labels}{$name};
+        if ($label) {
+            $label->set_visible($visible);
+        }
+    }
+}
+
 
 sub get_parameters_table {
     my $self = shift;

@@ -130,9 +130,7 @@ END_PROGRESS_TEXT
 
     #  Basic algorithm:
     #  pick two different groups at random
-    #  pick two different labels at random
-    #  if label1 is already in group2, or label2 in group1, then try again
-    #  else swap the labels between groups
+    #  swap as many labels as possible
 
     if (!looks_like_number $target_swap_count || $target_swap_count <= 0) {
         $target_swap_count = 2 * $non_zero_mx_cells;

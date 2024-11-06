@@ -144,6 +144,7 @@ sub fill {
                     $table->attach($l,  0, 1, $rows, $rows + 1, 'fill', [], 0, 0);
                     $table->attach($hbox, 1, 2, $rows, $rows + 1, $fill_flags, [], 0, 0);
                     $l->show;
+                    $self->{box_group_labels}{$box_group_name} = $l;
                 }
             }
             $hbox //= $self->{box_groups}{$box_group_name};

@@ -6,6 +6,8 @@ use 5.022;
 
 our $VERSION = '4.99_002';
 
+use Carp qw /croak/;
+
 use experimental 'refaliasing';
 use experimental 'declared_refs';
 no warnings 'experimental::refaliasing';
@@ -145,6 +147,44 @@ END_PROGRESS_TEXT
 
     $progress_bar->reset;
 
+    my (%sp_swap_list, @gps_with_nbrs);
+    if (my $sp_conditions = $args{spatial_condition_for_swap_pairs}) {
+        my $sp_swapper = $self->get_spatial_output_for_label_allocation (
+            %args,
+            spatial_conditions_for_label_allocation => $sp_conditions,
+            param_name                              => 'SPATIAL_OUTPUT_FOR_SWAP_CANDIDATES',
+            elements_to_calc                        => \@sorted_groups,  #  excludes empty and full groups
+        );
+        if ($sp_swapper) {
+            my $spatial_conditions_arr = $sp_swapper->get_spatial_conditions;
+            my $sp_cond_obj = $spatial_conditions_arr->[0];
+            my $result_type = $sp_cond_obj->get_result_type;
+            if ($result_type eq 'always_true') {
+                say "[Randomise] spatial condition always_true, reverting to non-spatial allocation";
+            }
+            elsif ($result_type =~ /^always_false|self_only$/) {
+                croak "Spatial condition means it is impossible for groups to have neighbours, "
+                    . "so cannot swap labels with neighbours"
+                      if !@gps_with_nbrs;
+            }
+            else {
+                foreach my $element ($sp_swapper->get_element_list) {
+                    my $nbrs = $sp_swapper->get_list_ref_aa ($element, '_NBR_SET1') // [];
+                    #  prefilter the focal group
+                    my @filtered = sort grep {$_ ne $element} @$nbrs;
+                    next if !@filtered;
+                    $sp_swap_list{$element} = \@filtered;
+                }
+                @gps_with_nbrs = sort keys %sp_swap_list;
+                my $n_gps_w_nbrs = @gps_with_nbrs;
+                say "[Randomise] $n_gps_w_nbrs of $n_groups groups have swappable neighbours";
+                croak "No groups have neighbours, cannot swap labels with neighbours"
+                    if !@gps_with_nbrs;
+            }
+        }
+    }
+    my $use_spatial_swap = !!%sp_swap_list;
+
     #  Basic algorithm:
     #  pick two different groups at random
     #  swap as many labels as possible
@@ -169,12 +209,24 @@ END_PROGRESS_TEXT
     ) {
         $attempts++;
 
-        my $group1 = $sorted_groups[int $rand->rand ($n_groups)];
-        my $group2 = $sorted_groups[int $rand->rand ($n_groups)];
-        while ($group1 eq $group2) {
-            #  handle pathological case of only one group
-            last MAIN_ITER if $n_groups == 1;
-            $group2 = $sorted_groups[int $rand->rand ($n_groups)];
+        #  handle pathological case of only one group
+        last MAIN_ITER if $n_groups == 1;
+
+        my $group1; ;
+        my $group2;
+        if ($use_spatial_swap) {
+            $group1 = $gps_with_nbrs[int $rand->rand (scalar @gps_with_nbrs)];
+            my $n = scalar @{$sp_swap_list{$group1}};
+            next MAIN_ITER if !$n;
+            #  we have already filtered group1 from its list
+            $group2 = $sp_swap_list{$group1}[int $rand->rand($n)]
+        }
+        else {
+            $group1 = $sorted_groups[int $rand->rand ($n_groups)];
+            $group2 = $sorted_groups[int $rand->rand($n_groups)];
+            while ($group1 eq $group2) {  #  keep trying - a bit wasteful but should be rare
+                $group2 = $sorted_groups[int $rand->rand($n_groups)];
+            }
         }
 
         my \%labels1 = $lb_hash{$group1};

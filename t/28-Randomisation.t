@@ -125,15 +125,45 @@ sub test_rand_independent_swaps_modified {
 
 sub test_rand_curveball {
     test_rand_structured_richness_same (
-        'rand_curveball', swap_count => 1000,
+        'rand_curveball',
     );
+}
+
+sub test_rand_curveball_sp_cond {
+    my $rand_bd_array = test_rand_structured_richness_same (
+        'rand_curveball',
+        spatial_condition_for_swap_pairs => 'sp_circle(radius => 100000)',
+        resolution => 100000,
+        log_suffix => ' with spatial condition'
+    );
+
+    #  The site data have these groups as an isolated set.  There should only be swapping among them
+    #  so the total counts will be constant across realisations.
+    my $expected = {
+        'Genus:sp1' =>  4,
+        'Genus:sp2' => 10,
+        'Genus:sp3' =>  4,
+    };
+    my $i;
+    foreach my $bd (@$rand_bd_array) {
+        $i++;
+        my %collated_labels;
+        foreach my $gp (qw /3250000:3050000 3150000:2950000 3250000:2950000 3250000:2850000/) {
+            my $labels = $bd->get_labels_in_group_as_hash (group => $gp);
+            foreach my $label (keys %$labels) {
+                $collated_labels{$label} += $labels->{$label};
+            }
+        }
+        is \%collated_labels, $expected, "Curveball spatial: labels and counts for isolated subregion, rand bd $i";
+    }
 }
 
 sub test_rand_structured_richness_same {
     my ($rand_function, %args) = @_;
     $rand_function //= 'rand_structured';
+    my $log_suffix = delete $args{log_suffix} // '';
     
-    my $c = 100000;
+    my $c  = delete $args{resolution} // 100000;
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [$c, $c]);
 
     #  add some empty groups - need enough to trigger issue #543
@@ -152,6 +182,7 @@ sub test_rand_structured_richness_same {
             $bd->add_element(group => $gp, label => $label);
         }
     }
+    $bd->build_spatial_index (resolutions => [$c, $c]);
 
     #  name is short for test_rand_calc_per_node_uses_orig_bd
     my $sp = $bd->add_spatial_output (name => 'sp');
@@ -191,7 +222,7 @@ sub test_rand_structured_richness_same {
             $obs_richness{$group} //= $bd->get_richness_aa ($group) // 0;
             $rand_richness{$group}  = $rand_bd->get_richness_aa ($group) // 0;
         }
-        is \%rand_richness, \%obs_richness, "Richness scores match, $rand_function";
+        is \%rand_richness, \%obs_richness, "Richness scores match, $rand_function $log_suffix";
     }
 
     foreach my $rand_bd (@$rand_bd_array) {
@@ -200,10 +231,10 @@ sub test_rand_structured_richness_same {
             $obs_range{$label} //= $bd->get_range (element => $label);
             $rand_range{$label}  = $rand_bd->get_range (element => $label);
         }
-        is \%obs_range, \%rand_range, "Ranges match, $rand_function";
+        is \%obs_range, \%rand_range, "Ranges match, $rand_function $log_suffix";
     }
 
-    return;
+    return $rand_bd_array;
 }
 
 

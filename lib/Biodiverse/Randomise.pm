@@ -1387,6 +1387,7 @@ sub get_spatial_output_for_label_allocation {
     my ($self, %args) = @_;
     
     my $sp_conditions = $args{spatial_conditions_for_label_allocation};
+    my $param_name = $args{param_name} // 'SPATIAL_OUTPUT_FOR_LABEL_ALLOCATION';
     
     return if !defined $sp_conditions;
 
@@ -1409,7 +1410,7 @@ sub get_spatial_output_for_label_allocation {
 
     return if !length $sp_check_text; #  all we had was whitespace and comments
 
-    my $sp = $self->get_param('SPATIAL_OUTPUT_FOR_LABEL_ALLOCATION');
+    my $sp = $self->get_param($param_name);
     
     return $sp if $sp;
 
@@ -1423,6 +1424,7 @@ sub get_spatial_output_for_label_allocation {
             #definition_query   => $def_query,  #  do we want a def query for this?  Prob not.  
             calculations       => [],
             override_valid_analysis_check => 1,
+            elements_to_calc              => $args{elements_to_calc},
             calc_only_elements_to_calc    => 1,  #  really need to rename this undocumented arg
         );
     };
@@ -1432,7 +1434,7 @@ sub get_spatial_output_for_label_allocation {
     
     croak $e if $e;
 
-    $self->set_param(SPATIAL_OUTPUT_FOR_LABEL_ALLOCATION => $sp);
+    $self->set_param($param_name => $sp);
 
     return $sp;
 }

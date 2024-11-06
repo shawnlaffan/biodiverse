@@ -15,22 +15,22 @@ use constant ON_WINDOWS => ($OSNAME eq 'MSWin32');
 use if ON_WINDOWS, 'Win32::LongPath';
 
 #use Data::Dumper  qw /Dumper/;
-use YAML::Syck;
+use YAML::Syck ();
 #use YAML::XS;
-use Text::CSV_XS 1.52;
-use Scalar::Util qw /weaken isweak blessed looks_like_number reftype/;
+use Text::CSV_XS 1.52 ();
+use Scalar::Util qw /blessed isweak reftype weaken/;
 use List::MoreUtils qw /none/;
 use List::Util qw /first/;
-use Storable qw /nstore retrieve dclone/;
-use File::Basename;
+use Storable qw /nstore retrieve/;
+use File::Basename qw( fileparse );
 use Path::Tiny qw /path/;
 use POSIX ();
-use HTML::QuickTable;
+use HTML::QuickTable ();
 #use XBase;
 #use MRO::Compat;
-use Class::Inspector;
-use Ref::Util qw { :all };
-use File::BOM qw / :subs /;
+use Class::Inspector ();
+use Ref::Util qw { is_arrayref is_hashref is_ref };
+use File::BOM ();
 
 #  Need to avoid an OIO destroyed twice warning due
 #  to HTTP::Tiny, which is used in Biodiverse::GUI::Help
@@ -39,14 +39,14 @@ BEGIN {
     eval 'use threads';
 }
 
-use Math::Random::MT::Auto;
+use Math::Random::MT::Auto ();
 
 #use Regexp::Common qw /number/;
 
 use Biodiverse::Progress;
 use Biodiverse::Exception;
 
-require Clone;
+use Clone ();
 
 use parent qw(Biodiverse::Common::Caching);
 
@@ -174,7 +174,7 @@ sub load_sereal_file {
         if !$args{ignore_suffix} && ($file !~ /\.$expected_suffix$/);
 
     #  load data from sereal file, ignores rest of the args
-    use Sereal::Decoder;
+    use Sereal::Decoder ();
     my $decoder = Sereal::Decoder->new();
 
     my $string;
@@ -738,7 +738,7 @@ sub save_to_sereal {
 
     say "[COMMON] WRITING TO SEREAL FORMAT FILE $file";
 
-    use Sereal::Encoder;
+    use Sereal::Encoder ();
 
     my $encoder = Sereal::Encoder->new({
         undef_unknown    => 1,  #  strip any code refs
@@ -821,7 +821,7 @@ sub save_to_data_dumper {
 
     print "[COMMON] WRITING TO DATA DUMPER FORMAT FILE $file\n";
 
-    use Data::Dumper;
+    use Data::Dumper ();
     open (my $fh, '>', $file);
     print {$fh} Dumper ($self);
     $fh->close;
@@ -856,7 +856,7 @@ sub dump_to_json {
     my %args = @_;
 
     #use Cpanel::JSON::XS;
-    use JSON::MaybeXS;
+    use JSON::MaybeXS ();
 
     my $data = $args{data};
 
@@ -1731,8 +1731,7 @@ sub unlink_file {
 sub get_book_struct_from_spreadsheet_file {
     my ($self, %args) = @_;
 
-    require Spreadsheet::Read;
-    Spreadsheet::Read->import('ReadData');
+    use Spreadsheet::Read qw( ReadData );
 
     my $book;
     my $file = $args{file_name}
@@ -1778,7 +1777,6 @@ sub get_book_struct_from_xlsx_file {
     my $file = $args{filename} // croak "filename arg not passed";
 
     require Excel::ValueReader::XLSX;
-    use List::Util qw/reduce/;
     my $reader = Excel::ValueReader::XLSX->new($file);
     my @sheet_names = $reader->sheet_names;
     my %sheet_ids;

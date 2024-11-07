@@ -74,24 +74,24 @@ sub main {
 
     test_result_types();
 
-    # test_sp_square_with_array_ref ();
-    #
-    # my @res_pairs = get_sp_cond_res_pairs_to_use (@args);
-    # my %conditions_to_run = get_sp_conditions_to_run (\%conditions, @args);
-    #
-    # my %results;
-    # foreach my $key (sort keys %conditions_to_run) {
-    #     #diag $key;
-    #     $results{$key} = test_sp_cond_res_pairs ($conditions{$key}, \@res_pairs);
-    # }
-    #
-    # test_ellipse_angles_match(\%results);
-    #
-    # #  zero the resolution for a bit of paranoia
-    # foreach my $key (sort keys %conditions_to_run) {
-    #     next if not $key =~ 'circle';
-    #     $results{$key} = test_sp_cond_res_pairs ($conditions{$key}, \@res_pairs, 1);
-    # }
+    test_sp_square_with_array_ref ();
+
+    my @res_pairs = get_sp_cond_res_pairs_to_use (@args);
+    my %conditions_to_run = get_sp_conditions_to_run (\%conditions, @args);
+
+    my %results;
+    foreach my $key (sort keys %conditions_to_run) {
+        #diag $key;
+        $results{$key} = test_sp_cond_res_pairs ($conditions{$key}, \@res_pairs);
+    }
+
+    test_ellipse_angles_match(\%results);
+
+    #  zero the resolution for a bit of paranoia
+    foreach my $key (sort keys %conditions_to_run) {
+        next if not $key =~ 'circle';
+        $results{$key} = test_sp_cond_res_pairs ($conditions{$key}, \@res_pairs, 1);
+    }
 
     done_testing;
     return 0;

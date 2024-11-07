@@ -836,8 +836,9 @@ sub clear_conditions_code_ref {
     return;
 }
 
-#  is the condition always true, always false or variable?
+#  Is the condition always true, always false or variable?
 #  and we have different types of variable
+#  A relatively basic approach but parsing perl needs more than basic regexes.
 sub get_result_type {
     my $self = shift;
     my %args = @_;
@@ -850,22 +851,25 @@ sub get_result_type {
     }
 
     my $condition = $self->get_conditions_parsed;
+    $condition =~ s/\n\z//;
 
     #  Check if always true
-    my $check = looks_like_number($condition)
-        and $condition    #  a non-zero number
-        or $condition =~ /^\$[DC]\s*>=\s*0$/    #  $D>=0, $C>=0
-        ;
+    my $check
+        = (looks_like_number($condition) && $condition != 0)    #  a non-zero number
+        || ($condition =~ /^\s*\$[DC]\s*>=\s*($RE_NUMBER)\s*(?:#.*)*$/ and $1 == 0);    #  $D>=0, $C>=0, poss with comment
+
     if ($check) {
         $self->set_param( 'RESULT_TYPE' => 'always_true' );
         return 'always_true';
     }
 
     #  check if always false
-    $check = $condition =~ /^0*$/               #  one or more zeros
-        or $condition =~ /^\$[DC]\s*<\s*0$/     #  $D<0, $C<0 with whitespace
-        ;
-    if ($check or $condition eq '' or $condition =~ /^[\r\n]$/) {
+    $check = (
+             $condition =~ /^\s*($RE_NUMBER)+\s*(?:#.*)*$/ #  one or more zeros, poss with trailing comment
+           or $condition =~ /^\$[DC]\s*<\s*($RE_NUMBER)$/   #  $D<0, $C<0 with whitespace
+        ) && $1 == 0;
+
+    if ($check or $condition eq '' or $condition =~ /^[\r\n]+$/) {
         $self->set_param( 'RESULT_TYPE' => 'always_false' );
         return 'always_false';
     }
@@ -883,37 +887,44 @@ sub get_result_type {
         return 'self_only';
     }
 
-    #  '$D>=0 and $D<=5' etc.  The (?:) groups don't assign to $1 etc
+    #  '$D>=0 and $D<=5' etc.
     my $RE_GE_LE = qr
         {
             ^
-            (?:
-                \$[DC](
-                    [<>]
-                )
-                =+
-                $RE_NUMBER
-            )\s*
-            (?:
-                and|&&
-            )
-            \s*
-            (?:
-                \$[DC]
-            )
+            \$[DC]\s*
+
             (
                 [<>]
             )
-            (?:
-                <=+$RE_NUMBER
+
+            =
+            \s*
+            ( $RE_NUMBER )
+            \s*
+
+            (?:and|&&)
+
+            \s*
+            \$[DC]
+            \s*
+
+            (
+                [<>]
             )
+
+            =
+            \s*
+            ( $RE_NUMBER )
+            \s*
+            (?:\#.*)*
             $
         }xo;
 
     $check = $condition =~ $RE_GE_LE;
-    if ( $check and $1 ne $2 ) {
-        $self->set_param( 'RESULT_TYPE' => 'complex annulus' );
-        return 'complex annulus';
+    if ( $check && ($1 ne $3 && $2 <= $4) ) {
+        #  an annulus is type circle
+        $self->set_param( 'RESULT_TYPE' => 'circle' );
+        return 'circle';
     }
 
     #  otherwise it is a "complex" case which is

@@ -147,44 +147,56 @@ END_PROGRESS_TEXT
 
     $progress_bar->reset;
 
+    state $cache_key_sp_swap_list = 'SP_SWAP_LIST';
+    state $cache_key_gps_w_nbrs = 'GPS_WITH_NBRS';
     my (%sp_swap_list, @gps_with_nbrs);
+
     my $sp_conditions = $args{spatial_condition_for_swap_pairs};
     if (defined $sp_conditions) {
-        my $sp_swapper = $self->get_spatial_output_for_label_allocation (
-            %args,
-            spatial_conditions_for_label_allocation => $sp_conditions,
-            param_name                              => 'SPATIAL_OUTPUT_FOR_SWAP_CANDIDATES',
-            elements_to_calc                        => \@sorted_groups,  #  excludes empty and full groups
-        );
-        if ($sp_swapper) {
-            my $spatial_conditions_arr = $sp_swapper->get_spatial_conditions;
-            my $sp_cond_obj = $spatial_conditions_arr->[0];
-            my $result_type = $sp_cond_obj->get_result_type;
-            if ($result_type eq 'always_true') {
-                say "[Randomise] spatial condition always_true, reverting to non-spatial allocation";
-            }
-            elsif ($result_type =~ /^always_false|self_only$/) {
-                croak "Spatial condition means it is impossible for groups to have neighbours, "
-                    . "so cannot swap labels with neighbours"
-                      if !@gps_with_nbrs;
-            }
-            else {
-                foreach my $element ($sp_swapper->get_element_list) {
-                    my $nbrs = $sp_swapper->get_list_ref_aa ($element, '_NBR_SET1') // [];
-                    #  prefilter the focal group
-                    my @filtered = sort grep {$_ ne $element} @$nbrs;
-                    next if !@filtered;
-                    $sp_swap_list{$element} = \@filtered;
+        if (my $cached_swap_list = $self->get_cached_value ($cache_key_sp_swap_list)) {
+            \%sp_swap_list  = $cached_swap_list;
+            \@gps_with_nbrs = $self->get_cached_value ($cache_key_gps_w_nbrs);
+        }
+        else {
+            my $sp_swapper = $self->get_spatial_output_for_label_allocation(
+                %args,
+                spatial_conditions_for_label_allocation => $sp_conditions,
+                param_name                              => 'SPATIAL_OUTPUT_FOR_SWAP_CANDIDATES',
+                elements_to_calc                        => \@sorted_groups, #  excludes empty and full groups
+            );
+            if ($sp_swapper) {
+                my $spatial_conditions_arr = $sp_swapper->get_spatial_conditions;
+                my $sp_cond_obj = $spatial_conditions_arr->[0];
+                my $result_type = $sp_cond_obj->get_result_type;
+                if ($result_type eq 'always_true') {
+                    say "[Randomise] spatial condition always_true, reverting to non-spatial allocation";
                 }
-                @gps_with_nbrs = sort keys %sp_swap_list;
-                my $n_gps_w_nbrs = @gps_with_nbrs;
-                say "[Randomise] $n_gps_w_nbrs of $n_groups groups have swappable neighbours";
-                croak "[Randomise] Curveball spatial: No groups have neighbours, cannot swap labels with neighbours"
-                    if !@gps_with_nbrs;
+                elsif ($result_type =~ /^always_false|self_only$/) {
+                    croak "Spatial condition type $result_type means it is impossible for groups to have neighbours, "
+                        . "thus swapping is not possible.";
+                }
+                else {
+                    foreach my $element ($sp_swapper->get_element_list) {
+                        my $nbrs = $sp_swapper->get_list_ref_aa($element, '_NBR_SET1') // [];
+                        #  prefilter the focal group
+                        my @filtered = sort grep {$_ ne $element} @$nbrs;
+                        next if !@filtered;
+                        $sp_swap_list{$element} = \@filtered;
+                    }
+                    @gps_with_nbrs = sort keys %sp_swap_list;
+                    my $n_gps_w_nbrs = @gps_with_nbrs;
+                    say "[Randomise] $n_gps_w_nbrs of $n_groups groups have swappable neighbours";
+                    croak "[Randomise] Curveball spatial: No groups have neighbours, cannot swap labels"
+                        if !@gps_with_nbrs;
+                }
             }
+            #  Hash is empty if condition parses to nothing.
+            #  Subsequent runs thus do not check the condition again.
+            $self->set_cached_value ($cache_key_sp_swap_list => \%sp_swap_list);
+            $self->set_cached_value ($cache_key_gps_w_nbrs   => \@gps_with_nbrs);
         }
     }
-    my $use_spatial_swap = !!%sp_swap_list;
+    my $use_spatial_swap = !!@gps_with_nbrs;
 
     #  Basic algorithm:
     #  pick two different groups at random

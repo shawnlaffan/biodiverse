@@ -1,4 +1,4 @@
-use 5.010;
+use 5.036;
 use strict;
 use warnings;
 
@@ -146,6 +146,7 @@ sub test_rand_curveball_sp_cond {
     };
     my $i;
     foreach my $bd (@$rand_bd_array) {
+        #  $bd->save;  #  for debug
         $i++;
         my %collated_labels;
         foreach my $gp (qw /3250000:3050000 3150000:2950000 3250000:2950000 3250000:2850000/) {
@@ -156,6 +157,45 @@ sub test_rand_curveball_sp_cond {
         }
         is \%collated_labels, $expected, "Curveball spatial: labels and counts for isolated subregion, rand bd $i";
     }
+
+    #  use one of the random basedatas to test some oddball spatial conditions that should throw errors
+    my $bd = $rand_bd_array->[0];
+    my %die_combos = (
+        Rando1 => 'sp_self_only()',
+        Rando2 => '0 ',
+        Rando3 => '0',
+        Rando4 => '0 # zero with comment',
+    );
+    foreach my $name (sort keys %die_combos) {
+        my $condition = $die_combos{$name};
+        my $rand = $bd->add_randomisation_output(name => $name);
+        ok dies {
+            $rand->run_analysis(
+                function    => 'rand_curveball',
+                iterations  => 1,
+                spatial_condition_for_swap_pairs => $condition,
+            )
+        }, qq{rand_curveball with condition "$condition" dies};
+    }
+
+    #  use another of the random basedatas to test some oddball spatial conditions that should be ignored
+    $bd = $rand_bd_array->[1];
+    my %ignore_combos = (
+        Rando1i => '    ',
+        Rando2i => '# just a comment',
+    );
+    foreach my $name (sort keys %ignore_combos) {
+        my $condition = $ignore_combos{$name};
+        my $rand = $bd->add_randomisation_output(name => $name);
+        ok lives {
+            $rand->run_analysis(
+                function    => 'rand_curveball',
+                iterations  => 1,
+                spatial_condition_for_swap_pairs => $condition,
+            )
+        }, "rand_curveball with condition '$condition' lives";
+    }
+
 }
 
 sub test_rand_structured_richness_same {
@@ -202,6 +242,7 @@ sub test_rand_structured_richness_same {
         iterations => 3,
         seed       => $prng_seed,
         return_rand_bd_array => 1,
+        retain_outputs       => 1,
         %args,
     );
     

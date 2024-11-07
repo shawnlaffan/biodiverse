@@ -148,7 +148,8 @@ END_PROGRESS_TEXT
     $progress_bar->reset;
 
     my (%sp_swap_list, @gps_with_nbrs);
-    if (my $sp_conditions = $args{spatial_condition_for_swap_pairs}) {
+    my $sp_conditions = $args{spatial_condition_for_swap_pairs};
+    if (defined $sp_conditions) {
         my $sp_swapper = $self->get_spatial_output_for_label_allocation (
             %args,
             spatial_conditions_for_label_allocation => $sp_conditions,
@@ -178,7 +179,7 @@ END_PROGRESS_TEXT
                 @gps_with_nbrs = sort keys %sp_swap_list;
                 my $n_gps_w_nbrs = @gps_with_nbrs;
                 say "[Randomise] $n_gps_w_nbrs of $n_groups groups have swappable neighbours";
-                croak "No groups have neighbours, cannot swap labels with neighbours"
+                croak "[Randomise] Curveball spatial: No groups have neighbours, cannot swap labels with neighbours"
                     if !@gps_with_nbrs;
             }
         }

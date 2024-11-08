@@ -6,6 +6,8 @@ use 5.022;
 
 our $VERSION = '4.99_002';
 
+use Carp qw /croak/;
+
 use experimental 'refaliasing';
 use experimental 'declared_refs';
 no warnings 'experimental::refaliasing';
@@ -39,10 +41,27 @@ number of swaps.
 TOOLTIP_SWAP_ATTEMPTS
 ;
 
+sub get_curveball_spatial_allocation_metadata {
+    my $self = shift;
+
+    my $spatial_condition_param = bless {
+        name       => 'spatial_condition_for_swap_pairs',
+        label_text => "Spatial condition\nto define a target swap group\nneighbourhood",
+        default    => '# default is whole data set',
+        type       => 'spatial_conditions',
+        tooltip    => 'On selecting a first group, the second group to swap labels with '
+            . 'will be selected within the specified neighbourhood. '
+            . 'If left blank then any group can be selected.',
+    }, $parameter_rand_metadata_class;
+
+    return $spatial_condition_param;
+}
+
 sub get_metadata_rand_curveball {
     my $self = shift;
 
     my @parameters = (
+        $self->get_curveball_spatial_allocation_metadata,
         $self->get_common_independent_swaps_metadata,
         $self->get_common_rand_metadata,
     );
@@ -128,6 +147,57 @@ END_PROGRESS_TEXT
 
     $progress_bar->reset;
 
+    state $cache_key_sp_swap_list = 'SP_SWAP_LIST';
+    state $cache_key_gps_w_nbrs = 'GPS_WITH_NBRS';
+    my (%sp_swap_list, @gps_with_nbrs);
+
+    my $sp_conditions = $args{spatial_condition_for_swap_pairs};
+    if (defined $sp_conditions) {
+        if (my $cached_swap_list = $self->get_cached_value ($cache_key_sp_swap_list)) {
+            \%sp_swap_list  = $cached_swap_list;
+            \@gps_with_nbrs = $self->get_cached_value ($cache_key_gps_w_nbrs);
+        }
+        else {
+            my $sp_swapper = $self->get_spatial_output_for_label_allocation(
+                %args,
+                spatial_conditions_for_label_allocation => $sp_conditions,
+                param_name                              => 'SPATIAL_OUTPUT_FOR_SWAP_CANDIDATES',
+                elements_to_calc                        => \@sorted_groups, #  excludes empty and full groups
+            );
+            if ($sp_swapper) {
+                my $spatial_conditions_arr = $sp_swapper->get_spatial_conditions;
+                my $sp_cond_obj = $spatial_conditions_arr->[0];
+                my $result_type = $sp_cond_obj->get_result_type;
+                if ($result_type eq 'always_true') {
+                    say "[Randomise] spatial condition always_true, reverting to non-spatial allocation";
+                }
+                elsif ($result_type =~ /^always_false|self_only$/) {
+                    croak "Spatial condition type $result_type means it is impossible for groups to have neighbours, "
+                        . "thus swapping is not possible.";
+                }
+                else {
+                    foreach my $element ($sp_swapper->get_element_list) {
+                        my $nbrs = $sp_swapper->get_list_ref_aa($element, '_NBR_SET1') // [];
+                        #  prefilter the focal group
+                        my @filtered = sort grep {$_ ne $element} @$nbrs;
+                        next if !@filtered;
+                        $sp_swap_list{$element} = \@filtered;
+                    }
+                    @gps_with_nbrs = sort keys %sp_swap_list;
+                    my $n_gps_w_nbrs = @gps_with_nbrs;
+                    say "[Randomise] $n_gps_w_nbrs of $n_groups groups have swappable neighbours";
+                    croak "[Randomise] Curveball spatial: No groups have neighbours, cannot swap labels"
+                        if !@gps_with_nbrs;
+                }
+            }
+            #  Hash is empty if condition parses to nothing.
+            #  Subsequent runs thus do not check the condition again.
+            $self->set_cached_value ($cache_key_sp_swap_list => \%sp_swap_list);
+            $self->set_cached_value ($cache_key_gps_w_nbrs   => \@gps_with_nbrs);
+        }
+    }
+    my $use_spatial_swap = !!@gps_with_nbrs;
+
     #  Basic algorithm:
     #  pick two different groups at random
     #  swap as many labels as possible
@@ -152,12 +222,24 @@ END_PROGRESS_TEXT
     ) {
         $attempts++;
 
-        my $group1 = $sorted_groups[int $rand->rand ($n_groups)];
-        my $group2 = $sorted_groups[int $rand->rand ($n_groups)];
-        while ($group1 eq $group2) {
-            #  handle pathological case of only one group
-            last MAIN_ITER if $n_groups == 1;
-            $group2 = $sorted_groups[int $rand->rand ($n_groups)];
+        #  handle pathological case of only one group
+        last MAIN_ITER if $n_groups == 1;
+
+        my $group1; ;
+        my $group2;
+        if ($use_spatial_swap) {
+            $group1 = $gps_with_nbrs[int $rand->rand (scalar @gps_with_nbrs)];
+            my $n = scalar @{$sp_swap_list{$group1}};
+            next MAIN_ITER if !$n;
+            #  we have already filtered group1 from its list
+            $group2 = $sp_swap_list{$group1}[int $rand->rand($n)]
+        }
+        else {
+            $group1 = $sorted_groups[int $rand->rand ($n_groups)];
+            $group2 = $sorted_groups[int $rand->rand($n_groups)];
+            while ($group1 eq $group2) {  #  keep trying - a bit wasteful but should be rare
+                $group2 = $sorted_groups[int $rand->rand($n_groups)];
+            }
         }
 
         my \%labels1 = $lb_hash{$group1};

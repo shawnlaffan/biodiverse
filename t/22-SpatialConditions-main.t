@@ -72,6 +72,8 @@ exit main( @ARGV );
 sub main {
     my @args  = @_;
 
+    test_result_types();
+
     test_sp_square_with_array_ref ();
 
     my @res_pairs = get_sp_cond_res_pairs_to_use (@args);
@@ -88,7 +90,7 @@ sub main {
     #  zero the resolution for a bit of paranoia
     foreach my $key (sort keys %conditions_to_run) {
         next if not $key =~ 'circle';
-        $results{$key} = test_sp_cond_res_pairs ($conditions{$key}, \@res_pairs, 1);  
+        $results{$key} = test_sp_cond_res_pairs ($conditions{$key}, \@res_pairs, 1);
     }
 
     done_testing;
@@ -128,4 +130,69 @@ sub test_sp_square_with_array_ref {
     my $e = $@;
     ok $e, 'sp_square dies when passed a reference as the size arg';
     
+}
+
+sub test_result_types {
+    #  Test a range of parsed types.
+    #  We probably do not need to test all of them as many are only
+    #  set by methods rather than extracted through parsing.
+    my $bd = get_basedata_object(CELL_SIZES => [1,1]);
+
+    my %types = (
+        circle           => [
+            'sp_circle (radius => 2)',
+            '  sp_circle (radius => 2)   #  comment',
+            'sp_circle_cell (radius => 2)',
+            # '$D < 100000',
+            '$D <= 100000',
+            # '$C < 1',
+            '$C <= 1',
+            #  annulus subtypes
+            '$D>=0 and $D<=5', '  $D>=0 and $D<=5  # comment',
+            '$D>=0 && $D<=5', '  $D>=0 && $D<=5  # comment',
+            'sp_annulus (inner_radius => 2, outer_radius => 4)'
+        ],
+        always_false     => [
+            '', '0', '  0 ', '0.00', '  0 # comment', ' 0.0 ',
+        ],
+        always_true      => [
+            '1', '  10 ', '0.001', '  01 # comment', ' 0.01 ',
+            '$D >= 0', '$D >= 0 # comment',
+            '  $D >= 0 ', '  $D >= 0 # comment',
+            'sp_select_all()'
+        ],
+        self_only        => [
+            'sp_self_only()', ' sp_self_only() # comment',
+        ],
+        always_same      => [],
+        square           => [],
+        non_overlapping  => [],
+        ellipse          => [],
+        text_match_exact => [],
+        side             => [],
+        subset           => [
+            #  'sp_select_block...
+        ],
+        complex          => [
+            '$C<5 && $D>3',
+        ],
+        'circle square' => [
+            'sp_circle (radius => 5) || sp_square (size => 3)'
+        ],
+    );
+
+    foreach my $type (sort keys %types) {
+        my $conditions = $types{$type};
+        foreach my $cond (@$conditions) {
+            my $sp_cond = Biodiverse::SpatialConditions->new(conditions => $cond, basedata_ref => $bd);
+            my $res_type = $sp_cond->get_result_type;
+            is $res_type, $type, "results type: $type, condition: $cond";
+        }
+        if (!@$conditions) {
+            my $todo = todo "need type tests for $type";
+            ok(0, $type);
+        }
+    }
+
+
 }

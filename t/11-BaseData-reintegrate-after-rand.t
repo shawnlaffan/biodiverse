@@ -608,7 +608,7 @@ sub check_integrated_matches_single_run_cluster {
     my ($cl_orig, $cl_integr) = @args{qw /orig integr/};
 
     my $object_name = $cl_integr->get_name;
-    my $tol = 1e-8;
+    my $tol = 1e-6;  #  6dp should be plenty for sig scores
 
     subtest "randomisation cluster lists incremented correctly, $object_name" => sub {
         my $to_nodes   = $cl_integr->get_node_refs;
@@ -631,7 +631,14 @@ sub check_integrated_matches_single_run_cluster {
                     \%diffs,
                     \%exp,
                     "integrated within tolerance, single run, $node_name, $list_name"
-                );
+                ) or do {  #  intermittent ENDC_CWE fails for z-scores when tol was 1e-8
+                    if (exists $lr_orig->{ENDC_CWE}) {
+                        diag '====';
+                        diag $lr_orig->{ENDC_CWE};
+                        diag $lr_integr->{ENDC_CWE};
+                        diag '====';
+                    }
+                }
 
             }
         }

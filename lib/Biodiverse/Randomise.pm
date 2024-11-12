@@ -784,7 +784,11 @@ sub _parse_labels_not_to_randomise {
 
     return if !$constant_labels;
 
-    if (!ref $constant_labels) {
+    state $cache_key = 'CONSTANT_LABELS_ARRAY';
+    if (my $cache = $self->get_cached_value ($cache_key)) {
+        $constant_labels = $cache;
+    }
+    elsif (!is_ref $constant_labels) {
         $constant_labels = [split /[\r\n]+/, $constant_labels];
         #  Maybe we were passed a list of key value pairs
         #  This can happen with pasting from GUI popups
@@ -801,6 +805,8 @@ sub _parse_labels_not_to_randomise {
         say "[Randomise] Constant labels, first 0..$n are "
             . join ' ', @$constant_labels[0 .. $n];
     }
+
+    $self->set_cached_value ($cache_key => $constant_labels);
 
     return wantarray ? @$constant_labels : $constant_labels;
 }

@@ -776,29 +776,22 @@ sub verify_cwd_is_writeable_for_checkpoints {
     return 1;
 }
 
-sub get_randomised_basedata {
-    my $self = shift;
-    my %args = @_;
-
-    #  no need to generate a separate set if no labels to hold constant
-    return $self->_get_randomised_basedata (%args)
-      if !$args{labels_not_to_randomise};
+sub _parse_labels_not_to_randomise {
+    my ($self, %args) = @_;
 
     my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
     my $constant_labels = $args{labels_not_to_randomise};
 
-    my $const_bd     = Biodiverse::BaseData->new($bd->get_params_hash);
-    my $non_const_bd = Biodiverse::BaseData->new($bd->get_params_hash);
-    $const_bd->rename (new_name => $const_bd->get_name . ' constant label subset');
-    $non_const_bd->rename (new_name => $non_const_bd->get_name . ' random label subset');
+    return if !$constant_labels;
 
     if (!ref $constant_labels) {
         $constant_labels = [split /[\r\n]+/, $constant_labels];
         #  Maybe we were passed a list of key value pairs
         #  This can happen with pasting from GUI popups
         my $label1 = $constant_labels->[0];
+        #  copy-pasted from a GUI cell popup
         if (!$bd->exists_label(label => $label1) && $label1 =~ /(.+)\t+\d+$/) {
-            if ($bd->exists_label(label => $1)) {   
+            if ($bd->exists_label(label => $1)) {
                 for my $label (@$constant_labels) {
                     $label =~ s/\s+\d+$//;
                 }
@@ -808,7 +801,26 @@ sub get_randomised_basedata {
         say "[Randomise] Constant labels, first 0..$n are "
             . join ' ', @$constant_labels[0 .. $n];
     }
-    
+
+    return wantarray ? @$constant_labels : $constant_labels;
+}
+
+sub get_randomised_basedata {
+    my $self = shift;
+    my %args = @_;
+
+    #  no need to generate a separate set if no labels to hold constant
+    return $self->_get_randomised_basedata (%args)
+      if !$args{labels_not_to_randomise};
+
+    my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
+    my $constant_labels = $self->_parse_labels_not_to_randomise(%args);
+
+    my $const_bd     = Biodiverse::BaseData->new($bd->get_params_hash);
+    my $non_const_bd = Biodiverse::BaseData->new($bd->get_params_hash);
+    $const_bd->rename (new_name => $const_bd->get_name . ' constant label subset');
+    $non_const_bd->rename (new_name => $non_const_bd->get_name . ' random label subset');
+
     my $csv_object = $bd->get_csv_object (
         sep_char   => $bd->get_param('JOIN_CHAR'),
         quote_char => $bd->get_param('QUOTES'),

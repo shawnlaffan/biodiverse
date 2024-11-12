@@ -2316,23 +2316,27 @@ sub get_rand_structured_subset {
                     allow_empty_groups => 1,
                 );
             }
+            $bd->transfer_group_properties (
+                receiver => $subset_bd,
+            );
             #  tests dont trigger index-related errors,
             #  but we need to play safe nonetheless
             $subset_bd->rebuild_spatial_index;
             $cached_subset_basedatas->{$group} = $subset_bd;
         }
         
-        $self->process_group_props (
-            orig_bd  => $bd,
-            rand_bd  => $subset_bd,
-            function => $args{randomise_group_props_by},
-            rand_object => $rand_object,
-        );
+        # say STDERR "Adding rand ", $self->get_name, " to basedata ", $subset_bd->get_name;
         my $subset_rand = $subset_bd->add_randomisation_output (name => $self->get_name);
         my $subset_rand_bd = $subset_rand->$rand_function (
             %args,
             rand_object  => $rand_object,
             basedata_ref => $subset_bd,
+        );
+        $self->process_group_props (
+            orig_bd  => $subset_bd,
+            rand_bd  => $subset_rand_bd,
+            function => $args{randomise_group_props_by},
+            rand_object => $rand_object,
         );
 
         my $gps = $subset_bd->get_groups;
@@ -2356,7 +2360,7 @@ sub get_rand_structured_subset {
     if ($to_do != scalar keys %done) {
         my $group = '__leftovers__';
         while ($bd->exists_group_aa($group)) {
-            #  do not clash with existing group name
+            #  do not clash with pre-existing group name
             $group .= '!';
         }
         my $subset_bd = $cached_subset_basedatas->{$group};
@@ -2374,24 +2378,28 @@ sub get_rand_structured_subset {
                     allow_empty_groups => 1,
                 );
             }
+            $bd->transfer_group_properties (
+                receiver => $subset_bd,
+            );
             #  tests don't trigger index-related errors,
             #  but we need to play safe nonetheless
             $subset_bd->rebuild_spatial_index;
             $cached_subset_basedatas->{$group} = $subset_bd;
         }
         
-        $self->process_group_props (
-            orig_bd  => $bd,
-            rand_bd  => $subset_bd,
-            function => $args{randomise_group_props_by},
-            rand_object => $rand_object,
-        );
         my $subset_rand = $subset_bd->add_randomisation_output (name => $self->get_name);
         my $subset_rand_bd = $subset_rand->$rand_function (
             %args,
             rand_object  => $rand_object,
             basedata_ref => $subset_bd,
         );
+        $self->process_group_props (
+            orig_bd  => $subset_bd,
+            rand_bd  => $subset_rand_bd,
+            function => $args{randomise_group_props_by},
+            rand_object => $rand_object,
+        );
+
         say 'Merging basedata ' . $subset_rand_bd->get_name . ' into ' . $new_bd->get_name;
         $new_bd->merge (from => $subset_rand_bd);
 

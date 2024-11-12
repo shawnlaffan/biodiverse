@@ -2808,6 +2808,13 @@ sub merge {
         );
     }
 
+    $from_bd->transfer_group_properties (
+        receiver => $self,
+    );
+    $from_bd->transfer_label_properties (
+        receiver => $self,
+    );
+
     return;
 }
 

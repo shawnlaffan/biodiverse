@@ -147,15 +147,22 @@ END_PROGRESS_TEXT
 
     $progress_bar->reset;
 
+    #  If we are running under spatial stratification then
+    #  we cache on the main rand, not the stratified subset.
+    my $caching_rand = $args{rand_object} // $self;
+    my $cached_lists = $caching_rand->get_cached_value_dor_set_default_href ('RAND_CURVEBALL_LISTS');
+    #  Go one level in, keyed by first group as sets are non-overlapping
+    $cached_lists = $cached_lists->{$sorted_groups[0]};
+
     state $cache_key_sp_swap_list = 'SP_SWAP_LIST';
-    state $cache_key_gps_w_nbrs = 'GPS_WITH_NBRS';
+    state $cache_key_gps_w_nbrs   = 'GPS_WITH_NBRS';
     my (%sp_swap_list, @gps_with_nbrs);
 
     my $sp_conditions = $args{spatial_condition_for_swap_pairs};
     if (defined $sp_conditions) {
-        if (my $cached_swap_list = $self->get_cached_value ($cache_key_sp_swap_list)) {
+        if (my $cached_swap_list = $cached_lists->{$cache_key_sp_swap_list}) {
             \%sp_swap_list  = $cached_swap_list;
-            \@gps_with_nbrs = $self->get_cached_value ($cache_key_gps_w_nbrs);
+            \@gps_with_nbrs = $cached_lists->{$cache_key_gps_w_nbrs};
         }
         else {
             my $sp_swapper = $self->get_spatial_output_for_label_allocation(
@@ -191,9 +198,9 @@ END_PROGRESS_TEXT
                 }
             }
             #  Hash is empty if condition parses to nothing.
-            #  Subsequent runs thus do not check the condition again.
-            $self->set_cached_value ($cache_key_sp_swap_list => \%sp_swap_list);
-            $self->set_cached_value ($cache_key_gps_w_nbrs   => \@gps_with_nbrs);
+            #  Subsequent runs thus do not process the condition again.
+            $cached_lists->{$cache_key_sp_swap_list} = \%sp_swap_list;
+            $cached_lists->{$cache_key_gps_w_nbrs}   = \@gps_with_nbrs;
         }
     }
     my $use_spatial_swap = !!@gps_with_nbrs;

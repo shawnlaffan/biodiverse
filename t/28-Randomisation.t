@@ -12,6 +12,7 @@ use FindBin qw/$Bin/;
 use rlib;
 use List::Util qw /first sum0/;
 use List::MoreUtils qw /any_u/;
+use Ref::Util qw /is_arrayref/;
 
 use Test2::V0;
 use Test::Deep::NoTest qw/eq_deeply/;
@@ -1138,13 +1139,23 @@ sub test_group_properties_reassigned {
         by_set    => 1,
         by_item   => 1,
     );
+
+    use experimental qw /for_list/;
+    my $subset_sp_cond = $args{spatial_conditions_for_subset} // [];
+    if (!is_arrayref $subset_sp_cond) {
+        $subset_sp_cond = [$subset_sp_cond];
+    }
+    if (!@$subset_sp_cond) {
+        $subset_sp_cond = undef;
+    }
     
-    while (my ($props_func, $negate_expected) = each %prop_handlers) {
+    for my ($props_func, $negate_expected) (%prop_handlers) {
 
         my $rand_name   = 'r' . $object_name . $props_func;
 
         my $rand = $bd->add_randomisation_output (name => $rand_name);
         my $rand_bd_array = $rand->run_analysis (
+            spatial_conditions_for_subset => $subset_sp_cond,
             function   => $rand_func,
             iterations => 1,
             retain_outputs        => 1,

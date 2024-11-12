@@ -780,6 +780,7 @@ sub get_randomised_basedata {
     my $self = shift;
     my %args = @_;
 
+    #  no need to generate a separate set if no labels to hold constant
     return $self->_get_randomised_basedata (%args)
       if !$args{labels_not_to_randomise};
 
@@ -803,7 +804,9 @@ sub get_randomised_basedata {
                 }
             }
         }
-        say join ' ', @$constant_labels;
+        my $n = max (4, $#$constant_labels);
+        say "[Randomise] Constant labels, first 0..$n are "
+            . join ' ', @$constant_labels[0 .. $n];
     }
     
     my $csv_object = $bd->get_csv_object (
@@ -835,6 +838,7 @@ sub get_randomised_basedata {
     $non_const_bd->rebuild_spatial_index;  #  sometimes the non_const basedata is "missing" groups
     my $new_rand_bd = $self->_get_randomised_basedata (%args, basedata_ref => $non_const_bd);
 
+    #  add the constant labels
     $new_rand_bd->merge (from => $const_bd);
 
     return $new_rand_bd;

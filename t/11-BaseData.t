@@ -2085,6 +2085,62 @@ sub test_merge {
     return;
 }
 
+sub test_merge_w_props {
+    my $e;
+    my %args = (
+        x_spacing  => 1,
+        y_spacing  => 1,
+        CELL_SIZES => [ 1, 1 ],
+        x_max      => 10,
+        y_max      => 10,
+        x_min      => 1,
+        y_min      => 1,
+    );
+
+    my $bd1 = get_basedata_object(%args);
+    my $bd2 = get_basedata_object(
+        %args,
+        x_max => 20,
+        y_max => 20,
+        x_min => 10,
+        y_min => 10,
+    );
+    my $bd_merged = get_basedata_object(
+        %args,
+        x_max => 2,
+        y_max => 2,
+        x_min => 1,
+        y_min => 1,
+    );
+
+    my $prop_name = 'SOME_PROP';
+    my $val = 0;
+    my $prop_obj = Biodiverse::ElementProperties->new;
+    foreach my $group ($bd1->get_groups, $bd2->get_groups) {
+        $val++;
+        $prop_obj->add_element(element => $group);
+        my $props = $prop_obj->get_list_ref_autoviv_aa($group, 'PROPERTIES');
+        $props->{$prop_name} = $val % 100;
+    }
+    $bd1->assign_element_properties (
+        type              => 'groups',
+        properties_object => $prop_obj,
+    );
+    $bd2->assign_element_properties (
+        type              => 'groups',
+        properties_object => $prop_obj,
+    );
+
+    $bd_merged->merge (from => $bd1);
+    $bd_merged->merge (from => $bd2);
+
+    my %props_merged   = $bd_merged->get_groups_ref->get_all_element_properties();
+    my %props_bd1      = $bd1->get_groups_ref->get_all_element_properties;
+    my %props_bd2      = $bd2->get_groups_ref->get_all_element_properties;
+    my %props_combined = (%props_bd1, %props_bd2);
+
+    is \%props_merged, \%props_combined, "Basedata merge preserves group properties";
+}
 
 sub test_extent_from_raster {
     # my $dir = tempdir('gp_extent_raster');

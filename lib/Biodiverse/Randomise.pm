@@ -776,29 +776,26 @@ sub verify_cwd_is_writeable_for_checkpoints {
     return 1;
 }
 
-sub get_randomised_basedata {
-    my $self = shift;
-    my %args = @_;
-
-    #  no need to generate a separate set if no labels to hold constant
-    return $self->_get_randomised_basedata (%args)
-      if !$args{labels_not_to_randomise};
+sub _parse_labels_not_to_randomise {
+    my ($self, %args) = @_;
 
     my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
     my $constant_labels = $args{labels_not_to_randomise};
 
-    my $const_bd     = Biodiverse::BaseData->new($bd->get_params_hash);
-    my $non_const_bd = Biodiverse::BaseData->new($bd->get_params_hash);
-    $const_bd->rename (new_name => $const_bd->get_name . ' constant label subset');
-    $non_const_bd->rename (new_name => $non_const_bd->get_name . ' random label subset');
+    return if !$constant_labels;
 
-    if (!ref $constant_labels) {
+    state $cache_key = 'CONSTANT_LABELS_ARRAY';
+    if (my $cache = $self->get_cached_value ($cache_key)) {
+        $constant_labels = $cache;
+    }
+    elsif (!is_ref $constant_labels) {
         $constant_labels = [split /[\r\n]+/, $constant_labels];
         #  Maybe we were passed a list of key value pairs
         #  This can happen with pasting from GUI popups
         my $label1 = $constant_labels->[0];
+        #  copy-pasted from a GUI cell popup
         if (!$bd->exists_label(label => $label1) && $label1 =~ /(.+)\t+\d+$/) {
-            if ($bd->exists_label(label => $1)) {   
+            if ($bd->exists_label(label => $1)) {
                 for my $label (@$constant_labels) {
                     $label =~ s/\s+\d+$//;
                 }
@@ -808,34 +805,69 @@ sub get_randomised_basedata {
         say "[Randomise] Constant labels, first 0..$n are "
             . join ' ', @$constant_labels[0 .. $n];
     }
-    
-    my $csv_object = $bd->get_csv_object (
-        sep_char   => $bd->get_param('JOIN_CHAR'),
-        quote_char => $bd->get_param('QUOTES'),
-    );
 
-    my %const_label_hash;
-    @const_label_hash{@$constant_labels} = undef;
-    for my $label ($bd->get_labels) {
-        my $groups = $bd->get_groups_with_label_as_hash_aa ($label);
+    $self->set_cached_value ($cache_key => $constant_labels);
 
-        #  we should cache the constant BD
-        my $target_bd = exists $const_label_hash{$label} ? $const_bd : $non_const_bd;
-        $target_bd->add_elements_collated_by_label (
-            data       => {$label => $groups},
-            csv_object => $csv_object,
+    return wantarray ? @$constant_labels : $constant_labels;
+}
+
+sub get_randomised_basedata {
+    my $self = shift;
+    my %args = @_;
+
+    #  no need to generate a separate set if no labels to hold constant
+    return $self->_get_randomised_basedata (%args)
+      if !$args{labels_not_to_randomise};
+
+    my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
+    my $constant_labels = $self->_parse_labels_not_to_randomise(%args);
+
+    state $cache_key_const_bd = 'CONSTANT_LABELS_CONST_BASEDATA';
+    state $cache_key_rand_bd  = 'CONSTANT_LABELS_RAND_BASEDATA';
+
+    my $const_bd     = $self->get_cached_value ($cache_key_const_bd);
+    my $non_const_bd = $self->get_cached_value ($cache_key_rand_bd);
+
+    if (!$const_bd && !$non_const_bd) {
+        $const_bd     = Biodiverse::BaseData->new($bd->get_params_hash);
+        $non_const_bd = Biodiverse::BaseData->new($bd->get_params_hash);
+
+        $const_bd->rename(new_name => $const_bd->get_name . ' constant label subset');
+        $non_const_bd->rename(new_name => $non_const_bd->get_name . ' random label subset');
+
+        my $csv_object = $bd->get_csv_object(
+            sep_char   => $bd->get_param('JOIN_CHAR'),
+            quote_char => $bd->get_param('QUOTES'),
         );
-    }
-    foreach my $empty_gp ($bd->get_empty_groups) {
-        $const_bd->add_element (
-            group => $empty_gp,
-            count => 0,
-            allow_empty_groups => 1,
-        );
+
+        my %const_label_hash;
+        @const_label_hash{@$constant_labels} = undef;
+        for my $label ($bd->get_labels) {
+            my $groups = $bd->get_groups_with_label_as_hash_aa($label);
+
+            #  we should cache the constant BD
+            my $target_bd = exists $const_label_hash{$label} ? $const_bd : $non_const_bd;
+            $target_bd->add_elements_collated_by_label(
+                data       => { $label => $groups },
+                csv_object => $csv_object,
+            );
+        }
+        foreach my $empty_gp ($bd->get_empty_groups) {
+            $const_bd->add_element(
+                group              => $empty_gp,
+                count              => 0,
+                allow_empty_groups => 1,
+            );
+        }
+
+        $const_bd->rebuild_spatial_index;
+        $non_const_bd->rebuild_spatial_index; #  sometimes the non_const basedata is "missing" groups
+
+        $self->set_cached_value ($cache_key_const_bd => $const_bd);
+        $self->set_cached_value ($cache_key_rand_bd  => $non_const_bd);
     }
 
-    $const_bd->rebuild_spatial_index;
-    $non_const_bd->rebuild_spatial_index;  #  sometimes the non_const basedata is "missing" groups
+    #  randomise the "randomisable" one
     my $new_rand_bd = $self->_get_randomised_basedata (%args, basedata_ref => $non_const_bd);
 
     #  add the constant labels

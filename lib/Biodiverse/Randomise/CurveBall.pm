@@ -253,40 +253,79 @@ END_PROGRESS_TEXT
         my \%labels2 = $lb_hash{$group2};
 
         #  brute force for now - but we have better methods in turnover indices
-        my @swappable_from1 = grep {!exists $labels2{$_}} keys %labels1;
-        my @swappable_from2 = grep {!exists $labels1{$_}} keys %labels2;
+        my @swappable_from1 = sort grep {!exists $labels2{$_}} keys %labels1;
+        my @swappable_from2 = sort grep {!exists $labels1{$_}} keys %labels2;
 
-        my $n_labels_to_swap
+        my $max_labels_to_swap
             = min (scalar @swappable_from1, scalar @swappable_from2);
 
         #  skip if nothing can be swapped
-        next MAIN_ITER if !$n_labels_to_swap;
+        next MAIN_ITER if !$max_labels_to_swap;
 
 
+        #  Old and incorrect method as the number of swaps is in the interval [0,$n], not exactly $n.
+        #  If we ever get the hypergeometric CDF calculated then we can
+        #  directly estimate $n and re-enable most of this.
+        # #  Get a random subset of the longer array.
+        # #  Sort is needed to guarantee repeatability, and in-place sort is optimised by Perl.
+        # #  In-place shuffle is apparently fastest (MRMA docs)
+        # if (@swappable_from1 > $max_labels_to_swap) {
+        #     @swappable_from1 = sort @swappable_from1;
+        #     $rand->shuffle (\@swappable_from1);
+        #     @swappable_from1 = @swappable_from1[0..$max_labels_to_swap-1];
+        # }
+        # elsif (@swappable_from2 > $max_labels_to_swap) {
+        #     @swappable_from2 = sort @swappable_from2;
+        #     $rand->shuffle (\@swappable_from2);
+        #     @swappable_from2 = @swappable_from2[0..$max_labels_to_swap-1];
+        # }
 
-        #  Get a random subset of the longer array.
-        #  Sort is needed to guarantee repeatability, and in-place sort is optimised by Perl.
-        #  In-place shuffle is apparently fastest (MRMA docs)
-        if (@swappable_from1 > $n_labels_to_swap) {
-            @swappable_from1 = sort @swappable_from1;
-            $rand->shuffle (\@swappable_from1);
-            @swappable_from1 = @swappable_from1[0..$n_labels_to_swap-1];
+        #  Concatenate the two swappable sets, then go looking for which ones need to be swapped.
+        #  The search uses while-loops to avoid grepping very large lists for small numbers of possible swaps.
+
+        #  Each list is already sorted so no need to re-sort the whole thing.
+        my @shuffled = (@swappable_from1, @swappable_from2);
+        $rand->shuffle (\@shuffled);
+        my (@swap_from1, @swap_from2);
+        my $s_count = 0;  #  used for early stop once we have found all the swappers
+
+        #  Search the first part of the list.
+        #  Anything originally from label_list2 is to be swapped to label_list1.
+        my $i = 0;
+        while ($s_count != $max_labels_to_swap && $i < @swappable_from1) {
+            if (exists $labels2{$shuffled[$i]}) {
+                push @swap_from2, $shuffled[$i];
+                $s_count++;
+            }
+            $i++;
         }
-        elsif (@swappable_from2 > $n_labels_to_swap) {
-            @swappable_from2 = sort @swappable_from2;
-            $rand->shuffle (\@swappable_from2);
-            @swappable_from2 = @swappable_from2[0..$n_labels_to_swap-1];
+        #  Now search the second part of the list.
+        #  Anything originally from label_list1 is to be swapped to label_list2.
+        #  count $s_count down
+        $i = @swappable_from1;
+        while ($s_count != 0 && $i < @shuffled) {
+            if (exists $labels1{$shuffled[$i]}) {
+                push @swap_from1, $shuffled[$i];
+                $s_count--;
+            }
+            $i++;
         }
+
+        #  skip if nothing to be swapped
+        next MAIN_ITER if !@swap_from1;
+
+        # die "Horribly" if @swap_from1 != @swap_from2;
+        # say STDERR join ' ', scalar @swap_from1, scalar @swap_from2;
 
         #  track before moving
-        if ($stop_on_all_swapped) {
-            foreach my $i (0..$#swappable_from1) {
-                my $lb1 = $swappable_from1[$i];
+        if ($stop_on_all_swapped && @swap_from1) {
+            foreach my $i (0..$#swap_from1) {
+                my $lb1 = $swap_from1[$i];
                 if ($lb_hash{$group1}{$lb1} && !$lb_gp_moved{$lb1}{$group1}) {
                     $moved_pairs++;
                     $lb_gp_moved{$lb1}{$group1} = 1;
                 }
-                my $lb2 = $swappable_from2[$i];
+                my $lb2 = $swap_from2[$i];
                 if ($lb_hash{$group2}{$lb2} && !$lb_gp_moved{$lb2}{$group2}) {
                     $moved_pairs++;
                     $lb_gp_moved{$lb2}{$group2} = 1;
@@ -294,10 +333,10 @@ END_PROGRESS_TEXT
             }
         }
 
-        @labels2{@swappable_from1} = delete @labels1{@swappable_from1};
-        @labels1{@swappable_from2} = delete @labels2{@swappable_from2};
+        @labels2{@swap_from1} = delete @labels1{@swap_from1};
+        @labels1{@swap_from2} = delete @labels2{@swap_from2};
 
-        $swap_count += $n_labels_to_swap;
+        $swap_count += scalar @swap_from1;
 
         #  update here as otherwise we spend a huge amount
         #  of time running the progress bar

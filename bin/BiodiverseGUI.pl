@@ -35,6 +35,10 @@ BEGIN {
           if $?;
         system ('gdk-pixbuf-query-loaders', '--update-cache') == 0
           or warn "++++ could not update gdk-pixbuf-query-loaders cache: $?";
+        if (-e "$ENV{PAR_TEMP}/inc/proj/proj.db") {
+            say "Setting \$ENV{PROJ_DATA} to $ENV{PAR_TEMP}/inc/proj";
+            $ENV{PROJ_DATA} = "$ENV{PAR_TEMP}/inc/proj";
+        }
         say '++++';
     }
 }

@@ -24,7 +24,7 @@ use English qw { -no_match_vars };
 our $VERSION = '4.99_002';
 
 use Glib;
-use Gtk2;
+use Gtk3;
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::SpatialConditions;
 use Biodiverse::SpatialConditions::DefQuery;
@@ -40,16 +40,16 @@ sub new {
     my $is_def_query = $args{is_def_query};
     my $condition_object = $args{condition_object};
 
-    my $hbox = Gtk2::HBox->new(0,2);
+    my $hbox = Gtk3::HBox->new(0,2);
     
     # Text view
-    my $text_buffer = Gtk2::TextBuffer->new;
+    my $text_buffer = Gtk3::TextBuffer->new;
 
-    my $text_view = Gtk2::TextView->new_with_buffer($text_buffer);
-    my $text_view_no_scroll = Gtk2::TextView->new_with_buffer($text_buffer);
+    my $text_view = Gtk3::TextView->new_with_buffer($text_buffer);
+    my $text_view_no_scroll = Gtk3::TextView->new_with_buffer($text_buffer);
 
     #  an expander has less visual impact than the previous approach
-    my $expander = Gtk2::Expander->new();
+    my $expander = Gtk3::Expander->new();
 
     my $self = {
         buffer       => $text_buffer,
@@ -63,25 +63,25 @@ sub new {
     bless $self, $class;
 
     # Syntax-check button
-    my $syntax_button = Gtk2::Button->new;
-    $syntax_button->set_image ( Gtk2::Image->new_from_stock('gtk-apply', 'button'));
+    my $syntax_button = Gtk3::Button->new;
+    $syntax_button->set_image ( Gtk3::Image->new_from_stock('gtk-apply', 'button'));
     $syntax_button->signal_connect_swapped(clicked => \&on_syntax_check, $self);
     $syntax_button->set_tooltip_text('Check the validity of the spatial condition syntax');
 
     # Options button
-    my $options_button = Gtk2::Button->new;
-    $options_button->set_image ( Gtk2::Image->new_from_stock('gtk-properties', 'button'));
+    my $options_button = Gtk3::Button->new;
+    $options_button->set_image ( Gtk3::Image->new_from_stock('gtk-properties', 'button'));
     $options_button->signal_connect_swapped(clicked => \&run_options_dialogue, $self);
     $options_button->set_tooltip_text('Control some of the processing options');
 
     # Scrolled window for multi-line conditions
-    my $scroll = Gtk2::ScrolledWindow->new;
+    my $scroll = Gtk3::ScrolledWindow->new;
     $scroll->set_policy('automatic', 'automatic');
     $scroll->set_shadow_type('in');
     $scroll->add( $text_view );
 
     # Framed text view for single-line conditions
-    my $frame = Gtk2::Frame->new();
+    my $frame = Gtk3::Frame->new();
     $frame->add($text_view_no_scroll);
 
     my $hideable_widgets = [$scroll, $frame, $options_button, $syntax_button];
@@ -181,7 +181,7 @@ sub on_syntax_check {
     my $result_hash = $spatial_conditions->verify;
 
     if (! ($result_hash->{ret} eq 'ok' and $show_ok eq 'no_ok')) {
-        my $dlg = Gtk2::MessageDialog->new(
+        my $dlg = Gtk3::MessageDialog->new(
             $gui->get_object('wndMain'),
             'destroy-with-parent',
             $result_hash->{type},
@@ -233,7 +233,7 @@ sub get_text_view {
 sub run_options_dialogue {
     my $self = shift;
 
-    my $dlg = Gtk2::Dialog->new (
+    my $dlg = Gtk3::Dialog->new (
         'Spatial conditions options',
         undef,
         'modal',
@@ -256,7 +256,7 @@ sub run_options_dialogue {
     }
     
 
-    my $table = Gtk2::Table->new(2, 2);
+    my $table = Gtk3::Table->new(2, 2);
     $table->set_row_spacings(5);
     $table->set_col_spacings(20);
 
@@ -264,8 +264,8 @@ sub run_options_dialogue {
     my $tip_text;
 
     my $row = 0;
-    my $sp_index_label    = Gtk2::Label->new ('Ignore spatial index?');
-    my $sp_index_checkbox = Gtk2::CheckButton->new;
+    my $sp_index_label    = Gtk3::Label->new ('Ignore spatial index?');
+    my $sp_index_checkbox = Gtk3::CheckButton->new;
     $sp_index_checkbox->set_active ($options->{ignore_spatial_index});
     $table->attach($sp_index_label,    0, 1, $row, $row+1, @tb_props);
     $table->attach($sp_index_checkbox, 1, 2, $row, $row+1, @tb_props);
@@ -276,8 +276,8 @@ sub run_options_dialogue {
     }
 
     $row++;
-    my $recyc_label = Gtk2::Label->new ('Turn off recycling?');
-    my $recyc_checkbox = Gtk2::CheckButton->new;
+    my $recyc_label = Gtk3::Label->new ('Turn off recycling?');
+    my $recyc_checkbox = Gtk3::CheckButton->new;
     $recyc_checkbox->set_active ($options->{no_recycling});
     $table->attach($recyc_label,    0, 1, $row, $row+1, @tb_props);
     $table->attach($recyc_checkbox, 1, 2, $row, $row+1, @tb_props);

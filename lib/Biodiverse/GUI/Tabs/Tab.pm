@@ -8,7 +8,7 @@ our $VERSION = '4.99_002';
 use List::Util qw/min max/;
 use Scalar::Util qw /blessed/;
 use List::MoreUtils qw /minmax/;
-use Gtk2;
+use Gtk3;
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
 use Carp;
@@ -203,7 +203,7 @@ Only the first two axes are used for plotting.
 END_OF_GT2_AXIS_TEXT
   ;
 
-    my $dialog = Gtk2::MessageDialog->new (
+    my $dialog = Gtk3::MessageDialog->new (
         undef,
         'destroy-with-parent',
         'warning',
@@ -231,12 +231,12 @@ sub set_keyboard_handler {
     # Make CTRL-G activate the "go!" button (on_run)
     if ($snooper_id) {
         ##print "[Tab] Removing keyboard snooper $snooper_id\n";
-        Gtk2->key_snooper_remove($snooper_id);
+        Gtk3->key_snooper_remove($snooper_id);
         $snooper_id = undef;
     }
 
 
-    $snooper_id = Gtk2->key_snooper_install(\&hotkey_handler, $self);
+    $snooper_id = Gtk3->key_snooper_install(\&hotkey_handler, $self);
     ##print "[Tab] Installed keyboard snooper $snooper_id\n";
 }
 
@@ -244,7 +244,7 @@ sub remove_keyboard_handler {
     my $self = shift;
     if ($snooper_id) {
         ##print "[Tab] Removing keyboard snooper $snooper_id\n";
-        Gtk2->key_snooper_remove($snooper_id);
+        Gtk3->key_snooper_remove($snooper_id);
         $snooper_id = undef;
     }
 }
@@ -282,13 +282,13 @@ sub hotkey_handler {
             }
 
             # Change to next tab
-            elsif ($keyval eq Gtk2::Gdk->keyval_from_name ('Tab')) {
+            elsif ($keyval eq Gtk3::Gdk->keyval_from_name ('Tab')) {
                 #  switch tabs
                 #print "keyval is $keyval (tab), state is " . $event->state . "\n";
                 my $page_index = $self->get_page_index;
                 $self->{gui}->switch_tab (undef, $page_index + 1); #  go right
             }
-            elsif ($keyval eq Gtk2::Gdk->keyval_from_name ('ISO_Left_Tab')) {
+            elsif ($keyval eq Gtk3::Gdk->keyval_from_name ('ISO_Left_Tab')) {
                 #  switch tabs
                 #print "keyval is $keyval (left tab), state is " . $event->state . "\n";
                 my $page_index = $self->get_page_index;
@@ -592,7 +592,7 @@ sub on_colour_mode_changed {
             $mode = 'Sat';
 
             # Pop up dialog for choosing the hue to use in saturation mode
-            my $colour_dialog = Gtk2::ColorSelectionDialog->new('Pick Hue');
+            my $colour_dialog = Gtk3::ColorSelectionDialog->new('Pick Hue');
             my $colour_select = $colour_dialog->get_color_selection();
             if (my $col = $self->{hue}) {
                 $colour_select->set_previous_color($col);
@@ -699,19 +699,19 @@ sub set_display_cursors {
         my $cursor;
         if ($icon) {
             #  check if it's a real cursor
-            $cursor = eval {Gtk2::Gdk::Cursor->new ($icon)};
+            $cursor = eval {Gtk3::Gdk::Cursor->new ($icon)};
             if ($@) {  #  might need to come from an icon
                 my $cache_name = "ICON: $icon";
                 $cursor = $self->get_cached_value ($cache_name);
                 if (!$cursor) {
-                    my $ic = Gtk2::IconTheme->new();
+                    my $ic = Gtk3::IconTheme->new();
                     my $pixbuf = eval {$ic->load_icon($icon, 16, 'no-svg')};
                     if ($@) {
                         warn $@;
                     }
                     else {
                         my $display = $window->get_display;
-                        $cursor = Gtk2::Gdk::Cursor->new_from_pixbuf($display, $pixbuf, 0, 0);
+                        $cursor = Gtk3::Gdk::Cursor->new_from_pixbuf($display, $pixbuf, 0, 0);
                         $self->set_cached_value ($cache_name => $cursor);
                     }
                 }
@@ -933,10 +933,10 @@ sub set_excluded_cell_colour {
     my ($self, $colour) = @_;
     
     my $g = my $grey = 0.9 * 255 * 257;;
-    $colour //= Gtk2::Gdk::Color->new($g, $g, $g);
+    $colour //= Gtk3::Gdk::Color->new($g, $g, $g);
 
-    croak "Colour argument must be a Gtk2::Gdk::Color object\n"
-      if not blessed ($colour) eq 'Gtk2::Gdk::Color';
+    croak "Colour argument must be a Gtk3::Gdk::Color object\n"
+      if not blessed ($colour) eq 'Gtk3::Gdk::Color';
 
     $self->{colour_excluded_cell} = $colour;
 }
@@ -961,7 +961,7 @@ sub on_set_excluded_cell_colour {
 sub get_colour_from_chooser {
     my ($self, $colour) = @_;
 
-    my $dialog = Gtk2::ColorSelectionDialog->new ('Select a colour');
+    my $dialog = Gtk3::ColorSelectionDialog->new ('Select a colour');
     my $selector = $dialog->colorsel;  #  get_color_selection?
 
     if ($colour) {
@@ -1024,7 +1024,7 @@ sub on_set_tree_line_widths {
     my $parameters_table = Biodiverse::GUI::ParametersTable->new;
     my ($spinner, $extractor) = $parameters_table->generate_integer ($props);
 
-    my $dlg = Gtk2::Dialog->new_with_buttons (
+    my $dlg = Gtk3::Dialog->new_with_buttons (
         'Set branch width',
         undef,
         'destroy-with-parent',
@@ -1032,8 +1032,8 @@ sub on_set_tree_line_widths {
         'gtk-cancel' => 'cancel',
     );
 
-    my $hbox  = Gtk2::HBox->new;
-    my $label = Gtk2::Label->new($props->{label_text});
+    my $hbox  = Gtk3::HBox->new;
+    my $label = Gtk3::Label->new($props->{label_text});
     $hbox->pack_start($label,   0, 0, 1);
     $hbox->pack_start($spinner, 0, 0, 1);
     $spinner->set_tooltip_text ($props->get_tooltip);
@@ -1120,7 +1120,7 @@ sub update_export_menu {
     my $export_menu = $self->{export_menu};
 
     if (!$export_menu) {
-        $export_menu  = Gtk2::MenuItem->new_with_label('Export');
+        $export_menu  = Gtk3::MenuItem->new_with_label('Export');
         $menubar->append($export_menu);
         $self->{export_menu} = $export_menu;
     }
@@ -1130,13 +1130,13 @@ sub update_export_menu {
         $export_menu->set_sensitive(0);
     }
     else {
-        my $submenu = Gtk2::Menu->new;
+        my $submenu = Gtk3::Menu->new;
         # Get the Parameters metadata
         my $metadata = $output_ref->get_metadata (sub => 'export');
         my $format_labels = $metadata->get_format_labels;
         foreach my $label (sort keys %$format_labels) {
             next if !$label;
-            my $menu_item = Gtk2::MenuItem->new($label);
+            my $menu_item = Gtk3::MenuItem->new($label);
             $submenu->append($menu_item);
             $menu_item->signal_connect_swapped(
                 activate => \&do_export, [$self, $label],
@@ -1194,9 +1194,9 @@ sub update_tree_menu {
     my $tree_menu = $self->{tree_menu};
 
     if (!$tree_menu) {
-        my $sep = Gtk2::SeparatorMenuItem->new;
+        my $sep = Gtk3::SeparatorMenuItem->new;
         $menubar->append($sep);
-        $tree_menu = Gtk2::MenuItem->new_with_label('Tree');
+        $tree_menu = Gtk3::MenuItem->new_with_label('Tree');
         $menubar->append($tree_menu);
         $self->{tree_menu} = $tree_menu;
     }
@@ -1206,7 +1206,7 @@ sub update_tree_menu {
         $tree_menu->set_sensitive(0);
     }
     else {
-        my $submenu = Gtk2::Menu->new;
+        my $submenu = Gtk3::Menu->new;
 
         $self->_add_items_to_menu (
             menu  => $submenu,
@@ -1228,17 +1228,17 @@ sub _add_items_to_menu {
 
     ITEM:
     foreach my $item (@menu_items) {
-        my $type = $item->{type} // 'Gtk2::MenuItem';
+        my $type = $item->{type} // 'Gtk3::MenuItem';
 
         if ($type eq 'submenu_radio_group') {
             #  a bit messy
-            my $menu_item = Gtk2::MenuItem->new($item->{label} // ());
+            my $menu_item = Gtk3::MenuItem->new($item->{label} // ());
             if (my $tooltip = $item->{tooltip}) {
                 $menu_item->set_has_tooltip(1);
                 $menu_item->set_tooltip_text($tooltip);
             }
             $menu->append($menu_item);
-            my $radio_submenu = Gtk2::Menu->new;
+            my $radio_submenu = Gtk3::Menu->new;
             $self->_add_items_to_menu(
                 items       => $item->{items},
                 menu        => $radio_submenu, #  temp
@@ -1306,7 +1306,7 @@ EOT
             label => 'Plot branches by',
             items => [
                 {
-                    type     => 'Gtk2::RadioMenuItem',
+                    type     => 'Gtk3::RadioMenuItem',
                     label    => 'Length',
                     event    => 'activate',
                     callback => sub {
@@ -1315,7 +1315,7 @@ EOT
                     },
                 },
                 {
-                    type     => 'Gtk2::RadioMenuItem',
+                    type     => 'Gtk3::RadioMenuItem',
                     label    => 'Depth',
                     event    => 'activate',
                     callback => sub {
@@ -1326,7 +1326,7 @@ EOT
                               . 'This includes those with zero length.'
                 },
                 {
-                    type     => 'Gtk2::RadioMenuItem',
+                    type     => 'Gtk3::RadioMenuItem',
                     label    => 'Equal branch lengths',
                     event    => 'activate',
                     callback => sub {
@@ -1341,7 +1341,7 @@ EOT
                         . 'calculations.'
                 },
                 {
-                    type     => 'Gtk2::RadioMenuItem',
+                    type     => 'Gtk3::RadioMenuItem',
                     label    => 'Range weighted branch lengths',
                     event    => 'activate',
                     callback => sub {
@@ -1356,7 +1356,7 @@ EOT
                         . "calculations."
                 },
                 {
-                    type     => 'Gtk2::RadioMenuItem',
+                    type     => 'Gtk3::RadioMenuItem',
                     label    => 'Range weighted equal branch lengths',
                     event    => 'activate',
                     callback => sub {
@@ -1379,7 +1379,7 @@ EOT
             tooltip => $tooltip_select_by,
             items   => [
                 {
-                    type     => 'Gtk2::RadioMenuItem',
+                    type     => 'Gtk3::RadioMenuItem',
                     label    => 'Length',
                     event    => 'activate',
                     callback => sub {
@@ -1388,7 +1388,7 @@ EOT
                     },
                 },
                 {
-                    type     => 'Gtk2::RadioMenuItem',
+                    type     => 'Gtk3::RadioMenuItem',
                     label    => 'Depth',
                     event    => 'activate',
                     callback => sub {
@@ -1399,7 +1399,7 @@ EOT
             ],
         },
         set_tree_branch_line_widths => {
-            type     => 'Gtk2::MenuItem',
+            type     => 'Gtk3::MenuItem',
             label    => 'Set tree branch line widths',
             tooltip  => "Set the width of the tree branches.\n"
                 . "Does not affect the vertical connectors.",
@@ -1407,7 +1407,7 @@ EOT
             callback => \&on_set_tree_line_widths,
         },
         highlight_groups_on_map => {
-            type     => 'Gtk2::CheckMenuItem',
+            type     => 'Gtk3::CheckMenuItem',
             label    => 'Highlight groups on map',
             tooltip  => 'When hovering the mouse over a tree branch, '
                 . 'highlight the groups on the map in which it is found.',
@@ -1420,7 +1420,7 @@ EOT
             self_key => 'checkbox_show_tree_legend',
         },
         highlight_paths_on_tree => {
-            type     => 'Gtk2::CheckMenuItem',
+            type     => 'Gtk3::CheckMenuItem',
             label    => 'Highlight paths on tree',
             tooltip  => "When hovering over a group on the map, highlight the paths "
                 . "connecting the tips of the tree (that match labels in the group) "
@@ -1433,7 +1433,7 @@ EOT
             active   => 1,
         },
         export_tree => {
-            type     => 'Gtk2::MenuItem',
+            type     => 'Gtk3::MenuItem',
             label    => 'Export tree',
             tooltip  => 'Export the currently displayed tree',
             event    => 'activate',
@@ -1445,7 +1445,7 @@ EOT
             },
         },
         separator => {
-            type  => 'Gtk2::SeparatorMenuItem',
+            type  => 'Gtk3::SeparatorMenuItem',
         },
     };
 

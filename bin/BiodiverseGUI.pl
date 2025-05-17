@@ -61,15 +61,15 @@ use Biodiverse::GUI::GUIManager;
 say "\n\nUsing Biodiverse engine version $Biodiverse::Config::VERSION";
 
 #  load Gtk
-use Gtk2;
-Gtk2->disable_setlocale; # leave LC_NUMERIC alone
+use Gtk3;
+Gtk3->disable_setlocale; # leave LC_NUMERIC alone
 
-# my $icontheme = Gtk2::IconTheme->new;
+# my $icontheme = Gtk3::IconTheme->new;
 # use List::Util qw /uniq/;
 # say join "\n", 'Icon themes: ', uniq $icontheme->get_search_path;
-# say join "\n", 'Gtk2 RC files: ', Gtk2::Rc->get_default_files;
+# say join "\n", 'Gtk3 RC files: ', Gtk3::Rc->get_default_files;
 
-Gtk2->init;
+Gtk3->init;
 
 use Biodiverse::GUI::Callbacks;
 
@@ -113,7 +113,7 @@ elsif ( $numargs > 1 ) {
 
 my $icon = get_iconfile();
 my $eval_result = eval {
-    Gtk2::Window->set_default_icon_from_file($icon)
+    Gtk3::Window->set_default_icon_from_file($icon)
 };
 #croak $EVAL_ERROR if $EVAL_ERROR;
 
@@ -145,7 +145,7 @@ if ( defined $filename ) {
 #  hack for exe building under github actions
 if (!($^O eq 'darwin' && $ENV{BDV_PP_BUILDING})) {
     # Go!
-    Gtk2->main;
+    Gtk3->main;
 }
 
 #  go back home (unless it has been deleted while we were away)
@@ -158,7 +158,7 @@ exit;
 
 sub get_main_window {
     my $gui = shift;
-    my $dlgxml = Gtk2::Builder->new();
+    my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file($gui->get_gtk_ui_file('wndMain.ui'));
     return $dlgxml;
 }

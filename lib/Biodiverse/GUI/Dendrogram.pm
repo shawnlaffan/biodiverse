@@ -13,7 +13,7 @@ use Scalar::Util qw /weaken isweak blessed/;
 use List::Util 1.29 qw /min pairs/;
 use List::MoreUtils qw /firstidx/;
 
-use Gtk2;
+use Gtk3;
 use Gnome2::Canvas;
 use POSIX qw /ceil/; # for ceil()
 
@@ -37,10 +37,10 @@ use constant LEAF_SPACING    => 1; # arbitrary scale (length will be scaled to f
 use constant HIGHLIGHT_WIDTH => 2; # width of highlighted horizontal lines (pixels)
 use constant NORMAL_WIDTH    => 1;       # width of normal lines (pixels)
 
-use constant COLOUR_BLACK => Gtk2::Gdk::Color->new(0,0,0);
-use constant COLOUR_WHITE => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
-use constant COLOUR_GRAY  => Gtk2::Gdk::Color->new(210*257, 210*257, 210*257);
-use constant COLOUR_RED   => Gtk2::Gdk::Color->new(255*257,0,0);
+use constant COLOUR_BLACK => Gtk3::Gdk::Color->new(0,0,0);
+use constant COLOUR_WHITE => Gtk3::Gdk::Color->new(255*257, 255*257, 255*257);
+use constant COLOUR_GRAY  => Gtk3::Gdk::Color->new(210*257, 210*257, 210*257);
+use constant COLOUR_RED   => Gtk3::Gdk::Color->new(255*257,0,0);
 
 use constant COLOUR_PALETTE_OVERFLOW  => COLOUR_WHITE;
 use constant COLOUR_OUTSIDE_SELECTION => COLOUR_WHITE;
@@ -49,7 +49,7 @@ use constant COLOUR_LIST_UNDEF        => COLOUR_WHITE;
 
 use constant DEFAULT_LINE_COLOUR      => COLOUR_BLACK;
 use constant DEFAULT_LINE_COLOUR_RGB  => "#000000";
-use constant DEFAULT_LINE_COLOUR_VERT => Gtk2::Gdk::Color->parse('#7F7F7F');  #  '#4D4D4D'
+use constant DEFAULT_LINE_COLOUR_VERT => Gtk3::Gdk::Color->parse('#7F7F7F');  #  '#4D4D4D'
 
 use constant HOVER_CURSOR => 'hand2';
 
@@ -89,7 +89,7 @@ sub new {
         render_height       => 0,
         graph_height_px     => 0,
         use_slider_to_select_nodes => $use_slider_to_select_nodes,
-        colour_not_in_tree  => Gtk2::Gdk::Color->new($grey, $grey, $grey),
+        colour_not_in_tree  => Gtk3::Gdk::Color->new($grey, $grey, $grey),
         use_highlight_func  => 1, #  should we highlight?
     };
 
@@ -153,8 +153,8 @@ sub new {
     );
 
     # Set up custom scrollbars due to flicker problems whilst panning..
-    $self->{hadjust} = Gtk2::Adjustment->new(0, 0, 1, 1, 1, 1);
-    $self->{vadjust} = Gtk2::Adjustment->new(0, 0, 1, 1, 1, 1);
+    $self->{hadjust} = Gtk3::Adjustment->new(0, 0, 1, 1, 1, 1);
+    $self->{vadjust} = Gtk3::Adjustment->new(0, 0, 1, 1, 1, 1);
 
     $hscroll->set_adjustment( $self->{hadjust} );
     $vscroll->set_adjustment( $self->{vadjust} );
@@ -397,7 +397,7 @@ sub on_slider_event {
         $self->{clusters_group}->show;
 
         # Change the cursor
-        my $cursor = Gtk2::Gdk::Cursor->new('sb-h-double-arrow');
+        my $cursor = Gtk3::Gdk::Cursor->new('sb-h-double-arrow');
         $self->{canvas}->window->set_cursor($cursor);
         $self->{graph}->window->set_cursor($cursor);
 
@@ -421,7 +421,7 @@ sub on_slider_event {
         # Grab mouse
         $item->grab (
             [qw/pointer-motion-mask button-release-mask/],
-            Gtk2::Gdk::Cursor->new ('fleur'),
+            Gtk3::Gdk::Cursor->new ('fleur'),
             $event->time,
         );
         $self->{sliding} = 1;
@@ -561,7 +561,7 @@ sub get_palette_colorbrewer13 {
 sub get_gdk_colors_colorbrewer9 {
     my $self = shift;
     my @colours
-        = map {Gtk2::Gdk::Color->parse ($_)}
+        = map {Gtk3::Gdk::Color->parse ($_)}
           $self->get_palette_colorbrewer9;
     return @colours;
 }
@@ -569,7 +569,7 @@ sub get_gdk_colors_colorbrewer9 {
 sub get_gdk_colors_colorbrewer13 {
     my $self = shift;
     my @colours
-        = map {Gtk2::Gdk::Color->parse ($_)}
+        = map {Gtk3::Gdk::Color->parse ($_)}
           $self->get_palette_colorbrewer13;
     return @colours;
 }
@@ -819,7 +819,7 @@ sub assign_cluster_palette_colours {
         # assign colours
         my $colour_ref;
         foreach my $k (0..$#sorted_clusters) {
-            $colour_ref = Gtk2::Gdk::Color->parse($palette[$k]);
+            $colour_ref = Gtk3::Gdk::Color->parse($palette[$k]);
             #$sorted_clusters[$k]->set_cached_value(__gui_palette_colour => $colour_ref);
             $self->{node_palette_colours}{$sorted_clusters[$k]->get_name} = $colour_ref;
         }
@@ -1100,8 +1100,8 @@ sub set_current_multiselect_colour {
     return if !defined $colour;  #  should we croak?
 
     eval {
-        if ((blessed $colour // '') !~ /Gtk2::Gdk::Color/) {
-            $colour = Gtk2::Gdk::Color->parse  ($colour);
+        if ((blessed $colour // '') !~ /Gtk3::Gdk::Color/) {
+            $colour = Gtk3::Gdk::Color->parse  ($colour);
         }
         $colour = $self->{selector_colorbutton}->set_color ($colour);
     };
@@ -1451,7 +1451,7 @@ sub setup_map_list_model {
     #  - need to clean up the logic and abstract such components to a different class
     return if !defined $combo;  
 
-    my $model = Gtk2::ListStore->new('Glib::String');
+    my $model = Gtk3::ListStore->new('Glib::String');
     my $iter;
 
     # Add all the analyses
@@ -1505,7 +1505,7 @@ sub setup_map_index_model {
     my $self = shift;
     my $indices = shift;
 
-    my $model = Gtk2::ListStore->new('Glib::String');
+    my $model = Gtk3::ListStore->new('Glib::String');
     my $combo = $self->{map_index_combo};
     
     return if !defined $combo;
@@ -2684,7 +2684,7 @@ sub on_event {
                 $cursor = $self->get_hover_clear_cursor;
             }
             else {
-                $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR);
+                $cursor = Gtk3::Gdk::Cursor->new(HOVER_CURSOR);
             }
             $self->{canvas}->window->set_cursor($cursor);
         }
@@ -2776,7 +2776,7 @@ sub on_background_event {
             # Grab mouse
             $item->grab (
                 [qw/pointer-motion-mask button-release-mask/],
-                Gtk2::Gdk::Cursor->new ('fleur'),
+                Gtk3::Gdk::Cursor->new ('fleur'),
                 $event->time
             );
             $self->{dragging} = 1;
@@ -2791,7 +2791,7 @@ sub on_background_event {
             # Grab mouse
             $item->grab (
                 [qw/pointer-motion-mask button-release-mask/],
-                Gtk2::Gdk::Cursor->new ('fleur'),
+                Gtk3::Gdk::Cursor->new ('fleur'),
                 $event->time,
             );
             $self->{selecting} = 1;
@@ -3148,7 +3148,7 @@ sub get_hover_clear_cursor {
 
     my $icon_name = 'edit-clear';
 
-    my $ic = Gtk2::IconTheme->new();
+    my $ic = Gtk3::IconTheme->new();
     my $pixbuf = eval {$ic->load_icon($icon_name, 16, 'no-svg')};
     if ($@) {
         warn $@;
@@ -3156,7 +3156,7 @@ sub get_hover_clear_cursor {
     else {
         my $window  = $self->{canvas}->window;
         my $display = $window->get_display;
-        $cursor = Gtk2::Gdk::Cursor->new_from_pixbuf($display, $pixbuf, 0, 0);
+        $cursor = Gtk3::Gdk::Cursor->new_from_pixbuf($display, $pixbuf, 0, 0);
         $self->{cursor_hover_clear} = $cursor;
     }
 

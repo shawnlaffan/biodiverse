@@ -6,7 +6,7 @@ use warnings;
 use English qw { -no_match_vars };
 
 #  make sure we get all the Strawberry libs
-#  and pack Gtk2 libs
+#  and pack Gtk3 libs
 use PAR::Packer 1.036;    
 use Module::ScanDeps 1.23;
 BEGIN {
@@ -102,7 +102,7 @@ if ($OSNAME eq 'MSWin32') {
 }
 
 
-#  clunky - should hunt for Gtk2 use in script?  
+#  clunky - should hunt for Gtk3 use in script?
 my @ui_arg = ();
 my @gtk_path_arg = ();
 my @linkers;
@@ -117,7 +117,7 @@ if ($script =~ 'BiodiverseGUI.pl') {
         # my $path = path ($^X)->parent->parent;
         # push @linkers,
         #     map {;"--link" => "$path/site/lib/auto/$_/$_.xs.dll"}
-        #     (qw /Pango Cairo Glib Gtk2/);
+        #     (qw /Pango Cairo Glib Gtk3/);
         # push @linkers, ('--link' => "$path/site/lib/auto/Gnome2/Canvas/Canvas.xs.dll");
         # eval 'use Alien::GtkStack::Windows';
         # my $dir = path ('Alien::GtkStack::Windows'->bin_dir);
@@ -193,7 +193,7 @@ if (0 && $OSNAME eq 'MSWin32' && $icon_file) {
 sub get_sis_theme_stuff {
     return if $OSNAME ne 'MSWin32';
 
-    #  get the Gtk2 stuff
+    #  get the Gtk3 stuff
     my $base = Path::Class::file($EXECUTABLE_NAME)
         ->parent
         ->parent

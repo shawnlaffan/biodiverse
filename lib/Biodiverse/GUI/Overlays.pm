@@ -3,7 +3,7 @@ package Biodiverse::GUI::Overlays;
 use 5.010;
 use strict;
 use warnings;
-use Gtk2;
+use Gtk3;
 #use Data::Dumper;
 use Geo::ShapeFile;
 use Ref::Util qw/is_hashref/;
@@ -13,7 +13,7 @@ our $VERSION = '4.99_002';
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
 
-my $default_colour       = Gtk2::Gdk::Color->parse('#001169');
+my $default_colour       = Gtk3::Gdk::Color->parse('#001169');
 my $last_selected_colour = $default_colour;
 
 use constant COL_FNAME       => 0;
@@ -45,7 +45,7 @@ sub show_dialog {
         return;
     }
 
-    my $dlgxml = Gtk2::Builder->new();
+    my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file($gui->get_gtk_ui_file('wndOverlays.ui'));
     my $dlg = $dlgxml->get_object('wndOverlays');
     my $colour_button = $dlgxml->get_object('colorbutton_overlays');
@@ -132,24 +132,24 @@ sub init_overlay_list {
     my $model = shift;
     my $tree = $dlgxml->get_object('treeOverlays');
 
-    my $col_name = Gtk2::TreeViewColumn->new();
-    my $name_renderer = Gtk2::CellRendererText->new ();
+    my $col_name = Gtk3::TreeViewColumn->new();
+    my $name_renderer = Gtk3::CellRendererText->new ();
     #$name_renderer->signal_connect('toggled' => \&_update_colour_for_selection, $model);
     $col_name->set_title('File name');
     $col_name->pack_start($name_renderer, 1);
     $col_name->add_attribute($name_renderer,  text => COL_FNAME);
     $tree->insert_column($col_name, -1);
 
-    my $col_type = Gtk2::TreeViewColumn->new();
-    my $type_renderer = Gtk2::CellRendererText->new ();
+    my $col_type = Gtk3::TreeViewColumn->new();
+    my $type_renderer = Gtk3::CellRendererText->new ();
     $col_type->set_title('Type');
     $col_type->pack_start($type_renderer, 1);
     $col_type->add_attribute($type_renderer,  text => COL_FTYPE);
     $tree->insert_column($col_type, -1);
 
-    my $col_plot_on_top = Gtk2::TreeViewColumn->new();
+    my $col_plot_on_top = Gtk3::TreeViewColumn->new();
     $col_plot_on_top->set_title('Plot above cells');
-    my $plot_on_top_renderer = Gtk2::CellRendererToggle->new();
+    my $plot_on_top_renderer = Gtk3::CellRendererToggle->new();
     $col_plot_on_top->pack_start($plot_on_top_renderer, 0);
     $plot_on_top_renderer->signal_connect('toggled' => \&_plot_on_top, $model);
     $col_plot_on_top->set_attributes($plot_on_top_renderer,
@@ -157,9 +157,9 @@ sub init_overlay_list {
     );
     $tree->insert_column($col_plot_on_top, -1);
 
-    # my $col_colour = Gtk2::TreeViewColumn->new();
-    # my $colour_renderer_toggle = Gtk2::CellRendererToggle->new();
-    # my $colour_renderer_text   = Gtk2::CellRendererText->new();
+    # my $col_colour = Gtk3::TreeViewColumn->new();
+    # my $colour_renderer_toggle = Gtk3::CellRendererToggle->new();
+    # my $colour_renderer_text   = Gtk3::CellRendererText->new();
     # $col_colour->set_title('Colour');
     # $col_colour->pack_start($colour_renderer_toggle, 0);
     # $col_colour->pack_start($colour_renderer_text, 0);
@@ -185,7 +185,7 @@ sub init_overlay_list {
 sub _plot_on_top {
     my ($cell, $path_str, $model) = @_;
 
-    my $path = Gtk2::TreePath->new_from_string ($path_str);
+    my $path = Gtk3::TreePath->new_from_string ($path_str);
 
     # get toggled iter
     my $iter = $model->get_iter ($path);
@@ -201,7 +201,7 @@ sub _update_colour_for_selection {
     return;
     my ($cell, $path_str, $model) = @_;
 
-    my $path = Gtk2::TreePath->new_from_string ($path_str);
+    my $path = Gtk3::TreePath->new_from_string ($path_str);
 
     # get toggled iter
     my $iter = $model->get_iter ($path);
@@ -217,7 +217,7 @@ sub _update_colour_for_selection {
     }
 
     if (!Scalar::Util::blessed $colour) {
-        $colour = Gtk2::Gdk::Color->parse($colour);
+        $colour = Gtk3::Gdk::Color->parse($colour);
     }
     $colour_button->set_color($colour);
 
@@ -242,7 +242,7 @@ sub _update_colour_for_selection {
 sub make_overlay_model {
     my $project = shift;
 
-    my $model = Gtk2::ListStore->new(
+    my $model = Gtk3::ListStore->new(
         'Glib::String',
         'Glib::String',
         'Glib::Boolean',
@@ -334,7 +334,7 @@ sub on_add {
     my $args = shift;
     my ($list, $project) = @$args;
 
-    my $open = Gtk2::FileChooserDialog->new(
+    my $open = Gtk3::FileChooserDialog->new(
         'Add shapefile',
         undef,
         'open',
@@ -343,7 +343,7 @@ sub on_add {
         'gtk-ok',
         'ok'
     );
-    my $filter = Gtk2::FileFilter->new();
+    my $filter = Gtk3::FileFilter->new();
 
     $filter->add_pattern('*.shp');
     $filter->set_name('.shp files');

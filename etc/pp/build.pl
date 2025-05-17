@@ -6,7 +6,7 @@ use warnings;
 use English qw { -no_match_vars };
 
 #  make sure we get all the Strawberry libs
-#  and pack Gtk2 libs
+#  and pack Gtk3 libs
 use PAR::Packer 1.036;    
 use Module::ScanDeps 1.23;
 BEGIN {
@@ -102,7 +102,7 @@ if ($OSNAME eq 'MSWin32') {
 }
 
 
-#  clunky - should hunt for Gtk2 use in script?  
+#  clunky - should hunt for Gtk3 use in script?
 my @ui_arg = ();
 my @gtk_path_arg = ();
 if ($script =~ 'BiodiverseGUI.pl') {
@@ -218,7 +218,7 @@ sub get_sis_gtk_dll_list {
 sub get_sis_theme_stuff {
     return if $OSNAME ne 'MSWin32';
 
-    #  get the Gtk2 stuff
+    #  get the Gtk3 stuff
     my $base = Path::Class::file($EXECUTABLE_NAME)
         ->parent
         ->parent

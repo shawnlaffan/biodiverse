@@ -13,7 +13,7 @@ package Biodiverse::GUI::Tabs::CalculationsTree;
 use strict;
 use warnings;
 
-use Gtk2;
+use Gtk3;
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::Indices;
 use Ref::Util qw { :all };
@@ -45,9 +45,9 @@ sub init_calculations_tree {
     my $model = shift;
     
     # First column - name/type with a checkbox
-    my $col_name       = Gtk2::TreeViewColumn->new();
-    my $check_renderer = Gtk2::CellRendererToggle->new();
-    my $name_renderer  = Gtk2::CellRendererText->new();
+    my $col_name       = Gtk3::TreeViewColumn->new();
+    my $check_renderer = Gtk3::CellRendererToggle->new();
+    my $name_renderer  = Gtk3::CellRendererText->new();
     $check_renderer->signal_connect_swapped(toggled => \&on_calculation_toggled, $model);
 
     $col_name->pack_start($check_renderer, 0);
@@ -57,15 +57,15 @@ sub init_calculations_tree {
     $col_name->add_attribute($check_renderer, visible      => MODEL_SHOW_CHECKBOX);
     $col_name->add_attribute($name_renderer,  text         => MODEL_NAME_COL);
 
-    my $col_index = Gtk2::TreeViewColumn->new();
-    my $index_renderer = Gtk2::CellRendererText->new();
+    my $col_index = Gtk3::TreeViewColumn->new();
+    my $index_renderer = Gtk3::CellRendererText->new();
     #$index_renderer->set('wrap-mode' => 'word');  #  no effect?
     $col_index->pack_start($index_renderer, 1);
     $col_index->add_attribute($index_renderer, markup => MODEL_INDEX_COL);
 
     
-    my $col_desc = Gtk2::TreeViewColumn->new();
-    my $desc_renderer = Gtk2::CellRendererText->new();
+    my $col_desc = Gtk3::TreeViewColumn->new();
+    my $desc_renderer = Gtk3::CellRendererText->new();
     $col_desc->pack_start($desc_renderer, 1);
     $col_desc->add_attribute($desc_renderer, markup => MODEL_DESCRIPTION_COL);
     
@@ -127,7 +127,7 @@ sub make_calculations_model {
         'Glib::Boolean',        # Show checkbox? (no if description "second line")
     );
     
-    my $model = Gtk2::TreeStore->new( @treestore_args );
+    my $model = Gtk3::TreeStore->new( @treestore_args );
     
     #my $analysis_caller_ref = defined $output_ref ? $output_ref : $base_ref;
     #my %calculations = $analysis_caller_ref->get_calculations;

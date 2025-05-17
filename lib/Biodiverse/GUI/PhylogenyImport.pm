@@ -7,7 +7,7 @@ use English ( -no_match_vars );
 use File::Basename;
 use File::BOM qw / :subs /;
 
-use Gtk2;
+use Gtk3;
 use Biodiverse::ReadNexus;
 use Biodiverse::GUI::BasedataImport;
 use Biodiverse::GUI::YesNoCancel;
@@ -234,7 +234,7 @@ sub get_column_use {
             say "checking $usage, " . $column_settings->{$usage};
             if ( !$column_settings->{$usage} ) {
                 my $msg =
-                  Gtk2::MessageDialog->new( undef, 'modal', 'error', 'close',
+                  Gtk3::MessageDialog->new( undef, 'modal', 'error', 'close',
                     'Please select one of each column usage type' );
                 $msg->run();
                 $msg->destroy();
@@ -335,7 +335,7 @@ sub get_remap_info {
 
             if ( $num_in != 1 || $num_out != 1 ) {
                 my $msg =
-                  Gtk2::MessageDialog->new( undef, "modal", "error", "close",
+                  Gtk3::MessageDialog->new( undef, "modal", "error", "close",
                     "Please select one input and one output column" );
                 $msg->run();
                 $msg->destroy();
@@ -404,39 +404,39 @@ sub make_columns_dialog {
     print "[gui] generating make columns Dialog for $num_columns columns\n";
 
     # make Dialog
-    my $dlg = Gtk2::Dialog->new( "Choose columns",
+    my $dlg = Gtk3::Dialog->new( "Choose columns",
         $wnd_main, "modal", "gtk-cancel", "cancel", "gtk-ok", "ok" );
-    my $label = Gtk2::Label->new("<b>Select column types</b>");
+    my $label = Gtk3::Label->new("<b>Select column types</b>");
     $label->set_use_markup(1);
     $dlg->vbox->pack_start( $label, 0, 0, 0 );
 
     # make table
-    my $table = Gtk2::Table->new( 4, $num_columns + 1 );
+    my $table = Gtk3::Table->new( 4, $num_columns + 1 );
     $table->set_row_spacings(5);
 
     #$table->set_col_spacings(20);
 
     # make scroll window for table
-    my $scroll = Gtk2::ScrolledWindow->new;
+    my $scroll = Gtk3::ScrolledWindow->new;
     $scroll->add_with_viewport($table);
     $scroll->set_policy( 'automatic', 'never' );
     $dlg->vbox->pack_start( $scroll, 1, 1, 5 );
 
     # make header column
-    $label = Gtk2::Label->new("<b>Column</b>");
+    $label = Gtk3::Label->new("<b>Column</b>");
     $label->set_use_markup(1);
     $label->set_alignment( 1, 0.5 );
     $table->attach_defaults( $label, 0, 1, 0, 1 );
 
-    $label = Gtk2::Label->new("ignore");
+    $label = Gtk3::Label->new("ignore");
     $label->set_alignment( 1, 0.5 );
     $table->attach_defaults( $label, 0, 1, 1, 2 );
 
-    $label = Gtk2::Label->new("in");
+    $label = Gtk3::Label->new("in");
     $label->set_alignment( 1, 0.5 );
     $table->attach_defaults( $label, 0, 1, 2, 3 );
 
-    $label = Gtk2::Label->new("out");
+    $label = Gtk3::Label->new("out");
     $label->set_alignment( 1, 0.5 );
     $table->attach_defaults( $label, 0, 1, 3, 4 );
 
@@ -458,13 +458,13 @@ sub add_column {
     my ( $col_widgets, $table, $col_id, $header ) = @_;
 
     # column header
-    my $label = Gtk2::Label->new("<tt>$header</tt>");
+    my $label = Gtk3::Label->new("<tt>$header</tt>");
     $label->set_use_markup(1);
 
     # type radio button
-    my $radio1 = Gtk2::RadioButton->new( undef,   '' );    # ignore
-    my $radio2 = Gtk2::RadioButton->new( $radio1, '' );    # in
-    my $radio3 = Gtk2::RadioButton->new( $radio2, '' );    # out
+    my $radio1 = Gtk3::RadioButton->new( undef,   '' );    # ignore
+    my $radio2 = Gtk3::RadioButton->new( $radio1, '' );    # in
+    my $radio3 = Gtk3::RadioButton->new( $radio2, '' );    # out
     $radio1->set( 'can-focus', 0 );
     $radio2->set( 'can-focus', 0 );
     $radio3->set( 'can-focus', 0 );

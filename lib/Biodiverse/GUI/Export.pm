@@ -10,7 +10,7 @@ use warnings;
 use English ( -no_match_vars );
 
 use Glib;
-use Gtk2;
+use Gtk3;
 use Cwd;
 
 use List::MoreUtils qw /any none/;
@@ -51,7 +51,7 @@ sub Run {
     if (none {$_ eq $selected_format} @$format_choice_array) {
         #  get user preference if none passed as an arg
         
-        my $dlgxml = Gtk2::Builder->new();
+        my $dlgxml = Gtk3::Builder->new();
         $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgImportParameters.ui'));
         my $format_dlg = $dlgxml->get_object('dlgImportParameters');
 
@@ -159,7 +159,7 @@ sub choose_file_location_dialog {
     
     #####################
     #  get the params for the selected format
-    my $dlgxml = Gtk2::Builder->new();
+    my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgExport.ui'));
 
     my $dlg = $dlgxml->get_object('dlgExport');

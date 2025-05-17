@@ -86,9 +86,9 @@ BEGIN {
     if ($ENV{PAR_0}) {
         use Path::Tiny qw /path/;
         my $base = path ($ENV{PAR_TEMP}, "inc/lib/auto");
-        #say "Looking for Gtk2 stuff under $base";
+        #say "Looking for Gtk3 stuff under $base";
         my @path_args;
-        foreach my $name (qw /Glib Pango Cairo Gtk2/) {
+        foreach my $name (qw /Glib Pango Cairo Gtk3/) {
             my $dir = $base->child($name);
             next if !$dir->exists;
             say "Adding $dir to path";

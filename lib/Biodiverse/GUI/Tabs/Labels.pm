@@ -18,7 +18,7 @@ use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
 
 use HTML::QuickTable;
 
-use Gtk2;
+use Gtk3;
 use Carp;
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::MatrixGrid;
@@ -45,9 +45,9 @@ use constant LABELS_MODEL_REDUNDANCY    => 3;
 my $labels_model_list1_sel_col;  # these are set in sub make_labels_model
 my $labels_model_list2_sel_col;
 
-use constant CELL_WHITE => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
-use constant COLOUR_BLACK => Gtk2::Gdk::Color->new(0,0,0);
-use constant COLOUR_GREY => Gtk2::Gdk::Color->new(255*257*2/3, 255*257*2/3, 255*257*2/3);
+use constant CELL_WHITE => Gtk3::Gdk::Color->new(255*257, 255*257, 255*257);
+use constant COLOUR_BLACK => Gtk3::Gdk::Color->new(0,0,0);
+use constant COLOUR_GREY => Gtk3::Gdk::Color->new(255*257*2/3, 255*257*2/3, 255*257*2/3);
 
 my $selected_list1_name = 'Selected';
 my $selected_list2_name = 'Col selected';
@@ -87,14 +87,14 @@ sub new {
 
     # Load _new_ widgets from Gtk Builder
     # (we can have many Analysis tabs open, for example. These have a different object/widgets)
-    $self->{xmlPage} = Gtk2::Builder->new();
+    $self->{xmlPage} = Gtk3::Builder->new();
     $self->{xmlPage}->add_from_file($self->{gui}->get_gtk_ui_file('hboxLabelsPage.ui'));
-    $self->{xmlLabel} = Gtk2::Builder->new();
+    $self->{xmlLabel} = Gtk3::Builder->new();
     $self->{xmlLabel}->add_from_file($self->{gui}->get_gtk_ui_file('hboxLabelsLabel.ui'));
 
     my $page  = $self->get_xmlpage_object('hboxLabelsPage');
     my $label = $self->{xmlLabel}->get_object('hboxLabelsLabel');
-    my $tab_menu_label = Gtk2::Label->new('Labels tab');
+    my $tab_menu_label = Gtk3::Label->new('Labels tab');
     $self->{tab_menu_label} = $tab_menu_label;
 
     # Add to notebook
@@ -333,7 +333,7 @@ sub get_tree_menu_items {
 
     my @menu_items = (
         {
-            type     => 'Gtk2::MenuItem',
+            type     => 'Gtk3::MenuItem',
             label    => 'Tree options:',
             tooltip  => "Options to work with the displayed tree "
                       . "(this is the same as the one selected at "
@@ -362,8 +362,8 @@ sub add_column {
     my $title    = $args{title};
     my $model_id = $args{model_id};
 
-    my $col = Gtk2::TreeViewColumn->new();
-    my $renderer = Gtk2::CellRendererText->new();
+    my $col = Gtk3::TreeViewColumn->new();
+    my $renderer = Gtk3::CellRendererText->new();
 #$title = Glib::Markup::escape_text($title);
 #  Double the underscores so they display without acting as hints.
 #  Need to find out how to disable that hint setting.
@@ -425,7 +425,7 @@ sub init_list {
     push @column_names, ('Selected', 'Selected_Col');
 
     # Set model to a wrapper that lets this list have independent sorting
-    my $wrapper_model = Gtk2::TreeModelSort->new( $self->{labels_model});
+    my $wrapper_model = Gtk3::TreeModelSort->new( $self->{labels_model});
     $tree->set_model( $wrapper_model );
 
     my $sort_func = \&sort_by_column;
@@ -535,7 +535,7 @@ sub make_labels_model {
         push @column_order, $key;
     }
 
-    $self->{labels_model} = Gtk2::ListStore->new(@types);
+    $self->{labels_model} = Gtk3::ListStore->new(@types);
     my $model = $self->{labels_model};
 
     my $labels = $base_ref->get_labels();
@@ -569,7 +569,7 @@ sub make_labels_model {
 }
 
 #  variation on
-#  http://gtk.10911.n7.nabble.com/Remove-Multiple-Rows-from-Gtk2-ListStore-td66092.html
+#  http://gtk.10911.n7.nabble.com/Remove-Multiple-Rows-from-Gtk3-ListStore-td66092.html
 sub remove_selected_labels_from_list {
     my $self = shift;
 
@@ -592,7 +592,7 @@ sub remove_selected_labels_from_list {
     # Convert paths to row references first
     my @rowrefs;
     foreach my $path (@paths) {
-        my $treerowreference = Gtk2::TreeRowReference->new ($model1, $path);
+        my $treerowreference = Gtk3::TreeRowReference->new ($model1, $path);
         push @rowrefs, $treerowreference;
     }
     
@@ -677,7 +677,7 @@ sub switch_selection {
             my ($model, $path, $iter) = @_;
             #we want rows where the list1 selected column is not 1
             my $selected = $model->get($iter, $labels_model_list1_sel_col);
-            my $treerowreference = Gtk2::TreeRowReference->new ($model, $path);
+            my $treerowreference = Gtk3::TreeRowReference->new ($model, $path);
 
             if ($selected != 1) {  #  -99999 is also not selected
                 push @p_unselected, $treerowreference;
@@ -728,7 +728,7 @@ sub select_using_regex {
             my ($model, $path, $iter) = @_;
             #we want rows where the list1 selected column is not 1
             my $value = $model->get($iter, 0);
-            my $treerowreference = Gtk2::TreeRowReference->new ($model, $path);
+            my $treerowreference = Gtk3::TreeRowReference->new ($model, $path);
 
             my $match = $value =~ $regex;
             if ($negate) {
@@ -1135,7 +1135,7 @@ sub on_sorted {
         #  but deletions cause them
         return if !defined $hiter or !defined $viter;
 
-# some bug in gtk2-perl stops me from just doing
+# some bug in Gtk3-perl stops me from just doing
 # $hlabel = $hmodel->get($hiter, 0)
 #
         my $hi = $hmodel->convert_iter_to_child_iter($hiter);
@@ -1510,7 +1510,7 @@ sub show_list {
     #my $ref = $node_ref->get_value($name);
     my $ref = $node_ref->get_list_ref (list => $name);
 
-    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::String');
+    my $model = Gtk3::ListStore->new('Glib::String', 'Glib::String');
     my $iter;
 
     if (is_hashref($ref)) {
@@ -1560,7 +1560,7 @@ sub show_phylogeny_groups {
     }
 
     # Add each label into the model
-    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::String');
+    my $model = Gtk3::ListStore->new('Glib::String', 'Glib::String');
     foreach my $label (sort keys %total_groups) {
         my $iter = $model->append;
         $model->set($iter, 0, $label, 1, q{});
@@ -1579,7 +1579,7 @@ sub show_phylogeny_labels {
     my $node_ref = shift;
 
     my $elements = $node_ref->get_terminal_elements;
-    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
+    my $model = Gtk3::ListStore->new('Glib::String', 'Glib::Int');
 
     foreach my $element (natsort keys %{$elements}) {
         my $count = $elements->{$element};
@@ -1599,7 +1599,7 @@ sub show_phylogeny_descendents {
     my $popup    = shift;
     my $node_ref = shift;
 
-    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
+    my $model = Gtk3::ListStore->new('Glib::String', 'Glib::Int');
 
     my $node_hash = $node_ref->get_names_of_all_descendants_and_self;
 
@@ -1632,7 +1632,7 @@ sub on_matrix_hover {
 
     if (defined $hiter && defined $viter) {
 
-        # some bug in gtk2-perl stops me from just doing $hlabel = $hmodel->get($hiter, 0)
+        # some bug in Gtk3-perl stops me from just doing $hlabel = $hmodel->get($hiter, 0)
         #
         my ($hi, $vi) = ($hmodel->convert_iter_to_child_iter($hiter), $vmodel->convert_iter_to_child_iter($viter));
 
@@ -1672,10 +1672,10 @@ sub on_matrix_clicked {
 
     if ($self->{tool} eq 'Select') {
         my ($h_start, $h_end, $v_start, $v_end) = @{$cell_coords};
-        $h_start = Gtk2::TreePath->new_from_indices($h_start);
-        $h_end   = Gtk2::TreePath->new_from_indices($h_end);
-        $v_start = Gtk2::TreePath->new_from_indices($v_start);
-        $v_end   = Gtk2::TreePath->new_from_indices($v_end);
+        $h_start = Gtk3::TreePath->new_from_indices($h_start);
+        $h_end   = Gtk3::TreePath->new_from_indices($h_end);
+        $v_start = Gtk3::TreePath->new_from_indices($v_start);
+        $v_end   = Gtk3::TreePath->new_from_indices($v_end);
 
         my $hlist = $self->get_xmlpage_object('listLabels1');
         my $vlist = $self->get_xmlpage_object('listLabels2');
@@ -1885,7 +1885,7 @@ sub update_export_menu {
     # This will be useful when we add checks for which export methods are valid.
     my $export_menu = $self->{export_menu};
     if (!$export_menu) {
-        $export_menu  = Gtk2::MenuItem->new_with_label('Export');
+        $export_menu  = Gtk3::MenuItem->new_with_label('Export');
         $menubar->append($export_menu);
         $self->{export_menu} = $export_menu;
     }
@@ -1895,20 +1895,20 @@ sub update_export_menu {
         Groups => $output_ref->get_groups_ref,
     );
 
-    my $submenu = Gtk2::Menu->new;
+    my $submenu = Gtk3::Menu->new;
 
     foreach my $type (keys %type_hash) {
         my $ref = $type_hash{$type};
-        my $submenu_item = Gtk2::MenuItem->new_with_label($type);
+        my $submenu_item = Gtk3::MenuItem->new_with_label($type);
 
-        my $bs_submenu = Gtk2::Menu->new;
+        my $bs_submenu = Gtk3::Menu->new;
 
         # Get the Parameters metadata
         my $metadata = $ref->get_metadata (sub => 'export');
         my $format_labels = $metadata->get_format_labels;
         foreach my $label (sort keys %$format_labels) {
             next if !$label;
-            my $menu_item = Gtk2::MenuItem->new($label);
+            my $menu_item = Gtk3::MenuItem->new($label);
             $bs_submenu->append($menu_item);
             $menu_item->signal_connect_swapped(
                 activate => \&do_export, [$self, $ref, $label],
@@ -1948,11 +1948,11 @@ sub update_selection_menu {
     # This will be useful when we add checks for which export methods are valid.
     my $selection_menu_item = $self->{selection_menu};
     if (!$selection_menu_item) {
-        $selection_menu_item  = Gtk2::MenuItem->new_with_label('Selection');
+        $selection_menu_item  = Gtk3::MenuItem->new_with_label('Selection');
         $menubar->append($selection_menu_item);
         $self->{selection_menu} = $selection_menu_item;
     }
-    my $selection_menu = Gtk2::Menu->new;
+    my $selection_menu = Gtk3::Menu->new;
     $selection_menu_item->set_submenu($selection_menu);
 
     my %type_hash = (
@@ -1961,21 +1961,21 @@ sub update_selection_menu {
     );
 
     #  export submenu
-    my $export_menu_item = Gtk2::MenuItem->new_with_label('Export');
-    my $export_submenu = Gtk2::Menu->new;
+    my $export_menu_item = Gtk3::MenuItem->new_with_label('Export');
+    my $export_submenu = Gtk3::Menu->new;
 
     foreach my $type (keys %type_hash) {
         my $ref = $type_hash{$type};
 
-        my $submenu_item = Gtk2::MenuItem->new_with_label($type);
-        my $submenu = Gtk2::Menu->new;
+        my $submenu_item = Gtk3::MenuItem->new_with_label($type);
+        my $submenu = Gtk3::Menu->new;
 
         # Get the Parameters metadata
         my $metadata = $ref->get_metadata (sub => 'export');
         my $format_labels = $metadata->get_format_labels;
         foreach my $label (sort keys %$format_labels) {
             next if !$label;
-            my $menu_item = Gtk2::MenuItem->new($label);
+            my $menu_item = Gtk3::MenuItem->new($label);
             $submenu->append($menu_item);
             $menu_item->signal_connect_swapped(
                 activate => \&do_selection_export, [$self, $ref, selected_format => $label],
@@ -1988,11 +1988,11 @@ sub update_selection_menu {
     $export_menu_item->set_tooltip_text('Export selected labels across all groups in which they occur');
 
     ####  now some options to delete selected labels
-    my $delete_menu_item = Gtk2::MenuItem->new_with_label('Delete');
-    my $delete_submenu = Gtk2::Menu->new;
+    my $delete_menu_item = Gtk3::MenuItem->new_with_label('Delete');
+    my $delete_submenu = Gtk3::Menu->new;
 
     foreach my $option ('Selected labels', 'Selected labels, retaining empty groups') {
-        my $submenu_item = Gtk2::MenuItem->new_with_label($option);
+        my $submenu_item = Gtk3::MenuItem->new_with_label($option);
         $delete_submenu->append ($submenu_item);
         $submenu_item->signal_connect_swapped(
             activate => \&do_delete_selected_basedata_records, [$self, $base_ref, $option],
@@ -2001,11 +2001,11 @@ sub update_selection_menu {
     $delete_menu_item->set_submenu($delete_submenu);
 
     ####  now some options to create new basedatas
-    my $new_bd_menu_item = Gtk2::MenuItem->new_with_label('New BaseData from');
-    my $new_bd_submenu = Gtk2::Menu->new;
+    my $new_bd_menu_item = Gtk3::MenuItem->new_with_label('New BaseData from');
+    my $new_bd_submenu = Gtk3::Menu->new;
 
     foreach my $option ('Selected labels', 'Non-selected labels') {
-        my $submenu_item = Gtk2::MenuItem->new_with_label($option);
+        my $submenu_item = Gtk3::MenuItem->new_with_label($option);
         $new_bd_submenu->append ($submenu_item);
         $submenu_item->signal_connect_swapped(
             activate => \&do_new_basedata_from_selection, [$self, $base_ref, $option],
@@ -2018,24 +2018,24 @@ sub update_selection_menu {
         . 'Optionally retains empty groups.'
     );
 
-    my $select_regex_item = Gtk2::MenuItem->new_with_label('Select labels by text matching');
+    my $select_regex_item = Gtk3::MenuItem->new_with_label('Select labels by text matching');
     $select_regex_item->signal_connect_swapped (
         activate => \&do_select_labels_regex, [$self, $base_ref],
     );
     $select_regex_item->set_tooltip_text ('Select by text matching.  Uses regular expressions so you can use all relevant modifiers.');
 
-    my $switch_selection_item = Gtk2::MenuItem->new_with_label('Switch selection');
+    my $switch_selection_item = Gtk3::MenuItem->new_with_label('Switch selection');
     $switch_selection_item->signal_connect_swapped (
         activate => \&do_switch_selection, [$self, $base_ref],
     );
     $switch_selection_item->set_tooltip_text ('Switch selection to all currently non-selected labels');
 
-    my $selection_mode_item = Gtk2::MenuItem->new_with_label('Selection mode');
-    my $sel_mode_submenu    = Gtk2::Menu->new;
+    my $selection_mode_item = Gtk3::MenuItem->new_with_label('Selection mode');
+    my $sel_mode_submenu    = Gtk3::Menu->new;
     my $sel_group = [];
 
     foreach my $option (qw /new add_to remove_from/) {
-        my $submenu_item = Gtk2::RadioMenuItem->new_with_label($sel_group, $option);
+        my $submenu_item = Gtk3::RadioMenuItem->new_with_label($sel_group, $option);
         $sel_mode_submenu->append ($submenu_item);
         $submenu_item->signal_connect_swapped(
             activate => \&do_set_selection_mode, [$self, $option],
@@ -2050,14 +2050,14 @@ sub update_selection_menu {
     );
 
 
-    my $selected_labels_to_clipboard = Gtk2::MenuItem->new_with_label('Copy selected labels to clipboard');
+    my $selected_labels_to_clipboard = Gtk3::MenuItem->new_with_label('Copy selected labels to clipboard');
     $selected_labels_to_clipboard->signal_connect_swapped(
         activate => \&do_copy_selected_to_clipboard, [$self],
     );
     $selected_labels_to_clipboard->set_tooltip_text(
           'Copy the selected label names to the clipboard',
     );
-    my $selected_records_to_clipboard = Gtk2::MenuItem->new_with_label('Copy selected records to clipboard');
+    my $selected_records_to_clipboard = Gtk3::MenuItem->new_with_label('Copy selected records to clipboard');
     $selected_records_to_clipboard->signal_connect_swapped(
         activate => \&do_copy_selected_to_clipboard, [$self, 'full_recs'],
     );
@@ -2092,7 +2092,7 @@ sub do_copy_selected_to_clipboard {
     my $self = $args->[0];
     my $full_recs = $args->[1];
 
-    my $clipboard = Gtk2::Clipboard->get(Gtk2::Gdk->SELECTION_CLIPBOARD);
+    my $clipboard = Gtk3::Clipboard->get(Gtk3::Gdk->SELECTION_CLIPBOARD);
 
     # Add text and HTML data to clipboard
     # We'll be called back when someone pastes
@@ -2176,7 +2176,7 @@ sub clipboard_get_func {
     print "[Labels] Sending data for selection to clipboard\n";
 
     if ($datatype == TYPE_HTML) {
-        my $atom = Gtk2::Gdk::Atom->intern('text/html');
+        my $atom = Gtk3::Gdk::Atom->intern('text/html');
         $selection->set($atom, 8, $text);
     }
     else {
@@ -2235,7 +2235,7 @@ sub do_new_basedata_from_selection {
     # Show the Get Name dialog
     my $gui = $self->{gui};
 
-    my $dlgxml = Gtk2::Builder->new();
+    my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file($self->{gui}->get_gtk_ui_file('dlgDuplicate.ui'));
     my $dlg = $dlgxml->get_object('dlgDuplicate');
     $dlg->set_title ('Basedata object name');
@@ -2247,9 +2247,9 @@ sub do_new_basedata_from_selection {
 
     #  now pack in the options
     my $vbox = $dlg->get_content_area();
-    my $hbox = Gtk2::HBox->new;
-    my $label = Gtk2::Label->new('Delete empty groups?');
-    my $chk   = Gtk2::CheckButton->new;
+    my $hbox = Gtk3::HBox->new;
+    my $label = Gtk3::Label->new('Delete empty groups?');
+    my $chk   = Gtk3::CheckButton->new;
     $chk->set_active(1);
     my $tip_text = 'Set to off if you wish to retain all the current groups, even if they are empty.';
     $label->set_tooltip_text($tip_text);
@@ -2343,7 +2343,7 @@ sub do_select_labels_regex {
 
     my $gui = $self->{gui};
     #  Hijack the import daligue.  (We should really build our own).
-    my $dlgxml = Gtk2::Builder->new();
+    my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file($self->{gui}->get_gtk_ui_file('dlgImportParameters.ui'));
     my $dlg = $dlgxml->get_object('dlgImportParameters');
     $dlg->set_title('Text selection');

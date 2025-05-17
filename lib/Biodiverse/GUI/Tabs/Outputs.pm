@@ -6,7 +6,7 @@ use Carp;
 
 use Scalar::Util qw { blessed };
 
-use Gtk2;
+use Gtk3;
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::Export;
@@ -25,14 +25,14 @@ sub new {
     bless $self, $class;
 
     # (we can have many Analysis tabs open, for example. These have a different object/widgets)
-    $self->{xmlPage} = Gtk2::Builder->new();
+    $self->{xmlPage} = Gtk3::Builder->new();
     $self->{xmlPage}->add_from_file($self->{gui}->get_gtk_ui_file('hboxOutputsPage.ui'));
-    $self->{xmlLabel} = Gtk2::Builder->new();
+    $self->{xmlLabel} = Gtk3::Builder->new();
     $self->{xmlLabel}->add_from_file($self->{gui}->get_gtk_ui_file('hboxOutputsLabel.ui'));
 
     my $page  = $self->get_xmlpage_object('hboxOutputsPage');
     my $label = $self->{xmlLabel}->get_object('hboxOutputsLabel');
-    my $menu_label = Gtk2::Label->new ('Outputs tab');
+    my $menu_label = Gtk3::Label->new ('Outputs tab');
 
     # Add to notebook
     $self->{notebook}   = $self->{gui}->get_notebook();
@@ -58,7 +58,7 @@ sub new {
     #while (my ($column_type, $text) = each %columns_hash) {
     foreach my $column_type (@column_order) {
         my $text = $columns_hash{$column_type};
-        my $text_renderer = Gtk2::CellRendererText->new();
+        my $text_renderer = Gtk3::CellRendererText->new();
         if ($column_type eq 'Type') {
             $text_renderer->set(style => 'italic');
         }
@@ -314,7 +314,7 @@ sub on_export {
 
         # Show "Save changes?" dialog
         my $gui = $self->{gui};
-        my $dlgxml = Gtk2::Builder->new();
+        my $dlgxml = Gtk3::Builder->new();
         $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgGroupsLabels.ui'));
 
         my $dlg = $dlgxml->get_object('dlgGroupsLabels');
@@ -397,7 +397,7 @@ sub on_delete {
         }
 
         # Confirmation dialog
-        $dialog = Gtk2::MessageDialog->new (
+        $dialog = Gtk3::MessageDialog->new (
             $self->{gui}->get_object('wndMain'),
             'destroy-with-parent',
             'question',
@@ -432,7 +432,7 @@ sub on_delete {
         my $name = $basedata_ref->get_param('NAME');
 
         # Confirmation dialog
-        $dialog = Gtk2::MessageDialog->new (
+        $dialog = Gtk3::MessageDialog->new (
             $self->{gui}->get_object('wndMain'),
             'destroy-with-parent',
             'question',

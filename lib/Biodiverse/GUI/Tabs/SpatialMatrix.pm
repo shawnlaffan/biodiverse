@@ -7,7 +7,7 @@ use English ( -no_match_vars );
 
 our $VERSION = '4.99_002';
 
-use Gtk2;
+use Gtk3;
 use Carp;
 use Scalar::Util qw /blessed looks_like_number weaken/;
 
@@ -57,15 +57,15 @@ sub new {
     }
 
     # (we can have many Analysis tabs open, for example. These have a different object/widgets)
-    $self->{xmlPage} = Gtk2::Builder->new();
+    $self->{xmlPage} = Gtk3::Builder->new();
     $self->{xmlPage}->add_from_file($self->{gui}->get_gtk_ui_file('hboxSpatialPage.ui'));
-    $self->{xmlLabel} = Gtk2::Builder->new();
+    $self->{xmlLabel} = Gtk3::Builder->new();
     $self->{xmlLabel}->add_from_file($self->{gui}->get_gtk_ui_file('hboxSpatialLabel.ui'));
 
     my $page  = $self->get_xmlpage_object('hboxSpatialPage');
     my $label = $self->{xmlLabel}->get_object('hboxSpatialLabel');
     my $label_text   = $self->{xmlLabel}->get_object('lblSpatialName')->get_text;
-    my $label_widget = Gtk2::Label->new ($label_text);
+    my $label_widget = Gtk3::Label->new ($label_text);
     $self->{tab_menu_label} = $label_widget;
 
     # Set up options menu
@@ -339,7 +339,7 @@ sub make_output_indices_model {
     my $groups_ref = $self->{groups_ref};
 
     # Make model for combobox
-    my $model = Gtk2::ListStore->new('Glib::String');
+    my $model = Gtk3::ListStore->new('Glib::String');
 
     #  get the list
     my $list = $self->get_cached_value ('ELEMENT_LIST_SORTED');
@@ -367,7 +367,7 @@ sub make_lists_model {
     my $lists = ('$elements_list_name');
 
 # Make model for combobox
-    my $model = Gtk2::ListStore->new('Glib::String');
+    my $model = Gtk3::ListStore->new('Glib::String');
     foreach my $x (sort @$lists) {
         my $iter = $model->append;
         $model->set($iter, 0, $x);
@@ -597,7 +597,7 @@ sub set_index_cell_colour {
     my ($self, $colour) = @_;
 
     my $default = 150 * 257;
-    $colour //= Gtk2::Gdk::Color->new($default, $default, $default);
+    $colour //= Gtk3::Gdk::Color->new($default, $default, $default);
     $self->{index_cell_colour} = $colour;
 
     return $colour;

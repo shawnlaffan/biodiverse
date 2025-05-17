@@ -107,7 +107,7 @@ jobs:
           echo $(perl -Mlocal::lib=${HOME}/perl5)
           eval "$(perl -Mlocal::lib=${HOME}/perl5)"
           cpanm --notest Pango
-          cpanm --notest Gtk2
+          cpanm --notest Gtk3
       
       - name: Run matrix tests
         run: |

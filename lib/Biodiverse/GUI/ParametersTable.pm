@@ -54,7 +54,7 @@ use warnings;
 use 5.010;
 
 use Glib;
-use Gtk2;
+use Gtk3;
 #use Text::Wrapper;
 
 use Carp;
@@ -80,7 +80,7 @@ sub fill {
     # Ask object for parameters metadata
     my (@extract_closures, @widgets, %label_widget_pairs, $debug_hbox);
 
-    my $tooltip_group = Gtk2::Tooltips->new;
+    my $tooltip_group = Gtk3::Tooltips->new;
 
     my $row = 0;
 
@@ -105,7 +105,7 @@ sub fill {
         # Make the label
         my $label_text = $param->{label_text} // $param_name;
         chomp $label_text;
-        my $label = Gtk2::Label->new ($label_text);
+        my $label = Gtk3::Label->new ($label_text);
         $label->set_line_wrap(30);
         #my $label_text = $label_wrapper->wrap($param->{label_text} || $param->{name});
         $label->set_alignment(0, 0.5);
@@ -119,7 +119,7 @@ sub fill {
             #  reflow the label text
             $label_text =~ s/(?<=\w)\n(?!\n)/ /g;
             $label->set_text( $label_text );
-            $widget = Gtk2::HBox->new;
+            $widget = Gtk3::HBox->new;
         }
 
         $label_widget_pairs{$param_name} = [$label, $widget];
@@ -134,12 +134,12 @@ sub fill {
                 $rows++;
                 $table->set('n-rows' => $rows);
                 $added_hbox_row++;
-                $hbox = $self->{box_groups}{$box_group_name} = Gtk2::HBox->new;
+                $hbox = $self->{box_groups}{$box_group_name} = Gtk3::HBox->new;
                 if ($box_group_name eq 'Debug') {
                     $debug_hbox //= $hbox;
                 }
                 else {
-                    my $l = Gtk2::Label->new ($box_group_name);
+                    my $l = Gtk3::Label->new ($box_group_name);
                     $l->set_alignment(0, 0.5);
                     $table->attach($l,  0, 1, $rows, $rows + 1, 'fill', [], 0, 0);
                     $table->attach($hbox, 1, 2, $rows, $rows + 1, $fill_flags, [], 0, 0);
@@ -179,7 +179,7 @@ sub fill {
     #  hack - make sure debug hbox is last in table
     if ($debug_hbox) {
         #$table->remove($debug_hbox);
-        my $label = Gtk2::Label->new ('Debug');
+        my $label = Gtk3::Label->new ('Debug');
         $label->set_line_wrap(30);
         $label->set_alignment(0, 0.5);
 
@@ -273,7 +273,7 @@ sub generate_widget {
 sub generate_choice {
     my ($self, $param) = @_;
 
-    my $combo = Gtk2::ComboBox->new_text;
+    my $combo = Gtk3::ComboBox->new_text;
 
     # Fill the combo
     foreach my $choice (@{$param->{choices}}) {
@@ -291,7 +291,7 @@ sub generate_choice {
     };
 
     # Wrap inside an EventBox so that tooltips work
-    my $ebox = Gtk2::EventBox->new;
+    my $ebox = Gtk3::EventBox->new;
     $ebox->add($combo);
 
     return ($ebox, $extract);
@@ -301,7 +301,7 @@ sub generate_choice {
 sub generate_choice_index {
     my ($self, $param) = @_;
 
-    my $combo = Gtk2::ComboBox->new_text;
+    my $combo = Gtk3::ComboBox->new_text;
 
     # Fill the combo
     foreach my $choice (@{$param->{choices}}) {
@@ -319,7 +319,7 @@ sub generate_choice_index {
     };
 
     # Wrap inside an EventBox so that tooltips work
-    my $ebox = Gtk2::EventBox->new;
+    my $ebox = Gtk3::EventBox->new;
     $ebox->add($combo);
 
     return ($ebox, $extract);
@@ -342,7 +342,7 @@ sub generate_comment {
     my ($self, $param) = @_;
 
     #  just a placeholder
-    my $label = Gtk2::Label->new;
+    my $label = Gtk3::Label->new;
     $label->set_line_wrap(30);
     $label->set_selectable(1);
 
@@ -358,8 +358,8 @@ sub generate_integer {
     my $min     = $param->get_min // 0;
     my $max     = $param->get_max // 10000000;
 
-    my $adj = Gtk2::Adjustment->new($default, $min, $max, $incr, $incr * 10, 0);
-    my $spin = Gtk2::SpinButton->new($adj, $incr, 0);
+    my $adj = Gtk3::Adjustment->new($default, $min, $max, $incr, $incr * 10, 0);
+    my $spin = Gtk3::SpinButton->new($adj, $incr, 0);
 
     my $extract = sub { return ($param->{name}, $spin->get_value_as_int); };
     return ($spin, $extract);
@@ -374,8 +374,8 @@ sub generate_float {
     my $min     = $param->get_min // 0;
     my $max     = $param->get_max // 10000000;
 
-    my $adj = Gtk2::Adjustment->new($default, $min, $max, $incr, $incr * 10, 0);
-    my $spin = Gtk2::SpinButton->new($adj, $incr, $digits);
+    my $adj = Gtk3::Adjustment->new($default, $min, $max, $incr, $incr * 10, 0);
+    my $spin = Gtk3::SpinButton->new($adj, $incr, $digits);
 
     my $extract = sub { return ($param->get_name, $spin->get_value); };
     return ($spin, $extract);
@@ -386,7 +386,7 @@ sub generate_boolean {
 
     my $default = $param->get_default || 0;
 
-    my $checkbox = Gtk2::CheckButton->new;
+    my $checkbox = Gtk3::CheckButton->new;
     $checkbox->set(active => $default);
 
     my $extract = sub { return ($param->get_name, $checkbox->get_active); };
@@ -413,12 +413,12 @@ sub generate_text_one_line {
     my ($self, $param) = @_;
     my $default = $param->get_default // '';
 
-    my $text_buffer = Gtk2::TextBuffer->new;
+    my $text_buffer = Gtk3::TextBuffer->new;
 
     # Text view
     $text_buffer->set_text($default);
-    my $text_view = Gtk2::TextView->new_with_buffer($text_buffer);
-    my $frame = Gtk2::Frame->new();
+    my $text_view = Gtk3::TextView->new_with_buffer($text_buffer);
+    my $frame = Gtk3::Frame->new();
     $frame->add($text_view);
 
     my $extract = sub {
@@ -434,14 +434,14 @@ sub generate_text {
     my ($self, $param) = @_;
     my $default = $param->get_default // '';
 
-    my $text_buffer = Gtk2::TextBuffer->new;
+    my $text_buffer = Gtk3::TextBuffer->new;
 
     # Text view
     $text_buffer->set_text($default);
-    my $text_view = Gtk2::TextView->new_with_buffer($text_buffer);
+    my $text_view = Gtk3::TextView->new_with_buffer($text_buffer);
 
     # Scrolled window for multi-line conditions
-    my $scroll = Gtk2::ScrolledWindow->new;
+    my $scroll = Gtk3::ScrolledWindow->new;
     $scroll->set_policy('automatic', 'automatic');
     $scroll->set_shadow_type('in');
     $scroll->add( $text_view );

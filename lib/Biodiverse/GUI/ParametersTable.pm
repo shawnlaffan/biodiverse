@@ -273,7 +273,7 @@ sub generate_widget {
 sub generate_choice {
     my ($self, $param) = @_;
 
-    my $combo = Gtk3::ComboBox->new_text;
+    my $combo = Gtk3::ComboBoxText->new;
 
     # Fill the combo
     foreach my $choice (@{$param->{choices}}) {
@@ -301,7 +301,7 @@ sub generate_choice {
 sub generate_choice_index {
     my ($self, $param) = @_;
 
-    my $combo = Gtk3::ComboBox->new_text;
+    my $combo = Gtk3::ComboBoxText->new;
 
     # Fill the combo
     foreach my $choice (@{$param->{choices}}) {

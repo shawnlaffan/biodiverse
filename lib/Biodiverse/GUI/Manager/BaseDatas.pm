@@ -1189,8 +1189,8 @@ sub do_basedata_trim_using_object {
     my @tree_sources = @{ $project->get_phylogeny_list };
     my @trim_sources = (@bd_sources, @matrix_sources, @tree_sources);
 
-    my $trim_combo = Gtk3::ComboBox->new_text;
-    my $controller_combo = Gtk3::ComboBox->new_text;
+    my $trim_combo = Gtk3::ComboBoxText->new;
+    my $controller_combo = Gtk3::ComboBoxText->new;
 
     my $source_tooltip = 'Choose a data source to trim with';
     foreach my $object (@bd_sources) {

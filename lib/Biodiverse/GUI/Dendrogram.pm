@@ -14,7 +14,7 @@ use List::Util 1.29 qw /min pairs/;
 use List::MoreUtils qw /firstidx/;
 
 use Gtk3;
-use Gnome2::Canvas;
+use GooCanvas2;
 use POSIX qw /ceil/; # for ceil()
 
 our $VERSION = '4.99_002';
@@ -139,8 +139,8 @@ sub new {
     }
 
     # Make and hook up the canvases
-    $self->{canvas} = Gnome2::Canvas->new();
-    $self->{graph}  = Gnome2::Canvas->new();
+    $self->{canvas} = GooCanvas2->new();
+    $self->{graph}  = GooCanvas2->new();
     $main_frame->add( $self->{canvas} );
     $graph_frame->add( $self->{graph} );
     $self->{canvas}->signal_connect_swapped (
@@ -172,9 +172,9 @@ sub new {
     $self->{height_scale} = 1;
 
     # Create background rectangle to receive mouse events for panning
-    my $rect = Gnome2::Canvas::Item->new (
-        $self->{canvas}->root,
-        'Gnome2::Canvas::Rect',
+    my $rect = GooCanvas2::CanvasItem->new (
+        $self->{canvas}->get_root_item,
+        'GooCanvas2::CanvasRect',
         x1 => 0,
         y1 => 0,
         x2 => 1,
@@ -185,7 +185,7 @@ sub new {
     );
 
     $rect->lower_to_bottom();
-    $self->{canvas}->root->signal_connect_swapped (event => \&on_background_event, $self);
+    $self->{canvas}->get_root_item->signal_connect_swapped (event => \&on_background_event, $self);
     $self->{back_rect} = $rect;
 
     # Process changes for the map
@@ -286,9 +286,9 @@ sub make_slider {
         return;
     }
 
-    $self->{slider} = Gnome2::Canvas::Item->new (
-        $self->{canvas}->root,
-        'Gnome2::Canvas::Rect',
+    $self->{slider} = GooCanvas2::CanvasItem->new (
+        $self->{canvas}->get_root_item,
+        'GooCanvas2::CanvasRect',
         x1 => 0,
         y1 => 0,
         x2 => 1,
@@ -298,9 +298,9 @@ sub make_slider {
     $self->{slider}->signal_connect_swapped (event => \&on_slider_event, $self);
 
     # Slider for the graph at the bottom
-    $self->{graph_slider} = Gnome2::Canvas::Item->new (
+    $self->{graph_slider} = GooCanvas2::CanvasItem->new (
         $self->{graph}->root,
-        'Gnome2::Canvas::Rect',
+        'GooCanvas2::CanvasRect',
         x1 => 0,
         y1 => 0,
         x2 => 1,
@@ -310,17 +310,17 @@ sub make_slider {
     $self->{graph_slider}->signal_connect_swapped (event => \&on_slider_event, $self);
 
     # Make the #Clusters textbox
-    $self->{clusters_group} = Gnome2::Canvas::Item->new (
-        $self->{canvas}->root,
-        'Gnome2::Canvas::Group',
+    $self->{clusters_group} = GooCanvas2::CanvasItem->new (
+        $self->{canvas}->get_root_item,
+        'GooCanvas2::CanvasGroup',
         x => 0,
         y => 0,
     );
     $self->{clusters_group}->lower_to_bottom();
 
-    $self->{clusters_rect} = Gnome2::Canvas::Item->new (
+    $self->{clusters_rect} = GooCanvas2::CanvasItem->new (
         $self->{clusters_group},
-        'Gnome2::Canvas::Rect',
+        'GooCanvas2::CanvasRect',
         x1 => 0,
         y1 => 0,
         x2 => 0,
@@ -328,9 +328,9 @@ sub make_slider {
         'fill-color' => 'blue',
     );
 
-    $self->{clusters_text} = Gnome2::Canvas::Item->new (
+    $self->{clusters_text} = GooCanvas2::CanvasItem->new (
         $self->{clusters_group},
-        'Gnome2::Canvas::Text',
+        'GooCanvas2::CanvasText',
         x => 0,
         y => 0,
         anchor => 'nw',
@@ -2330,9 +2330,9 @@ sub render_tree {
     $self->{root_circle}->destroy() if $self->{root_circle};
 
     # Make group so we can transform everything together
-    my $lines_group = Gnome2::Canvas::Item->new (
-        $self->{canvas}->root,
-        'Gnome2::Canvas::Group',
+    my $lines_group = GooCanvas2::CanvasItem->new (
+        $self->{canvas}->get_root_item,
+        'GooCanvas2::CanvasGroup',
         x => 0,
         y => 0
     );
@@ -2371,9 +2371,9 @@ sub render_tree {
     # Draw a circle to mark out the root node
     my $root_y = $tree->get_value('_y') * $self->{height_scale};
     my $root_circ_diameter = 0.5 * $self->{border_len} * $self->{length_scale};
-    $self->{root_circle} = Gnome2::Canvas::Item->new (
+    $self->{root_circle} = GooCanvas2::CanvasItem->new (
         $self->{lines_group},
-        'Gnome2::Canvas::Ellipse',
+        'GooCanvas2::Ellipse',
         x1 => $root_offset,
         y1 => $root_y + $root_circ_diameter / 2,
         x2 => $root_offset + $root_circ_diameter,
@@ -2388,24 +2388,24 @@ sub render_tree {
     $self->{root_circle}->lower_to_bottom();
     $self->{back_rect}->lower_to_bottom();
 
-    if (0) {
-        # Spent ages on this - not working - NO IDEA WHY!!
-
-        # Draw an equilateral triangle to mark out the root node
-        # Vertex pointing at the root, the up-down side half border_len behind
-        my $perp_height = 0.5 * $self->{length_scale} *  $self->{border_len} / 1.732;  # 1.723 ~ sqrt(3)
-        my $triangle_path = Gnome2::Canvas::PathDef->new;
-        $triangle_path->moveto($root_offset, $root_y);
-        $triangle_path->lineto($root_offset - 0.5 * $self->{border_len}, $root_y + $perp_height);
-        $triangle_path->lineto($root_offset - 0.5 * $self->{border_len}, $root_y - $perp_height);
-        $triangle_path->closepath();
-
-        my $triangle = Gnome2::Canvas::Item->new (  $lines_group,
-                                                    "Gnome2::Canvas::Shape",
-                                                    fill_color => "green",
-                                                    );
-        $triangle->set_path_def($triangle_path);
-    }
+    # if (0) {
+    #     # Spent ages on this - not working - NO IDEA WHY!!
+    #
+    #     # Draw an equilateral triangle to mark out the root node
+    #     # Vertex pointing at the root, the up-down side half border_len behind
+    #     my $perp_height = 0.5 * $self->{length_scale} *  $self->{border_len} / 1.732;  # 1.723 ~ sqrt(3)
+    #     my $triangle_path = GooCanvas2::PathDef->new;
+    #     $triangle_path->moveto($root_offset, $root_y);
+    #     $triangle_path->lineto($root_offset - 0.5 * $self->{border_len}, $root_y + $perp_height);
+    #     $triangle_path->lineto($root_offset - 0.5 * $self->{border_len}, $root_y - $perp_height);
+    #     $triangle_path->closepath();
+    #
+    #     my $triangle = GooCanvas2::CanvasItem->new (  $lines_group,
+    #                                                 "GooCanvas2::Shape",
+    #                                                 fill_color => "green",
+    #                                                 );
+    #     $triangle->set_path_def($triangle_path);
+    # }
 
     #$self->restore_line_colours();
 
@@ -2447,9 +2447,9 @@ sub render_graph {
     }
 
     # Make group so we can transform everything together
-    my $graph_group = Gnome2::Canvas::Item->new (
+    my $graph_group = GooCanvas2::CanvasItem->new (
         $self->{graph}->root,
-        'Gnome2::Canvas::Group',
+        'GooCanvas2::CanvasGroup',
         x => 0,
         y => 0
     );
@@ -2497,9 +2497,9 @@ sub render_graph {
         my $segment_y = ($i * $graph_height_units) / $y_offset;
         #print "[render_graph] segment_y=$segment_y current_x=$current_x\n";
 
-        my $hline =  Gnome2::Canvas::Item->new (
+        my $hline =  GooCanvas2::CanvasItem->new (
             $graph_group,
-            'Gnome2::Canvas::Line',
+            'GooCanvas2::Line',
             points          => [$current_x - $segment_length, $segment_y, $current_x, $segment_y],
             fill_color_gdk  => COLOUR_BLACK,
             width_pixels    => NORMAL_WIDTH
@@ -2507,9 +2507,9 @@ sub render_graph {
 
         # Now the vertical line
         if ($previous_y) {
-            my $vline = Gnome2::Canvas::Item->new (
+            my $vline = GooCanvas2::CanvasItem->new (
                 $graph_group,
-                'Gnome2::Canvas::Line',
+                'GooCanvas2::Line',
                 points          => [$current_x, $previous_y, $current_x, $segment_y],
                 fill_color_gdk  => COLOUR_BLACK,
                 width_pixels    => NORMAL_WIDTH
@@ -2627,9 +2627,9 @@ sub draw_line {
       ? 'solid'
       : 'on-off-dash';
 
-    return Gnome2::Canvas::Item->new (
+    return GooCanvas2::CanvasItem->new (
         $self->{lines_group},
-        'Gnome2::Canvas::Line',
+        'GooCanvas2::Line',
         points => $vertices,
         fill_color_gdk => $colour_ref,
         line_style     => $line_style,
@@ -2796,9 +2796,9 @@ sub on_background_event {
             );
             $self->{selecting} = 1;
 
-            $self->{sel_rect} = Gnome2::Canvas::Item->new (
-                $self->{canvas}->root,
-                'Gnome2::Canvas::Rect',
+            $self->{sel_rect} = GooCanvas2::CanvasItem->new (
+                $self->{canvas}->get_root_item,
+                'GooCanvas2::CanvasRect',
                 x1 => $x,
                 y1 => $y,
                 x2 => $x,

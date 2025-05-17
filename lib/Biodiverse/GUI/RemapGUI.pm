@@ -7,7 +7,7 @@ use warnings;
 our $VERSION = '4.99_002';
 
 use Gtk3;
-use Biodiverse::RemapGuesser qw/guess_remap/;
+# use Biodiverse::RemapGuesser qw/guess_remap/;
 use English( -no_match_vars );
 
 use Carp;

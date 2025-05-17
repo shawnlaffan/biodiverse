@@ -18,7 +18,7 @@ use List::MoreUtils qw /minmax firstidx/;
 use experimental qw /refaliasing declared_refs/;
 
 use Gtk3;
-use Gnome2::Canvas;
+use GooCanvas2;
 use Tree::R;
 
 #use Geo::ShapeFile;
@@ -96,9 +96,9 @@ sub new {
 
     # Make group so we can pack the coloured
     # rectangles into it.
-    $self->{legend_group} = Gnome2::Canvas::Item->new (
-        $self->{canvas}->root,
-        'Gnome2::Canvas::Group',
+    $self->{legend_group} = GooCanvas2::CanvasItem->new (
+        $self->{canvas}->get_root_item,
+        'GooCanvas2::CanvasGroup',
         x => $width - $self->get_width,
         y => 0,
     );
@@ -181,9 +181,9 @@ sub make_rect {
 
     # Make a group so we can pack the coloured
     # rectangles into it to create the legend.
-    $self->{legend_colours_group} = Gnome2::Canvas::Item->new (
+    $self->{legend_colours_group} = GooCanvas2::CanvasItem->new (
         $self->{legend_group},
-        'Gnome2::Canvas::Group',
+        'GooCanvas2::CanvasGroup',
         x => 0, 
         y => 0, 
     );   
@@ -347,9 +347,9 @@ sub add_row {
       ? $r
       : [Gtk3::Gdk::Color::parse(sprintf ('#%x%x%x', $r,$g,$b))]->[1];
 
-    my $legend_colour_row = Gnome2::Canvas::Item->new (
+    my $legend_colour_row = GooCanvas2::CanvasItem->new (
         $group,
-        'Gnome2::Canvas::Rect',
+        'GooCanvas2::CanvasRect',
         x1 => 0,
         x2 => $width,
         y1 => $row,
@@ -365,9 +365,9 @@ sub add_row {
 sub make_mark {
     my $self   = shift;
     my $anchor = shift // 'w';
-    my $mark = Gnome2::Canvas::Item->new (
+    my $mark = GooCanvas2::CanvasItem->new (
         $self->{legend_group}, 
-        'Gnome2::Canvas::Text',
+        'GooCanvas2::CanvasText',
         text            => q{0},
         anchor          => $anchor,
         fill_color_gdk  => COLOUR_BLACK,

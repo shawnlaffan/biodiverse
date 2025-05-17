@@ -37,10 +37,10 @@ use constant LEAF_SPACING    => 1; # arbitrary scale (length will be scaled to f
 use constant HIGHLIGHT_WIDTH => 2; # width of highlighted horizontal lines (pixels)
 use constant NORMAL_WIDTH    => 1;       # width of normal lines (pixels)
 
-use constant COLOUR_BLACK => Gtk3::Gdk::Color->new(0,0,0);
-use constant COLOUR_WHITE => Gtk3::Gdk::Color->new(255*257, 255*257, 255*257);
-use constant COLOUR_GRAY  => Gtk3::Gdk::Color->new(210*257, 210*257, 210*257);
-use constant COLOUR_RED   => Gtk3::Gdk::Color->new(255*257,0,0);
+use constant COLOUR_BLACK => Gtk3::Gdk::Color::parse(0,0,0);
+use constant COLOUR_WHITE => Gtk3::Gdk::Color::parse(255*257, 255*257, 255*257);
+use constant COLOUR_GRAY  => Gtk3::Gdk::Color::parse(210*257, 210*257, 210*257);
+use constant COLOUR_RED   => Gtk3::Gdk::Color::parse(255*257,0,0);
 
 use constant COLOUR_PALETTE_OVERFLOW  => COLOUR_WHITE;
 use constant COLOUR_OUTSIDE_SELECTION => COLOUR_WHITE;
@@ -49,7 +49,7 @@ use constant COLOUR_LIST_UNDEF        => COLOUR_WHITE;
 
 use constant DEFAULT_LINE_COLOUR      => COLOUR_BLACK;
 use constant DEFAULT_LINE_COLOUR_RGB  => "#000000";
-use constant DEFAULT_LINE_COLOUR_VERT => Gtk3::Gdk::Color->parse('#7F7F7F');  #  '#4D4D4D'
+use constant DEFAULT_LINE_COLOUR_VERT => Gtk3::Gdk::Color::parse('#7F7F7F');  #  '#4D4D4D'
 
 use constant HOVER_CURSOR => 'hand2';
 
@@ -89,7 +89,7 @@ sub new {
         render_height       => 0,
         graph_height_px     => 0,
         use_slider_to_select_nodes => $use_slider_to_select_nodes,
-        colour_not_in_tree  => Gtk3::Gdk::Color->new($grey, $grey, $grey),
+        colour_not_in_tree  => Gtk3::Gdk::Color::parse($grey, $grey, $grey),
         use_highlight_func  => 1, #  should we highlight?
     };
 
@@ -561,7 +561,7 @@ sub get_palette_colorbrewer13 {
 sub get_gdk_colors_colorbrewer9 {
     my $self = shift;
     my @colours
-        = map {Gtk3::Gdk::Color->parse ($_)}
+        = map {Gtk3::Gdk::Color::parse ($_)}
           $self->get_palette_colorbrewer9;
     return @colours;
 }
@@ -569,7 +569,7 @@ sub get_gdk_colors_colorbrewer9 {
 sub get_gdk_colors_colorbrewer13 {
     my $self = shift;
     my @colours
-        = map {Gtk3::Gdk::Color->parse ($_)}
+        = map {Gtk3::Gdk::Color::parse ($_)}
           $self->get_palette_colorbrewer13;
     return @colours;
 }
@@ -819,7 +819,7 @@ sub assign_cluster_palette_colours {
         # assign colours
         my $colour_ref;
         foreach my $k (0..$#sorted_clusters) {
-            $colour_ref = Gtk3::Gdk::Color->parse($palette[$k]);
+            $colour_ref = Gtk3::Gdk::Color::parse($palette[$k]);
             #$sorted_clusters[$k]->set_cached_value(__gui_palette_colour => $colour_ref);
             $self->{node_palette_colours}{$sorted_clusters[$k]->get_name} = $colour_ref;
         }
@@ -1101,7 +1101,7 @@ sub set_current_multiselect_colour {
 
     eval {
         if ((blessed $colour // '') !~ /Gtk3::Gdk::Color/) {
-            $colour = Gtk3::Gdk::Color->parse  ($colour);
+            $colour = Gtk3::Gdk::Color::parse  ($colour);
         }
         $colour = $self->{selector_colorbutton}->set_color ($colour);
     };

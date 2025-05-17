@@ -13,7 +13,7 @@ our $VERSION = '4.99_002';
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
 
-my $default_colour       = Gtk3::Gdk::Color->parse('#001169');
+my $default_colour       = Gtk3::Gdk::Color::parse('#001169');
 my $last_selected_colour = $default_colour;
 
 use constant COL_FNAME       => 0;
@@ -217,7 +217,7 @@ sub _update_colour_for_selection {
     }
 
     if (!Scalar::Util::blessed $colour) {
-        $colour = Gtk3::Gdk::Color->parse($colour);
+        $colour = Gtk3::Gdk::Color::parse($colour);
     }
     $colour_button->set_color($colour);
 

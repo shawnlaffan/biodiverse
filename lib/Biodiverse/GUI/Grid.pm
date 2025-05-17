@@ -57,11 +57,11 @@ use constant INDEX_MINUS        => 5;
 
 use constant HOVER_CURSOR       => 'hand2';
 
-use constant HIGHLIGHT_COLOUR    => Gtk3::Gdk::Color->new(255*257,0,0); # red
-use constant COLOUR_BLACK        => Gtk3::Gdk::Color->new(0, 0, 0);
-use constant COLOUR_WHITE        => Gtk3::Gdk::Color->new(255*257, 255*257, 255*257);
-use constant CELL_OUTLINE_COLOUR => Gtk3::Gdk::Color->new(0, 0, 0);
-use constant OVERLAY_COLOUR      => Gtk3::Gdk::Color->parse('#001169');
+use constant HIGHLIGHT_COLOUR    => Gtk3::Gdk::Color::parse(255*257,0,0); # red
+use constant COLOUR_BLACK        => Gtk3::Gdk::Color::parse(0, 0, 0);
+use constant COLOUR_WHITE        => Gtk3::Gdk::Color::parse(255*257, 255*257, 255*257);
+use constant CELL_OUTLINE_COLOUR => Gtk3::Gdk::Color::parse(0, 0, 0);
+use constant OVERLAY_COLOUR      => Gtk3::Gdk::Color::parse('#001169');
 use constant DARKEST_GREY_FRAC   => 0.2;
 use constant LIGHTEST_GREY_FRAC  => 0.8;
 

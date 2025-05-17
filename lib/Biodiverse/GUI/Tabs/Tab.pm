@@ -933,7 +933,7 @@ sub set_excluded_cell_colour {
     my ($self, $colour) = @_;
     
     my $g = my $grey = 0.9 * 255 * 257;;
-    $colour //= Gtk3::Gdk::Color->new($g, $g, $g);
+    $colour //= Gtk3::Gdk::Color::parse($g, $g, $g);
 
     croak "Colour argument must be a Gtk3::Gdk::Color object\n"
       if not blessed ($colour) eq 'Gtk3::Gdk::Color';

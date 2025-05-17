@@ -228,6 +228,7 @@ my $handler_entered = 0;
 #   installs keyboard-shortcut handler
 sub set_keyboard_handler {
     my $self = shift;
+
     # Make CTRL-G activate the "go!" button (on_run)
     if ($snooper_id) {
         ##print "[Tab] Removing keyboard snooper $snooper_id\n";
@@ -235,9 +236,12 @@ sub set_keyboard_handler {
         $snooper_id = undef;
     }
 
-
-    $snooper_id = Gtk3->key_snooper_install(\&hotkey_handler, $self);
+#  FIXME FIXME - we should handle key events in the tab
+    #  poss also useful:
+    #  ee https://mail.gnome.org/archives/gtk-perl-list/2015-March/msg00001.html
+    # $snooper_id = Gtk3->key_snooper_install(\&hotkey_handler, $self);
     ##print "[Tab] Installed keyboard snooper $snooper_id\n";
+    return $snooper_id;
 }
 
 sub remove_keyboard_handler {

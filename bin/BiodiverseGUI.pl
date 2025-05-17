@@ -62,7 +62,7 @@ say "\n\nUsing Biodiverse engine version $Biodiverse::Config::VERSION";
 
 #  load Gtk
 use Gtk3;
-Gtk3->disable_setlocale; # leave LC_NUMERIC alone
+Gtk3::disable_setlocale; # leave LC_NUMERIC alone
 
 # my $icontheme = Gtk3::IconTheme->new;
 # use List::Util qw /uniq/;

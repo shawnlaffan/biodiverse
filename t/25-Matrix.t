@@ -6,7 +6,7 @@ use utf8;
 
 if ($ENV{BD_TEST_GUI}) {
     if (eval 'require Gtk3') {
-        Gtk3->disable_setlocale; # leave LC_NUMERIC alone for version nums
+        Gtk3::disable_setlocale; # leave LC_NUMERIC alone for version nums
         Gtk3->init if Gtk3->init_check;
     }
 }

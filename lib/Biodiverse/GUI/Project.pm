@@ -1448,24 +1448,26 @@ sub member_of {
 }
 
 # Get array of output refs for this basedata
+# We could get them direct from the basedata object,
+# but this keeps things in the same order as the rest
+# of the GUI.
 sub get_basedata_outputs {
     my $self = shift;
-    my $ref  = shift;
+    my $ref = shift;
 
     return if !defined $ref;
 
-    my $iter  = $self->{iters}{basedata_iters}{$ref};
+    my $iter = $self->{iters}{basedata_iters}{$ref};
     my $model = $self->{models}{basedata_output_model};
 
-    my $child_iter = $model->iter_nth_child( $iter, 0 );
-    my @array;
-    while ($child_iter) {
-        my ($output_ref) = $model->get( $child_iter, MODEL_OBJECT );
-        push @array, $output_ref;
-        $child_iter = $model->iter_next($child_iter);
+    my $n_children = $model->iter_n_children($iter);
+    my @arr;
+    for my $i (0 .. $n_children - 1) {
+        my $child_iter = $model->iter_nth_child($iter, $i);
+        push @arr, $model->get($child_iter, MODEL_OBJECT);
     }
 
-    return wantarray ? @array : \@array;
+    return wantarray ? @arr : \@arr;
 }
 
 ####################################################

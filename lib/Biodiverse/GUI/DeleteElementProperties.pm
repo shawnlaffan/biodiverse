@@ -432,6 +432,6 @@ sub add_header_and_tooltip_to_treeview_column {
 
     $column->set_widget($header);
 
-    my $tooltip = Gtk3::Tooltips->new();
+    my $tooltip = Gtk3::Tooltip->new();
     $tooltip->set_tip( $header, $args{tooltip_text} );
 }

@@ -80,7 +80,7 @@ sub fill {
     # Ask object for parameters metadata
     my (@extract_closures, @widgets, %label_widget_pairs, $debug_hbox);
 
-    my $tooltip_group = Gtk3::Tooltips->new;
+    my $tooltip_group = Gtk3::Tooltip->new;
 
     my $row = 0;
 

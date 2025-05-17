@@ -368,7 +368,7 @@ sub do_basedata_attach_group_properties_from_rasters {
     );
     $chk_label_overlap->set_alignment(1, 0.5);
 
-    my $tooltip_group = Gtk3::Tooltips->new;
+    my $tooltip_group = Gtk3::Tooltip->new;
     $tooltip_group->set_tip(
         $chk_label,
           'This can be useful to check the imported values, but also because you '
@@ -672,7 +672,7 @@ sub get_resolution_table_widget {
 
     my $table = Gtk3::Table->new (0, 0, 0);
 
-    my $tooltip_group = Gtk3::Tooltips->new;
+    my $tooltip_group = Gtk3::Tooltip->new;
 
     my $rows = $table->get('n-rows');
     $rows++;
@@ -820,7 +820,7 @@ sub get_origin_table_widget {
 
     my $table = Gtk3::Table->new (0, 0, 0);
 
-    my $tooltip_group = Gtk3::Tooltips->new;
+    my $tooltip_group = Gtk3::Tooltip->new;
 
     my $rows = $table->get('n-rows');
     $rows++;

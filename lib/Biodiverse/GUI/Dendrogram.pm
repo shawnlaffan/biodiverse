@@ -37,10 +37,10 @@ use constant LEAF_SPACING    => 1; # arbitrary scale (length will be scaled to f
 use constant HIGHLIGHT_WIDTH => 2; # width of highlighted horizontal lines (pixels)
 use constant NORMAL_WIDTH    => 1;       # width of normal lines (pixels)
 
-use constant COLOUR_BLACK => Gtk3::Gdk::Color::parse(0,0,0);
-use constant COLOUR_WHITE => Gtk3::Gdk::Color::parse(255*257, 255*257, 255*257);
-use constant COLOUR_GRAY  => Gtk3::Gdk::Color::parse(210*257, 210*257, 210*257);
-use constant COLOUR_RED   => Gtk3::Gdk::Color::parse(255*257,0,0);
+use constant COLOUR_BLACK => [Gtk3::Gdk::Color::parse ('#000000000000')]->[1];
+use constant COLOUR_WHITE => [Gtk3::Gdk::Color::parse ('#FFFFFFFFFFFF')]->[1];
+use constant COLOUR_GRAY  => [Gtk3::Gdk::Color::parse ('#D2D2D2D2D2D2')]->[1];
+use constant COLOUR_RED   => [Gtk3::Gdk::Color::parse ('#FFFF00000000')]->[1];
 
 use constant COLOUR_PALETTE_OVERFLOW  => COLOUR_WHITE;
 use constant COLOUR_OUTSIDE_SELECTION => COLOUR_WHITE;
@@ -49,7 +49,7 @@ use constant COLOUR_LIST_UNDEF        => COLOUR_WHITE;
 
 use constant DEFAULT_LINE_COLOUR      => COLOUR_BLACK;
 use constant DEFAULT_LINE_COLOUR_RGB  => "#000000";
-use constant DEFAULT_LINE_COLOUR_VERT => Gtk3::Gdk::Color::parse('#7F7F7F');  #  '#4D4D4D'
+use constant DEFAULT_LINE_COLOUR_VERT => [Gtk3::Gdk::Color::parse('#7F7F7F')]->[1];  #  '#4D4D4D'
 
 use constant HOVER_CURSOR => 'hand2';
 
@@ -71,7 +71,7 @@ sub new {
     my $use_slider_to_select_nodes = !$args{no_use_slider_to_select_nodes};
     my $want_legend = $args{want_legend};
 
-    my $grey = 0.9 * 255 * 257;
+    my $grey = '#E665E665E665';
 
     my $self = {
         map                 => $map,
@@ -89,7 +89,7 @@ sub new {
         render_height       => 0,
         graph_height_px     => 0,
         use_slider_to_select_nodes => $use_slider_to_select_nodes,
-        colour_not_in_tree  => Gtk3::Gdk::Color::parse($grey, $grey, $grey),
+        colour_not_in_tree  => [Gtk3::Gdk::Color::parse($grey)]->[1],
         use_highlight_func  => 1, #  should we highlight?
     };
 

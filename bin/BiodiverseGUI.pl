@@ -113,7 +113,7 @@ elsif ( $numargs > 1 ) {
 
 my $icon = get_iconfile();
 my $eval_result = eval {
-    Gtk3::Window->set_default_icon_from_file($icon)
+    Gtk3::Window::set_default_icon_from_file($icon)
 };
 #croak $EVAL_ERROR if $EVAL_ERROR;
 

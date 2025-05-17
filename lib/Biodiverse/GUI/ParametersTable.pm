@@ -80,8 +80,6 @@ sub fill {
     # Ask object for parameters metadata
     my (@extract_closures, @widgets, %label_widget_pairs, $debug_hbox);
 
-    my $tooltip_group = Gtk3::Tooltip->new;
-
     my $row = 0;
 
   PARAM:
@@ -164,7 +162,7 @@ sub fill {
         # Add a tooltip
         my $tip_text = $param->get_tooltip;
         if ($tip_text) {
-            $tooltip_group->set_text($widget, $tip_text, undef);
+            $label->set_tooltip_text ($tip_text);
         }
 
         # widgets are sensitive unless explicitly told otherwise
@@ -206,8 +204,6 @@ sub fill {
             $object->{buffer}->set_text ($text);
         }
     }
-
-    $tooltip_group->enable();
 
     $self->{extractors} = \@extract_closures;
     $self->{widgets}    = \@widgets;

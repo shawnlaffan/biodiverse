@@ -369,13 +369,13 @@ sub do_basedata_attach_group_properties_from_rasters {
     $chk_label_overlap->set_alignment(1, 0.5);
 
     my $tooltip_group = Gtk3::Tooltip->new;
-    $tooltip_group->set_tip(
+    $tooltip_group->set_text(
         $chk_label,
           'This can be useful to check the imported values, but also because you '
         . 'might want to run further analyses on these data.',
         undef,
     );
-    $tooltip_group->set_tip(
+    $tooltip_group->set_text(
         $chk_label_overlap,
           'Non-overlaps can occur if your data are in a different coordinate system '
         . 'from the property rasters.  Note that data from any rasters prior to the '
@@ -679,11 +679,11 @@ sub get_resolution_table_widget {
 
     my $incr_button = Gtk3::Button->new_with_label('Increment all');
     $table->attach( $incr_button, 0, 1, $rows, $rows + 1, 'shrink', [], 0, 0 );
-    $tooltip_group->set_tip( $incr_button,
+    $tooltip_group->set_text( $incr_button,
         'Increase all the axes by their default increments', undef, );
     my $decr_button = Gtk3::Button->new_with_label('Decrement all');
     $table->attach( $decr_button, 1, 2, $rows, $rows + 1, 'shrink', [], 0, 0 );
-    $tooltip_group->set_tip( $decr_button,
+    $tooltip_group->set_text( $decr_button,
         'Decrease all the axes by their default increments', undef, );
 
     my $i = -1;
@@ -758,8 +758,8 @@ sub get_resolution_table_widget {
             }
         }
 
-        $tooltip_group->set_tip( $widget, $tip_text, undef );
-        $tooltip_group->set_tip( $label,  $tip_text, undef );
+        $tooltip_group->set_text( $widget, $tip_text, undef );
+        $tooltip_group->set_text( $label,  $tip_text, undef );
 
         if ($is_text_axis) {
             $widget->set_sensitive(0);
@@ -827,11 +827,11 @@ sub get_origin_table_widget {
 
     my $incr_button = Gtk3::Button->new_with_label('Increment all');
     $table->attach( $incr_button, 0, 1, $rows, $rows + 1, 'shrink', [], 0, 0 );
-    $tooltip_group->set_tip( $incr_button,
+    $tooltip_group->set_text( $incr_button,
         'Increase all the axes by their default increments', undef, );
     my $decr_button = Gtk3::Button->new_with_label('Decrement all');
     $table->attach( $decr_button, 1, 2, $rows, $rows + 1, 'shrink', [], 0, 0 );
-    $tooltip_group->set_tip( $decr_button,
+    $tooltip_group->set_text( $decr_button,
         'Decrease all the axes by their default increments', undef, );
 
     my $i = -1;
@@ -906,8 +906,8 @@ sub get_origin_table_widget {
             }
         }
 
-        $tooltip_group->set_tip( $widget, $tip_text, undef );
-        $tooltip_group->set_tip( $label,  $tip_text, undef );
+        $tooltip_group->set_text( $widget, $tip_text, undef );
+        $tooltip_group->set_text( $label,  $tip_text, undef );
 
         if ($is_text_axis) {
             $widget->set_sensitive(0);

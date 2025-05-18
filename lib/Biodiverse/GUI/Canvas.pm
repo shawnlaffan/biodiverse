@@ -120,7 +120,7 @@ sub init_legend {
     return $self->{legend} = Biodiverse::GUI::Canvas::Legend->new(@_);
 }
 
-sub get_legend{
+sub get_legend {
     my $self = shift;
     return $self->{legend} // die 'Legend not initialised';
 }

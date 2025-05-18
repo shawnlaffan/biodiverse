@@ -58,7 +58,7 @@ sub new {
     my $draw_size = $self->{drawable}->get_allocation();
     my ($width, $height) = ($draw_size->{width}, $draw_size->{height});
 
-    # Create the legend rectangle.
+    # Create the legend rectangle.  Still needed?
     $self->{legend} = $self->make_rect();
 
     #  reverse might not be needed but ensures the array is the correct size from the start

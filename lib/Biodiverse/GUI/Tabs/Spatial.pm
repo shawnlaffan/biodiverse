@@ -2297,7 +2297,7 @@ sub recolour {
     my $ccache = $colour_cache->{$list}{$index} //= {};
 
     my $legend = $grid->get_legend;
-    say STDERR $grid->{legend};
+    say STDERR $legend;
 
     $legend->set_colour_mode_from_list_and_index (
         list  => $list,

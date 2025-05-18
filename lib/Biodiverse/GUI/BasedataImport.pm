@@ -4,6 +4,7 @@ use 5.010;
 use strict;
 use warnings;
 use English ( -no_match_vars );
+use experimental qw /declared_refs refaliasing/;
 
 use Carp;
 
@@ -1495,7 +1496,7 @@ sub on_file_changed {
     my $dlgxml  = shift;
 
     my $text      = $dlgxml->get_object("txtImportNew$import_n");
-    my @filenames = $chooser->get_filenames();
+    \my @filenames = $chooser->get_filenames() // [];
 
     # Default name to selected filename
     if ( scalar @filenames > 0 ) {

@@ -100,7 +100,7 @@ sub run {
     my @format_uses_columns = qw /shapefile text spreadsheet/;
 
     # Get selected filenames
-    my @filenames = $dlgxml->get_object($filechooser_input)->get_filenames();
+    \my @filenames = $dlgxml->get_object($filechooser_input)->get_filenames();
     my @file_names_tmp = @filenames;
     if ( scalar @filenames > 5 ) {
         @file_names_tmp = @filenames[ 0 .. 5 ];

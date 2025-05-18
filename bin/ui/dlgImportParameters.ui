@@ -117,13 +117,28 @@
                       <object class="GtkViewport">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
+                        <property name="hscroll-policy">natural</property>
+                        <property name="vscroll-policy">natural</property>
                         <child>
                           <object class="GtkTable" id="tableImportParameters">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
+                            <property name="hexpand">True</property>
+                            <property name="vexpand">True</property>
                             <property name="n-columns">2</property>
-                            <property name="column-spacing">3</property>
-                            <property name="row-spacing">3</property>
+                            <property name="column-spacing">1</property>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
                             <child>
                               <placeholder/>
                             </child>

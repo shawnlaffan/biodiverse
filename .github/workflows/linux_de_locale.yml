@@ -103,7 +103,7 @@ jobs:
           
       - name: Gtk stuff
         run: |
-          sudo apt-get install libpango1.0-dev libgtk2.0-dev libgtk3-dev libgoocanvas-2.0-dev
+          sudo apt-get install libpango1.0-dev libgtk2.0-dev libgtk-3-dev libgoocanvas-2.0-dev
           echo $(perl -Mlocal::lib=${HOME}/perl5)
           eval "$(perl -Mlocal::lib=${HOME}/perl5)"
           cpanm --notest Pango

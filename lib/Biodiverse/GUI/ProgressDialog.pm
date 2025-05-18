@@ -206,7 +206,7 @@ sub pulsate {
     }
 
     # process Gtk events - does this do the right thing?
-    while (Gtk3->events_pending) { Gtk3->main_iteration(); }
+    while (Gtk3::events_pending) { Gtk3::main_iteration(); }
 
     #  bad idea this one.  It pulses without end.
     #Gtk3->main;

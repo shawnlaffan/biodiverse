@@ -36,12 +36,12 @@ use parent qw {
 
 our $NULL_STRING = q{};
 
-use constant COLOUR_BLACK => [Gtk3::Gdk::Color::parse('black')]->[1];
-use constant COLOUR_WHITE => [Gtk3::Gdk::Color::parse('white')]->[1];
-use constant COLOUR_GRAY  => [Gtk3::Gdk::Color::parse(sprintf '#%x%x%X', 210*257, 210*257, 210*257)]->[1];
-use constant COLOUR_RED   => [Gtk3::Gdk::Color::parse('red')]->[1];
+use constant COLOUR_BLACK => Gtk3::Gdk::RGBA::parse('black');
+use constant COLOUR_WHITE => Gtk3::Gdk::RGBA::parse('white');
+use constant COLOUR_GRAY  => Gtk3::Gdk::RGBA::parse(sprintf '#%x%x%X', 210*257, 210*257, 210*257);
+use constant COLOUR_RED   => Gtk3::Gdk::RGBA::parse('red');
 #use constant COLOUR_FAILED_DEF_QUERY => Gtk3::Gdk::Color::parse((0.9 * 255 * 257) x 3); # same as cluster grids
-use constant COLOUR_FAILED_DEF_QUERY => [Gtk3::Gdk::Color::parse('white')]->[1];
+use constant COLOUR_FAILED_DEF_QUERY => Gtk3::Gdk::RGBA::parse('white');
 
 
 
@@ -224,7 +224,7 @@ sub new {
     }
 
     $self->{hover_neighbours} = 'Both';
-    $self->{hue} = [Gtk3::Gdk::Color::parse('red')]->[1]; # red, for Sat mode
+    $self->{hue} = Gtk3::Gdk::RGBA::parse('red'); # red, for Sat mode
 
     $self->{calculations_model}
         = Biodiverse::GUI::Tabs::CalculationsTree::make_calculations_model (
@@ -1752,7 +1752,7 @@ sub on_grid_hover {
 #  #000000 = black
 #  #00FFFC = cyan(ish)
 my @dendro_highlight_branch_colours
-  = map {[Gtk3::Gdk::Color::parse($_)]->[1]} ('#1F78B4', '#E31A1C', '#000000');
+  = map {Gtk3::Gdk::RGBA::parse($_)} ('#1F78B4', '#E31A1C', '#000000');
 
 sub highlight_paths_on_dendrogram {
     my ($self, $hashrefs, $group) = @_;

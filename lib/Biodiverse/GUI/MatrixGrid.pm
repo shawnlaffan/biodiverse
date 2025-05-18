@@ -44,12 +44,12 @@ use constant INDEX_MINUS   => 5;
 
 use constant HOVER_CURSOR  => 'hand2';
 
-use constant HIGHLIGHT_COLOUR => [Gtk3::Gdk::Color::parse('red')]->[1]; # red
-use constant CELL_BLACK       => [Gtk3::Gdk::Color::parse('black')]->[1];
-use constant CELL_WHITE       => [Gtk3::Gdk::Color::parse('white')]->[1];
+use constant HIGHLIGHT_COLOUR => Gtk3::Gdk::RGBA::parse('red'); # red
+use constant CELL_BLACK       => Gtk3::Gdk::RGBA::parse('black');
+use constant CELL_WHITE       => Gtk3::Gdk::RGBA::parse('white');
 #use constant CELL_COLOUR      => Gtk3::Gdk::Color::parse('#B3FFFF');
-use constant CELL_COLOUR      => [Gtk3::Gdk::Color::parse('#FFFFFF')]->[1];
-use constant OVERLAY_COLOUR   => [Gtk3::Gdk::Color::parse('#001169')]->[1];
+use constant CELL_COLOUR      => Gtk3::Gdk::RGBA::parse('#FFFFFF');
+use constant OVERLAY_COLOUR   => Gtk3::Gdk::RGBA::parse('#001169');
 
 # Stiple for the selection-masking shape
 my $gray50_width  = 2;
@@ -571,7 +571,7 @@ sub get_colour_hue {
     #
     my $hue;
     if (! defined $max || ! defined $min) {
-        return [Gtk3::Gdk::Color::parse('black')]->[1];
+        return Gtk3::Gdk::RGBA::parse('black');
     }
     elsif ($max != $min) {
         $hue = ($val - $min) / ($max - $min) * 180;
@@ -584,7 +584,7 @@ sub get_colour_hue {
     
     my ($r, $g, $b) = hsv_to_rgb($hue, 1, 1);
     
-    return [Gtk3::Gdk::Color::parse(sprintf '#%x%x%x', $r*257, $g*257, $b*257)]->[1];
+    return Gtk3::Gdk::RGBA::parse(sprintf '#%x%x%x', $r*257, $g*257, $b*257);
 }
 
 sub get_colour_saturation {
@@ -594,7 +594,7 @@ sub get_colour_saturation {
     #   Hue is variable, Brightness 1
     my $sat;
     if (! defined $max || ! defined $min) {
-        return [Gtk3::Gdk::Color::parse('black')]->[1];
+        return Gtk3::Gdk::RGBA::parse('black');
     }
     elsif ($max != $min) {
         $sat = ($val - $min) / ($max - $min);
@@ -605,7 +605,7 @@ sub get_colour_saturation {
 
     my ($r, $g, $b) = hsv_to_rgb($self->{hue}, $sat, 1);
     
-    return [Gtk3::Gdk::Color::parse(sprintf '#%x%x%x', $r*257, $g*257, $b*257)]->[1];
+    return Gtk3::Gdk::RGBA::parse(sprintf '#%x%x%x', $r*257, $g*257, $b*257);
 }
 
 # FROM http://blog.webkist.com/archives/000052.html

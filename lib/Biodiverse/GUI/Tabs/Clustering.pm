@@ -245,7 +245,7 @@ sub new {
     $self->init_map_list_combo();
 
     $self->{colour_mode} = 'Hue';
-    $self->{hue} = [Gtk3::Gdk::Color::parse(sprintf '#%x%x%x', 65535, 0, 0)]->[1]; # For Sat mode
+    $self->{hue} = Gtk3::Gdk::RGBA::parse(sprintf '#%x%x%x', 65535, 0, 0); # For Sat mode
 
     $self->{calculations_model}
         = Biodiverse::GUI::Tabs::CalculationsTree::make_calculations_model(

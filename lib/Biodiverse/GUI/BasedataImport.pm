@@ -1192,7 +1192,7 @@ sub show_expl_dialog {
     #$scroll->set_policy('never', 'automatic');
     #$dlg->vbox->pack_start($scroll, 1, 1, 5);
 
-    $dlg->vbox->pack_start( $table, 1, 1, 5 );
+    $dlg->get_content_area->pack_start( $table, 1, 1, 5 );
 
     my $col = 0;
 
@@ -1615,16 +1615,16 @@ sub make_columns_dialog {
         my $file_title = Gtk3::Label->new('<b>Files:</b>');
         $file_title->set_use_markup(1);
         $file_title->set_alignment( 0, 1 );
-        $dlg->vbox->pack_start( $file_title, 0, 0, 0 );
+        $dlg->get_content_area->pack_start( $file_title, 0, 0, 0 );
 
         my $file_list_label = Gtk3::Label->new( $file_list . "\n\n" );
         $file_list_label->set_alignment( 0, 1 );
-        $dlg->vbox->pack_start( $file_list_label, 0, 0, 0 );
+        $dlg->get_content_area->pack_start( $file_list_label, 0, 0, 0 );
     }
 
     my $label = Gtk3::Label->new('<b>Set column options</b>');
     $label->set_use_markup(1);
-    $dlg->vbox->pack_start( $label, 0, 0, 0 );
+    $dlg->get_content_area->pack_start( $label, 0, 0, 0 );
 
     # Make table
     my $table = Gtk3::Table->new( $num_columns + 1, 8, 0);
@@ -1635,7 +1635,7 @@ sub make_columns_dialog {
     my $scroll = Gtk3::ScrolledWindow->new;
     $scroll->add_with_viewport($table);
     $scroll->set_policy( 'never', 'automatic' );
-    $dlg->vbox->pack_start( $scroll, 1, 1, 5 );
+    $dlg->get_content_area->pack_start( $scroll, 1, 1, 5 );
 
     my $col = 0;
 
@@ -2024,7 +2024,7 @@ sub make_remap_columns_dialog {
     );
     my $label = Gtk3::Label->new("<b>Select column types</b>");
     $label->set_use_markup(1);
-    $dlg->vbox->pack_start( $label, 0, 0, 0 );
+    $dlg->get_content_area->pack_start( $label, 0, 0, 0 );
 
     # Make table
     my $table = Gtk3::Table->new( $num_columns + 1, 8, 0);
@@ -2035,7 +2035,7 @@ sub make_remap_columns_dialog {
     my $scroll = Gtk3::ScrolledWindow->new;
     $scroll->add_with_viewport($table);
     $scroll->set_policy( 'never', 'automatic' );
-    $dlg->vbox->pack_start( $scroll, 1, 1, 5 );
+    $dlg->get_content_area->pack_start( $scroll, 1, 1, 5 );
 
     my $col = 0;
 

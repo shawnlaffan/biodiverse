@@ -109,10 +109,8 @@ sub fill {
         $label->set_alignment(0, 0.5);
         #$label->set_text( $label_text );
 
-        my $fill_flags = 'fill';
-        if ($param->{type} =~ 'text') {
-            $fill_flags = ['expand', 'fill']
-        }
+        my $fill_flags = ['expand', 'fill'];
+
         if ($param->{type} eq 'comment') {
             #  reflow the label text
             $label_text =~ s/(?<=\w)\n(?!\n)/ /g;
@@ -155,8 +153,8 @@ sub fill {
         else {
             $rows++;
             $table->set('n-rows' => $rows);
-            $table->attach($label,  0, 1, $rows, $rows + 1, 'fill', [], 0, 0);
-            $table->attach($widget, 1, 2, $rows, $rows + 1, $fill_flags, [], 0, 0);
+            $table->attach($label,  0, 1, $rows, $rows + 1, $fill_flags, ['shrink'], 0, 0);
+            $table->attach($widget, 1, 2, $rows, $rows + 1, ['shrink', 'fill'], ['shrink'], 0, 0);
         }
 
         # Add a tooltip

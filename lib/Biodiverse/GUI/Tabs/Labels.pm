@@ -1731,7 +1731,7 @@ sub get_type {
 
 sub remove {
     my $self = shift;
-    $self->{grid}->destroy();
+    $self->{grid}->destroy() if $self->{grid};
     $self->{notebook}->remove_page( $self->get_page_index );
     $self->{project}->delete_selection_callback('matrix', $self->{matrix_callback});
     $self->{project}->delete_selection_callback('phylogeny', $self->{phylogeny_callback});

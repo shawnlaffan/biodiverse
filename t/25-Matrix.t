@@ -4,12 +4,13 @@ use strict;
 use warnings;
 use utf8;
 
-if ($ENV{BD_TEST_GUI}) {
-    if (eval 'require Gtk3') {
-        Gtk3::disable_setlocale(); # leave LC_NUMERIC alone for version nums
-        Gtk3->init if Gtk3->init_check;
-    }
-}
+# BEGIN {
+#     if ($ENV{BD_TEST_GUI} && eval 'require Gtk3') {
+        # leave LC_NUMERIC alone for version nums
+        # Gtk3::disable_setlocale();
+        # Gtk3->init if Gtk3->init_check;
+    # }
+# }
 
 use FindBin qw/$Bin/;
 use rlib;

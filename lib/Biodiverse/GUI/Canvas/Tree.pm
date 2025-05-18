@@ -2,15 +2,15 @@ package Biodiverse::GUI::Canvas::Tree;
 use strict;
 use warnings;
 use 5.036;
+
+our $VERSION = '4.99_002';
+
 use experimental qw /refaliasing declared_refs for_list/;
 use Glib qw/TRUE FALSE/;
 use List::Util qw /min max/;
 use List::MoreUtils qw /minmax/;
 use POSIX qw /floor/;
-# use Data::Printer;
 use Carp qw /croak confess/;
-
-use Tree::R;
 
 use Time::HiRes qw/time/;
 

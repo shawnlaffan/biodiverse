@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use 5.036;
 
+our $VERSION = '4.99_002';
+
 use Tree::R;
 use POSIX qw /floor/;
 use List::Util qw /min max reduce/;

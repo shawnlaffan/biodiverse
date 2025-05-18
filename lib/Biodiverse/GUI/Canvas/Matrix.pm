@@ -2,6 +2,9 @@ package Biodiverse::GUI::Canvas::Matrix;
 use strict;
 use warnings;
 use 5.036;
+
+our $VERSION = '4.99_002';
+
 use experimental qw /refaliasing declared_refs for_list/;
 use Glib qw/TRUE FALSE/;
 use List::Util qw /min max/;
@@ -9,10 +12,6 @@ use List::MoreUtils qw /minmax/;
 use POSIX qw /floor/;
 # use Data::Printer;
 use Carp qw /croak confess/;
-
-use Time::HiRes qw/time/;
-
-use constant PI => 3.1415927;
 
 use parent 'Biodiverse::GUI::Canvas::Grid';
 

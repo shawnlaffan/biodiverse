@@ -154,7 +154,7 @@ sub update {
     #  This might need to be an instance var if we go parallel.
     if ((time - $LAST_UPDATE_TIME) > $self->{progress_update_interval}) {
 
-        Gtk3->main_iteration while Gtk3->events_pending;
+        Gtk3::main_iteration while Gtk3::events_pending;
 
         $LAST_UPDATE_TIME = time;
     }

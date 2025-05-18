@@ -23,8 +23,8 @@ use Biodiverse::GUI::Project;
 use Biodiverse::GUI::SpatialParams;
 use Biodiverse::GUI::Tabs::CalculationsTree;
 
-use Biodiverse::GUI::GUI::Canvas::Grid;
-use Biodiverse::GUI::GUI::Canvas::Tree;
+use Biodiverse::GUI::Canvas::Grid;
+use Biodiverse::GUI::Canvas::Tree;
 
 use Biodiverse::Spatial;
 use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
@@ -598,7 +598,8 @@ sub init_dendrogram {
     # $self->{dendrogram}->set_num_clusters (1);
     # $self->set_dendrogram_colour_for_undef(COLOUR_GRAY);  #  default
 
-    $self->{dendrogram}->set_parent_tab($self);
+    warn 'FIXME HERE';
+    # $self->{dendrogram}->set_parent_tab($self);
 
 
     $self->{no_dendro_legend_for} = {
@@ -692,7 +693,8 @@ sub init_branch_colouring_menu {
     foreach my $list_name (natsort @$list_names) {
         next if $list_name =~ /$re_skip_list/;
 
-        my $menu_item = Gtk3::RadioMenuItem->new($sel_group, $list_name);
+        # my $menu_item = Gtk3::RadioMenuItem->new($sel_group, $list_name);
+        my $menu_item = Gtk3::RadioMenuItem->new_with_label ($sel_group, $list_name);
         push @$sel_group, $menu_item;  #  first one is default
         $menu_item->set_use_underline(0);
         $menu->append($menu_item);
@@ -736,7 +738,8 @@ sub init_branch_colouring_menu {
             $sp_submenu_item->set_use_underline(0);
             $sp_submenu_item->set_submenu($sp_submenu);
             foreach my $list_name (@list_names) {
-                my $menu_item = Gtk3::RadioMenuItem->new($sel_group, $list_name);
+                # my $menu_item = Gtk3::RadioMenuItem->new($sel_group, $list_name);
+                my $menu_item = Gtk3::RadioMenuItem->new_with_label($sel_group, $list_name);
                 push @$sel_group, $menu_item;
                 $menu_item->set_use_underline(0);
                 $menu_item->signal_connect_swapped(
@@ -870,17 +873,19 @@ sub init_grid {
 
     my $drawable = Gtk3::DrawingArea->new;
     $frame->add($drawable);
-    my $grid = $self->{grid} = Biodiverse::GUI::Grid->new(
-        frame => $frame,
+    my $grid = $self->{grid} = Biodiverse::GUI::Canvas::Grid->new(
+        frame           => $frame,
         # hscroll => $hscroll,
         # vscroll => $vscroll,
-        show_legend => 0,
-        show_value  => 0,
+        show_legend     => 0,
+        show_value      => 0,
         hover_func      => $hover_closure,
         click_func      => $click_closure, # Middle click
         select_func     => $select_closure,
         grid_click_func => $grid_click_closure, # Left click
         end_hover_func  => $end_hover_closure,
+        drawable        => $drawable,
+        # window          => ??,
     );
     $grid->set_parent_tab($self);
 
@@ -1164,8 +1169,11 @@ sub on_selected_phylogeny_changed {
         eval {$self->{dendrogram}->clear};
     }
     if ($phylogeny) {
-        $self->{dendrogram}->set_cluster($phylogeny, $self->{plot_mode} //= 'length'); #  now storing tree objects directly
-        $self->set_phylogeny_options_sensitive(1);
+        warn 'Clear eval later';
+        eval {
+            $self->{dendrogram}->set_cluster($phylogeny, $self->{plot_mode} //= 'length'); #  now storing tree objects directly
+            $self->set_phylogeny_options_sensitive(1);
+        }
     }
     else {
         warn 'latent eval';
@@ -2136,12 +2144,20 @@ sub init_output_indices_combo {
 
 #  should be called on_active_index_changed, but many such occurrences need to be edited
 sub on_active_index_changed {
-    my $self = shift;
-    my $combo = shift
-        ||  $self->get_xmlpage_object('comboIndices');
+    my ($self, $combo) = @_;
+    say $combo;
+    $combo ||= $self->get_xmlpage_object('comboIndices');
 
     my $iter = $combo->get_active_iter() || return;
-    my ($index) = $self->{output_indices_model}->get($iter, 0);
+    say "II $iter";
+    say $self->{output_indices_model};
+
+    #  this can be called before the list contents are set
+    my ($index) = eval {$self->{output_indices_model}->get($iter, 0)};
+    if ($@) {
+        warn $@;
+        return;
+    }
     $self->{selected_index} = $index;  #  should be called calculation
 
     $self->set_plot_min_max_values;

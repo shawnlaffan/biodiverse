@@ -30,9 +30,10 @@ sub new {
         overlays   => sub {shift->overlay_cb (@_)},
         underlays  => sub {shift->underlay_cb (@_)},
     };
-    $self->{callback_order} = [qw /underlays map overlays highlights/];
+    # $self->{callback_order} = [qw /underlays map overlays highlights/];
+    $self->{callback_order} = [qw /map/];  #  temporary
 
-    $self->{data} = $self->get_data();
+    # $self->{data} = $self->get_data();
 
     return $self;
 }
@@ -345,6 +346,110 @@ sub rect_canonicalise {
     my ($self, $rect) = @_;
     ($rect->[0], $rect->[2]) = minmax($rect->[2], $rect->[0]);
     ($rect->[1], $rect->[3]) = minmax($rect->[3], $rect->[1]);
+}
+
+sub set_base_struct {
+    my ($self, $source) = @_;
+
+    my $count = $source->get_element_count;
+    croak "No groups to display - BaseData is empty\n"
+        if $count == 0;
+
+    $self->{data_source} = $source;
+
+    my @res = $self->get_cell_sizes($source);  #  handles zero and text
+
+    my ($cell_x, $cell_y) = @res[0,1];  #  just grab first two for now
+    $cell_y ||= $cell_x;  #  default to a square if not defined or zero
+
+    my $cell2x = $cell_x / 2;
+    my $cell2y = $cell_y / 2;
+
+    my %data;
+    $self->{data} = \%data;
+
+    say "[Grid] Grid loading $count elements (cells)";
+
+    #  sorted list for consistency when there are >2 axes
+    foreach my $element ($source->get_element_list_sorted) {
+        my ($x, $y) = $source->get_element_name_coord(element => $element);
+        $y //= $res[1];
+
+        my $key = "$x:$y";
+        next if exists $data{$key};
+
+        my $coord = [ $x, $y ];
+        my $bounds = [ $x - $cell2x, $y - $cell2y, $x + $cell2x, $y + $cell2y ];
+
+        $data{$key}{coord} = $coord;
+        $data{$key}{bounds} = $bounds;
+        $data{$key}{rect} = [ @$bounds[0, 1], $res[0], $res[1] ];
+        $data{$key}{centroid} = [ @$coord ];
+    }
+
+    my ($min_x, $max_x, $min_y, $max_y) = $self->get_data_extents();
+
+    say 'Bounding box: ' . join q{ }, $min_x, $min_y // '', $max_x, $max_y // '';
+
+    # Store info needed by load_shapefile
+    $self->{dataset_info} = [$min_x, $min_y, $max_x, $max_y, $cell_x, $cell_y];
+
+    #  save some coords stuff for later transforms
+    $self->{base_struct_cellsizes} = [$cell_x, $cell_y];
+    $self->{base_struct_bounds}    = [$min_x, $min_y, $max_x, $max_y];
+
+    return 1;
+}
+
+sub get_cell_sizes {
+    my ($self, $data) = @_;
+
+    #  handle text groups here
+    my @cell_sizes = map {$_ < 0 ? 1 : $_} $data->get_cell_sizes;
+
+    say 'Warning: only the first two axes are used for plotting'
+        if (@cell_sizes > 2);
+
+    my @zero_axes = List::MoreUtils::indexes { $_ == 0 } @cell_sizes;
+
+    AXIS:
+    foreach my $i (@zero_axes) {
+        my $axis = $cell_sizes[$i];
+
+        # If zero size, we want to display every point
+        # Fast dodgy method for computing cell size
+        #
+        # 1. Sort coordinates
+        # 2. Find successive differences
+        # 3. Sort differences
+        # 4. Make cells square with median distances
+
+        say "[Grid] Calculating median separation distance for axis $i cell size";
+
+        #  Store a list of all the unique coords on this axis
+        #  Should be able to cache by indexing via @zero_axes
+        my %axis_coords;
+        my $elts = $data->get_element_hash();
+        foreach my $element (keys %$elts) {
+            my @axes = $data->get_element_name_as_array(element => $element);
+            $axis_coords{$axes[$i]}++;
+        }
+
+        my @array = sort {$a <=> $b} keys %axis_coords;
+
+        my %diffs;
+        foreach my $i (1 .. $#array) {
+            my $d = abs( $array[$i] - $array[$i-1]);
+            $diffs{$d} = undef;
+        }
+
+        my @diffs = sort {$a <=> $b} keys %diffs;
+        $cell_sizes[$i] = ($diffs[int ($#diffs / 2)] || 1);
+    }
+
+    say '[Grid] Using cellsizes ', join (', ', @cell_sizes);
+
+    return wantarray ? @cell_sizes : \@cell_sizes;
 }
 
 

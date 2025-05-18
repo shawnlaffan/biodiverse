@@ -588,7 +588,7 @@ sub init_map {
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
     my $end_hover_closure  = sub { $self->on_end_grid_hover(@_); };
 
-    $self->{grid} = Biodiverse::GUI::Grid->new(
+    my $grid = $self->{grid} = Biodiverse::GUI::Grid->new(
         frame => $frame,
         hscroll => $hscroll,
         vscroll => $vscroll,

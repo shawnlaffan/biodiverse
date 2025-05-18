@@ -1254,7 +1254,8 @@ sub _add_items_to_menu {
 
         my $menu_item;
         if ($type =~ /Radio/) {
-            $menu_item = $type->new($radio_group, $item->{label} // ());
+            # warn 'FIXME RADIO STUFF';
+            $menu_item = $type->new_with_label($radio_group, $item->{label} // '');
             push @$radio_group, $menu_item;
         }
         else {

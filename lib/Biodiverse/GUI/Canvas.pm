@@ -8,8 +8,9 @@ our $VERSION = '4.99_002';
 
 use experimental qw /refaliasing declared_refs for_list/;
 use Glib qw/TRUE FALSE/;
-use List::Util qw /min max weaken/;
+use List::Util qw /min max/;
 use List::MoreUtils qw /minmax/;
+use Scalar::Util qw/weaken/;
 use POSIX qw /floor/;
 use Carp qw /croak confess/;
 
@@ -28,18 +29,19 @@ sub new {
     ##
     ## Add some signals and connect the drawing area to the window
     ##
-    my $drawable = $self->{drawable} // dir 'Need a GtkDrawable to attach to';
+    my $drawable = $self->{drawable} // die 'Need a GtkDrawable to attach to';
 
-    $drawable->set_events(
-        [ qw/
-            exposure-mask
-            leave-notify-mask
-            button-press-mask
-            button-release-mask
-            pointer-motion-mask
-            pointer-motion-hint-mask
-        / ]
-    );
+say STDERR "SETTING EVENTS on $drawable";
+    # $drawable->set_events(
+    #     [ qw/
+    #         exposure-mask
+    #         leave-notify-mask
+    #         button-press-mask
+    #         button-release-mask
+    #         pointer-motion-mask
+    #         pointer-motion-hint-mask
+    #     / ]
+    # );
 
     $drawable->signal_connect(draw => sub {$self->cairo_draw (@_)});
     $drawable->signal_connect(motion_notify_event => sub {$self->on_motion (@_)});
@@ -57,21 +59,16 @@ sub new {
     #  Dodgy but cannot get drawing area to work with key press events.
     #  Might not matter in the end as Biodiverse handles this for all panes
     #  so it will be set for a parent tab.
-    $self->{window}->set_events(
-        [ qw/
-            key-press-event
-        / ]
-    );
-    $self->{window}->signal_connect (key_press_event => sub {
-        my ($widget, $event) = @_;
-        # say $event->type, ' ', $event->keyval, ' ', $event->state;
-        if ($event->state >= [ 'control-mask' ] && Gtk3::Gdk::keyval_name ($event->keyval) eq 'q') {
-            say 'Quitting';
-            sleep 0.5;
-            Gtk3->main_quit;
-        }
-        $self->on_key_press (@_);
-    });
+    # $self->{window}->set_events(
+    #     [ qw/
+    #         key-press-event
+    #     / ]
+    # );
+    # $self->{window}->signal_connect (key_press_event => sub {
+    #     my ($widget, $event) = @_;
+    #     # say $event->type, ' ', $event->keyval, ' ', $event->state;
+    #     $self->on_key_press (@_);
+    # });
 
     # $self->{hadjust} = Gtk3::Adjustment->new(0, 0, 1, 1, 1, 1);
     # $self->{vadjust} = Gtk3::Adjustment->new(0, 0, 1, 1, 1, 1);
@@ -111,6 +108,7 @@ sub drawable {
     $_[0]->{drawable};
 }
 
+sub set_legend_mode {}
 
 sub get_event_xy_from_mx {
     my ($self, $event, $mx) = @_;
@@ -174,12 +172,7 @@ sub set_mode_from_char {
 
     return if !defined $mode || $self->get_mode eq $mode;
 
-    $self->{mode} = $mode;
-    $self->update_cursor($cursor_names{$mode});
-
-    say "Mode is now $self->{mode}";
-
-    return;
+    return $self->set_mode ($mode);
 }
 
 sub get_mode {

@@ -1150,8 +1150,8 @@ sub set_colour_for_undef {
     
     $colour //= COLOUR_WHITE;
 
-    croak "Colour argument must be a Gtk3::Gdk::Color object\n"
-      if not blessed ($colour) eq 'Gtk3::Gdk::Color';
+    croak "Colour argument must be a Gtk3::Gdk::Color or Gtk3::Gdk::Color::RGBA object\n"
+      if not blessed ($colour) =~ /Gtk3::Gdk::(Color|RGBA)/;
 
     $self->{colour_none} = $colour;
 }

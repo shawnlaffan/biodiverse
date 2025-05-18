@@ -973,7 +973,8 @@ sub update_lists_combo {
     my $selected = $iter;
 
     while ($iter) {
-        my ($list) = $self->{output_lists_model}->get($iter, 0);
+        my ($list) = eval { $self->{output_lists_model}->get($iter, 0) };
+        warn 'ulc prob ' if $@;
         if ($list eq 'SPATIAL_RESULTS' ) {
             $selected = $iter;
             last; # break loop
@@ -2065,7 +2066,8 @@ sub on_active_list_changed {
     my $combo = shift;
 
     my $iter = $combo->get_active_iter() || return;
-    my ($list) = $self->{output_lists_model}->get($iter, 0);
+    my ($list) = eval { $self->{output_lists_model}->get($iter, 0) };
+    warn 'list problem ' if $@;
 
     $self->{selected_list} = $list;
     $self->update_output_indices_combo();
@@ -2080,26 +2082,29 @@ sub update_output_indices_combo {
     my $self = shift;
 
     # Make the model
-    $self->{output_indices_model} = $self->make_output_indices_model();
+    my $model = $self->{output_indices_model} = $self->make_output_indices_model();
     my $combo = $self->get_xmlpage_object('comboIndices');
-    $combo->set_model($self->{output_indices_model});
+    $combo->set_model($model);
 
     # Select the previous analysis (or the first one)
-    my $iter = $self->{output_indices_model}->get_iter_first();
+    my $iter     = $model->get_iter_first();
     my $selected = $iter;
+    my $idx      = 0;
 
     BY_ITER:
     while ($iter) {
-        my ($analysis) = $self->{output_indices_model}->get($iter, 0);
+        my ($analysis) = $model->get($iter, 0);
         if ($self->{selected_index} && ($analysis eq $self->{selected_index}) ) {
             $selected = $iter;
             last BY_ITER; # break loop
         }
-        last if !$self->{output_indices_model}->iter_next($iter);
+        last BY_ITER if !$model->iter_next($iter);
+        $idx++;
     }
 
     if ($selected) {
-        $combo->set_active_iter($selected);
+        # $combo->set_active_iter($selected);  #  does not work under Gtk3, not sure why
+        $combo->set_active($idx);
     }
     $self->on_active_index_changed($combo);
 
@@ -2150,7 +2155,6 @@ sub on_active_index_changed {
 
     my $iter = $combo->get_active_iter() || return;
 
-    say $self->{output_indices_model};
 
     #  this can be called before the list contents are set
     my ($index) = eval {$self->{output_indices_model}->get($iter, 0)};

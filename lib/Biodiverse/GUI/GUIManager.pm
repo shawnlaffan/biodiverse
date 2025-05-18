@@ -406,6 +406,7 @@ sub init {
 
     #  warn if we are a dev version
     if ( $VERSION =~ /_/ && !$ENV{BD_NO_GUI_DEV_WARN} ) {
+        say $dev_version_warning;
         my $dlg = Gtk3::MessageDialog->new( undef, 'modal', 'error', 'ok',
             $dev_version_warning, );
 

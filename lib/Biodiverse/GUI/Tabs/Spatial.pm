@@ -23,6 +23,9 @@ use Biodiverse::GUI::Project;
 use Biodiverse::GUI::SpatialParams;
 use Biodiverse::GUI::Tabs::CalculationsTree;
 
+use Biodiverse::GUI::GUI::Canvas::Grid;
+use Biodiverse::GUI::GUI::Canvas::Tree;
+
 use Biodiverse::Spatial;
 use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
 

@@ -33,10 +33,6 @@ sub new {
     # $self->{callback_order} = [qw /underlays map overlays highlights/];
     $self->{callback_order} = [qw /map/];  #  temporary
 
-    # $self->{data} = $self->get_data();
-    my $legend = $self->get_legend(@_);
-    use DDP; p $legend;
-
     return $self;
 }
 
@@ -454,5 +450,13 @@ sub get_cell_sizes {
     return wantarray ? @cell_sizes : \@cell_sizes;
 }
 
+
+sub colour {
+    warn __PACKAGE__ . "->colour not implemented yet";
+}
+
+sub set_legend_min_max {
+    warn __PACKAGE__ . "->set_legend_min_max not implemented yet";
+}
 
 1;  # end of package

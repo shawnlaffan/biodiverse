@@ -116,16 +116,28 @@ sub set_legend_mode {}
 
 sub init_legend {
     my $self = shift;
-    say 'Initialising legend';
-    say join ' ', @_;
     use Biodiverse::GUI::Canvas::Legend;
     return $self->{legend} = Biodiverse::GUI::Canvas::Legend->new(@_);
 }
 
 sub get_legend{
     my $self = shift;
-    return $self->{legend};
+    return $self->{legend} // die 'Legend not initialised';
 }
+
+sub show_legend {
+    my $self = shift;
+    say STDERR "$self->show_legend not implemented yet";
+    return;
+}
+
+sub update_legend {
+    my $self = shift;
+    say STDERR "$self->update_legend not implemented yet";
+    return;
+}
+
+
 
 sub get_colour_for_undef {
     my $self = shift;

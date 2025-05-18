@@ -247,6 +247,20 @@ sub make_rect {
     return;
 }
 
+sub make_mark {
+    my $self = shift;
+    say 'make_mark yet to be implemented';
+    $self->{marks}{current} //= [];
+    return;
+}
+
+sub hide_current_marks {
+    return;
+}
+
+sub show_current_marks {
+    return;
+}
 
 our $AUTOLOAD;
 

@@ -12,8 +12,6 @@ use List::MoreUtils qw /minmax/;
 use POSIX qw /floor/;
 use Carp qw /croak confess/;
 
-use Time::HiRes qw/time/;
-
 use Biodiverse::GUI::Canvas::Tree::Index;
 
 use parent 'Biodiverse::GUI::Canvas';

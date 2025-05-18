@@ -10,7 +10,6 @@ use Glib qw/TRUE FALSE/;
 use List::Util qw /min max/;
 use List::MoreUtils qw /minmax/;
 use POSIX qw /floor/;
-# use Data::Printer;
 use Carp qw /croak confess/;
 
 use parent 'Biodiverse::GUI::Canvas::Grid';

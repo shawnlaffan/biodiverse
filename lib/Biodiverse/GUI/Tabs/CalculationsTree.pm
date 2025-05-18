@@ -281,10 +281,10 @@ sub get_calculations_to_run {
                 my ($func) = $model->get($child_iter, MODEL_FUNCTION_COL);
                 push (@to_run, $func);
             }
-            $child_iter = $model->iter_next($child_iter);
+            last if !$model->iter_next($child_iter);
         }
 
-        $type_iter = $model->iter_next($type_iter);
+        last if !$model->iter_next($type_iter);
     }
     return @to_run;
 }
@@ -307,7 +307,7 @@ sub update_type_checkbox {
             last;
         }
         $prevchecked = $check;
-        $child_iter = $model->iter_next($child_iter);
+        last if !$model->iter_next($child_iter);
     }
 
     $check = 0 if $gray == 1;
@@ -340,7 +340,7 @@ sub on_calculation_toggled {
     my $child_iter = $model->iter_nth_child($iter, 0);
     while ($child_iter) {
         $model->set($child_iter, MODEL_CHECKED_COL, $state);
-        $child_iter = $model->iter_next($child_iter);
+        last if !$model->iter_next($child_iter);
     }
 
     # update state of any parent

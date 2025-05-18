@@ -1095,7 +1095,7 @@ sub get_comma_separated_complete_treeview_list {
         my $this_row = join (",", @column_data);
         push @value_list, $this_row;
 
-        $iter = $model->iter_next( $iter );
+        last if !$model->iter_next( $iter );
     }
 
     return \@value_list;

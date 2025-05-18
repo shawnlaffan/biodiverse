@@ -1304,7 +1304,7 @@ sub on_grid_select {
                 $hselection->$sel_method($iter);
             }
 
-            $iter = $hmodel->iter_next($iter);
+            last if !$hmodel->iter_next($iter);
         }
         if (not $ignore_change) {
             delete $self->{ignore_selection_change};
@@ -1419,7 +1419,7 @@ sub on_phylogeny_click {
                 $hselection->$sel_method($iter);
             }
 
-            $iter = $hmodel->iter_next($iter);
+            last if !$hmodel->iter_next($iter);
         }
         delete $self->{ignore_selection_change};
         on_selected_labels_changed($hselection, [$self, 'listLabels1']);

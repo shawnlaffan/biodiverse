@@ -1069,7 +1069,7 @@ sub fill_params {
 
         push( @{ $params{'LABEL_COLUMNS'} }, $info->{id} );
 
-        $iter = $labels_model->iter_next($iter);
+        last if !$labels_model->iter_next($iter);
     }
 
     # Do groups
@@ -1083,7 +1083,7 @@ sub fill_params {
         push( @{ $params{'CELL_IS_LAT'} },   $info2->{is_lat} );
         push( @{ $params{'CELL_IS_LON'} },   $info2->{is_lon} );
 
-        $iter = $groups_model->iter_next($iter);
+        last if !$groups_model->iter_next($iter);
     }
 
     return \%params;
@@ -1359,7 +1359,11 @@ sub on_up_down {
         }
     }
     elsif ( $btn eq 'down' ) {
-        $model->move_after( $iter, $model->iter_next($iter) );
+        #  need copy as iter_next updates $iter under Gtk3
+        my $iter_from = $model->iter_copy($iter);
+        if ($model->iter_next ($iter)) {
+            $model->move_after( $iter_from, $iter );
+        }
     }
 
     return;

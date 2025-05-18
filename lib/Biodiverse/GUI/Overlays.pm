@@ -294,7 +294,7 @@ sub get_settings_table {
             type => $model->get($iter, COL_FTYPE),
             plot_on_top => $model->get($iter, COL_PLOT_ON_TOP),
         };
-        $iter = $model->iter_next($iter);
+        last if !$model->iter_next($iter);
     }
     return wantarray ? @table : \@table;
 }

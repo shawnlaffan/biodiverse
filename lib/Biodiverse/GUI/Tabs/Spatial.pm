@@ -968,7 +968,7 @@ sub update_lists_combo {
             $selected = $iter;
             last; # break loop
         }
-        $iter = $self->{output_lists_model}->iter_next($iter);
+        last if !$self->{output_lists_model}->iter_next($iter);
     }
 
     if ($selected) {
@@ -2079,7 +2079,7 @@ sub update_output_indices_combo {
             $selected = $iter;
             last BY_ITER; # break loop
         }
-        $iter = $self->{output_indices_model}->iter_next($iter);
+        last if !$self->{output_indices_model}->iter_next($iter);
     }
 
     if ($selected) {

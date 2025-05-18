@@ -2633,7 +2633,7 @@ sub do_run_exclusions {
         $text_widget->set_alignment( 0, 1 );
         $text_widget->set_text($feedback);
         $text_widget->set_selectable(1);
-        $dlg->vbox->pack_start( $text_widget, 0, 0, 0 );
+        $dlg->get_content_area->pack_start( $text_widget, 0, 0, 0 );
 
         $dlg->show_all;
         $dlg->run;

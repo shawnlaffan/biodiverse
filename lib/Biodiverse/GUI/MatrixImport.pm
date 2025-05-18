@@ -256,7 +256,7 @@ sub make_columns_dialog_normal {
     my $label = Gtk3::Label->new(
         "<b>Select column types</b>\n(choose only one start matrix column)");
     $label->set_use_markup(1);
-    $dlg->vbox->pack_start( $label, 0, 0, 0 );
+    $dlg->get_content_area->pack_start( $label, 0, 0, 0 );
 
     # Make table
     my $table = Gtk3::Table->new( 4, $num_columns + 1, 0);
@@ -268,7 +268,7 @@ sub make_columns_dialog_normal {
     my $scroll = Gtk3::ScrolledWindow->new;
     $scroll->add_with_viewport($table);
     $scroll->set_policy( 'automatic', 'never' );
-    $dlg->vbox->pack_start( $scroll, 1, 1, 5 );
+    $dlg->get_content_area->pack_start( $scroll, 1, 1, 5 );
 
     # Make header column
     $label = Gtk3::Label->new("<b>Column</b>");

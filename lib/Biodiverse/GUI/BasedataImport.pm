@@ -1190,7 +1190,7 @@ sub show_expl_dialog {
     #my $scroll = Gtk3::ScrolledWindow->new;
     #$scroll->add_with_viewport($table);
     #$scroll->set_policy('never', 'automatic');
-    #$dlg->vbox->pack_start($scroll, 1, 1, 5);
+    #$dlg->get_content_area->pack_start($scroll, 1, 1, 5);
 
     $dlg->get_content_area->pack_start( $table, 1, 1, 5 );
 

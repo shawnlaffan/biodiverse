@@ -105,7 +105,7 @@ END_LINK_TEXT
     $text_widget->set_alignment (0, 1);
     $text_widget->set_markup ($text);
     $text_widget->set_selectable (1);
-    $dlg->vbox->pack_start ($text_widget, 0, 0, 0);
+    $dlg->get_content_area->pack_start ($text_widget, 0, 0, 0);
     
     $dlg->show_all;
     $dlg->run;
@@ -152,7 +152,7 @@ sub help_show_check_for_updates {
     my $text_widget = Gtk3::Label->new();
     $text_widget->set_use_markup(1);
     $text_widget->set_alignment (0, 1);
-    $dlg->vbox->pack_start ($text_widget, 0, 0, 0);
+    $dlg->get_content_area->pack_start ($text_widget, 0, 0, 0);
     
     $dlg->show_all;
 

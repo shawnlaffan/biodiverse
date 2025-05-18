@@ -1174,7 +1174,7 @@ sub get_overwrite_response {
     );
     my $label = Gtk3::Label->new($text);
     #$label->set_use_markup(1);
-    $dlg->vbox->pack_start ($label, 0, 0, 0);
+    $dlg->get_content_area->pack_start ($label, 0, 0, 0);
     $dlg->show_all();
 
     my $response = $dlg->run;

@@ -139,8 +139,8 @@ sub new {
     }
 
     # Make and hook up the canvases
-    $self->{canvas} = GooCanvas2->new();
-    $self->{graph}  = GooCanvas2->new();
+    $self->{canvas} = GooCanvas2::Canvas->new();
+    $self->{graph}  = GooCanvas2::Canvas->new();
     $main_frame->add( $self->{canvas} );
     $graph_frame->add( $self->{graph} );
     $self->{canvas}->signal_connect_swapped (

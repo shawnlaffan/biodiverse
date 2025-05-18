@@ -139,7 +139,7 @@ sub new {
     $self->set_colour_for_undef;
 
     # Make the canvas and hook it up
-    $self->{canvas} = GooCanvas2->new();
+    $self->{canvas} = GooCanvas2::Canvas->new();
     $frame->add($self->{canvas});
     $self->{canvas}->signal_connect_swapped (size_allocate => \&on_size_allocate, $self);
 
@@ -157,7 +157,8 @@ sub new {
     $self->{canvas}->get_hadjustment->signal_connect_swapped('value-changed', \&on_scroll, $self);
 
     # Set up canvas
-    $self->{canvas}->set_center_scroll_region(0);
+    warn 'latent eval';
+    eval {$self->{canvas}->set_center_scroll_region(0)};
     $self->{canvas}->show;
     $self->set_zoom_fit_flag(1);
     $self->{dragging} = 0;
@@ -167,25 +168,25 @@ sub new {
     }
 
     # Create background rectangle to receive mouse events for panning
-    my $rect = GooCanvas2::CanvasItem->new (
-        $self->{canvas}->get_root_item,
-        'GooCanvas2::CanvasRect',
-        x1 => 0,
-        y1 => 0,
-        x2 => CELL_SIZE_X,
-        fill_color_gdk => COLOUR_WHITE,
-        #outline_color => "black",
-        #width_pixels => 2,
-        y2 => CELL_SIZE_X,
-    );
-    $rect->lower_to_bottom();
+    # my $rect = GooCanvas2::CanvasItem->new (
+    #     $self->{canvas}->get_root_item,
+    #     'GooCanvas2::CanvasRect',
+    #     x1 => 0,
+    #     y1 => 0,
+    #     x2 => CELL_SIZE_X,
+    #     fill_color_gdk => COLOUR_WHITE,
+    #     #outline_color => "black",
+    #     #width_pixels => 2,
+    #     y2 => CELL_SIZE_X,
+    # );
+    # $rect->lower_to_bottom();
 
     $self->{canvas}->get_root_item->signal_connect_swapped (
         event => \&on_background_event,
         $self,
     );
 
-    $self->{back_rect} = $rect;
+    # $self->{back_rect} = $rect;
     # Create the Label legend
     my $legend = Biodiverse::GUI::Legend->new(
         canvas       => $self->{canvas},

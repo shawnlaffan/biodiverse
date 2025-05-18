@@ -80,7 +80,7 @@ sub new {
     $self->{grid_click_func} = $args{grid_click_func}; # click on a cell
 
     # Make the canvas and hook it up
-    $self->{canvas} = GooCanvas2->new();
+    $self->{canvas} = GooCanvas2::Canvas->new();
     $frame->add($self->{canvas});
 
     $self->{canvas}->signal_connect_swapped (

@@ -573,30 +573,31 @@ sub init_dendrogram {
     my $click_closure       = sub { $self->on_phylogeny_click(@_); };
     my $select_closure      = sub { $self->on_phylogeny_select(@_); };
 
-    $self->{dendrogram} = Biodiverse::GUI::Dendrogram->new(
-        main_frame  => $frame,
-        graph_frame => $graph_frame,
-        hscroll     => $hscroll,
-        vscroll     => $vscroll,
-        grid        => undef,
-        list_combo  => undef,  #  the combos are under the control of the spatial plot, not the dendrogram
-        index_combo => undef,
-        hover_func      => $hover_closure,
-        highlight_func  => $highlight_closure,
-        ctrl_click_func => $ctrl_click_closure,
-        click_func      => $click_closure,
-        select_func     => $select_closure,
-        parent_tab      => $self,
-        want_legend     => 1,
-        no_use_slider_to_select_nodes => 1,
-    );
+    #  disable for now
+    # $self->{dendrogram} = Biodiverse::GUI::Dendrogram->new(
+    #     main_frame  => $frame,
+    #     graph_frame => $graph_frame,
+    #     hscroll     => $hscroll,
+    #     vscroll     => $vscroll,
+    #     grid        => undef,
+    #     list_combo  => undef,  #  the combos are under the control of the spatial plot, not the dendrogram
+    #     index_combo => undef,
+    #     hover_func      => $hover_closure,
+    #     highlight_func  => $highlight_closure,
+    #     ctrl_click_func => $ctrl_click_closure,
+    #     click_func      => $click_closure,
+    #     select_func     => $select_closure,
+    #     parent_tab      => $self,
+    #     want_legend     => 1,
+    #     no_use_slider_to_select_nodes => 1,
+    # );
+    #  cannot colour more than one in a phylogeny
+    # $self->{dendrogram}->set_num_clusters (1);
+    # $self->set_dendrogram_colour_for_undef(COLOUR_GRAY);  #  default
 
     $self->{dendrogram}{page} = $self;
     weaken $self->{dendrogram}{page};
 
-    #  cannot colour more than one in a phylogeny
-    $self->{dendrogram}->set_num_clusters (1);
-    $self->set_dendrogram_colour_for_undef(COLOUR_GRAY);  #  default
 
     $self->{no_dendro_legend_for} = {
         map {$_ => 1, "<i>$_</i>" => 1}
@@ -821,8 +822,9 @@ EOT
 
 sub init_dendrogram_legend {
     my $self = shift;
-    
-    my $legend = $self->{dendrogram}->get_legend;
+
+    warn "Ignoring dendrogram legend errors - fixme when graphics updated";
+    my $legend = eval {$self->{dendrogram}->get_legend};
     return if !$legend;
 
     #  we used to do more here
@@ -864,18 +866,19 @@ sub init_grid {
     my $select_closure = sub { $self->on_grid_select(@_); };
     my $end_hover_closure = sub { $self->on_end_grid_hover(@_); };
 
-    $self->{grid} = Biodiverse::GUI::Grid->new(
-        frame => $frame,
-        hscroll => $hscroll,
-        vscroll => $vscroll,
-        show_legend => 1,
-        show_value  => 0,
-        hover_func      => $hover_closure,
-        click_func      => $click_closure, # Middle click
-        select_func     => $select_closure,
-        grid_click_func => $grid_click_closure, # Left click
-        end_hover_func  => $end_hover_closure,
-    );
+    #  disable for now
+    # $self->{grid} = Biodiverse::GUI::Grid->new(
+    #     frame => $frame,
+    #     hscroll => $hscroll,
+    #     vscroll => $vscroll,
+    #     show_legend => 1,
+    #     show_value  => 0,
+    #     hover_func      => $hover_closure,
+    #     click_func      => $click_closure, # Middle click
+    #     select_func     => $select_closure,
+    #     grid_click_func => $grid_click_closure, # Left click
+    #     end_hover_func  => $end_hover_closure,
+    # );
     $self->{grid}{page} = $self;
     weaken $self->{grid}{page};
 
@@ -1148,20 +1151,23 @@ sub on_selected_phylogeny_changed {
 
     # phylogenies
     my $phylogeny = $self->get_current_tree;
-    my $dendro_tree = $self->{dendrogram}->get_cluster;
+    warn 'remove eval when ready';
+    my $dendro_tree = eval { $self->{dendrogram}->get_cluster };
 
     #  don't trigger needless redraws
     return if ($dendro_tree && $phylogeny) && refaddr ($phylogeny) == refaddr ($dendro_tree);
 
     if ($self->{dendrogram}) {
-        $self->{dendrogram}->clear;
+        warn 'latent eval';
+        eval {$self->{dendrogram}->clear};
     }
     if ($phylogeny) {
         $self->{dendrogram}->set_cluster($phylogeny, $self->{plot_mode} //= 'length'); #  now storing tree objects directly
         $self->set_phylogeny_options_sensitive(1);
     }
     else {
-        $self->{dendrogram}->set_cluster(undef, $self->{plot_mode} //= 'length');
+        warn 'latent eval';
+        eval {$self->{dendrogram}->set_cluster(undef, $self->{plot_mode} //= 'length')};
         $self->set_phylogeny_options_sensitive(0);
         my $str = '<i>No selected tree</i>';
         $self->get_xmlpage_object('spatial_label_VL_tree')->set_markup($str);

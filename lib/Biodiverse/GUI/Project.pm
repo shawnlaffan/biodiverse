@@ -225,9 +225,9 @@ sub update_gui_comboboxes {
 
     my $selected = $self->get_selected_base_data();
 
-    #if ($selected) {
-    $self->select_base_data($selected);    # this will update GUI combobox
-                                           #}
+    if ($selected) {
+        $self->select_base_data($selected); # this will update GUI combobox
+    }
 
     # Matrix
     $gui->set_matrix_model( $self->{models}{matrix_model} );

@@ -34,6 +34,8 @@ sub new {
     $self->{callback_order} = [qw /map/];  #  temporary
 
     # $self->{data} = $self->get_data();
+    my $legend = $self->get_legend(@_);
+    use DDP; p $legend;
 
     return $self;
 }

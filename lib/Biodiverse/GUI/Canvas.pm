@@ -10,11 +10,13 @@ use experimental qw /refaliasing declared_refs for_list/;
 use Glib qw/TRUE FALSE/;
 use List::Util qw /min max/;
 use List::MoreUtils qw /minmax/;
-use Scalar::Util qw/weaken/;
+use Scalar::Util qw/weaken blessed/;
 use POSIX qw /floor/;
 use Carp qw /croak confess/;
 
 use Time::HiRes qw/time/;
+
+use constant COLOUR_WHITE => Gtk3::Gdk::RGBA::parse('white');
 
 
 sub new {
@@ -73,6 +75,8 @@ say STDERR "SETTING EVENTS on $drawable";
     # $self->{hadjust} = Gtk3::Adjustment->new(0, 0, 1, 1, 1, 1);
     # $self->{vadjust} = Gtk3::Adjustment->new(0, 0, 1, 1, 1, 1);
 
+    $self->init_legend(%args);
+
     return $self;
 }
 
@@ -109,6 +113,38 @@ sub drawable {
 }
 
 sub set_legend_mode {}
+
+sub init_legend {
+    my $self = shift;
+    say 'Initialising legend';
+    say join ' ', @_;
+    use Biodiverse::GUI::Canvas::Legend;
+    return $self->{legend} = Biodiverse::GUI::Canvas::Legend->new(@_);
+}
+
+sub get_legend{
+    my $self = shift;
+    return $self->{legend};
+}
+
+sub get_colour_for_undef {
+    my $self = shift;
+    my $colour_none = shift;
+
+    return $self->{colour_none} // $self->set_colour_for_undef ($colour_none);
+}
+
+sub set_colour_for_undef {
+    my ($self, $colour) = @_;
+
+    $colour //= COLOUR_WHITE;
+
+    croak "Colour argument must be a Gtk3::Gdk::Color or Gtk3::Gdk::Color::RGBA object\n"
+        if not blessed ($colour) =~ /Gtk3::Gdk::(Color|RGBA)/;
+
+    $self->{colour_none} = $colour;
+}
+
 
 sub get_event_xy_from_mx {
     my ($self, $event, $mx) = @_;

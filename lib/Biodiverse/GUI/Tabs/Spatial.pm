@@ -2149,13 +2149,13 @@ sub on_active_index_changed {
     $combo ||= $self->get_xmlpage_object('comboIndices');
 
     my $iter = $combo->get_active_iter() || return;
-    say "II $iter";
+
     say $self->{output_indices_model};
 
     #  this can be called before the list contents are set
     my ($index) = eval {$self->{output_indices_model}->get($iter, 0)};
     if ($@) {
-        warn $@;
+        warn '$self->{output_indices_model}->get($iter, 0) failed';
         return;
     }
     $self->{selected_index} = $index;  #  should be called calculation
@@ -2293,6 +2293,7 @@ sub recolour {
     my $ccache = $colour_cache->{$list}{$index} //= {};
 
     my $legend = $grid->get_legend;
+    say STDERR $grid->{legend};
 
     $legend->set_colour_mode_from_list_and_index (
         list  => $list,

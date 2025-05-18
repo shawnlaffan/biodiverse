@@ -8,7 +8,7 @@ our $VERSION = '4.99_002';
 
 use experimental qw /refaliasing declared_refs for_list/;
 use Glib qw/TRUE FALSE/;
-use List::Util qw /min max/;
+use List::Util qw /min max weaken/;
 use List::MoreUtils qw /minmax/;
 use POSIX qw /floor/;
 use Carp qw /croak confess/;
@@ -28,7 +28,7 @@ sub new {
     ##
     ## Add some signals and connect the drawing area to the window
     ##
-    my $drawable = $self->{drawable};
+    my $drawable = $self->{drawable} // dir 'Need a GtkDrawable to attach to';
 
     $drawable->set_events(
         [ qw/
@@ -77,6 +77,14 @@ sub new {
     # $self->{vadjust} = Gtk3::Adjustment->new(0, 0, 1, 1, 1, 1);
 
     return $self;
+}
+
+sub set_parent_tab {
+    my ($self, $tab) = @_;
+    #  store under {page} for now as many places access this directly
+    $self->{page} = $tab;
+    weaken $self->{page};
+    return;
 }
 
 sub dump_self {
@@ -161,6 +169,27 @@ sub set_mode_from_char {
         s => 'select',
         v => 'zoom_reset',
     );
+
+    my $mode = $modes{$mode_char};
+
+    return if !defined $mode || $self->get_mode eq $mode;
+
+    $self->{mode} = $mode;
+    $self->update_cursor($cursor_names{$mode});
+
+    say "Mode is now $self->{mode}";
+
+    return;
+}
+
+sub get_mode {
+    my ($self) = @_;
+    return $self->{mode};
+}
+
+sub set_mode {
+    my ($self, $mode) = @_;
+
     state %cursor_names = (
         select     => 'default',
         zoom_in    => 'zoom-in',
@@ -169,9 +198,10 @@ sub set_mode_from_char {
         pan        => 'fleur',
     );
 
-    my $mode = $modes{$mode_char};
+    $mode //= 'undef';
+    warn "Unsupported Canvas mode $mode" if !defined $cursor_names{$mode};
 
-    return if !defined $mode || $self->{mode} eq $mode;
+    return if !defined $mode || $self->get_mode eq $mode || !$cursor_names{$mode};
 
     $self->{mode} = $mode;
     $self->update_cursor($cursor_names{$mode});

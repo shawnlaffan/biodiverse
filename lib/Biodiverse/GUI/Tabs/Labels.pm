@@ -238,8 +238,7 @@ sub init_grid {
         grid_click_func => $grid_click_closure,
         end_hover_func  => $end_hover_closure,
     );
-    $self->{grid}{page} = $self; # Hacky
-    weaken $self->{grid}{page};
+    $self->{grid}->set_parent_tab($self);
 
     eval {$self->{grid}->set_base_struct($self->{base_ref}->get_groups_ref)};
     if ($EVAL_ERROR) {
@@ -273,8 +272,7 @@ sub init_matrix_grid {
         select_func     => $select_closure,
         grid_click_func => $grid_click_closure,
     );
-    $self->{matrix_grid}{page} = $self; # Hacky
-    weaken $self->{matrix_grid}{page};
+    $self->{matrix_grid}->set_parent_tab($self);
 
     $self->{matrix_drawn} = 0;
 
@@ -314,8 +312,7 @@ sub init_dendrogram {
         parent_tab      => $self,
         basedata_ref    => $self->{base_ref},
     );
-    $self->{dendrogram}{page} = $self;
-    weaken $self->{dendrogram}{page};    
+    $self->{dendrogram}->set_parent_tab($self);
 
     #  cannot colour more than one in a phylogeny
     $self->{dendrogram}->set_num_clusters (1);

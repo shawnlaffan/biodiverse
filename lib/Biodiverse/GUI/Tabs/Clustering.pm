@@ -600,10 +600,7 @@ sub init_map {
         grid_click_func => $grid_click_closure,
         end_hover_func  => $end_hover_closure
     );
-    
-    my $grid = $self->{grid};
-    
-    $grid->{page} = $self;
+    $self->{grid}->set_parent_tab($self);
 
     $grid->set_base_struct($self->{basedata_ref}->get_groups_ref);
 
@@ -660,8 +657,7 @@ sub init_dendrogram {
     # TODO: Abstract this properly
     #$self->{dendrogram}->{map_lists_ready_cb} = sub { $self->on_map_lists_ready(@_) };
 
-    $self->{dendrogram}{page} = $self;
-    weaken $self->{dendrogram}{page};
+    $self->{dendrogram}->set_parent_tab($self);
 
     if ($self->{existing}) {
         my $cluster_ref = $self->{output_ref};

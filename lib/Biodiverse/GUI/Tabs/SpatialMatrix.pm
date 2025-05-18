@@ -279,8 +279,7 @@ sub init_grid {
         $self->{grid}->set_base_struct ($data);
     }
 
-    $self->{grid}{page} = $self; # Hacky
-    weaken $self->{grid}{page};
+    $self->{grid}->set_parent_tab($self);
 
     my $menu_log_checkbox = $self->get_xmlpage_object('menu_colour_stretch_log_mode');
     $menu_log_checkbox->signal_connect_swapped(

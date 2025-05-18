@@ -598,8 +598,7 @@ sub init_dendrogram {
     # $self->{dendrogram}->set_num_clusters (1);
     # $self->set_dendrogram_colour_for_undef(COLOUR_GRAY);  #  default
 
-    $self->{dendrogram}{page} = $self;
-    weaken $self->{dendrogram}{page};
+    $self->{dendrogram}->set_parent_tab($self);
 
 
     $self->{no_dendro_legend_for} = {
@@ -852,8 +851,8 @@ sub get_dendrogram_colour_for_undef {
 sub init_grid {
     my $self = shift;
     my $frame   = $self->get_xmlpage_object('gridFrame');
-    my $hscroll = $self->get_xmlpage_object('gridHScroll');
-    my $vscroll = $self->get_xmlpage_object('gridVScroll');
+    # my $hscroll = $self->get_xmlpage_object('gridHScroll');
+    # my $vscroll = $self->get_xmlpage_object('gridVScroll');
 
     $self->{initialising_grid} = 1;
 
@@ -869,23 +868,23 @@ sub init_grid {
     my $select_closure = sub { $self->on_grid_select(@_); };
     my $end_hover_closure = sub { $self->on_end_grid_hover(@_); };
 
-    #  disable for now
-    # $self->{grid} = Biodiverse::GUI::Grid->new(
-    #     frame => $frame,
-    #     hscroll => $hscroll,
-    #     vscroll => $vscroll,
-    #     show_legend => 1,
-    #     show_value  => 0,
-    #     hover_func      => $hover_closure,
-    #     click_func      => $click_closure, # Middle click
-    #     select_func     => $select_closure,
-    #     grid_click_func => $grid_click_closure, # Left click
-    #     end_hover_func  => $end_hover_closure,
-    # );
-    $self->{grid}{page} = $self;
-    weaken $self->{grid}{page};
+    my $drawable = Gtk3::DrawingArea->new;
+    $frame->add($drawable);
+    my $grid = $self->{grid} = Biodiverse::GUI::Grid->new(
+        frame => $frame,
+        # hscroll => $hscroll,
+        # vscroll => $vscroll,
+        show_legend => 0,
+        show_value  => 0,
+        hover_func      => $hover_closure,
+        click_func      => $click_closure, # Middle click
+        select_func     => $select_closure,
+        grid_click_func => $grid_click_closure, # Left click
+        end_hover_func  => $end_hover_closure,
+    );
+    $grid->set_parent_tab($self);
 
-    $self->{grid}{drag_mode} = 'select';
+    $grid->set_mode ('select');
 
     if ($self->{existing}) {
         my $data = $self->{output_ref};
@@ -895,7 +894,7 @@ sub init_grid {
         $completed = 1 if not defined $completed;
 
         if (defined $data and $elt_count and $completed) {
-            $self->{grid}->set_base_struct ($data);
+            $grid->set_base_struct ($data);
         }
     }
 

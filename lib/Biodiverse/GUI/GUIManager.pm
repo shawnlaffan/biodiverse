@@ -1103,7 +1103,7 @@ sub show_describe_dialog {
     my $table_widget;
     if (is_ref($description)) {
         my $row_count = scalar @$description;
-        my $table = Gtk3::Table->new( $row_count, 2 );
+        my $table = Gtk3::Table->new( $row_count, 2, 0);
 
         my $i = 0;
         foreach my $row (@$description) {

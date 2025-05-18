@@ -2526,7 +2526,7 @@ sub run_options_dialogue {
     }
 
 
-    my $table = Gtk3::Table->new(2, 2);
+    my $table = Gtk3::Table->new(2, 2, 0);
     $table->set_row_spacings(5);
     $table->set_col_spacings(20);
 

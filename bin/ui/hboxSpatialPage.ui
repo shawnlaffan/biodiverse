@@ -15,7 +15,6 @@
   <object class="GtkBox" id="hboxSpatialPage">
     <property name="visible">True</property>
     <property name="can-focus">False</property>
-    <property name="orientation">vertical</property>
     <child>
       <object class="GtkToolbar" id="toolbarSpatial">
         <property name="visible">True</property>
@@ -540,6 +539,9 @@ Colours are scaled using percentiles defined in the colour stretch menu. </prope
                                           <object class="GtkTreeView" id="treeCalculations">
                                             <property name="visible">True</property>
                                             <property name="can-focus">True</property>
+                                            <child internal-child="selection">
+                                              <object class="GtkTreeSelection"/>
+                                            </child>
                                           </object>
                                         </child>
                                       </object>

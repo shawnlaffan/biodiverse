@@ -34,16 +34,16 @@ sub new {
     my $drawable = $self->{drawable} // die 'Need a GtkDrawable to attach to';
 
 say STDERR "SETTING EVENTS on $drawable";
-    # $drawable->set_events(
-    #     [ qw/
-    #         exposure-mask
-    #         leave-notify-mask
-    #         button-press-mask
-    #         button-release-mask
-    #         pointer-motion-mask
-    #         pointer-motion-hint-mask
-    #     / ]
-    # );
+    $drawable->add_events(
+        [ qw/
+            exposure-mask
+            leave-notify-mask
+            button-press-mask
+            button-release-mask
+            pointer-motion-mask
+            pointer-motion-hint-mask
+        / ]
+    );
 
     $drawable->signal_connect(draw => sub {$self->cairo_draw (@_)});
     $drawable->signal_connect(motion_notify_event => sub {$self->on_motion (@_)});

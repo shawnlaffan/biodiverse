@@ -583,8 +583,9 @@ sub get_colour_hue {
     $hue = int(180 - $hue); # reverse 0..180 to 180..0 (this makes high values red)
     
     my ($r, $g, $b) = hsv_to_rgb($hue, 1, 1);
-    
-    return Gtk3::Gdk::RGBA::parse(sprintf '#%x%x%x', $r*257, $g*257, $b*257);
+
+    #  we did multiply by 257 so perhaps will need to reassert that if we need the exact same scaling
+    return Gtk3::Gdk::RGBA::parse("rgb($r,$g,$b)");
 }
 
 sub get_colour_saturation {
@@ -604,8 +605,8 @@ sub get_colour_saturation {
     }
 
     my ($r, $g, $b) = hsv_to_rgb($self->{hue}, $sat, 1);
-    
-    return Gtk3::Gdk::RGBA::parse(sprintf '#%x%x%x', $r*257, $g*257, $b*257);
+
+    return Gtk3::Gdk::RGBA::parse("rgb($r,$g,$b)");
 }
 
 # FROM http://blog.webkist.com/archives/000052.html

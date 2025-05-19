@@ -343,9 +343,9 @@ sub add_row {
 
     my $width = $self->get_width;
     
-    my $colour = blessed ($r) && $r->isa('Gtk3::Gdk::Color')
+    my $colour = blessed ($r) && ($r->isa('Gtk3::Gdk::RGBA') || $r->isa('Gtk3::Gdk::Color'))
       ? $r
-      : Gtk3::Gdk::RGBA::parse(sprintf ('#%x%x%x', $r,$g,$b));
+      : Gtk3::Gdk::RGBA::parse("rgb($r,$g,$b)");
 
     my $legend_colour_row = GooCanvas2::CanvasItem->new (
         $group,
@@ -756,7 +756,7 @@ sub get_colour_divergent {
             * (($val < $centre ? $arr_hi[$_] : $arr_lo[$_]) - $arr_cen[$_])
         ) * 256} (0..2);
 
-    $colour = Gtk3::Gdk::RGBA::parse(sprintf ('#%x%x%x', @rgb));
+    $colour = Gtk3::Gdk::RGBA::parse(sprintf ('rgb(%d,%d,%d)', @rgb));
     return $colour;
 }
 
@@ -812,8 +812,8 @@ sub get_colour_ratio {
             + $pct
             * (($val < 1 ? $arr_hi[$_] : $arr_lo[$_]) - $arr_cen[$_])
         ) * 256} (0..2);
-# say "$val, $extreme, $scaled";
-    return Gtk3::Gdk::RGBA::parse(sprintf ('#%x%x%x', @rgb));
+
+    return Gtk3::Gdk::RGBA::parse(sprintf ('rgb(%d,%d,%d)', @rgb));
 }
 
 sub get_colour_hue {
@@ -849,7 +849,6 @@ sub get_colour_hue {
     my ($r, $g, $b) = hsv_to_rgb($hue, 1, 1);
 
     return Gtk3::Gdk::RGBA::parse("rgb($r,$g,$b)");
-    # return Gtk3::Gdk::RGBA::parse(sprintf ('#%x%x%x', $r*257, $g*257, $b*257));
 }
 
 sub get_colour_saturation {
@@ -877,7 +876,7 @@ sub get_colour_saturation {
 
     my ($r, $g, $b) = hsv_to_rgb($self->{hue}, $sat, 1);
 
-    return Gtk3::Gdk::RGBA::parse(sprintf ('#%x%x%x', $r*257, $g*257, $b*257));
+    return Gtk3::Gdk::RGBA::parse("rgb($r,$g,$b)");
 }
 
 sub get_colour_grey {
@@ -902,9 +901,9 @@ sub get_colour_grey {
 
     $sat *= 255;
     $sat = $self->rescale_grey($sat);  #  don't use all the shades
-    $sat *= 257;
+    # $sat *= 257;
 
-    return Gtk3::Gdk::RGBA::parse(sprintf '#%x%x%x', $sat, $sat, $sat);
+    return Gtk3::Gdk::RGBA::parse("rgb($sat,$sat,$sat)");
 }
 
 

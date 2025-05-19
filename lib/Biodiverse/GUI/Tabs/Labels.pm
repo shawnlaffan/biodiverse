@@ -47,7 +47,7 @@ my $labels_model_list2_sel_col;
 
 use constant CELL_WHITE   => Gtk3::Gdk::RGBA::parse('white');
 use constant COLOUR_BLACK => Gtk3::Gdk::RGBA::parse('black');
-use constant COLOUR_GREY  => Gtk3::Gdk::RGBA::parse(sprintf '#%x%x%x', 255*257*2/3, 255*257*2/3, 255*257*2/3);
+use constant COLOUR_GREY  => Gtk3::Gdk::RGBA::parse('rgb(170,170,170)');
 
 my $selected_list1_name = 'Selected';
 my $selected_list2_name = 'Col selected';

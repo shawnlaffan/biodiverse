@@ -17,7 +17,7 @@ use constant PI => 3.1415927;
 
 use constant COLOUR_BLACK => Gtk3::Gdk::RGBA::parse('black');
 use constant COLOUR_WHITE => Gtk3::Gdk::RGBA::parse('white');
-use constant COLOUR_GRAY  => Gtk3::Gdk::RGBA::parse(sprintf '#%x%x%X', 210*257, 210*257, 210*257);
+use constant COLOUR_GRAY  => Gtk3::Gdk::RGBA::parse('rgb(210,210,210)');
 use constant COLOUR_RED   => Gtk3::Gdk::RGBA::parse('red');
 use constant COLOUR_FAILED_DEF_QUERY => Gtk3::Gdk::RGBA::parse('white');
 

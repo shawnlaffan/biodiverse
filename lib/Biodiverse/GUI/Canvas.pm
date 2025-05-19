@@ -500,7 +500,7 @@ sub on_button_press {
 
 sub cairo_draw {
     my ($self, $widget, $context) = @_;
-
+say STDERR 'Drawing';
     #  we often need this in deeper methods and it changes each redraw
     $self->{cairo_context} = $context;
     $self->{orig_tfm_mx}   = $context->get_matrix;

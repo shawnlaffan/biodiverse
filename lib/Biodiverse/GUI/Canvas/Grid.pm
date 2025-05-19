@@ -15,6 +15,13 @@ use Carp qw /croak confess/;
 
 use constant PI => 3.1415927;
 
+use constant COLOUR_BLACK => Gtk3::Gdk::RGBA::parse('black');
+use constant COLOUR_WHITE => Gtk3::Gdk::RGBA::parse('white');
+use constant COLOUR_GRAY  => Gtk3::Gdk::RGBA::parse(sprintf '#%x%x%X', 210*257, 210*257, 210*257);
+use constant COLOUR_RED   => Gtk3::Gdk::RGBA::parse('red');
+use constant COLOUR_FAILED_DEF_QUERY => Gtk3::Gdk::RGBA::parse('white');
+
+
 use parent 'Biodiverse::GUI::Canvas';
 
 sub new {
@@ -366,6 +373,9 @@ sub set_base_struct {
     my %data;
     $self->{data} = \%data;
 
+    my %elements;
+    $self->{element_data_map} = \%elements;
+
     say "[Grid] Grid loading $count elements (cells)";
 
     #  sorted list for consistency when there are >2 axes
@@ -379,10 +389,12 @@ sub set_base_struct {
         my $coord = [ $x, $y ];
         my $bounds = [ $x - $cell2x, $y - $cell2y, $x + $cell2x, $y + $cell2y ];
 
-        $data{$key}{coord} = $coord;
+        $data{$key}{coord}  = $coord;
         $data{$key}{bounds} = $bounds;
-        $data{$key}{rect} = [ @$bounds[0, 1], $res[0], $res[1] ];
+        $data{$key}{rect}   = [ @$bounds[0, 1], $res[0], $res[1] ];
         $data{$key}{centroid} = [ @$coord ];
+        $data{$key}{element}  = $element;
+        $elements{$element}   = $key;
     }
 
     my ($min_x, $max_x, $min_y, $max_y) = $self->get_data_extents();
@@ -450,9 +462,28 @@ sub get_cell_sizes {
     return wantarray ? @cell_sizes : \@cell_sizes;
 }
 
-
 sub colour {
-    warn __PACKAGE__ . "->colour not implemented yet";
+    my $self     = shift;
+    my $callback = shift;
+
+    my $colour_none = $self->get_colour_for_undef // COLOUR_WHITE;
+
+    # \my %element_data_map = $self->{element_data_map};
+
+    CELL:
+    foreach my $cell (values %{$self->{data}}) {
+
+        #  sometimes we are called before all cells have contents - should be a loop exit?
+        next CELL if !defined $cell->{coord};
+
+        my $colour_ref = $callback->($cell->{element}) // $colour_none;
+
+        next CELL if $colour_ref eq '-1';
+
+        $cell->{rgb} = $colour_ref;
+    }
+
+    return;
 }
 
 sub set_legend_min_max {

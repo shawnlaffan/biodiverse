@@ -2321,8 +2321,14 @@ sub recolour {
               ? $legend->$colour_method ($val, $min, $max)
               : $colour_none;
         }
-        
-        $ccache->{$elt} = $colour->to_string;
+        if (!blessed $colour) {
+            warn '$colour is undef' if !defined $colour;
+            warn "\$colour is $colour" if defined $colour;
+            $ccache->{$elt} = $colour;
+        }
+        else {
+            $ccache->{$elt} = $colour->to_string;
+        }
 
         return $colour;
     };
@@ -2339,7 +2345,7 @@ sub recolour {
     $grid->set_legend_min_max($min, $max);
 
     $self->{grid}->update_legend;
-    
+    $self->{grid}{drawable}->show_all;  #  try this
     return;
 }
 

@@ -609,4 +609,23 @@ sub reset_disp {
     $self->{disp} = { %{$self->{dims}} };
 }
 
+sub rgb_to_array {
+    my ($self, $colour) = @_;
+    if (!defined $colour) {
+        warn '$colour is undef';
+        warn caller();
+        return (0,0,0);
+    }
+    elsif (!blessed $colour) {
+        warn '$colour is not an object: ' . $colour;
+        return (0,0,0);
+    }
+    my $col = $colour->to_string;
+    if ($col =~ /rgb\((.+)\)/) {
+        my @rgb = split ',', $1;
+        return map {$_ / 255} @rgb;
+    }
+    return $colour;  #  do nothing
+}
+
 1;

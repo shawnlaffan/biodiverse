@@ -30,6 +30,7 @@ sub new {
 
     #  rebless
     bless $self, $class;
+    use DDP; p $self;
 
     $self->{callbacks} = {
         map        => sub {shift->draw_cells_cb (@_)},
@@ -399,12 +400,24 @@ sub set_base_struct {
 
     my ($min_x, $max_x, $min_y, $max_y) = $self->get_data_extents();
 
+    $self->{dims} = {
+        xmin    => $min_x,
+        xmax    => $max_x,
+        ymin    => $min_y,
+        ymax    => $max_y,
+        xwidth  => ($max_x - $min_x),
+        yheight => ($max_y - $min_y),
+        xcen    => ($max_x + $min_x) / 2,
+        ycen    => ($max_y + $min_y) / 2,
+    };
+    $self->{cellsizes} = [$cell_x, $cell_y];
+
     say 'Bounding box: ' . join q{ }, $min_x, $min_y // '', $max_x, $max_y // '';
 
     # Store info needed by load_shapefile
     $self->{dataset_info} = [$min_x, $min_y, $max_x, $max_y, $cell_x, $cell_y];
 
-    #  save some coords stuff for later transforms
+    #  save some coords stuff for later transforms - poss no longer needed
     $self->{base_struct_cellsizes} = [$cell_x, $cell_y];
     $self->{base_struct_bounds}    = [$min_x, $min_y, $max_x, $max_y];
 
@@ -480,7 +493,8 @@ sub colour {
 
         next CELL if $colour_ref eq '-1';
 
-        $cell->{rgb} = $colour_ref;
+        #  Cairo does not like Gtk3::Gdk::RGBA objects
+        $cell->{rgb} = [$self->rgb_to_array($colour_ref)];
     }
 
     return;

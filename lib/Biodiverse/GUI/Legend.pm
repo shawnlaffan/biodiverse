@@ -848,7 +848,8 @@ sub get_colour_hue {
 
     my ($r, $g, $b) = hsv_to_rgb($hue, 1, 1);
 
-    return Gtk3::Gdk::RGBA::parse(sprintf ('#%x%x%x', $r*257, $g*257, $b*257));
+    return Gtk3::Gdk::RGBA::parse("rgb($r,$g,$b)");
+    # return Gtk3::Gdk::RGBA::parse(sprintf ('#%x%x%x', $r*257, $g*257, $b*257));
 }
 
 sub get_colour_saturation {

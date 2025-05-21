@@ -30,16 +30,15 @@ sub new {
 
     #  rebless
     bless $self, $class;
-    use DDP; p $self;
 
     $self->{callbacks} = {
         map        => sub {shift->draw_cells_cb (@_)},
         highlights => undef,
-        overlays   => sub {shift->overlay_cb (@_)},
+        overlays   => sub {shift->_bounding_box_page_units (@_)},
         underlays  => sub {shift->underlay_cb (@_)},
     };
-    # $self->{callback_order} = [qw /underlays map overlays highlights/];
-    $self->{callback_order} = [qw /map/];  #  temporary
+    $self->{callback_order} = [qw /underlays map overlays highlights/];
+    # $self->{callback_order} = [qw /underlays map overlays/];  #  temporary
 
     return $self;
 }
@@ -242,6 +241,39 @@ sub draw_cells_cb {
     return;
 }
 
+
+#  for debug
+sub _bounding_box_page_units {
+    my ($self, $cx) = @_;
+return;
+#     $cx->set_matrix($self->{orig_tfm_mx});
+    # $cx->set_matrix();
+
+    my $drawable = $self->drawable;
+
+    my $draw_size = $drawable->get_allocation();
+    my ($canvas_w, $canvas_h, $canvas_x, $canvas_y) = @$draw_size{qw/width height x y/};
+    ($canvas_x, $canvas_y) = (0,0);
+    my $centre_x = $canvas_w / 2 + $canvas_x;
+    my $centre_y = $canvas_h / 2 + $canvas_y;
+    my $size     = ($canvas_w - $canvas_x) / 8;
+# $size = .1;
+    state $printed = 0;
+    if (!$printed) {
+        say "rectangle($centre_x - $size, $centre_y - $size, 2 * $size, 2 * $size)";
+        say join ' ', @$draw_size{qw/width height x y/};
+        $printed++;
+    }
+
+    $cx->set_source_rgb(0.5, 0.5, 0.5);
+    $cx->rectangle($centre_x - $size, $centre_y - $size, 2 * $size, 2 * $size);
+    $cx->stroke;
+
+    # $cx->set_matrix($self->{matrix});
+
+    return;
+}
+
 sub overlay_cb {
     my ($self, $context) = @_;
 
@@ -409,8 +441,13 @@ sub set_base_struct {
         yheight => ($max_y - $min_y),
         xcen    => ($max_x + $min_x) / 2,
         ycen    => ($max_y + $min_y) / 2,
+        scale   => 1,
     };
+    $self->reset_disp;  #  ensures this exists
+
     $self->{cellsizes} = [$cell_x, $cell_y];
+    $self->{ncells_x} = ($max_x - $min_x) / $cell_x;
+    $self->{ncells_y} = ($max_y - $min_y) / $cell_y;
 
     say 'Bounding box: ' . join q{ }, $min_x, $min_y // '', $max_x, $max_y // '';
 

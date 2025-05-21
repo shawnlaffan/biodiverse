@@ -854,8 +854,14 @@ sub get_dendrogram_colour_for_undef {
 sub init_grid {
     my $self = shift;
     my $frame   = $self->get_xmlpage_object('gridFrame');
-    # my $hscroll = $self->get_xmlpage_object('gridHScroll');
-    # my $vscroll = $self->get_xmlpage_object('gridVScroll');
+    my $hscroll = $self->get_xmlpage_object('gridHScroll');
+    my $vscroll = $self->get_xmlpage_object('gridVScroll');
+    $hscroll->hide;  #  if we hide these then there is no plot
+    $vscroll->hide;
+    my $outer_frame = $self->get_xmlpage_object('spatial_hpaned') // die "Cannot find item frame10";
+    # $outer_frame->set_default_size(200, 200);
+
+    $frame->set (expand => 1);  #  otherwise we shrink to not be visible
 
     $self->{initialising_grid} = 1;
 
@@ -885,7 +891,7 @@ sub init_grid {
         grid_click_func => $grid_click_closure, # Left click
         end_hover_func  => $end_hover_closure,
         drawable        => $drawable,
-        # window          => ??,
+        window          => $outer_frame,
     );
     $grid->set_parent_tab($self);
 
@@ -2345,7 +2351,11 @@ sub recolour {
     $grid->set_legend_min_max($min, $max);
 
     $self->{grid}->update_legend;
-    $self->{grid}{drawable}->show_all;  #  try this
+
+    #  FIXMEFIXME - should not be triggered here
+    # $self->{grid}{drawable}->show_all;  #  try this
+    $self->{grid}{window}->show_all;  #  try this
+
     return;
 }
 

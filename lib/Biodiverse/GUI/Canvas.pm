@@ -11,6 +11,7 @@ use Glib qw/TRUE FALSE/;
 use List::Util qw /min max/;
 use List::MoreUtils qw /minmax/;
 use Scalar::Util qw/weaken blessed/;
+use Ref::Util qw /is_arrayref/;
 use POSIX qw /floor/;
 use Carp qw /croak confess/;
 
@@ -61,16 +62,17 @@ say STDERR "SETTING EVENTS on $drawable";
     #  Dodgy but cannot get drawing area to work with key press events.
     #  Might not matter in the end as Biodiverse handles this for all panes
     #  so it will be set for a parent tab.
-    # $self->{window}->set_events(
-    #     [ qw/
-    #         key-press-event
-    #     / ]
-    # );
-    # $self->{window}->signal_connect (key_press_event => sub {
-    #     my ($widget, $event) = @_;
-    #     # say $event->type, ' ', $event->keyval, ' ', $event->state;
-    #     $self->on_key_press (@_);
-    # });
+    say STDERR "Window is $self->{window}";
+    $self->{window}->add_events(
+        [ qw/
+            key-press-event
+        / ]
+    );
+    $self->{window}->signal_connect (key_press_event => sub {
+        # my ($widget, $event) = @_;
+        # say $event->type, ' ', $event->keyval, ' ', $event->state;
+        $self->on_key_press (@_);
+    });
 
     # $self->{hadjust} = Gtk3::Adjustment->new(0, 0, 1, 1, 1, 1);
     # $self->{vadjust} = Gtk3::Adjustment->new(0, 0, 1, 1, 1, 1);
@@ -169,10 +171,22 @@ sub get_event_xy_from_mx {
     #  but why must it be inverted?
     $mx = $mx->multiply (Cairo::Matrix->init_identity);  #  work on a copy
     $mx->invert;
-    my ($x, $y) = $mx->transform_point(
-        $event->x + $draw_size->{x}, #  account for window margins
-        $event->y + $draw_size->{y},
-    );
+    my ($x, $y);
+    if (blessed $event) {
+        ($x, $y) = $mx->transform_point(
+            $event->x + $draw_size->{x}, #  account for window margins
+            $event->y + $draw_size->{y},
+        );
+    }
+    elsif (is_arrayref ($event)) {
+        ($x, $y) = $mx->transform_point(
+            $event->[0] + $draw_size->{x}, #  account for window margins
+            $event->[1] + $draw_size->{y},
+        );
+    }
+    else {
+        croak "Cannot handle the event argument, neither an object nor an array ref";
+    }
 
     return ($x, $y);
 }
@@ -386,6 +400,10 @@ sub on_button_release {
 
     my ($x, $y) = $self->get_event_xy($event);
     say "BR: $x, $y, ", $event->x, " ", $event->y;
+    my $draw_size = $self->drawable->get_allocation();
+    say "    " . join ' ', @$draw_size{qw/width height x y/};
+    # say "$self->{ncells_x} $self->{ncells_y}";
+
     # say $event->type;
     say 'Selecting' if $self->selecting;
 
@@ -500,18 +518,20 @@ sub on_button_press {
 
 sub cairo_draw {
     my ($self, $widget, $context) = @_;
-say STDERR 'Drawing';
+# say STDERR 'Drawing';
     #  we often need this in deeper methods and it changes each redraw
     $self->{cairo_context} = $context;
     $self->{orig_tfm_mx}   = $context->get_matrix;
 
-    #  we autosize to the drawing area when this is set each call
-    $self->{matrix} = $self->get_tfm_mx($widget);
-
-    $context->set_matrix($self->{matrix});
     $context->set_source_rgb(0.9, 0.9, 0.7);
     $context->paint;
+
+    #  we autosize to the drawing area when this is set each call
+    $self->{matrix} = $self->get_tfm_mx($widget);
+    $context->set_matrix($self->{matrix});
+
     my $callbacks = $self->{callbacks};
+    # $self->_bounding_box_page_units($context);
     foreach my $cb (grep {defined} @{$callbacks}{$self->callback_order}) {
         $self->$cb($context);
     }
@@ -524,11 +544,13 @@ sub get_tfm_mx {
     # say 'TFM update: ' . time();
 
     $drawable //= $self->drawable;
-
+# my $zzzz = $drawable->get_allocated_size;
+    # use DDP; p $zzzz;
     my $draw_size = $drawable->get_allocation();
+    # $draw_size = $self->{window}->get_allocation;
     my ($canvas_w, $canvas_h, $canvas_x, $canvas_y) = @$draw_size{qw/width height x y/};
 
-    my $disp_h = $self->{disp};
+    my $disp_h = $self->{disp} //= {};
     my $dims_h = $self->{dims};
 
     my $xcen = $disp_h->{xcen} //= $dims_h->{xcen};
@@ -539,12 +561,25 @@ sub get_tfm_mx {
         say sprintf $fmt, $xcen, $ycen, $dims_h->{xcen}, $dims_h->{ycen};
     }
 
-    my $mx = Cairo::Matrix->init_identity;
+    state $printed = 1;
+    if (!$printed) {
+        use DDP; p $dims_h; p $disp_h;
+        p $draw_size;
+        my $x = $self->{window}->get_allocation; p $x;
 
+        $printed++;
+    }
+
+    #  debug
+    say join ':', $self->get_event_xy_from_mx ([0, 0], $self->{orig_tfm_mx});
+    my ($off_x, $off_y) = $self->get_event_xy_from_mx ([0, 0], $self->{orig_tfm_mx});
+
+    my $mx = Cairo::Matrix->init_identity;
+    # ($canvas_x, $canvas_y) = (6,6);  #  TEMP
     # centre on 0,0 allowing for window edges
     $mx->translate(
-        $canvas_x + $canvas_w / 2,
-        $canvas_y + $canvas_h / 2,
+        $canvas_x + $canvas_w / 2 - $off_x,
+        $canvas_y + $canvas_h / 2 - $off_y,
     );
 
     #  rescale, including zoom
@@ -552,6 +587,14 @@ sub get_tfm_mx {
 
     #  and shift to display centre
     $mx->translate(-$xcen, -$ycen);
+
+    say 'WH: ' . join ' ', $drawable->get_allocated_width, $drawable->get_allocated_height;
+    say "==  $canvas_w, $canvas_h, $canvas_x, $canvas_y";
+    say '==  ' . join ' ', ($canvas_x + $canvas_w / 2, $canvas_y + $canvas_h / 2);
+    say "==  $xcen, $ycen, " . join ' ', $self->get_scale_factors();
+    say "==  " . join ' ', $self->get_event_xy_from_mx([0, 0], $mx);
+    say "==  " . join ' ', $self->get_event_xy_from_mx([$canvas_w / 2, $canvas_h / 2], $mx);
+    say "==  " . join ' ', $self->get_event_xy_from_mx([-$off_x, -$off_y], $mx);
 
     return $mx;
 }
@@ -566,13 +609,14 @@ sub get_scale_factors {
     $drawable //= $self->drawable;
 
     my $draw_size = $drawable->get_allocation();
+    # $draw_size = $self->{window}->get_allocation;
     my ($canvas_w, $canvas_h) = @$draw_size{qw/width height/};
 
     #  The buffer should be a 5% margin or similar of the scale factor
     #  but is used in the transforms so needs to be in map units
     my $buffer_frac = $self->{buffer_frac} //= 1.1;
-
-    my $disp_h = $self->{disp};
+# $buffer_frac = 1;
+    my $disp_h = $self->{disp} //= $self->{dims};
     my $dims_h = $self->{dims};
     $disp_h->{xwidth}  //= $dims_h->{xwidth};
     $disp_h->{yheight} //= $dims_h->{yheight};
@@ -590,11 +634,12 @@ sub get_scale_factors {
     }
 
     #  rescale
-    my $zoom_factor = $disp_h->{scale};
+    my $zoom_factor = $disp_h->{scale} //= 1;
     if ($zoom_factor) {
         @scale_factors = map {$zoom_factor * $_ } @scale_factors;
     }
-
+# use DDP; p $disp_h; p $dims_h; p @scale_factors;
+#     use DDP; p @scale_factors;
     return @scale_factors;
 }
 

@@ -160,6 +160,7 @@ sub set_colour_for_undef {
 }
 
 
+#  does not handle px_offsets as it is used to create it
 sub get_event_xy_from_mx {
     my ($self, $event, $mx) = @_;
 
@@ -200,9 +201,12 @@ sub get_event_xy {
 
     $cx->set_matrix($self->{matrix});
 
+    #  this will have been set when get_tfm_mx was called
+    my ($off_x, $off_y) = @{$self->{px_offsets} // [0,0]};
+
     my ($x, $y) = $cx->device_to_user(
-        $event->x + $draw_size->{x}, #  account for window margins
-        $event->y + $draw_size->{y}
+        $event->x + $draw_size->{x} - $off_x, #  account for window margins
+        $event->y + $draw_size->{y} - $off_y,
     );
 
     return ($x, $y);
@@ -570,9 +574,10 @@ sub get_tfm_mx {
         $printed++;
     }
 
-    #  debug
-    say join ':', $self->get_event_xy_from_mx ([0, 0], $self->{orig_tfm_mx});
-    my ($off_x, $off_y) = $self->get_event_xy_from_mx ([0, 0], $self->{orig_tfm_mx});
+    #  always override in case the matrix has changed from when this was last set
+    $self->{px_offsets} = [$self->get_event_xy_from_mx ([0, 0], $self->{orig_tfm_mx})];
+    # say '++ ' . join ' ', @{$self->{px_offsets}};
+    my ($off_x, $off_y) = @{$self->{px_offsets}};
 
     my $mx = Cairo::Matrix->init_identity;
     # ($canvas_x, $canvas_y) = (6,6);  #  TEMP

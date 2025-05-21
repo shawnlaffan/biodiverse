@@ -174,23 +174,24 @@ sub get_event_xy_from_mx {
     #  but why must it be inverted?
     $mx = $mx->multiply (Cairo::Matrix->init_identity);  #  work on a copy
     $mx->invert;
-    my ($x, $y);
+
+    my ($ex, $ey);
     if (blessed $event) {
-        #  account for window margins and canvas offsets
-        ($x, $y) = $mx->transform_point(
-            $event->x + $draw_size->{x} - $offsets->[0],
-            $event->y + $draw_size->{y} - $offsets->[1],
-        );
+        $ex = $event->x;
+        $ey = $event->y;
     }
     elsif (is_arrayref ($event)) {
-        ($x, $y) = $mx->transform_point(
-            $event->[0] + $draw_size->{x} - $offsets->[0],
-            $event->[1] + $draw_size->{y} - $offsets->[1],
-        );
+        ($ex, $ey) = @$event;
     }
     else {
         croak "Cannot handle the event argument, neither an object nor an array ref";
     }
+
+    #  account for window margins and canvas offsets
+    my ($x, $y) = $mx->transform_point(
+        $ex + $draw_size->{x} - $offsets->[0],
+        $ey + $draw_size->{y} - $offsets->[1],
+    );
 
     return ($x, $y);
 }

@@ -608,13 +608,13 @@ sub get_tfm_mx {
     #  and shift to display centre
     $mx->translate(-$xcen, -$ycen);
 
-    say 'WH: ' . join ' ', $drawable->get_allocated_width, $drawable->get_allocated_height;
-    say "==  $canvas_w, $canvas_h, $canvas_x, $canvas_y";
-    say '==  ' . join ' ', ($canvas_x + $canvas_w / 2, $canvas_y + $canvas_h / 2);
-    say "==  $xcen, $ycen, " . join ' ', $self->get_scale_factors();
-    say "==  " . join ' ', $self->get_event_xy_from_mx([0, 0], $mx);
-    say "==  " . join ' ', $self->get_event_xy_from_mx([$canvas_w / 2, $canvas_h / 2], $mx);
-    say "==  " . join ' ', $self->get_event_xy_from_mx([-$off_x, -$off_y], $mx);
+    # say 'WH: ' . join ' ', $drawable->get_allocated_width, $drawable->get_allocated_height;
+    # say "==  $canvas_w, $canvas_h, $canvas_x, $canvas_y";
+    # say '==  ' . join ' ', ($canvas_x + $canvas_w / 2, $canvas_y + $canvas_h / 2);
+    # say "==  $xcen, $ycen, " . join ' ', $self->get_scale_factors();
+    # say "==  " . join ' ', $self->get_event_xy_from_mx([0, 0], $mx);
+    # say "==  " . join ' ', $self->get_event_xy_from_mx([$canvas_w / 2, $canvas_h / 2], $mx);
+    # say "==  " . join ' ', $self->get_event_xy_from_mx([-$off_x, -$off_y], $mx);
 
     return $mx;
 }

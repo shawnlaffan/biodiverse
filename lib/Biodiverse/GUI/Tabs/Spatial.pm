@@ -854,11 +854,12 @@ sub get_dendrogram_colour_for_undef {
 sub init_grid {
     my $self = shift;
     my $frame   = $self->get_xmlpage_object('gridFrame');
-    my $hscroll = $self->get_xmlpage_object('gridHScroll');
-    my $vscroll = $self->get_xmlpage_object('gridVScroll');
-    $hscroll->hide;  #  if we hide these then there is no plot
-    $vscroll->hide;
-    my $outer_frame = $self->get_xmlpage_object('spatial_hpaned') // die "Cannot find item frame10";
+    #  if we re-add scroll bars then we need to recreate these
+    # my $hscroll = $self->get_xmlpage_object('gridHScroll');
+    # my $vscroll = $self->get_xmlpage_object('gridVScroll');
+    # $hscroll && $hscroll->hide;  #  if we hide these then there is no plot
+    # $hscroll && $vscroll->hide;
+    my $outer_frame = $self->get_xmlpage_object('spatial_hpaned') // die "Cannot find item spatial_hpaned";
     # $outer_frame->set_default_size(200, 200);
 
     $frame->set (expand => 1);  #  otherwise we shrink to not be visible

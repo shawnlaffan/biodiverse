@@ -162,9 +162,11 @@ sub set_colour_for_undef {
 
 #  does not handle px_offsets as it is used to create it
 sub get_event_xy_from_mx {
-    my ($self, $event, $mx) = @_;
+    my ($self, $event, $mx, $offsets) = @_;
 
     $mx //= $self->{matrix};
+
+    $offsets //= $self->{px_offsets} // [0, 0];
 
     my $draw_size = $self->{drawable}->get_allocation();
 
@@ -174,15 +176,16 @@ sub get_event_xy_from_mx {
     $mx->invert;
     my ($x, $y);
     if (blessed $event) {
+        #  account for window margins and canvas offsets
         ($x, $y) = $mx->transform_point(
-            $event->x + $draw_size->{x}, #  account for window margins
-            $event->y + $draw_size->{y},
+            $event->x + $draw_size->{x} - $offsets->[0],
+            $event->y + $draw_size->{y} - $offsets->[1],
         );
     }
     elsif (is_arrayref ($event)) {
         ($x, $y) = $mx->transform_point(
-            $event->[0] + $draw_size->{x}, #  account for window margins
-            $event->[1] + $draw_size->{y},
+            $event->[0] + $draw_size->{x} - $offsets->[0],
+            $event->[1] + $draw_size->{y} - $offsets->[1],
         );
     }
     else {
@@ -575,7 +578,8 @@ sub get_tfm_mx {
     }
 
     #  always override in case the matrix has changed from when this was last set
-    $self->{px_offsets} = [$self->get_event_xy_from_mx ([0, 0], $self->{orig_tfm_mx})];
+    delete $self->{px_offsets};
+    $self->{px_offsets} = [$self->get_event_xy_from_mx ([0, 0], $self->{orig_tfm_mx}), [0,0]];
     # say '++ ' . join ' ', @{$self->{px_offsets}};
     my ($off_x, $off_y) = @{$self->{px_offsets}};
 

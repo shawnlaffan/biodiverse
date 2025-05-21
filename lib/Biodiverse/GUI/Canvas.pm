@@ -476,7 +476,17 @@ sub on_button_press {
     say "BP: $x, $y, ", $event->x, " ", $event->y;
 
     my $e_state = $event->state;
-    if ($e_state >= [ 'control-mask' ] || $e_state >= [ 'shift-mask' ]) {
+    if ($e_state >= [ 'control-mask' ] && $e_state >= [ 'shift-mask' ]) {  #  for debug until we get things hooked up properly
+        if ($self->in_pan_mode) {
+            say 'EXITING PAN MODE';
+            $self->set_mode_from_char('s');
+        }
+        else {
+            say 'GOING INTO PAN MODE';
+            $self->set_mode_from_char('c');
+        }
+    }
+    elsif ($e_state >= [ 'control-mask' ] || $e_state >= [ 'shift-mask' ]) {
         # say "Event: $x, $y";
         $self->{disp}{xcen} = $x;
         $self->{disp}{ycen} = $y;

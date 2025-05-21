@@ -855,28 +855,10 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkHScrollbar" id="gridHScroll">
-                            <property name="visible">True</property>
-                            <property name="can-focus">False</property>
-                            <property name="adjustment">adjustment2</property>
-                          </object>
-                          <packing>
-                            <property name="top-attach">1</property>
-                            <property name="bottom-attach">2</property>
-                            <property name="y-options">GTK_FILL</property>
-                          </packing>
+                          <placeholder/>
                         </child>
                         <child>
-                          <object class="GtkVScrollbar" id="gridVScroll">
-                            <property name="visible">True</property>
-                            <property name="can-focus">False</property>
-                            <property name="adjustment">adjustment1</property>
-                          </object>
-                          <packing>
-                            <property name="left-attach">1</property>
-                            <property name="right-attach">2</property>
-                            <property name="x-options">GTK_FILL</property>
-                          </packing>
+                          <placeholder/>
                         </child>
                       </object>
                     </child>

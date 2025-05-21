@@ -360,7 +360,7 @@ sub get_data {
     }
     $ntips = $power;
     my $nbranches = $ntips * ($ntips - 1) / 2;
-use DDP; p $nbranches;
+
     srand (2345);
 
     #  generate some branches

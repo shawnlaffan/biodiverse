@@ -536,7 +536,7 @@ sub on_button_press {
 
 sub cairo_draw {
     my ($self, $widget, $context) = @_;
-# say STDERR 'Drawing';
+
     #  we often need this in deeper methods and it changes each redraw
     $self->{cairo_context} = $context;
     $self->{orig_tfm_mx}   = $context->get_matrix;
@@ -559,13 +559,9 @@ sub cairo_draw {
 
 sub get_tfm_mx {
     my ($self, $drawable, $noisy) = @_;
-    # say 'TFM update: ' . time();
 
     $drawable //= $self->drawable;
-# my $zzzz = $drawable->get_allocated_size;
-    # use DDP; p $zzzz;
     my $draw_size = $drawable->get_allocation();
-    # $draw_size = $self->{window}->get_allocation;
     my ($canvas_w, $canvas_h, $canvas_x, $canvas_y) = @$draw_size{qw/width height x y/};
 
     my $disp_h = $self->{disp} //= {};
@@ -577,15 +573,6 @@ sub get_tfm_mx {
     if ($noisy) {
         my $fmt = "%9.2f %9.2f %9.2f %9.2f";
         say sprintf $fmt, $xcen, $ycen, $dims_h->{xcen}, $dims_h->{ycen};
-    }
-
-    state $printed = 1;
-    if (!$printed) {
-        use DDP; p $dims_h; p $disp_h;
-        p $draw_size;
-        my $x = $self->{window}->get_allocation; p $x;
-
-        $printed++;
     }
 
     #  Always override in case the matrix has changed from when this was last set
@@ -611,14 +598,6 @@ sub get_tfm_mx {
 
     #  and shift to display centre
     $mx->translate(-$xcen, -$ycen);
-
-    # say 'WH: ' . join ' ', $drawable->get_allocated_width, $drawable->get_allocated_height;
-    # say "==  $canvas_w, $canvas_h, $canvas_x, $canvas_y";
-    # say '==  ' . join ' ', ($canvas_x + $canvas_w / 2, $canvas_y + $canvas_h / 2);
-    # say "==  $xcen, $ycen, " . join ' ', $self->get_scale_factors();
-    # say "==  " . join ' ', $self->get_event_xy_from_mx([0, 0], $mx);
-    # say "==  " . join ' ', $self->get_event_xy_from_mx([$canvas_w / 2, $canvas_h / 2], $mx);
-    # say "==  " . join ' ', $self->get_event_xy_from_mx([-$off_x, -$off_y], $mx);
 
     return $mx;
 }
@@ -668,8 +647,7 @@ sub get_scale_factors {
     if ($zoom_factor) {
         @scale_factors = map {$zoom_factor * $_ } @scale_factors;
     }
-# use DDP; p $disp_h; p $dims_h; p @scale_factors;
-#     use DDP; p @scale_factors;
+
     return @scale_factors;
 }
 

@@ -429,8 +429,8 @@ sub on_cell_selected {
     #  clicked on the background area
     if (!defined $element) {
         #  clear any highlights
-        $self->{grid}->mark_if_exists( {}, 'circle' );
-        $self->{grid}->mark_if_exists( {}, 'minus' );  #  clear any nbr_set2 highlights
+        $self->{grid}->mark_with_circles ( [] );  #  needed?
+        $self->{grid}->mark_with_dashes ( [] );  #  clear any nbr_set2 highlights
         $self->{dendrogram}->clear_highlights;
         return;
     }

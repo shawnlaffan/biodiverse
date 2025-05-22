@@ -160,7 +160,6 @@ sub set_colour_for_undef {
 }
 
 
-#  does not handle px_offsets as it is used to create it
 sub get_event_xy_from_mx {
     my ($self, $event, $mx, $offsets) = @_;
 
@@ -172,7 +171,7 @@ sub get_event_xy_from_mx {
 
     #  invert a copy so we get the same coords as from $cx
     #  but why must it be inverted?
-    $mx = $mx->multiply (Cairo::Matrix->init_identity);  #  work on a copy
+    $mx = $self->clone_tfm_mx($mx); # work on a copy
     $mx->invert;
 
     my ($ex, $ey);
@@ -205,7 +204,8 @@ sub get_event_xy {
 
     $cx->set_matrix($self->{matrix});
 
-    #  this will have been set when get_tfm_mx was called
+    #  This will have been set when get_tfm_mx was called.
+    #  See get_tfm_mx for why it is sometimes needed.
     my ($off_x, $off_y) = @{$self->{px_offsets} // [0,0]};
 
     my ($x, $y) = $cx->device_to_user(
@@ -588,14 +588,18 @@ sub get_tfm_mx {
         $printed++;
     }
 
-    #  always override in case the matrix has changed from when this was last set
+    #  Always override in case the matrix has changed from when this was last set
+    #  Seems to be needed to correct for offsets with mouse clicks.  These are
+    #  offset as a function of the original Cairo matrix and whatever window
+    #  contents are around the DrawingArea.
     delete $self->{px_offsets};
-    $self->{px_offsets} = [$self->get_event_xy_from_mx ([0, 0], $self->{orig_tfm_mx}), [0,0]];
-    # say '++ ' . join ' ', @{$self->{px_offsets}};
-    my ($off_x, $off_y) = @{$self->{px_offsets}};
+    $self->{px_offsets} = [$self->get_event_xy_from_mx ([0, 0], $self->{orig_tfm_mx}), [0,0])];
 
-    my $mx = Cairo::Matrix->init_identity;
-    # ($canvas_x, $canvas_y) = (6,6);  #  TEMP
+    my $mx = $self->clone_tfm_mx($self->{orig_tfm_mx});
+
+    ($canvas_x, $canvas_y) = (0,0);  #  no longer needed below
+    my ($off_x, $off_y)    = (0,0);
+
     # centre on 0,0 allowing for window edges
     $mx->translate(
         $canvas_x + $canvas_w / 2 - $off_x,
@@ -621,6 +625,12 @@ sub get_tfm_mx {
 
 sub get_identity_tfm_mx {
     Cairo::Matrix->init_identity;
+}
+
+sub clone_tfm_mx {
+    my ($self, $mx) = @_;
+    $mx //= $self->{matrix};
+    return $mx->multiply (Cairo::Matrix->init_identity);
 }
 
 sub get_scale_factors {

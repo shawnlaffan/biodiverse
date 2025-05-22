@@ -580,7 +580,7 @@ sub get_tfm_mx {
     #  offset as a function of the original Cairo matrix and whatever window
     #  contents are around the DrawingArea.
     delete $self->{px_offsets};
-    $self->{px_offsets} = [$self->get_event_xy_from_mx ([0, 0], $self->{orig_tfm_mx}), [0,0])];
+    $self->{px_offsets} = [$self->get_event_xy_from_mx ([0, 0], $self->{orig_tfm_mx}), [0,0]];
 
     my $mx = $self->clone_tfm_mx($self->{orig_tfm_mx});
 

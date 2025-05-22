@@ -47,7 +47,7 @@ use constant HOVER_CURSOR  => 'hand2';
 use constant HIGHLIGHT_COLOUR => Gtk3::Gdk::RGBA::parse('red'); # red
 use constant CELL_BLACK       => Gtk3::Gdk::RGBA::parse('black');
 use constant CELL_WHITE       => Gtk3::Gdk::RGBA::parse('white');
-#use constant CELL_COLOUR      => Gtk3::Gdk::Color::parse('#B3FFFF');
+#use constant CELL_COLOUR      => Gtk3::Gdk::RGBA::parse('#B3FFFF');
 use constant CELL_COLOUR      => Gtk3::Gdk::RGBA::parse('#FFFFFF');
 use constant OVERLAY_COLOUR   => Gtk3::Gdk::RGBA::parse('#001169');
 

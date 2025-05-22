@@ -243,8 +243,9 @@ sub get_tree_menu_items {
 sub init_grid {
     my $self = shift;
     my $frame   = $self->get_xmlpage_object('gridFrame');
-    my $hscroll = $self->get_xmlpage_object('gridHScroll');
-    my $vscroll = $self->get_xmlpage_object('gridVScroll');
+    my $outer_frame = $self->get_xmlpage_object('spatial_hpaned') // die "Cannot find item spatial_hpaned";
+    # my $hscroll = $self->get_xmlpage_object('gridHScroll');
+    # my $vscroll = $self->get_xmlpage_object('gridVScroll');
 
 #print "Initialising grid\n";
 
@@ -259,17 +260,24 @@ sub init_grid {
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
     my $select_closure     = sub { $self->on_grid_select(@_); };
 
-    $self->{grid} = Biodiverse::GUI::Grid->new(
-        frame   => $frame,
-        hscroll => $hscroll,
-        vscroll => $vscroll,
-        show_legend => 1,
-        show_value  => 0,
+    my $drawable = Gtk3::DrawingArea->new;
+    $frame->set (expand => 1);  #  otherwise we shrink to not be visible
+    $frame->add($drawable);
+
+    $self->{grid} = Biodiverse::GUI::Canvas::Grid->new(
+        frame           => $frame,
+        # hscroll => $hscroll,
+        # vscroll => $vscroll,
+        show_legend     => 0,
+        show_value      => 0,
         hover_func      => $hover_closure,
         click_func      => $click_closure, # Middle click
         select_func     => $select_closure,
         grid_click_func => $grid_click_closure, # Left click
+        drawable        => $drawable,
+        window          => $outer_frame,
     );
+    $self->{grid}->set_parent_tab($self);
 
     my $data = $self->{groups_ref};  #  should be the groups?
     my $elt_count = $data->get_element_count;
@@ -278,8 +286,6 @@ sub init_grid {
     if (defined $data and $elt_count and $completed) {
         $self->{grid}->set_base_struct ($data);
     }
-
-    $self->{grid}->set_parent_tab($self);
 
     my $menu_log_checkbox = $self->get_xmlpage_object('menu_colour_stretch_log_mode');
     $menu_log_checkbox->signal_connect_swapped(
@@ -293,6 +299,8 @@ sub init_grid {
     );
 
     $self->warn_if_basedata_has_gt2_axes;
+
+    $outer_frame->show_all;  #  try this
 
     return;
 }
@@ -595,7 +603,7 @@ sub get_index_cell_colour {
 sub set_index_cell_colour {
     my ($self, $colour) = @_;
 
-    $colour //= Gtk3::Gdk::Color::parse('rgb(150,150,150)');
+    $colour //= Gtk3::Gdk::RGBA::parse('rgb(150,150,150)');
     $self->{index_cell_colour} = $colour;
 
     return $colour;

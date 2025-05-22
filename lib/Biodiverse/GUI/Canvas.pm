@@ -62,20 +62,17 @@ say STDERR "SETTING EVENTS on $drawable";
     #  Dodgy but cannot get drawing area to work with key press events.
     #  Might not matter in the end as Biodiverse handles this for all panes
     #  so it will be set for a parent tab.
-    say STDERR "Window is $self->{window}";
-    $self->{window}->add_events(
-        [ qw/
-            key-press-event
-        / ]
-    );
-    $self->{window}->signal_connect (key_press_event => sub {
-        # my ($widget, $event) = @_;
-        # say $event->type, ' ', $event->keyval, ' ', $event->state;
-        $self->on_key_press (@_);
-    });
-
-    # $self->{hadjust} = Gtk3::Adjustment->new(0, 0, 1, 1, 1, 1);
-    # $self->{vadjust} = Gtk3::Adjustment->new(0, 0, 1, 1, 1, 1);
+    # say STDERR "Window is $self->{window}";
+    # $self->{window}->add_events(
+    #     [ qw/
+    #         key-press-event
+    #     / ]
+    # );
+    # $self->{window}->signal_connect (key_press_event => sub {
+    #     # my ($widget, $event) = @_;
+    #     # say $event->type, ' ', $event->keyval, ' ', $event->state;
+    #     $self->on_key_press (@_);
+    # });
 
     $self->init_legend(%args);
 
@@ -625,13 +622,12 @@ sub get_scale_factors {
     $drawable //= $self->drawable;
 
     my $draw_size = $drawable->get_allocation();
-    # $draw_size = $self->{window}->get_allocation;
     my ($canvas_w, $canvas_h) = @$draw_size{qw/width height/};
 
     #  The buffer should be a 5% margin or similar of the scale factor
     #  but is used in the transforms so needs to be in map units
     my $buffer_frac = $self->{buffer_frac} //= 1.1;
-# $buffer_frac = 1;
+
     my $disp_h = $self->{disp} //= $self->{dims};
     my $dims_h = $self->{dims};
     $disp_h->{xwidth}  //= $dims_h->{xwidth};

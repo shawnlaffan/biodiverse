@@ -33,7 +33,7 @@ sub new {
 
     $self->{callbacks} = {
         map        => sub {shift->draw_cells_cb (@_)},
-        highlights => undef,
+        highlights => sub {shift->plot_highlights(@_)},
         overlays   => sub {shift->_bounding_box_page_units (@_)},
         underlays  => sub {shift->underlay_cb (@_)},
     };
@@ -71,13 +71,13 @@ sub _on_motion {
 
     #  only redraw if needed
     if (!exists $self->{data}{$key}) {
-        if (defined delete $self->{callbacks}{highlights}) {
+        if (defined delete $self->{highlights}) {
             $widget->queue_draw;
         }
         $self->{last_motion_key} = undef;
     }
     elsif ($last_key ne $key && $f) {
-        delete $self->{callbacks}{highlights};  #  reset
+        # delete $self->{callbacks}{highlights};  #  reset
         #  these callbacks add to the highlights so any draw is done then
         $f->($key);
         $self->{last_motion_key} = $key;
@@ -507,37 +507,28 @@ sub set_legend_hue {
     warn __PACKAGE__ . "->set_legend_hue not implemented yet";
 }
 
-sub mark_with_dash {
+sub mark_with_circles {
     my ($self, $elements) = @_;
 
-    my $cb_array  = $self->{callbacks}{highlights} //= [];
-    my $cellsizes = $self->{cellsizes};
-
-    my $cb = sub {
-        my ($self, $cx) = @_;
-        no autovivification;
-        foreach my $c (grep {defined} map {$self->{data}{$_}{centroid}} @$elements) {
-            $cx->set_line_width($cellsizes->[0] / 10);
-            $cx->set_source_rgb(0, 0, 0);
-            $cx->move_to($c->[0] - $cellsizes->[0] / 3, $c->[1]);
-            $cx->line_to($c->[0] + $cellsizes->[0] / 3, $c->[1]);
-            $cx->stroke;
-        }
-    };
-
-    push @$cb_array, $cb;
+    $self->{highlights}{circles} = $elements;
 
     return;
 }
 
-sub mark_with_circle {
+sub mark_with_dashes {
     my ($self, $elements) = @_;
 
-    my $cb_array  = $self->{callbacks}{highlights} //= [];
+    $self->{highlights}{dashes} = $elements;
+
+    return;
+}
+
+sub plot_highlights {
+    my ($self, $cx) = @_;
+
     my $cellsizes = $self->{cellsizes};
 
-    my $cb = sub {
-        my ($self, $cx) = @_;
+    if (my $elements = $self->{highlights}{circles}) {
         no autovivification;
         foreach my $c (grep {defined} map {$self->{data}{$_}{centroid}} @$elements) {
             $cx->arc(@$c, $cellsizes->[0] / 4, 0, 2.0 * PI);
@@ -547,10 +538,18 @@ sub mark_with_circle {
             $cx->fill;
         };
     };
+    if (my $elements = $self->{highlights}{circles}) {
+        no autovivification;
+        foreach my $c (grep {defined} map {$self->{data}{$_}{centroid}} @$elements) {
+            $cx->set_line_width($cellsizes->[0] / 10);
+            $cx->set_source_rgb(0, 0, 0);
+            $cx->move_to($c->[0] - $cellsizes->[0] / 3, $c->[1]);
+            $cx->line_to($c->[0] + $cellsizes->[0] / 3, $c->[1]);
+            $cx->stroke;
+        }
+    }
 
-    push @$cb_array, $cb;
-
-    return;
+    return FALSE;
 }
 
 1;  # end of package

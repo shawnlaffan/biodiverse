@@ -1719,10 +1719,10 @@ sub on_grid_hover {
         my (%nbrs_hash_inner, %nbrs_hash_outer);
 
         if ($neighbours eq 'Set1' || $neighbours eq 'Both') {
-            $self->{grid}->mark_with_circle ($nbrs_inner);
+            $self->{grid}->mark_with_circles ($nbrs_inner);
         }
         if ($neighbours eq 'Set2' || $neighbours eq 'Both') {
-            $self->{grid}->mark_with_dash ($nbrs_outer);
+            $self->{grid}->mark_with_dashes ($nbrs_outer);
         }
         #if ($neighbours eq 'Off') {  #  highlight the labels from the hovered group on the tree
         #    $nbrs_hash_inner{$element} = 1;
@@ -1756,8 +1756,8 @@ sub on_grid_hover {
         $self->highlight_paths_on_dendrogram ([\%labels1, \%labels2], $group);
     }
     else {
-        $self->{grid}->mark_with_circle ([]);  #  might not be needed now
-        $self->{grid}->mark_with_dash ([]);
+        $self->{grid}->mark_with_circles ([]);  #  might not be needed now
+        $self->{grid}->mark_with_dashes ([]);
 
         $self->{dendrogram}->clear_highlights();
     }

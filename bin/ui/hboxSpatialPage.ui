@@ -347,6 +347,7 @@ Colours are scaled using percentiles defined in the colour stretch menu. </prope
                                     <property name="tooltip-text" translatable="yes">Display all hues (colours) from blue to red.</property>
                                     <property name="label" translatable="yes">Hue</property>
                                     <property name="use-underline">True</property>
+                                    <property name="active">True</property>
                                     <property name="draw-as-radio">True</property>
                                   </object>
                                 </child>
@@ -843,6 +844,12 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                           <placeholder/>
                         </child>
                         <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
                           <object class="GtkFrame" id="gridFrame">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
@@ -853,9 +860,6 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                             <property name="x-options">GTK_FILL</property>
                             <property name="y-options">GTK_FILL</property>
                           </packing>
-                        </child>
-                        <child>
-                          <placeholder/>
                         </child>
                         <child>
                           <placeholder/>

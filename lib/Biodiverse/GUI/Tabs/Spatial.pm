@@ -862,8 +862,6 @@ sub init_grid {
     my $outer_frame = $self->get_xmlpage_object('spatial_hpaned') // die "Cannot find item spatial_hpaned";
     # $outer_frame->set_default_size(200, 200);
 
-    $frame->set (expand => 1);  #  otherwise we shrink to not be visible
-
     $self->{initialising_grid} = 1;
 
     # Use closure to automatically pass $self (which grid doesn't know)
@@ -879,7 +877,9 @@ sub init_grid {
     my $end_hover_closure = sub { $self->on_end_grid_hover(@_); };
 
     my $drawable = Gtk3::DrawingArea->new;
+    $frame->set (expand => 1);  #  otherwise we shrink to not be visible
     $frame->add($drawable);
+
     my $grid = $self->{grid} = Biodiverse::GUI::Canvas::Grid->new(
         frame           => $frame,
         # hscroll => $hscroll,
@@ -924,6 +924,8 @@ sub init_grid {
     );
 
     $self->warn_if_basedata_has_gt2_axes;
+
+    $outer_frame->show_all;
 
     return;
 }
@@ -2352,10 +2354,6 @@ sub recolour {
     $grid->set_legend_min_max($min, $max);
 
     $self->{grid}->update_legend;
-
-    #  FIXMEFIXME - should not be triggered here
-    # $self->{grid}{drawable}->show_all;  #  try this
-    $self->{grid}{window}->show_all;  #  try this
 
     return;
 }

@@ -551,7 +551,14 @@ sub cairo_draw {
     my $callbacks = $self->{callbacks};
     # $self->_bounding_box_page_units($context);
     foreach my $cb (grep {defined} @{$callbacks}{$self->callback_order}) {
-        $self->$cb($context);
+        if (is_arrayref $cb) {
+            foreach my $_cb (@$cb) {
+                $self->$_cb($context);
+            }
+        }
+        else {
+            $self->$cb($context);
+        }
     }
 
     return FALSE;

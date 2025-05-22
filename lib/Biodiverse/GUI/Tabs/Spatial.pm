@@ -1681,7 +1681,7 @@ sub on_grid_hover {
     my $output_ref = $self->{output_ref};
     my $text = $self->get_grid_text_pfx;
 
-    my $bd_ref = $output_ref->get_param ('BASEDATA_REF') || $output_ref;
+    my $bd_ref = $output_ref->get_basedata_ref || $output_ref;
 
     if (defined $element) {
         no warnings 'uninitialized';  #  sometimes the selected_list or analysis is undefined
@@ -1719,19 +1719,22 @@ sub on_grid_hover {
         my (%nbrs_hash_inner, %nbrs_hash_outer);
 
         if ($neighbours eq 'Set1' || $neighbours eq 'Both') {
-            @nbrs_hash_inner{ @$nbrs_inner } = undef;
-            $self->{grid}->mark_if_exists(\%nbrs_hash_inner, 'circle');
+            $self->{grid}->mark_with_circle ($nbrs_inner);
         }
         if ($neighbours eq 'Set2' || $neighbours eq 'Both') {
-            @nbrs_hash_outer{ @$nbrs_outer } = undef;
-            $self->{grid}->mark_if_exists(\%nbrs_hash_outer, 'minus');
+            $self->{grid}->mark_with_dash ($nbrs_outer);
         }
         #if ($neighbours eq 'Off') {  #  highlight the labels from the hovered group on the tree
         #    $nbrs_hash_inner{$element} = 1;
         #}
 
         # dendrogram highlighting from labels.pm
-        $self->{dendrogram}->clear_highlights();
+        state $warned = 0;
+        if (!$warned) {
+            warn 'FIXME dendro clear highlights';
+            $warned++;
+        }
+        # $self->{dendrogram}->clear_highlights();
 
         #  does this even trigger now?
         my $group = $element; # is this the same?
@@ -1753,8 +1756,8 @@ sub on_grid_hover {
         $self->highlight_paths_on_dendrogram ([\%labels1, \%labels2], $group);
     }
     else {
-        $self->{grid}->mark_if_exists({}, 'circle');
-        $self->{grid}->mark_if_exists({}, 'minus');
+        $self->{grid}->mark_with_circle ([]);  #  might not be needed now
+        $self->{grid}->mark_with_dash ([]);
 
         $self->{dendrogram}->clear_highlights();
     }
@@ -1775,6 +1778,10 @@ my @dendro_highlight_branch_colours
   = map {Gtk3::Gdk::RGBA::parse($_)} ('#1F78B4', '#E31A1C', '#000000');
 
 sub highlight_paths_on_dendrogram {
+    state $warned;
+    warn 'FIXME highlight_paths_on_dendrogram not implemented yet' if !$warned++;
+    return;
+
     my ($self, $hashrefs, $group) = @_;
 
     my $sources = $self->{current_branch_colouring_source};

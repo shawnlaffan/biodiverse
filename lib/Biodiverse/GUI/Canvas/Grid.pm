@@ -38,7 +38,6 @@ sub new {
         underlays  => sub {shift->underlay_cb (@_)},
     };
     $self->{callback_order} = [qw /underlays map overlays highlights/];
-    # $self->{callback_order} = [qw /underlays map overlays/];  #  temporary
 
     return $self;
 }
@@ -58,89 +57,31 @@ sub get_scale_factor {
     return $_[1], -$_[1];
 }
 
-#  need a batter name but this is called as a fallback from SUPER::on_motion
+#  need a better name but this is called as a fallback from SUPER::on_motion
 sub _on_motion {
-    my ($self, $widget, $event, $ref_status) = @_;
+    my ($self, $widget, $event) = @_;
 
     my ($x, $y) = $self->get_event_xy($event);
 
-    return FALSE if $x > $self->xmax || $y > $self->ymax;
+    return FALSE if $x > $self->xmax || $y > $self->ymax || $x < $self->xmin || $y < $self->ymin;
 
-    my $key = $self->map_to_cell_id($x, $y);
-    my $last_key = $self->{last_key} //= '';;
+    my $key = $self->snap_coord_to_grid_id($x, $y);
+    my $last_key = $self->{last_motion_key} //= '';
+    my $f = $self->{hover_func};
 
-    my $data = $self->{data};
-
-    if (exists $data->{$last_key} && $last_key ne $key) {
-        # say "LK: $last_key, K: $key";
-        # if ($last_key ne '') {
-        #     say join (' ', @{$data->{$last_key}{rgb}}) . ' : ' . join ' ', @{$data->{$last_key}{rgb_orig}};
-        # }
-        $data->{$last_key}{rgb} = $data->{$last_key}{rgb_orig};
-    }
-
-    if (exists $data->{$key} && $key ne $last_key) {
-        # $context->set_line_width(1);
-        if ($data->{$key}{bounds}) {
-
-            # \my @rect = $data->{$key}{rect} // [];
-            # say $key . " " . join ' ', @rect;
-            # $context->set_source_rgb(0, 0, 0.9);
-            $data->{$key}{rgb} = [ 0, 0, 0.9 ];
-            # $context->rectangle(@rect);
-            # $context->fill;
-            # \my @b0 = $data->{$key}{bounds};
-            # \my @b1 = $data->{$last_key}{bounds} // $data->{$key}{bounds};
-            # my @area = (
-            #     min($b0[0], $b1[0]),
-            #     min($b0[1], $b1[1]),
-            #     max($b0[2], $b1[2]),
-            #     max($b0[3], $b1[3]),
-            # );
-            # say join ' ', @area;
-            # say join ' ', @b0;
-            # say join ' ', @b1;
-            my $cellsizes = $self->{cellsizes};
-
-            $self->{callbacks}{highlights} = sub {
-                my ($self, $cx) = @_;
-                \my @nbrs = $data->{$key}{nbrs} // [];
-                foreach my $c (grep {defined} map {$data->{$_}{centroid}} @nbrs) {
-                    # $cx->set_line_width(3);
-                    $cx->set_line_width($cellsizes->[0] / 10);
-                    $cx->set_source_rgb(0, 0, 0);
-                    $cx->move_to($c->[0] - $cellsizes->[0] / 3, $c->[1]);
-                    $cx->line_to($c->[0] + $cellsizes->[0] / 3, $c->[1]);
-                    $cx->stroke;
-                }
-                #  centre circle
-                my $c = $data->{$key}{centroid};
-                $cx->arc(@$c, $cellsizes->[0] / 4, 0, 2.0 * PI);
-                $cx->set_line_width($cellsizes->[0] / 10);
-                $cx->stroke_preserve;
-                $cx->set_source_rgb(0, 0, 0);
-                $cx->fill;
-            };
-
-
-            #  need to get the whole region that was changed
-            # $widget->queue_draw_area(@area);
-            # $widget->queue_draw_area (@$coord, $STEP, $STEP);
-            # $widget->queue_draw_area (@{$data->{$last_key}{coord}}, $STEP, $STEP);
-            # $widget->queue_draw_region (Cairo::Region->create (@$coord, $STEP, $STEP));
-            # $widget->queue_draw_region (@{$data->{$last_key}{coord}}, $STEP, $STEP);
-
-            $widget->queue_draw;
-        }
-    }
-    elsif (!$data->{$key}{bounds}) {
-        #  only redraw if needed
+    #  only redraw if needed
+    if (!exists $self->{data}{$key}) {
         if (defined delete $self->{callbacks}{highlights}) {
             $widget->queue_draw;
         }
+        $self->{last_motion_key} = undef;
     }
-
-    $self->{last_key} = $key;
+    elsif ($last_key ne $key && $f) {
+        delete $self->{callbacks}{highlights};  #  reset
+        #  these callbacks add to the highlights so any draw is done then
+        $f->($key);
+        $self->{last_motion_key} = $key;
+    }
 
     return FALSE;
 }
@@ -336,6 +277,20 @@ sub underlay_cb {
     # $context->queue_draw;
 
 }
+
+sub snap_coord_to_grid {
+    my ($self, $x, $y) = @_;
+    my $c = $self->{cellsizes};
+    my $grid_x = $self->xmin + $c->[0] * floor (($x - $self->xmin) / $c->[0]) + $c->[0] / 2;
+    my $grid_y = $self->ymin + $c->[1] * floor (($y - $self->ymin) / $c->[1]) + $c->[1] / 2;
+    return ($grid_x, $grid_y);
+}
+
+sub snap_coord_to_grid_id {
+    my ($self, $x, $y) = @_;
+    return join ':', $self->snap_coord_to_grid($x, $y);
+}
+
 
 sub map_to_cell_coord {
     my ($self, $x, $y) = @_;
@@ -550,6 +505,52 @@ sub set_legend_log_mode_off {
 
 sub set_legend_hue {
     warn __PACKAGE__ . "->set_legend_hue not implemented yet";
+}
+
+sub mark_with_dash {
+    my ($self, $elements) = @_;
+
+    my $cb_array  = $self->{callbacks}{highlights} //= [];
+    my $cellsizes = $self->{cellsizes};
+
+    my $cb = sub {
+        my ($self, $cx) = @_;
+        no autovivification;
+        foreach my $c (grep {defined} map {$self->{data}{$_}{centroid}} @$elements) {
+            $cx->set_line_width($cellsizes->[0] / 10);
+            $cx->set_source_rgb(0, 0, 0);
+            $cx->move_to($c->[0] - $cellsizes->[0] / 3, $c->[1]);
+            $cx->line_to($c->[0] + $cellsizes->[0] / 3, $c->[1]);
+            $cx->stroke;
+        }
+    };
+
+    push @$cb_array, $cb;
+
+    return;
+}
+
+sub mark_with_circle {
+    my ($self, $elements) = @_;
+
+    my $cb_array  = $self->{callbacks}{highlights} //= [];
+    my $cellsizes = $self->{cellsizes};
+
+    my $cb = sub {
+        my ($self, $cx) = @_;
+        no autovivification;
+        foreach my $c (grep {defined} map {$self->{data}{$_}{centroid}} @$elements) {
+            $cx->arc(@$c, $cellsizes->[0] / 4, 0, 2.0 * PI);
+            $cx->set_line_width($cellsizes->[0] / 10);
+            $cx->stroke_preserve;
+            $cx->set_source_rgb(0, 0, 0);
+            $cx->fill;
+        };
+    };
+
+    push @$cb_array, $cb;
+
+    return;
 }
 
 1;  # end of package

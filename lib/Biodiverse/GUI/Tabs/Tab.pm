@@ -599,8 +599,8 @@ sub on_colour_mode_changed {
             my $colour_dialog = Gtk3::ColorSelectionDialog->new('Pick Hue');
             my $colour_select = $colour_dialog->get_color_selection();
             if (my $col = $self->{hue}) {
-                $colour_select->set_previous_color($col);
-                $colour_select->set_current_color($col);
+                $colour_select->set_previous_rgba($col);
+                $colour_select->set_current_rgba($col);
             }
             $colour_dialog->show_all();
             my $response = $colour_dialog->run;

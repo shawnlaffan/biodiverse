@@ -541,4 +541,15 @@ sub set_legend_min_max {
     warn __PACKAGE__ . "->set_legend_min_max not implemented yet";
 }
 
+sub set_legend_log_mode_on {
+    warn __PACKAGE__ . "->set_legend_log_mode_on not implemented yet";
+}
+sub set_legend_log_mode_off {
+    warn __PACKAGE__ . "->set_legend_log_mode_off not implemented yet";
+}
+
+sub set_legend_hue {
+    warn __PACKAGE__ . "->set_legend_hue not implemented yet";
+}
+
 1;  # end of package

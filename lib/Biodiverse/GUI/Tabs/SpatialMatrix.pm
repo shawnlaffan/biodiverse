@@ -500,7 +500,12 @@ sub on_grid_hover {
         $self->get_xmlpage_object('lblOutput')->set_markup($text);
 
         # dendrogram highlighting from labels.pm
-        $self->{dendrogram}->clear_highlights();
+        state $warned = 0;
+        if (!$warned) {
+            warn 'FIXME clear_highlights';
+            $warned ++;
+            # $self->{dendrogram}->clear_highlights();
+        }
 
         my $group = $element; # is this the same?
         return if ! defined $group;

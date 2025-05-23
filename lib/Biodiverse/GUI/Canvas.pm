@@ -381,7 +381,7 @@ sub on_key_press {
 }
 
 sub on_motion {
-    my ($self, $widget, $event, $ref_status) = @_;
+    my ($self, $widget, $event) = @_;
 
     return FALSE if not defined $self->{cairo_context};
 
@@ -475,27 +475,9 @@ sub on_button_press {
     my ($x, $y) = $self->get_event_xy($event);
     say "BP: $x, $y, ", $event->x, " ", $event->y;
 
-    my $e_state = $event->state;
-    if ($e_state >= [ 'control-mask' ] && $e_state >= [ 'shift-mask' ]) {  #  for debug until we get things hooked up properly
-        if ($self->in_pan_mode) {
-            say 'EXITING PAN MODE';
-            $self->set_mode_from_char('s');
-        }
-        else {
-            say 'GOING INTO PAN MODE';
-            $self->set_mode_from_char('c');
-        }
-    }
-    elsif ($e_state >= [ 'control-mask' ] || $e_state >= [ 'shift-mask' ]) {
-        # say "Event: $x, $y";
-        $self->{disp}{xcen} = $x;
-        $self->{disp}{ycen} = $y;
-        $self->{disp}{scale} *= $e_state >= [ 'control-mask' ] ? 1 / 1.5 : 1.5;
-        $self->{matrix} = $self->get_tfm_mx;
-        $widget->queue_draw;
-        return FALSE;
-    }
-    elsif ($self->in_zoom_fit_mode || $event->button == 3) {
+    my $e_state  = $event->state;
+    my $e_button = $event->button;
+    if ($self->in_zoom_fit_mode || $e_button == 3) {
         #  reset
         $self->reset_disp;
         $self->{matrix} = $self->get_tfm_mx;
@@ -515,6 +497,10 @@ sub on_button_press {
         return FALSE;
     }
     elsif (not $self->selecting and $self->in_selectable_mode) {
+        if (($e_button == 1 && $e_state >= [ 'control-mask' ] || $e_state >= [ 'shift-mask' ]) || $e_button == 2) {
+            $self->_on_ctl_click($widget, $event);
+            return TRUE;
+        }
         ($self->{sel_start_x}, $self->{sel_start_y}) = ($event->x, $event->y);
         $self->{selecting} = 1;
         say "selection started, $x $y";

@@ -86,24 +86,27 @@ sub _on_motion {
     return FALSE;
 }
 
-#  also a bad name
-sub _select_while_not_selecting {
-    my ($self, $widget, $x, $y) = @_;
+sub _on_ctl_click {
+    my ($self, $widget, $event) = @_;
 
-    my $key = $self->map_to_cell_id($x, $y);
+    my ($x, $y) = $self->get_event_xy($event);
 
-    my $data = $self->{data};
+    return FALSE if $x > $self->xmax || $y > $self->ymax || $x < $self->xmin || $y < $self->ymin;
 
-    if (exists $data->{$key}{rect}) {
-        # \my @rect = $data->{$key}{rect};
-        # say "BPress: Dv: $x $y, Ev: $ex $ey, ID: $key, rect: " . join ' ', @rect;
-        $data->{$key}{rgb_orig} = [ .99, 0, 0.9 ];
-        $data->{$key}{rgb} = [ .99, 0, 0.9 ];
+    my $key = $self->snap_coord_to_grid_id($x, $y);
 
-        $widget->queue_draw;
-        # $last_key = $key;
+    my $f = $self->{ctl_click_func};
+
+    #  only redraw if needed
+    if ($f && exists $self->{data}{$key}) {
+        $f->($key);
     }
 
+    return FALSE;
+}
+
+#  also a bad name but now does nothing
+sub _select_while_not_selecting {
     return;
 }
 
@@ -339,6 +342,11 @@ sub rect_canonicalise {
     my ($self, $rect) = @_;
     ($rect->[0], $rect->[2]) = minmax($rect->[2], $rect->[0]);
     ($rect->[1], $rect->[3]) = minmax($rect->[3], $rect->[1]);
+}
+
+sub get_base_struct {
+    my $self = shift;
+    return $self->{data_source};
 }
 
 sub set_base_struct {

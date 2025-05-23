@@ -387,7 +387,8 @@ sub on_motion {
 
     if ($self->selecting) {
         #  update display if there was a function
-        if (defined $self->{callbacks}{highlights}) {
+        #  should we be deleting?
+        if (defined delete $self->{highlights}) {
             $widget->queue_draw;
             return FALSE;
         }

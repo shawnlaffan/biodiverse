@@ -602,4 +602,9 @@ sub plot_highlights {
     return FALSE;
 }
 
+sub set_overlay {
+    warn 'set_overlay not yet implemented'
+}
+
+
 1;  # end of package

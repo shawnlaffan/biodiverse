@@ -33,7 +33,7 @@ sub show_dialog {
     if ($overlay_components) {
         my $dlg           = $overlay_components->{dialog};
         my $colour_button = $overlay_components->{colour_button};
-        $colour_button->set_color($last_selected_colour);
+        $colour_button->set_rgba($last_selected_colour);
 
         set_button_actions (
             project => $project,
@@ -51,7 +51,7 @@ sub show_dialog {
     my $colour_button = $dlgxml->get_object('colorbutton_overlays');
     $dlg->set_transient_for($gui->get_object('wndMain'));
 
-    $colour_button->set_color($last_selected_colour);
+    $colour_button->set_rgba($last_selected_colour);
 
     my $model = make_overlay_model($project);
     my $list = init_overlay_list($dlgxml, $model);
@@ -219,7 +219,7 @@ sub _update_colour_for_selection {
     if (!Scalar::Util::blessed $colour) {
         $colour = Gtk3::Gdk::RGBA::parse($colour);
     }
-    $colour_button->set_color($colour);
+    $colour_button->set_rgba($colour);
 
     $colour_button->clicked;
     $colour = $colour_button->get_color;
@@ -305,14 +305,16 @@ sub get_selection {
 
     my $selection = $tree->get_selection();
     my $path = $selection->get_selected_rows();
-    return if not $path;
+    my $iter = $selection->get_selected();
+    return if not $iter;
 
     my $model = $tree->get_model();
-    my $iter  = $model->get_iter($path);
+    # my $iter  = $model->get_iter($path);
     my $name  = $model->get($iter, COL_FNAME);
     my $type  = $model->get($iter, COL_FTYPE);
     my $plot_on_top = $model->get($iter, COL_PLOT_ON_TOP);
-    my $array_iter  = $path->to_string;  #  only works for a simple tree
+    # my $array_iter  = $path->to_string;  #  only works for a simple tree
+    my $array_iter  = $path->get_string_from_iter($iter);
 
     return wantarray
         ? (iter => $iter, filename => $name, type => $type, plot_on_top => $plot_on_top, array_iter => $array_iter)
@@ -321,10 +323,9 @@ sub get_selection {
 
 
 sub on_set_default_colour {
-    my $button = shift;
-    my $colour_button = shift;
+    my ($button, $colour_button) = @_;
 
-    $colour_button->set_color ($default_colour);
+    $colour_button->set_rgba ($default_colour);
 
     return;
 }

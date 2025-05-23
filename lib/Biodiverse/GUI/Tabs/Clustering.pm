@@ -2021,14 +2021,15 @@ sub on_stretch_changed {
     return;
 }
 
-sub on_overlays {
-    my $self = shift;
-    my $button = shift;
-
-    Biodiverse::GUI::Overlays::show_dialog( $self->{grid} );
-
-    return;
-}
+#   should be inherited from Tab.pm,
+# sub on_overlays {
+#     my $self = shift;
+#     my $button = shift;
+#
+#     Biodiverse::GUI::Overlays::show_dialog( $self->{grid} );
+#
+#     return;
+# }
 
 sub undo_multiselect_click {
     my $self = shift;

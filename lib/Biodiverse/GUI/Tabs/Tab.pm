@@ -320,6 +320,15 @@ sub hotkey_handler {
 
 sub on_run {} # default for tabs that don't implement on_run
 
+sub on_overlays {
+    my $self = shift;
+    my $button = shift;
+
+    Biodiverse::GUI::Overlays::show_dialog( $self->{grid} );
+
+    return;
+}
+
 my %key_tool_map = (
     Z => 'ZoomIn',
     X => 'ZoomOut',

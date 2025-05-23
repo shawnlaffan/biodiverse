@@ -232,7 +232,7 @@ sub set_mode_from_char {
         x => 'zoom_out',
         c => 'pan',
         s => 'select',
-        v => 'zoom_reset',
+        v => 'zoom_fit',
     );
 
     my $mode = $modes{$mode_char};
@@ -254,11 +254,13 @@ sub set_mode {
         select     => 'default',
         zoom_in    => 'zoom-in',
         zoom_out   => 'zoom-out',
-        zoom_reset => 'zoom-fit-best',
+        zoom_fit   => 'zoom-fit-best',
         pan        => 'fleur',
     );
 
     $mode //= 'undef';
+    $mode = lc $mode;
+    $mode =~ s/zoom([a-z])/zoom_$1/;  #  ZoomIn -> zoom_in etc
     warn "Unsupported Canvas mode $mode" if !defined $cursor_names{$mode};
 
     return if !defined $mode || $self->get_mode eq $mode || !$cursor_names{$mode};
@@ -313,9 +315,9 @@ sub in_zoom_mode {
     my $self = shift;
     return $self->in_zoom_in_mode || $self->in_zoom_out_mode;
 }
-sub in_zoom_reset_mode {
+sub in_zoom_fit_mode {
     my $self = shift;
-    return $self->{mode} eq 'zoom_reset'
+    return $self->{mode} eq 'zoom_fit'
 }
 #  uses box but is not panning
 sub in_selectable_mode {
@@ -385,7 +387,7 @@ sub on_motion {
 
     if ($self->selecting) {
         #  update display if there was a function
-        if (defined delete $self->{callbacks}{highlights}) {
+        if (defined $self->{callbacks}{highlights}) {
             $widget->queue_draw;
             return FALSE;
         }
@@ -492,7 +494,7 @@ sub on_button_press {
         $widget->queue_draw;
         return FALSE;
     }
-    elsif ($self->in_zoom_reset_mode || $event->button == 3) {
+    elsif ($self->in_zoom_fit_mode || $event->button == 3) {
         #  reset
         $self->reset_disp;
         $self->{matrix} = $self->get_tfm_mx;

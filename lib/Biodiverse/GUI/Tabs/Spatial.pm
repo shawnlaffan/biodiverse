@@ -2538,12 +2538,13 @@ sub choose_tool {
 
     $self->{tool} = $tool;
 
-    if ($self->{grid} && blessed $self->{grid}) {  # might not be initialised yet
-        $self->{grid}{drag_mode} = $self->{drag_modes}{$tool};
+    foreach my $canvas (qw /grid dendrogram/) {
+        next if ! blessed ($self->{$canvas} // '');  # might not be initialised yet
+        # $self->{$canvas}{drag_mode} = $self->{drag_modes}{$tool};  #  still needed?
+        $self->{$canvas}->set_mode ($tool);
     }
-    $self->{dendrogram}{drag_mode} = $self->{drag_modes}{$tool};
 
-    $self->set_display_cursors ($tool);
+    # $self->set_display_cursors ($tool);  #  canvas handles this now
 }
 
 #  cargo culted from SpatialParams.pm under the assumption that it will diverge over time

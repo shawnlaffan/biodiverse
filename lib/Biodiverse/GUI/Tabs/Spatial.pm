@@ -1683,11 +1683,11 @@ sub on_grid_hover {
 
     my $bd_ref = $output_ref->get_basedata_ref || $output_ref;
 
-    if (defined $element) {
-        no warnings 'uninitialized';  #  sometimes the selected_list or analysis is undefined
-        # Update the Value label
+    #  sometimes the selected_list or analysis is undefined
+    if (defined $element && defined $self->{selected_list} && defined $self->{selected_index}) {
         my $elts = $output_ref->get_element_hash();
 
+        # Update the Value label
         my $val = $elts->{$element}{ $self->{selected_list} }{$self->{selected_index}};
 
         $text .= sprintf '<b>%s, Output - %s: </b>',
@@ -1700,28 +1700,21 @@ sub on_grid_hover {
         $self->get_xmlpage_object('lblOutput')->set_markup($text);
 
         # Mark out neighbours
-        my $neighbours = $self->{hover_neighbours};
+        my $highlight_nbrs = $self->{hover_neighbours};
 
-        #  take advantage of the caching now in use - let sp_calc handle these calcs
-        my @nbr_list;
-        $nbr_list[0] = $output_ref->get_list_values (
+        my $nbrs_inner = $output_ref->get_list_values (
             element => $element,
             list    => '_NBR_SET1',
         );
-        $nbr_list[1] = $output_ref->get_list_values (
+        my $nbrs_outer = $output_ref->get_list_values (
             element => $element,
             list    => '_NBR_SET2',
         );
 
-        my $nbrs_inner = $nbr_list[0] || [];
-        my $nbrs_outer = $nbr_list[1] || [];  #  an empty list by default
-
-        my (%nbrs_hash_inner, %nbrs_hash_outer);
-
-        if ($neighbours eq 'Set1' || $neighbours eq 'Both') {
+        if ($highlight_nbrs eq 'Set1' || $highlight_nbrs eq 'Both') {
             $self->{grid}->mark_with_circles ($nbrs_inner);
         }
-        if ($neighbours eq 'Set2' || $neighbours eq 'Both') {
+        if ($highlight_nbrs eq 'Set2' || $highlight_nbrs eq 'Both') {
             $self->{grid}->mark_with_dashes ($nbrs_outer);
         }
         #if ($neighbours eq 'Off') {  #  highlight the labels from the hovered group on the tree

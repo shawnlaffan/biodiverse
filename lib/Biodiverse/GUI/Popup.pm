@@ -259,8 +259,11 @@ sub on_source_changed {
     my $combo = shift;
     my $popup = shift;
 
+    if ($combo->get_active < 0) {
+        warn 'setting active iter';
+        $combo->set_active(0);
+    }
     my $iter = $combo->get_active_iter;
-
     my ($name, $callback)
         = $combo->get_model->get(
             $iter,

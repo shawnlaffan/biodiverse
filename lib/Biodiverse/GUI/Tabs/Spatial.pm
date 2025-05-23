@@ -874,6 +874,7 @@ sub init_grid {
     };
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
     my $select_closure = sub { $self->on_grid_select(@_); };
+    $select_closure = sub {};  #  not sure we need this for the spatial tab
     my $end_hover_closure = sub { $self->on_end_grid_hover(@_); };
 
     my $drawable = Gtk3::DrawingArea->new;
@@ -890,7 +891,7 @@ sub init_grid {
         ctl_click_func  => $click_closure, # Middle click or ctl left-click
         select_func     => $select_closure,
         grid_click_func => $grid_click_closure, # Left click
-        end_hover_func  => $end_hover_closure,
+        end_hover_func  => $end_hover_closure,  # TO BE IMPLEMENTED IN CANVAS
         drawable        => $drawable,
         window          => $outer_frame,
     );

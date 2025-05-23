@@ -12,6 +12,7 @@ use List::Util qw /min max/;
 use List::MoreUtils qw /minmax/;
 use POSIX qw /floor/;
 use Carp qw /croak confess/;
+use Tree::R;
 
 use constant PI => 3.1415927;
 
@@ -77,17 +78,21 @@ sub _on_motion {
             $widget->queue_draw;
         }
         $self->{last_motion_key} = undef;
-        $self->set_cursor_from_name ('default');
+        if ($self->in_select_mode) {
+            $self->reset_cursor;
+        }
     }
     elsif ($last_key ne $key && $f) {
         #  these callbacks add to the highlights so any draw is done then
         $f->($key);
         $self->{last_motion_key} = $key;
 
-        $self->set_cursor_from_name ('pointer');
-        $self->{motion_cursor_name} = 'pointer';
+        if ($self->in_select_mode) {
+            $self->set_cursor_from_name('pointer');
+            $self->{motion_cursor_name} = 'pointer';
+        }
     }
-    else {
+    elsif ($self->in_select_mode) {
         $self->set_cursor_from_name($current_cursor_name);
     }
 
@@ -116,6 +121,29 @@ sub _on_ctl_click {
 #  also a bad name but now does nothing
 sub _select_while_not_selecting {
     return;
+}
+
+sub _on_selection_release {
+    my ($self, $x, $y) = @_;
+
+    my $f = $self->{select_func};
+    if ($f && $self->{selecting}) {
+        my @rect = ($self->{sel_start_x}, $self->{sel_start_y}, $x, $y);
+        if ($rect[0] > $rect[2]) {
+            @rect[0,2] = @rect[2,0];
+        }
+        if ($rect[1] > $rect[3]) {
+            @rect[3,1] = @rect[1,3];
+        }
+
+        my $elements = [];
+        $self->{rtree}->query_partly_within_rect(@rect, $elements);
+
+        # call callback, using original event coords
+        $f->($elements, undef, \@rect);
+    }
+
+    return FALSE;
 }
 
 sub get_data {
@@ -424,6 +452,12 @@ sub set_base_struct {
 
     # Store info needed by load_shapefile
     $self->{dataset_info} = [$min_x, $min_y, $max_x, $max_y, $cell_x, $cell_y];
+
+    #  now build an rtree - random order is faster so it is outside the initial allocation
+    my $rtree = $self->{rtree} = Tree::R->new;
+    foreach my $key (keys %data) {
+        $rtree->insert($data{$key}{element}, @{ $data{$key}{bounds} });
+    }
 
     #  save some coords stuff for later transforms - poss no longer needed
     $self->{base_struct_cellsizes} = [$cell_x, $cell_y];

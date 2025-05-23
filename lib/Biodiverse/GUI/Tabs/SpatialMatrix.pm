@@ -266,12 +266,10 @@ sub init_grid {
 
     $self->{grid} = Biodiverse::GUI::Canvas::Grid->new(
         frame           => $frame,
-        # hscroll => $hscroll,
-        # vscroll => $vscroll,
         show_legend     => 0,
         show_value      => 0,
         hover_func      => $hover_closure,
-        click_func      => $click_closure, # Middle click
+        ctl_click_func  => $click_closure, # Middle click or ctl left-click
         select_func     => $select_closure,
         grid_click_func => $grid_click_closure, # Left click
         drawable        => $drawable,
@@ -452,7 +450,7 @@ sub on_cell_selected {
   BY_ITER:
     while ($iter) {
         my ($analysis) = $self->{output_indices_model}->get($iter, 0);
-        if ($self->{selected_element} && ($analysis eq $self->{selected_element}) ) {
+        if ($analysis eq ($self->{selected_element} // '')) {
             $selected = $iter;
             last BY_ITER; # break loop
         }

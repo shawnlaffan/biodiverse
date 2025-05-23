@@ -420,20 +420,17 @@ sub on_button_release {
 
     my ($x, $y) = $self->get_event_xy($event);
     say "BR: $x, $y, ", $event->x, " ", $event->y;
-    my $draw_size = $self->drawable->get_allocation();
-    say "    " . join ' ', @$draw_size{qw/width height x y/};
+    # my $draw_size = $self->drawable->get_allocation();
+    # say "    " . join ' ', @$draw_size{qw/width height x y/};
     # say "$self->{ncells_x} $self->{ncells_y}";
 
     # say $event->type;
     say 'Selecting' if $self->selecting;
 
     if ($self->selecting) {
-        $self->{selecting} = 0;
         say "BUTTON RELEASE $x, $y";
         my @rect = ($self->{sel_start_x}, $self->{sel_start_y}, $x, $y);
 
-        delete $self->{sel_start_x};
-        delete $self->{sel_start_y};
         if ($self->in_zoom_mode) {
             my $xwidth  = abs($rect[2] - $rect[0]);
             my $yheight = abs($rect[3] - $rect[1]);
@@ -462,6 +459,10 @@ sub on_button_release {
             $widget->queue_draw;
         }
         $self->_on_button_release ($x, $y) if $self->can('_on_button_release');
+        $self->_on_selection_release ($x, $y) if $self->can('_on_selection_release');
+        $self->{selecting} = 0;
+        delete $self->{sel_start_x};
+        delete $self->{sel_start_y};
     }
     elsif ($self->panning) {
 

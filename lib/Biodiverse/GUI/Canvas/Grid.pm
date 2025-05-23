@@ -67,6 +67,8 @@ sub _on_motion {
 
     my $key = $self->snap_coord_to_grid_id($x, $y);
     my $last_key = $self->{last_motion_key} //= '';
+    my $current_cursor_name = $self->{motion_cursor_name} //= 'default';
+
     my $f = $self->{hover_func};
 
     #  only redraw if needed
@@ -75,12 +77,18 @@ sub _on_motion {
             $widget->queue_draw;
         }
         $self->{last_motion_key} = undef;
+        $self->set_cursor_from_name ('default');
     }
     elsif ($last_key ne $key && $f) {
-        # delete $self->{callbacks}{highlights};  #  reset
         #  these callbacks add to the highlights so any draw is done then
         $f->($key);
         $self->{last_motion_key} = $key;
+
+        $self->set_cursor_from_name ('pointer');
+        $self->{motion_cursor_name} = 'pointer';
+    }
+    else {
+        $self->set_cursor_from_name($current_cursor_name);
     }
 
     return FALSE;

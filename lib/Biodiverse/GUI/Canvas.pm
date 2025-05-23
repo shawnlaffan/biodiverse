@@ -288,6 +288,18 @@ sub update_cursor {
     return;
 }
 
+sub reset_cursor {
+    my ($self, $cursor_key) = @_;
+    $cursor_key //= 'current_cursor';
+
+    my $current_cursor_name = $self->{$cursor_key} //= 'default';
+
+    #  change mouse style
+    $self->set_cursor_from_name ($current_cursor_name);
+
+    return;
+}
+
 sub callback_order {
     my $self = shift;
     #  default to sorting lexically

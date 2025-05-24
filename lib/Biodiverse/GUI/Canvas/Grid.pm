@@ -659,6 +659,10 @@ sub set_overlay {
 sub load_shapefile {
     my ($self, $shapefile) = @_;
 
+    my $fname = $shapefile->{filebase};
+    my $cached = $self->{_cache}{shapefiles}{$fname};
+    return $cached if $cached;
+
     my $dims = $self->{dims};
     my ($min_x, $min_y, $max_x, $max_y) = @$dims{qw/xmin ymin xmax ymax/};
     my ($cell_x, $cell_y) = @{$self->{cellsizes}};
@@ -764,6 +768,8 @@ END_OF_ERROR
             'Small extent',
         );
     }
+
+    $self->{_cache}{shapefiles}{$fname} = \@features;
 
     return \@features;
 }

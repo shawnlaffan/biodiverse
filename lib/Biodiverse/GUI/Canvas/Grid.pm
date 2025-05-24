@@ -606,6 +606,15 @@ sub set_overlay {
     my ($self, %args) = @_;
     my ($shapefile, $colour, $plot_on_top, $type) = @args{qw /shapefile colour plot_on_top type/};
 
+    my $cb_target_name = $plot_on_top ? 'overlays' : 'underlays';
+
+    if (!defined $shapefile) {
+        #  clear it
+        $self->{callbacks}{$cb_target_name} = undef;
+        $self->drawable->queue_draw;
+        return;
+    }
+
     my $data = $self->load_shapefile($shapefile);
 
     my @rgb = $self->rgb_to_array($colour);
@@ -628,8 +637,6 @@ sub set_overlay {
             $cx->$stroke_or_fill;
         }
     };
-
-    my $cb_target_name = $plot_on_top ? 'overlays' : 'underlays';
 
     $self->{callbacks}{$cb_target_name} = $cb;
 

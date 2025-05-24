@@ -429,7 +429,12 @@ sub on_clear {
     my $args = shift;
     my ($list, $project, $grid, $dlg) = @$args;
 
-    $grid->set_overlay();
+    my %results = get_selection($list);
+
+    $grid->set_overlay(
+        shapefile   => undef,
+        plot_on_top => $results{plot_on_top},  #  are we clearing an overlay or underlay?
+    );
     $dlg->hide();
 
     return;

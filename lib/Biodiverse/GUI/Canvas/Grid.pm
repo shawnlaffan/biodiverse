@@ -624,6 +624,17 @@ sub set_overlay {
     my $cb = sub {
         my ($self, $cx) = @_;
 
+        my $gui_project = eval {
+            Biodiverse::GUI::GUIManager->instance->get_project;
+        };
+        if ($gui_project) {
+            return if !$gui_project->overlay_is_valid (
+                shapefile   => $shapefile,
+                plot_on_top => $plot_on_top,
+                type        => $type,
+            );
+        }
+
         $cx->set_matrix($self->{matrix});
         $cx->set_source_rgb(@rgb);
         #  line width should be an option in the GUI

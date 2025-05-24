@@ -1483,6 +1483,23 @@ sub get_overlay_list {
     return $self->{OVERLAYS};
 }
 
+sub overlay_is_valid {
+    my ($self, %args) = @_;
+    my $shapefile = $args{shapefile};
+
+    croak 'shapefile arg undefined'
+        if !defined $shapefile;
+
+    my $overlays = $self->get_overlay_list;
+    my @possibles
+        = grep {$shapefile->{filebase} eq ($_->{name} =~ s/.shp$//r)}
+          grep {$_->{plot_on_top} == $args{plot_on_top}}
+          grep {$_->{type} eq $args{type}}
+          @$overlays;
+
+    return !!@possibles;
+}
+
 sub get_overlay_shape_object {
     my $self = shift;
     my $name = shift;

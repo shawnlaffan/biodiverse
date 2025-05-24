@@ -445,7 +445,7 @@ sub on_set {
     my ($iter, $filename, $type, $plot_on_top, $array_iter)
         = @results{qw /iter filename type plot_on_top array_iter/};
 
-    my $colour = $colour_button->get_color;
+    my $colour = $colour_button->get_rgba;
 
     $dlg->hide;
 

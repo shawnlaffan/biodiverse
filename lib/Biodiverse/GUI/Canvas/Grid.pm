@@ -603,8 +603,153 @@ sub plot_highlights {
 }
 
 sub set_overlay {
-    warn 'set_overlay not yet implemented'
+    my ($self, %args) = @_;
+    my ($shapefile, $colour, $plot_on_top, $type) = @args{qw /shapefile colour plot_on_top type/};
+
+    my $data = $self->load_shapefile($shapefile);
+
+    my @rgb = $self->rgb_to_array($colour);
+    my $is_poly = $type eq 'polygon';
+    my $stroke_or_fill = $is_poly ? 'fill' : 'stroke';
+
+    my $cb = sub {
+        my ($self, $cx) = @_;
+
+        $cx->set_matrix($self->{matrix});
+        $cx->set_source_rgb(@rgb);
+        #  line width should be an option in the GUI
+        $cx->set_line_width(max($cx->device_to_user_distance (1, 1)));
+
+        foreach \my @segment (@$data) {
+            $cx->move_to(@{$segment[0]});
+            foreach my $vertex (@segment[1 .. $#segment]) {
+                $cx->line_to(@$vertex);
+            }
+            $cx->$stroke_or_fill;
+        }
+    };
+
+    my $cb_target_name = $plot_on_top ? 'overlays' : 'underlays';
+
+    $self->{callbacks}{$cb_target_name} = $cb;
+
+    $self->drawable->queue_draw;
+
+    return;
 }
+
+sub load_shapefile {
+    my ($self, $shapefile) = @_;
+
+    my $dims = $self->{dims};
+    my ($min_x, $min_y, $max_x, $max_y) = @$dims{qw/xmin ymin xmax ymax/};
+    my ($cell_x, $cell_y) = @{$self->{cellsizes}};
+
+    my @rect = (
+        $min_x - $cell_x,
+        $min_y - $cell_y,
+        $max_x + $cell_x,
+        $max_y + $cell_y,
+    );
+
+    # Get shapes within visible region - allow for cell extents
+    my @shapes;
+    @shapes = $shapefile->shapes_in_area (@rect);
+
+    my $shapes_in_plot_area = @shapes;
+    say "[Grid] Shapes within plot area: $shapes_in_plot_area";
+
+    my $gui = Biodiverse::GUI::GUIManager->instance;
+    if (!$shapes_in_plot_area) {
+        $gui->report_error (
+            $self->_error_msg_no_shapes_in_plot_area,
+            'No shapes overlap the plot area',
+        );
+        return;
+    }
+
+    my @features;
+    my @bnd_extrema;
+    # Add all shapes
+    foreach my $shapeid (@shapes) {
+        my $shape = $shapefile->get_shp_record($shapeid);
+
+        #  track the bound extents so we can warn if they will be tiny
+        my @bnds = $shape->bounds;
+        @bnd_extrema = @bnds if !@bnd_extrema;
+        $bnd_extrema[0] = min ($bnd_extrema[0], $bnds[0]);
+        $bnd_extrema[1] = min ($bnd_extrema[1], $bnds[1]);
+        $bnd_extrema[2] = max ($bnd_extrema[2], $bnds[2]);
+        $bnd_extrema[3] = max ($bnd_extrema[3], $bnds[3]);
+
+        # Make polygon from each "part"
+        BY_PART:
+        foreach my $part (1 .. $shape->num_parts) {
+
+            my @plot_points;    # x,y coordinates that will be given to canvas
+            my @segments = $shape->get_segments($part);
+
+            #  add the points from all of the vertices
+            #  Geo::ShapeFile gives them to us as vertex pairs
+            #  so extract the first point from each
+            POINT_TO_ADD:
+            foreach my $vertex (@segments) {
+                push @plot_points, [
+                    $vertex->[0]->{X},
+                    $vertex->[0]->{Y},
+                ];
+            }
+
+            #  Get the end of the line, otherwise we don't plot the last vertex.
+            #  (Segments are stored as start-end pairs of vertices).
+            my $current_vertex = $segments[-1];
+            push @plot_points, [
+                $current_vertex->[1]->{X},
+                $current_vertex->[1]->{Y},
+            ];
+
+            # must have more than one point (two coords)
+            next if @plot_points < 2;
+
+            push @features, \@plot_points;
+        }
+    }
+
+    my $x_extent = $max_x - $min_x;
+    my $y_extent = $max_y - $min_y;
+    my $x_ratio = ($bnd_extrema[2] - $bnd_extrema[0]) / $x_extent;
+    my $y_ratio = ($bnd_extrema[3] - $bnd_extrema[1]) / $y_extent;
+    if ($x_ratio < 0.005 && $y_ratio < 0.005) {
+        my $bd_bnds  = "($min_x, $min_y), ($max_x, $max_y)";
+        my $shp_bnds = "($bnd_extrema[0], $bnd_extrema[1]), ($bnd_extrema[2], $bnd_extrema[3])";
+
+        my $error = <<"END_OF_ERROR"
+Warning: Shapes might not be visible.
+
+The extent of the $shapes_in_plot_area shapes overlapping the
+plot area is very small.  They might not be visible as a result.
+
+One possible cause is that the shapefile coordinate system does
+not match that of the BaseData, for example your BaseData
+is in a UTM coordinate system but the shapefile is in
+decimal degrees.  If this is the case then your shapefile
+can be reprojected to match your spatial data using GIS software.
+
+Respective bounds are (minx, miny), (maxx, maxy):
+BaseData: $bd_bnds
+Shapefile: $shp_bnds
+END_OF_ERROR
+        ;
+
+        $gui->report_error (
+            $error,
+            'Small extent',
+        );
+    }
+
+    return \@features;
+}
+
 
 
 1;  # end of package

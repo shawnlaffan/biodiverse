@@ -548,7 +548,6 @@ sub cairo_draw {
     $context->set_matrix($self->{matrix});
 
     my $callbacks = $self->{callbacks};
-    # $self->_bounding_box_page_units($context);
     foreach my $cb (grep {defined} @{$callbacks}{$self->callback_order}) {
         if (is_arrayref $cb) {
             foreach my $_cb (@$cb) {
@@ -677,6 +676,9 @@ sub rgb_to_array {
     elsif (!blessed $colour) {
         warn '$colour is not an object: ' . $colour;
         return (0,0,0);
+    }
+    elsif ($colour->isa('Gtk3::Gdk::Color')) {
+        $colour = Gtk3::Gdk::RGBA::parse($colour->to_string);
     }
     my $col = $colour->to_string;
     if ($col =~ /rgb\((.+)\)/) {

@@ -875,7 +875,7 @@ sub init_grid {
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
     my $select_closure = sub { $self->on_grid_select(@_); };
     $select_closure = undef;  #  not sure we need this for the spatial tab
-    my $end_hover_closure = sub { $self->on_end_grid_hover(@_); };
+    # my $end_hover_closure = sub { $self->on_end_grid_hover(@_); };
 
     my $drawable = Gtk3::DrawingArea->new;
     $frame->set (expand => 1);  #  otherwise we shrink to not be visible

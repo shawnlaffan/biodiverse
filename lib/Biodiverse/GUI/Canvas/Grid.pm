@@ -543,14 +543,29 @@ sub colour {
 }
 
 sub set_legend_min_max {
-    warn __PACKAGE__ . "->set_legend_min_max not implemented yet";
+    my ($self, $min, $max) = @_;
+    my $legend = $self->get_legend;
+    return if ! $legend;
+    $legend->set_min_max($min,$max);
 }
 
 sub set_legend_log_mode_on {
-    warn __PACKAGE__ . "->set_legend_log_mode_on not implemented yet";
+    my ($self, @args) = @_;
+    my $legend = $self->get_legend;
+    return if ! $legend;
+    $legend->set_log_mode_on(@args);
 }
+
 sub set_legend_log_mode_off {
-    warn __PACKAGE__ . "->set_legend_log_mode_off not implemented yet";
+    my ($self, @args) = @_;
+    my $legend = $self->get_legend;
+    return if ! $legend;
+    $legend->set_log_mode_off(@args);
+}
+
+sub get_legend_log_mode {
+    my $self = shift;
+    $self->get_legend->get_log_mode;
 }
 
 sub set_legend_hue {

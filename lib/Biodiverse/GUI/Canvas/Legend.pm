@@ -53,19 +53,20 @@ sub new {
         hue          => $args{hue} // 0,
     };
     bless $self, $class;
+
     # Get the width and height of the canvas.
     #my ($width, $height) = $self->{canvas}->c2w($width_px || 0, $height_px || 0);
-    my $draw_size = $self->{drawable}->get_allocation();
-    my ($width, $height) = ($draw_size->{width}, $draw_size->{height});
+    # my $draw_size = $self->{drawable}->get_allocation();
+    # my ($width, $height) = ($draw_size->{width}, $draw_size->{height});
 
     # Create the legend rectangle.  Still needed?
-    $self->{legend} = $self->make_rect();
+    # $self->{legend} = $self->make_rect();
 
     #  reverse might not be needed but ensures the array is the correct size from the start
-    foreach my $i (reverse 0..3) {
-        $self->{marks}{default}[$i] = $self->make_mark($self->{legend_marks}[$i]);
-    }
-    $self->{marks}{current} = $self->{marks}{default};
+    # foreach my $i (reverse 0..3) {
+    #     $self->{marks}{default}[$i] = $self->make_mark($self->{legend_marks}[$i]);
+    # }
+    # $self->{marks}{current} = $self->{marks}{default};
 
     return $self;
 };
@@ -78,18 +79,22 @@ sub show {
     $_[0]{show} = 1;
 }
 
+sub set_visible {
+    $_[0]{show} = !!$_[1];
+}
+
 sub get_width {
     return 1;
 
     my $self = shift;
-    return $self->{back_rect_width} // LEGEND_WIDTH;
+    return $self->{back_rect_width} //= LEGEND_WIDTH;
 }
 
 sub get_height {
     return 1;
 
     my $self = shift;
-    return $self->{back_rect_height} // LEGEND_HEIGHT;
+    return $self->{back_rect_height} //= LEGEND_HEIGHT;
 }
 
 sub make_rect {
@@ -261,6 +266,38 @@ sub hide_current_marks {
 sub show_current_marks {
     return;
 }
+
+#  The GUI::Legend version sets the text marks but we do not need to
+sub set_min_max {
+    #  val1 and val2 could be min/max or mid/extent
+    my ($self, $val1, $val2) = @_;
+
+    return if
+           $self->get_zscore_mode
+        || $self->get_prank_mode
+        || $self->get_canape_mode
+        || $self->get_categorical_mode;
+
+    if ($self->get_divergent_mode) {
+        my $abs_extreme = max(abs $val1, abs $val2);
+        $val1 = 0;
+        $val2 = $abs_extreme;
+    }
+    elsif ($self->get_ratio_mode) {
+        my $abs_extreme = exp (max (abs log $val1, log $val2));
+        $val1 = 1 / $abs_extreme;
+        $val2 = $abs_extreme;
+    }
+
+    my $min = $val1 //= $self->{last_min};
+    my $max = $val2 //= $self->{last_max};
+
+    $self->{last_min} = $min;
+    $self->{last_max} = $max;
+
+    return;
+}
+
 
 our $AUTOLOAD;
 

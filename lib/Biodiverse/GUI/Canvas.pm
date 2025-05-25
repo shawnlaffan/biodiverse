@@ -111,7 +111,10 @@ sub drawable {
     $_[0]->{drawable};
 }
 
-sub set_legend_mode {}
+sub set_legend_mode {
+    my ($self, @rest) = @_;
+    $self->get_legend->set_mode(@rest);
+}
 
 sub init_legend {
     my $self = shift;

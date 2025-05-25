@@ -614,7 +614,7 @@ sub on_colour_mode_changed {
             $colour_dialog->show_all();
             my $response = $colour_dialog->run;
             if ($response eq 'ok') {
-                $self->{hue} = $colour_select->get_current_color();
+                $self->{hue} = $colour_select->get_current_rgba();
                 $self->{grid}->set_legend_hue($self->{hue});
                 eval {$self->{dendrogram}->recolour(all_elements => 1)};  #  only clusters have dendrograms - needed here?  recolour below does this
             }

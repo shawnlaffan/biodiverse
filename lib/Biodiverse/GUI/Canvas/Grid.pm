@@ -569,7 +569,15 @@ sub get_legend_log_mode {
 }
 
 sub set_legend_hue {
-    warn __PACKAGE__ . "->set_legend_hue not implemented yet";
+    my ($self, $rgb) = @_;
+    my $legend = $self->get_legend;
+    $legend->set_hue($rgb);
+}
+
+sub get_legend_hue {
+    my $self = shift;
+    my $legend = $self->get_legend;
+    $legend->get_hue;
 }
 
 sub mark_with_circles {

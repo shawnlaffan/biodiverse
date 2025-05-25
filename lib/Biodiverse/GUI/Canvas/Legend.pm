@@ -4,6 +4,7 @@ use warnings;
 use 5.036;
 
 use Carp qw /croak/;
+use List::MoreUtils qw/minmax/;
 
 use parent qw /Biodiverse::GUI::Canvas Biodiverse::GUI::Legend/;
 
@@ -267,6 +268,26 @@ sub show_current_marks {
     return;
 }
 
+# Set colouring mode - 'Hue' or 'Sat'
+sub set_mode {
+    my ($self, $mode) = @_;
+    $mode //= $self->get_mode;
+
+    $mode = ucfirst lc $mode;
+
+    croak "Invalid display mode '$mode'\n"
+        if not $mode =~ /^Hue|Sat|Grey$/;
+
+    $self->{legend_mode} = $mode;
+
+    return;
+}
+
+sub get_mode {
+    my $self = shift;
+    return $self->{legend_mode} //= 'Hue';
+}
+
 #  The GUI::Legend version sets the text marks but we do not need to
 sub set_min_max {
     #  val1 and val2 could be min/max or mid/extent
@@ -298,6 +319,50 @@ sub set_min_max {
     return;
 }
 
+
+# Sets the hue for the saturation (constant-hue) colouring mode
+sub set_hue {
+    my ($self, $rgb) = @_;
+
+    my $hue = ($self->rgb_to_hsv(map {$_ * 255} ($rgb->red, $rgb->green, $rgb->blue)))[0];
+    my $last_hue_used = $self->get_hue;
+    return if defined $last_hue_used && $hue == $last_hue_used;
+
+    $self->{hue} = $hue;
+
+    return;
+}
+
+sub get_hue {
+    my $self = shift;
+    return $self->{hue};
+}
+
+sub rgb_to_hsv {
+    my ($self, $var_r, $var_g, $var_b) = @_;
+
+    my($var_min, $var_max) = minmax($var_r, $var_g, $var_b);
+    my $del_max = $var_max - $var_min;
+
+    if ($del_max) {
+        my $del_r = ((($var_max - $var_r) / 6) + ($del_max / 2)) / $del_max;
+        my $del_g = ((($var_max - $var_g) / 6) + ($del_max / 2)) / $del_max;
+        my $del_b = ((($var_max - $var_b) / 6) + ($del_max / 2)) / $del_max;
+
+        my $h;
+        if($var_r == $var_max) { $h = $del_b - $del_g; }
+        elsif($var_g == $var_max) { $h = 1/3 + $del_r - $del_b; }
+        elsif($var_b == $var_max) { $h = 2/3 + $del_g - $del_r; }
+
+        if($h < 0) { $h += 1 }
+        if($h > 1) { $h -= 1 }
+
+        return($h * 360, $del_max / $var_max, $var_max);
+    }
+    else {
+        return(0, 0, $var_max);
+    }
+}
 
 our $AUTOLOAD;
 

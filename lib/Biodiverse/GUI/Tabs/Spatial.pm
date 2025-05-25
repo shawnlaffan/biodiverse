@@ -2403,10 +2403,10 @@ sub on_menu_neighbours_changed {
 
     # Turn off markings if deselected
     if ($sel eq 'Set1' || $sel eq 'Off') {
-        $self->{grid}->mark_if_exists({}, 'minus');
+        $self->{grid}->mark_with_dashes();
     }
     if ($sel eq 'Set2' || $sel eq 'Off') {
-        $self->{grid}->mark_if_exists({}, 'circle');
+        $self->{grid}->mark_with_circles();
     }
 
     return;

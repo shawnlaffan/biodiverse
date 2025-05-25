@@ -602,10 +602,10 @@ sub set_colour_for_undef {
 
     $colour //= COLOUR_WHITE;
 
-    croak "Colour argument must be a Gtk3::Gdk::Color object\n"
-      if not blessed ($colour) eq 'Gtk3::Gdk::Color';
+    croak "Colour argument must be a Gtk3::Gdk::RGBA or Gtk3::Gdk::Color object\n"
+      if !($colour->isa('Gtk3::Gdk::Color') || $colour->isa('Gtk3::Gdk::RGBA'));
 
-    $self->{colour_none} = $colour;
+    return $self->{colour_none} = $colour;
 }
 
 my %colour_methods = (
@@ -674,7 +674,7 @@ my @zscore_colours
 sub get_colour_zscore {
     my ($self, $val) = @_;
 
-    state $default_colour = [Gtk3::Gdk::Color::parse('black')->[1]];
+    state $default_colour = Gtk3::Gdk::RGBA::parse('black');
 
     return $default_colour
         if not defined $val;
@@ -1267,7 +1267,7 @@ sub set_colour_mode_from_list_and_index {
         foreach my $key (keys %$colours) {
             my $colour = $colours->{$key};
             next if blessed $colour;  #  sometimes they are already colour objects
-            $self->{categorical}{colours}{$key} = [Gtk3::Gdk::Color::parse($colour)]->[1];
+            $self->{categorical}{colours}{$key} = Gtk3::Gdk::RGBA::parse($colour);
         }
     }
     elsif (!$mode && $list =~ />>CANAPE>>/) {

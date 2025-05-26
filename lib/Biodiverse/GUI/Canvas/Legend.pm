@@ -118,7 +118,7 @@ sub draw {
     my $y = $y_origin;
     $cx->set_line_width(1);
     foreach my $row (@$data) {
-        my $colour = $row->[-1];
+        my $colour = $row->{colour};
         $cx->set_source_rgb(@$colour);
         $cx->rectangle ($x_origin, $y, $width, ceil($row_height));
         $cx->fill;
@@ -175,7 +175,10 @@ sub make_data {
         foreach my $row (0..$#canape_order) {
             my $class = $canape_order[$row];
             my $colour = $canape_colour_hash{$class};
-            push @data, [$class, [$self->rgba_to_cairo($colour)]];
+            push @data, {
+                class  => $class,
+                colour => [$self->rgba_to_cairo($colour)],
+            };
         }
     }
     elsif ($self->get_categorical_mode) {
@@ -183,7 +186,10 @@ sub make_data {
         my @classes = sort {$a <=> $b} keys %$label_hash;
         foreach my $i (0..$#classes) {  #  might need to reverse this
             my $colour = $self->get_colour_categorical ($classes[$i]);
-            push @data, [$classes[$i], [$self->rgba_to_cairo($colour)]];
+            push @data, {
+                class  => $classes[$i],
+                colour => [ $self->rgba_to_cairo($colour) ],
+            };
         }
     }
     elsif ($self->get_zscore_mode) {
@@ -191,7 +197,10 @@ sub make_data {
         warn 'z-score legend needs class names';
         foreach my $i (0..$#dummy_zvals) {
             my $colour = $self->get_colour_zscore ($dummy_zvals[$i]);
-            push @data, [$dummy_zvals[$i], [$self->rgba_to_cairo($colour)]];
+            push @data, {
+                class  => $dummy_zvals[$i],
+                colour => [ $self->rgba_to_cairo($colour) ],
+            };
         }
     }
     elsif ($self->get_prank_mode) {
@@ -199,7 +208,10 @@ sub make_data {
         warn 'p-rank legend needs labels';
         foreach my $i (0..$#dummy_vals) {
             my $colour = $self->get_colour_prank ($dummy_vals[$i]);
-            push @data, [$dummy_vals[$i], [$self->rgba_to_cairo($colour)]];
+            push @data, {
+                class  => $dummy_vals[$i],
+                colour => [$self->rgba_to_cairo($colour)],
+            };
         }
     }
     elsif ($self->get_ratio_mode) {
@@ -212,7 +224,10 @@ sub make_data {
             my $val = $row < $mid ? 1 / ($mid - $row) : $row - $mid;
             #  invert again so colours match legend text
             my $colour = $self->get_colour_ratio (1/$val, 1/$mid, $mid);
-            push @data, [$val, [$self->rgba_to_cairo($colour)]];
+            push @data, {
+                class  => $val,
+                colour => [ $self->rgba_to_cairo($colour) ],
+            };
         }
     }
     elsif ($self->get_divergent_mode) {
@@ -226,7 +241,10 @@ sub make_data {
         #  ensure colours match plot since 0 is the top
         foreach my $row (reverse 0..($height - 1)) {
             my $colour = $self->get_colour_divergent ($centre - $row, -$extreme, $extreme);
-            push @data, [$row, [$self->rgba_to_cairo($colour)]];
+            push @data, {
+                class  => $row,
+                colour => [ $self->rgba_to_cairo($colour) ],
+            };
         }
     }
     elsif ($self->{legend_mode} eq 'Hue') {
@@ -236,9 +254,11 @@ sub make_data {
 
         foreach my $row (0..($height - 1)) {
             my $colour = $self->get_colour_hue ($height - $row, 0, $height-1);
-            push @data, [$row, [$self->rgba_to_cairo($colour)]];
+            push @data, {
+                class  => $row,
+                colour => [ $self->rgba_to_cairo($colour) ],
+            };
         }
-
     }
     elsif ($self->{legend_mode} eq 'Sat') {
         my $height = 100;
@@ -247,7 +267,10 @@ sub make_data {
 
         foreach my $row (0..($height - 1)) {
             my $colour = $self->get_colour_saturation ($height - $row, 0, $height-1);
-            push @data, [$row, [$self->rgba_to_cairo($colour)]];
+            push @data, {
+                class  =>  $row,
+                colour => [ $self->rgba_to_cairo($colour) ],
+            };
         }
     }
     elsif ($self->{legend_mode} eq 'Grey') {
@@ -257,7 +280,10 @@ sub make_data {
 
         foreach my $row (0..($height - 1)) {
             my $colour = $self->get_colour_grey ($height - $row, 0, $height-1);
-            push @data, [$row, [$self->rgba_to_cairo($colour)]];
+            push @data, {
+                class  => $row,
+                colour => [ $self->rgba_to_cairo($colour) ],
+            };
         }
     }
     else {

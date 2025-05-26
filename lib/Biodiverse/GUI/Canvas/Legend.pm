@@ -6,6 +6,7 @@ use 5.036;
 use Carp qw /croak/;
 use List::MoreUtils qw/minmax/;
 use Scalar::Util qw/weaken/;
+use POSIX qw /ceil/;
 
 #  we do not inherit from Biodiverse::GUI::Canvas as we are called by it
 use parent qw /Biodiverse::GUI::Legend/;
@@ -95,12 +96,10 @@ sub draw {
     my $drawable = $self->drawable;
 
     my $data = $self->make_data;
-use DDP;
-    #  p $data;
 
     my $orig_mx = $cx->get_matrix;
-    my $mx = $self->get_tfm_mx;
-    $mx = $self->get_parent->get_orig_tfm_matrix;
+    # my $mx = $self->get_tfm_mx;
+    my $mx = $self->get_parent->get_orig_tfm_matrix;
     $cx->set_matrix($mx);
 
     #  should get from parent - what does it permit?
@@ -109,12 +108,26 @@ use DDP;
     ($canvas_x, $canvas_y) = (0,0);
     my $width = 20;
     my $height = $canvas_h / 1.1;
-    my $centre_x = $canvas_w - ($canvas_w - $canvas_w / 1.1) / 2 - $width;
+    my $x_origin = $canvas_w - ($canvas_w - $canvas_w / 1.1) / 2 - $width;
     my $centre_y = $canvas_h / 2;
+    my $y_origin = $centre_y - $height / 2;  # FIXME
 
+    my $row_height = $height / @$data;
+    my $y = $y_origin;
+    $cx->set_line_width(1);
+    foreach my $row (@$data) {
+        my $colour = $row->[-1];
+        $cx->set_source_rgb(@$colour);
+        $cx->rectangle ($x_origin, $y, $width, ceil($row_height));
+        $cx->fill;
+        # $cx->stroke;
+        $y += $row_height;
+    }
+
+    #  now the outline
     $cx->set_source_rgb((0.5)x3);
     $cx->set_line_width(2);
-    my @rect = ($centre_x, $centre_y - $height / 2, $width, $height);
+    my @rect = ($x_origin, $y_origin, $width, $height);
     $cx->rectangle(@rect);
     $cx->stroke;
 
@@ -201,6 +214,12 @@ sub clone_tfm_mx {
     return $mx->multiply (Cairo::Matrix->init_identity);
 }
 
+sub rgba_to_cairo {
+    my ($self, $rgba) = @_;
+    my @res = ($rgba->red, $rgba->green, $rgba->blue);
+    return wantarray ? @res : \@res;
+}
+
 sub make_data {
     my $self = shift;
 
@@ -235,7 +254,7 @@ sub make_data {
         foreach my $row (0..$#canape_order) {
             my $class = $canape_order[$row];
             my $colour = $canape_colour_hash{$class};
-            push @data, [$class, $colour];
+            push @data, [$class, [$self->rgba_to_cairo($colour)]];
         }
     }
     elsif ($self->get_categorical_mode) {
@@ -243,7 +262,7 @@ sub make_data {
         my @classes = sort {$a <=> $b} keys %$label_hash;
         foreach my $i (0..$#classes) {  #  might need to reverse this
             my $colour = $self->get_colour_categorical ($classes[$i]);
-            push @data, [$classes[$i], $colour];
+            push @data, [$classes[$i], [$self->rgba_to_cairo($colour)]];
         }
     }
     elsif ($self->get_zscore_mode) {
@@ -252,7 +271,7 @@ sub make_data {
         warn 'z-score legend needs class names';
         foreach my $i (0..$#dummy_zvals) {
             my $colour = $self->get_colour_zscore ($dummy_zvals[$i]);
-            push @data, [$dummy_zvals[$i], $colour];
+            push @data, [$dummy_zvals[$i], [$self->rgba_to_cairo($colour)]];
         }
     }
     elsif ($self->get_prank_mode) {
@@ -260,7 +279,7 @@ sub make_data {
         warn 'p-rank legend needs labels';
         foreach my $i (0..$#dummy_vals) {
             my $colour = $self->get_colour_prank ($dummy_vals[$i]);
-            push @data, [$dummy_vals[$i], $colour];
+            push @data, [$dummy_vals[$i], [$self->rgba_to_cairo($colour)]];
         }
     }
     elsif ($self->get_ratio_mode) {
@@ -273,7 +292,7 @@ sub make_data {
             my $val = $row < $mid ? 1 / ($mid - $row) : $row - $mid;
             #  invert again so colours match legend text
             my $colour = $self->get_colour_ratio (1/$val, 1/$mid, $mid);
-            push @data, [$val, $colour];
+            push @data, [$val, [$self->rgba_to_cairo($colour)]];
         }
     }
     elsif ($self->get_divergent_mode) {
@@ -287,7 +306,7 @@ sub make_data {
         #  ensure colours match plot since 0 is the top
         foreach my $row (reverse 0..($height - 1)) {
             my $colour = $self->get_colour_divergent ($centre - $row, -$extreme, $extreme);
-            push @data, [$row, $colour];
+            push @data, [$row, [$self->rgba_to_cairo($colour)]];
         }
     }
     elsif ($self->{legend_mode} eq 'Hue') {
@@ -297,7 +316,7 @@ sub make_data {
 
         foreach my $row (0..($height - 1)) {
             my $colour = $self->get_colour_hue ($height - $row, 0, $height-1);
-            push @data, [$row, $colour];
+            push @data, [$row, [$self->rgba_to_cairo($colour)]];
         }
 
     }
@@ -308,7 +327,7 @@ sub make_data {
 
         foreach my $row (0..($height - 1)) {
             my $colour = $self->get_colour_saturation ($height - $row, 0, $height-1);
-            push @data, [$row, $colour];
+            push @data, [$row, [$self->rgba_to_cairo($colour)]];
         }
     }
     elsif ($self->{legend_mode} eq 'Grey') {
@@ -318,7 +337,7 @@ sub make_data {
 
         foreach my $row (0..($height - 1)) {
             my $colour = $self->get_colour_grey ($height - $row, 0, $height-1);
-            push @data, [$row, $colour];
+            push @data, [$row, [$self->rgba_to_cairo($colour)]];
         }
     }
     else {

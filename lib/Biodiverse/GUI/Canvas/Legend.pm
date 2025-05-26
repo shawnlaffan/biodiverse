@@ -114,11 +114,11 @@ sub draw {
     my $centre_y = $canvas_h / 2;
     my $y_origin = $centre_y - $height / 2;  # FIXME
 
-    my $row_height = $height / @$data;
+    my $colour_array = $data->{colours};
+    my $row_height = $height / @$colour_array;
     my $y = $y_origin;
     $cx->set_line_width(1);
-    foreach my $row (@$data) {
-        my $colour = $row->{colour};
+    foreach my $colour (@$colour_array) {
         $cx->set_source_rgb(@$colour);
         $cx->rectangle ($x_origin, $y, $width, ceil($row_height));
         $cx->fill;
@@ -168,50 +168,43 @@ sub make_data {
     # of the canvas in reposition and according to each
     # mode's scaling factor held in $self->{legend_scaling_factor}.
 
-    my @data;
+    my @colours;
+    my @labels;
     if ($self->get_canape_mode) {
+        #  special handling for CANAPE indices
+        @labels = qw /Neo Non-Sig Palaeo Mixed Super/;
         state @canape_order = (4,3,2,0,1);  #  double check
         \my %canape_colour_hash = $self->get_canape_colour_hash;
-        foreach my $row (0..$#canape_order) {
-            my $class = $canape_order[$row];
+        foreach my $class (@canape_order) {
             my $colour = $canape_colour_hash{$class};
-            push @data, {
-                class  => $class,
-                colour => [$self->rgba_to_cairo($colour)],
-            };
+            push @colours, [ $self->rgba_to_cairo($colour) ];
         }
     }
     elsif ($self->get_categorical_mode) {
         my $label_hash = $self->{categorical}{labels};
+        # my $labels  = $indices_object->get_index_category_labels (index => $index) // {};
+        # my $colours = $indices_object->get_index_category_colours (index => $index) // {};
+
         my @classes = sort {$a <=> $b} keys %$label_hash;
         foreach my $i (0..$#classes) {  #  might need to reverse this
             my $colour = $self->get_colour_categorical ($classes[$i]);
-            push @data, {
-                class  => $classes[$i],
-                colour => [ $self->rgba_to_cairo($colour) ],
-            };
+            push @colours, [ $self->rgba_to_cairo($colour) ];
         }
     }
     elsif ($self->get_zscore_mode) {
+        @labels = ('<-2.58', '[-2.58,-1.96)', '[-1.96,-1.65)', '[-1.65,1.65]', '(1.65,1.96]', '(1.96,2.58]', '>2.58');
         my @dummy_zvals = reverse (-2.6, -2, -1.7, 0, 1.7, 2, 2.6);
-        warn 'z-score legend needs class names';
         foreach my $i (0..$#dummy_zvals) {
             my $colour = $self->get_colour_zscore ($dummy_zvals[$i]);
-            push @data, {
-                class  => $dummy_zvals[$i],
-                colour => [ $self->rgba_to_cairo($colour) ],
-            };
+            push @colours, [ $self->rgba_to_cairo($colour) ];
         }
     }
     elsif ($self->get_prank_mode) {
+        @labels = ('<0.01', '<0.025', '<0.05', '[0.05,0.95]', '>0.95', '>0.975', '>0.99');
         my @dummy_vals = reverse (0.001, 0.02, 0.04, 0.5, 0.951, 0.978, 0.991);
-        warn 'p-rank legend needs labels';
         foreach my $i (0..$#dummy_vals) {
             my $colour = $self->get_colour_prank ($dummy_vals[$i]);
-            push @data, {
-                class  => $dummy_vals[$i],
-                colour => [$self->rgba_to_cairo($colour)],
-            };
+            push @colours, [ $self->rgba_to_cairo($colour) ];
         }
     }
     elsif ($self->get_ratio_mode) {
@@ -224,10 +217,7 @@ sub make_data {
             my $val = $row < $mid ? 1 / ($mid - $row) : $row - $mid;
             #  invert again so colours match legend text
             my $colour = $self->get_colour_ratio (1/$val, 1/$mid, $mid);
-            push @data, {
-                class  => $val,
-                colour => [ $self->rgba_to_cairo($colour) ],
-            };
+            push @colours, [ $self->rgba_to_cairo($colour) ];
         }
     }
     elsif ($self->get_divergent_mode) {
@@ -241,10 +231,7 @@ sub make_data {
         #  ensure colours match plot since 0 is the top
         foreach my $row (reverse 0..($height - 1)) {
             my $colour = $self->get_colour_divergent ($centre - $row, -$extreme, $extreme);
-            push @data, {
-                class  => $row,
-                colour => [ $self->rgba_to_cairo($colour) ],
-            };
+            push @colours, [ $self->rgba_to_cairo($colour) ];
         }
     }
     elsif ($self->{legend_mode} eq 'Hue') {
@@ -254,10 +241,7 @@ sub make_data {
 
         foreach my $row (0..($height - 1)) {
             my $colour = $self->get_colour_hue ($height - $row, 0, $height-1);
-            push @data, {
-                class  => $row,
-                colour => [ $self->rgba_to_cairo($colour) ],
-            };
+            push @colours, [ $self->rgba_to_cairo($colour) ];
         }
     }
     elsif ($self->{legend_mode} eq 'Sat') {
@@ -267,10 +251,7 @@ sub make_data {
 
         foreach my $row (0..($height - 1)) {
             my $colour = $self->get_colour_saturation ($height - $row, 0, $height-1);
-            push @data, {
-                class  =>  $row,
-                colour => [ $self->rgba_to_cairo($colour) ],
-            };
+            push @colours, [ $self->rgba_to_cairo($colour) ];
         }
     }
     elsif ($self->{legend_mode} eq 'Grey') {
@@ -280,20 +261,18 @@ sub make_data {
 
         foreach my $row (0..($height - 1)) {
             my $colour = $self->get_colour_grey ($height - $row, 0, $height-1);
-            push @data, {
-                class  => $row,
-                colour => [ $self->rgba_to_cairo($colour) ],
-            };
+            push @colours, [ $self->rgba_to_cairo($colour) ];
         }
     }
     else {
         croak "Legend: Invalid colour system $self->{legend_mode}\n";
     }
 
-    $self->{rows_to_plot} = \@data;
-    $self->{_cache}{data}{$mode_string} = \@data;
+    my $results = { labels => \@labels, colours => \@colours };
+    $self->{_cache}{data}{$mode_string} = $results;
+    $self->{rows_to_plot} = $results;
 
-    return \@data;
+    return $results;
 }
 
 sub get_canape_colour_hash {

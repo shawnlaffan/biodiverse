@@ -2410,49 +2410,6 @@ sub on_menu_neighbours_changed {
     return;
 }
 
-#  redundant now
-sub __on_neighbours_changed {
-    my $self = shift;
-    my $sel = $self->get_xmlpage_object('comboNeighbours')->get_active_text();
-    $self->{hover_neighbours} = $sel;
-
-    # Turn off markings if deselected
-    if ($sel eq 'Set1' || $sel eq 'Off') {
-        $self->{grid}->mark_if_exists({}, 'minus');
-    }
-    if ($sel eq 'Set2' || $sel eq 'Off') {
-        $self->{grid}->mark_if_exists({}, 'circle');
-    }
-
-    ##  this is a dirty bodge for testing purposes
-    #if ($sel =~ /colour/) {
-    #    $self->{grid}->set_cell_outline_colour;
-    #}
-
-    return;
-}
-
-#  should be called onSatSet - but not used anywhere now
-sub on_colour_set {
-    return;
-
-    my $self = shift;
-    my $button = shift;
-
-    my $combo_colours_hue_choice = 1;
-
-    my $widget = $self->get_xmlpage_object('comboColours');
-
-    #  a bodge to set the active colour mode to Hue
-    my $active = $widget->get_active;
-
-    $widget->set_active($combo_colours_hue_choice);
-    $self->{grid}->get_legend->set_hue($button->get_color());
-    $self->recolour();
-
-    return;
-}
-
 sub on_add_param {
     my $self = shift;
     my $button = shift; # the "add param" button

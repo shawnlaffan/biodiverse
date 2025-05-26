@@ -40,6 +40,8 @@ sub new {
     };
     $self->{callback_order} = [qw /underlays map overlays highlights/];
 
+    $self->init_legend(%args);
+
     return $self;
 }
 

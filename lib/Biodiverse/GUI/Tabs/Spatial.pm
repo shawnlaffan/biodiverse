@@ -317,7 +317,7 @@ sub new {
     #  We don't have the grid for new outputs
     #  Could perhaps move this to where the grid is initialised
     if ($self->{grid}) {
-        $self->{grid}->set_legend_mode('Hue');
+        $self->{grid}->get_legend->set_mode('Hue');
         $self->recolour();
     }
 
@@ -2350,7 +2350,7 @@ sub recolour {
 
     $grid->colour($colour_func);
     #$grid->hide_some_cells($defq_callback);
-    $grid->set_legend_min_max($min, $max);
+    $legend->set_min_max($min, $max);
 
     $self->{grid}->update_legend;
 
@@ -2372,7 +2372,7 @@ sub on_colours_changed {
 
     my $self = shift;
     my $colours = $self->get_xmlpage_object('comboColours')->get_active_text();
-    $self->{grid}->set_legend_mode($colours);
+    $self->{grid}->get_legend->set_mode($colours);
     $self->recolour();
 
     return;
@@ -2382,7 +2382,7 @@ sub on_menu_colours_changed {
     my $args = shift;
     my ($self, $type) = @$args;
 
-    $self->{grid}->set_legend_mode($type);
+    $self->{grid}->get_legend->set_mode($type);
     $self->recolour();
 
     return;
@@ -2432,7 +2432,7 @@ sub __on_neighbours_changed {
     return;
 }
 
-#  should be called onSatSet
+#  should be called onSatSet - but not used anywhere now
 sub on_colour_set {
     return;
 
@@ -2447,7 +2447,7 @@ sub on_colour_set {
     my $active = $widget->get_active;
 
     $widget->set_active($combo_colours_hue_choice);
-    $self->{grid}->set_legend_hue($button->get_color());
+    $self->{grid}->get_legend->set_hue($button->get_color());
     $self->recolour();
 
     return;

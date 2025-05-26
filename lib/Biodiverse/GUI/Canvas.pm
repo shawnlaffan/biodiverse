@@ -177,6 +177,13 @@ sub set_legend_hue {
     $legend->set_hue($rgb);
 }
 
+sub set_legend_ltgt_flags {
+    my ($self, @args) = @_;
+    warn 'Called set_legend_ltgt_flags';
+    my $legend = $self->get_legend;
+    $legend->set_gtlt_flags (@args);
+}
+
 
 sub get_colour_for_undef {
     my $self = shift;

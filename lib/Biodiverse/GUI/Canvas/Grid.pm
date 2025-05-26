@@ -32,15 +32,16 @@ sub new {
     #  rebless
     bless $self, $class;
 
-    $self->{callbacks} = {
-        map        => sub {shift->draw_cells_cb (@_)},
-        highlights => sub {shift->plot_highlights(@_)},
-        overlays   => sub {shift->_bounding_box_page_units (@_)},
-        underlays  => sub {shift->underlay_cb (@_)},
-    };
-    $self->{callback_order} = [qw /underlays map overlays highlights/];
+    $self->init_legend(%args, parent => $self);
 
-    $self->init_legend(%args);
+    $self->{callbacks} = {
+        map        => sub {shift->draw_cells_cb(@_)},
+        highlights => sub {shift->plot_highlights(@_)},
+        overlays   => sub {shift->_bounding_box_page_units(@_)},
+        underlays  => sub {shift->underlay_cb(@_)},
+        legend     => sub {shift->get_legend->draw(@_)},
+    };
+    $self->{callback_order} = [qw /underlays map overlays legend highlights/];
 
     return $self;
 }

@@ -124,7 +124,7 @@ sub init_legend {
 
 sub get_legend {
     my $self = shift;
-    return $self->{legend} //= $self->init_legend (@_);
+    return $self->{legend} // croak 'There is no legend';
 }
 
 sub show_legend {
@@ -609,6 +609,12 @@ sub cairo_draw {
     return FALSE;
 }
 
+# relies on it being set by cairo_draw
+sub get_orig_tfm_matrix {
+    my ($self) = @_;
+    return $self->{orig_tfm_mx};
+}
+
 sub get_tfm_mx {
     my ($self, $drawable, $noisy) = @_;
 
@@ -631,10 +637,11 @@ sub get_tfm_mx {
     #  Seems to be needed to correct for offsets with mouse clicks.  These are
     #  offset as a function of the original Cairo matrix and whatever window
     #  contents are around the DrawingArea.
+    my $orig_mx = $self->get_orig_tfm_matrix;
     delete $self->{px_offsets};
-    $self->{px_offsets} = [$self->get_event_xy_from_mx ([0, 0], $self->{orig_tfm_mx}), [0,0]];
+    $self->{px_offsets} = [$self->get_event_xy_from_mx ([0, 0], $orig_mx), [0,0]];
 
-    my $mx = $self->clone_tfm_mx($self->{orig_tfm_mx});
+    my $mx = $self->clone_tfm_mx($orig_mx);
 
     ($canvas_x, $canvas_y) = (0,0);  #  no longer needed below
     my ($off_x, $off_y)    = (0,0);

@@ -220,10 +220,11 @@ sub set_legend {
 sub update_legend {
     my $self = shift;
 
-    return if !($self->{width_px} && $self->{height_px});
-
-    $self->get_legend->make_rect;
-    $self->get_legend->reposition($self->{width_px}, $self->{height_px});
+    Carp::cluck 'update_legend called';
+    # return if !($self->{width_px} && $self->{height_px});
+    #
+    # $self->get_legend->make_rect;
+    # $self->get_legend->reposition($self->{width_px}, $self->{height_px});
 
     return;
 }

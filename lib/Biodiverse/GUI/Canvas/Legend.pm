@@ -3,9 +3,11 @@ use strict;
 use warnings;
 use 5.036;
 
+use experimental qw/refaliasing declared_refs/;
+
 use Carp qw /croak/;
 use List::MoreUtils qw/minmax/;
-use Scalar::Util qw/weaken/;
+use Scalar::Util qw/weaken blessed/;
 use POSIX qw /ceil/;
 
 #  we do not inherit from Biodiverse::GUI::Canvas as we are called by it
@@ -151,9 +153,10 @@ sub rgba_to_cairo {
 sub make_data {
     my $self = shift;
 
-    my $mode_string = $self->get_mode;
+    #  cache all but categorical for now
+    my $mode_string = $self->get_mode_as_string;
     if ($mode_string ne 'categorical') {
-        my $data = $self->{_cache}{$mode_string};
+        my $data = $self->{_cache}{data}{$mode_string};
         return $data if $data;
     }
     #  Need to update this comment as it is from the old code.
@@ -165,20 +168,10 @@ sub make_data {
     # of the canvas in reposition and according to each
     # mode's scaling factor held in $self->{legend_scaling_factor}.
 
-    warn 'Legend: Remember to re-enable add_row';
-
-    #  refactor as state var inside a sub
-    state %canape_colour_hash = (
-        0 => Gtk3::Gdk::RGBA::parse('lightgoldenrodyellow'),  #  non-sig, lightgoldenrodyellow
-        1 => Gtk3::Gdk::RGBA::parse('red'),                   #  red, neo
-        2 => Gtk3::Gdk::RGBA::parse('royalblue1'),            #  blue, palaeo
-        3 => Gtk3::Gdk::RGBA::parse('#CB7FFF'),               #  purple, mixed
-        4 => Gtk3::Gdk::RGBA::parse('darkorchid'),            #  deep purple, super ('#6A3d9A' is too dark)
-    );
-    state @canape_order = (4,3,2,0,1);  #  double check
-
     my @data;
     if ($self->get_canape_mode) {
+        state @canape_order = (4,3,2,0,1);  #  double check
+        \my %canape_colour_hash = $self->get_canape_colour_hash;
         foreach my $row (0..$#canape_order) {
             my $class = $canape_order[$row];
             my $colour = $canape_colour_hash{$class};
@@ -194,7 +187,6 @@ sub make_data {
         }
     }
     elsif ($self->get_zscore_mode) {
-
         my @dummy_zvals = reverse (-2.6, -2, -1.7, 0, 1.7, 2, 2.6);
         warn 'z-score legend needs class names';
         foreach my $i (0..$#dummy_zvals) {
@@ -212,7 +204,7 @@ sub make_data {
     }
     elsif ($self->get_ratio_mode) {
 
-        local $self->{log_mode} = 0; # hacky override
+        local $self->{log_mode} = 0; # hacky override - still needed?
 
         my $height = 255;
         my $mid = ($height - 1) / 2;
@@ -226,7 +218,7 @@ sub make_data {
     elsif ($self->get_divergent_mode) {
         my $height = 180;
 
-        local $self->{log_mode} = 0; # hacky override
+        local $self->{log_mode} = 0; # hacky override - still needed?
 
         my $centre = ($height - 1) / 2;
         my $extreme = $height - $centre;
@@ -240,7 +232,7 @@ sub make_data {
     elsif ($self->{legend_mode} eq 'Hue') {
         my $height = 180;
 
-        local $self->{log_mode} = 0; # hacky override
+        local $self->{log_mode} = 0; # hacky override - still needed?
 
         foreach my $row (0..($height - 1)) {
             my $colour = $self->get_colour_hue ($height - $row, 0, $height-1);
@@ -273,9 +265,133 @@ sub make_data {
     }
 
     $self->{rows_to_plot} = \@data;
-    $self->{_cache}{$mode_string} = \@data;
+    $self->{_cache}{data}{$mode_string} = \@data;
 
     return \@data;
+}
+
+sub get_canape_colour_hash {
+    #  refactor as state var inside a sub
+    state %canape_colour_hash = (
+        0 => Gtk3::Gdk::RGBA::parse('lightgoldenrodyellow'),  #  non-sig, lightgoldenrodyellow
+        1 => Gtk3::Gdk::RGBA::parse('red'),                   #  red, neo
+        2 => Gtk3::Gdk::RGBA::parse('royalblue1'),            #  blue, palaeo
+        3 => Gtk3::Gdk::RGBA::parse('#CB7FFF'),               #  purple, mixed
+        4 => Gtk3::Gdk::RGBA::parse('darkorchid'),            #  deep purple, super ('#6A3d9A' is too dark)
+    );
+    return wantarray ? %canape_colour_hash : \%canape_colour_hash;
+}
+
+sub set_colour_mode_from_list_and_index {
+    my ($self, %args) = @_;
+    my $index = $args{index} // '';
+    my $list  = $args{list}  // '';
+
+    state $bd_obj = Biodiverse::BaseData->new (
+        NAME         => 'colour-mode',
+        CELL_SIZES   => [1],
+        CELL_ORIGINS => [0]
+    );
+    state $indices_object = Biodiverse::Indices->new (
+        BASEDATA_REF => $bd_obj,
+    );
+
+    my $is_list = $list && $list !~ />>/ && $indices_object->index_is_list (index => $list);
+    if ($is_list) {
+        $index = $list
+    }
+
+    #  check list name then index name
+    my %h = (index => $index);
+    my $mode
+        = $list =~ />>z_scores>>/                      ? 'zscore'
+        : $list =~ />>p_rank>>/                        ? 'prank'
+        : $list =~ />>CANAPE.*?>>/ && $index =~ /^CANAPE/ ? 'canape'
+        : $indices_object->index_is_zscore (%h)        ? 'zscore'
+        : $indices_object->index_is_ratio (%h)         ? 'ratio'
+        : $indices_object->index_is_divergent (%h)     ? 'divergent'
+        : $indices_object->index_is_categorical (%h)   ? 'categorical'
+        : '';
+
+    #  clunky to have to iterate over these but they trigger things turning off
+    #  Update - might not be the case now but process does not take long
+    foreach my $possmode ($self->_get_nonbasic_plot_modes) {
+        my $method = "set_${possmode}_mode";
+        $self->$method ($mode eq $possmode);
+    }
+
+    if ($mode eq 'categorical') {
+        my $labels  = $indices_object->get_index_category_labels (index => $index) // {};
+        my $colours = $indices_object->get_index_category_colours (index => $index) // {};
+        $self->{categorical}{labels}  = $labels;
+        #  don't mess with the cached object
+        foreach my $key (keys %$colours) {
+            my $colour = $colours->{$key};
+            next if blessed $colour;  #  sometimes they are already colour objects
+            $self->{categorical}{colours}{$key} = Gtk3::Gdk::RGBA::parse($colour);
+        }
+    }
+    elsif (!$mode && $list =~ />>CANAPE>>/) {
+        #  special handling for CANAPE indices
+        my %codes = (
+            NEO => 1, PALAEO => 2, MIXED => 3, SUPER => 4,
+        );
+        #  special handling
+        \my %canape_colour_hash = $self->get_canape_colour_hash;
+        my $colour = $canape_colour_hash{$codes{$index} // 0};
+        $self->{categorical}{colours} = {
+            0 => $canape_colour_hash{0},
+            1 => $colour,
+        };
+        $self->{categorical}{labels} = {
+            0 => 'other',
+            1 => lc $index,
+        };
+        $self->set_categorical_mode(1);
+    }
+
+    return;
+}
+
+sub get_colour_method {
+    my $self = shift;
+
+    my $method = 'get_colour';
+
+    #  clunky to have to iterate over these,
+    #  even if we use a lookup table
+    foreach my $mode ($self->_get_nonbasic_plot_modes()) {
+        my $check_method = "get_${mode}_mode";
+        if ($self->$check_method) {
+            $method = "get_colour_${mode}";
+        }
+    }
+
+    return $method;
+}
+
+#  need a better name
+sub _get_nonbasic_plot_modes {
+    my @modes = qw/canape zscore prank ratio divergent categorical/;
+    return wantarray ? @modes : \@modes;
+}
+
+#  mode is currently messy - we store hue/sat/grey in pne place
+#  but use flags for the others
+sub get_mode_as_string {
+    my ($self) = @_;
+
+    my $mode_string;
+    foreach my $mode ($self->_get_nonbasic_plot_modes()) {
+        my $check_method = "get_${mode}_mode";
+        if ($self->$check_method) {
+            $mode_string = $mode;
+            last;
+        }
+    }
+    $mode_string //= $self->get_mode;
+
+    return $mode_string;
 }
 
 sub make_mark {

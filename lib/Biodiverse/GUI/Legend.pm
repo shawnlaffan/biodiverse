@@ -170,6 +170,10 @@ sub set_visible {
 # mode.
 sub make_rect {
     my $self = shift;
+
+    warn 'make_rect called';
+    return;
+
     my ($width, $height);
 
     # If legend_colours_group already exists then destroy it.
@@ -181,7 +185,7 @@ sub make_rect {
 
     # Make a group so we can pack the coloured
     # rectangles into it to create the legend.
-    $self->{legend_colours_group} = GooCanvas2::CanvasItem->new (
+    $self->{legend_colours_group} = GooCanvas2::Canvas::Item->new (
         $self->{legend_group},
         'GooCanvas2::CanvasGroup',
         x => 0, 
@@ -428,9 +432,9 @@ sub get_height {
 
 sub refresh_legend {
     my $self = shift;
-    $self->make_rect;
+    # $self->make_rect;
     #  trigger a redisplay of the legend
-    $self->reposition($self->{width_px}, $self->{height_px});
+    # $self->reposition($self->{width_px}, $self->{height_px});
     1;
 }
 

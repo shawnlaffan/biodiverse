@@ -74,7 +74,7 @@ say STDERR "SETTING EVENTS on $drawable";
     #     $self->on_key_press (@_);
     # });
 
-    $self->init_legend(%args);
+    # $self->init_legend(%args);
 
     return $self;
 }
@@ -124,12 +124,18 @@ sub init_legend {
 
 sub get_legend {
     my $self = shift;
-    return $self->{legend} // die 'Legend not initialised';
+    return $self->{legend} //= $self->init_legend (@_);
 }
 
 sub show_legend {
     my $self = shift;
     say STDERR "$self->show_legend not implemented yet";
+    return;
+}
+
+sub hide_legend {
+    my $self = shift;
+    say STDERR "$self->hide_legend not implemented yet";
     return;
 }
 
@@ -139,6 +145,37 @@ sub update_legend {
     return;
 }
 
+sub set_legend_min_max {
+    my ($self, $min, $max) = @_;
+    my $legend = $self->get_legend;
+    return if ! $legend;
+    $legend->set_min_max($min,$max);
+}
+
+sub set_legend_log_mode_on {
+    my ($self, @args) = @_;
+    my $legend = $self->get_legend;
+    return if ! $legend;
+    $legend->set_log_mode_on(@args);
+}
+
+sub set_legend_log_mode_off {
+    my ($self, @args) = @_;
+    my $legend = $self->get_legend;
+    return if ! $legend;
+    $legend->set_log_mode_off(@args);
+}
+
+sub get_legend_log_mode {
+    my $self = shift;
+    $self->get_legend->get_log_mode;
+}
+
+sub set_legend_hue {
+    my ($self, $rgb) = @_;
+    my $legend = $self->get_legend;
+    $legend->set_hue($rgb);
+}
 
 
 sub get_colour_for_undef {

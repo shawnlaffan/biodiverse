@@ -542,38 +542,6 @@ sub colour {
     return;
 }
 
-sub set_legend_min_max {
-    my ($self, $min, $max) = @_;
-    my $legend = $self->get_legend;
-    return if ! $legend;
-    $legend->set_min_max($min,$max);
-}
-
-sub set_legend_log_mode_on {
-    my ($self, @args) = @_;
-    my $legend = $self->get_legend;
-    return if ! $legend;
-    $legend->set_log_mode_on(@args);
-}
-
-sub set_legend_log_mode_off {
-    my ($self, @args) = @_;
-    my $legend = $self->get_legend;
-    return if ! $legend;
-    $legend->set_log_mode_off(@args);
-}
-
-sub get_legend_log_mode {
-    my $self = shift;
-    $self->get_legend->get_log_mode;
-}
-
-sub set_legend_hue {
-    my ($self, $rgb) = @_;
-    my $legend = $self->get_legend;
-    $legend->set_hue($rgb);
-}
-
 sub get_legend_hue {
     my $self = shift;
     my $legend = $self->get_legend;

@@ -2160,11 +2160,9 @@ sub init_output_indices_combo {
 #  should be called on_active_index_changed, but many such occurrences need to be edited
 sub on_active_index_changed {
     my ($self, $combo) = @_;
-    say $combo;
     $combo ||= $self->get_xmlpage_object('comboIndices');
 
     my $iter = $combo->get_active_iter() || return;
-
 
     #  this can be called before the list contents are set
     my ($index) = eval {$self->{output_indices_model}->get($iter, 0)};

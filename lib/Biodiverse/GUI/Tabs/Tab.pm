@@ -403,6 +403,7 @@ sub format_number_for_display {
     return $text;
 }
 
+#  this should be auto-detected by the legend given min-max vals and stats
 sub set_legend_ltgt_flags {
     my $self = shift;
     my $stats = shift;

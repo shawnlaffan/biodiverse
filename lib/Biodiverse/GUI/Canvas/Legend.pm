@@ -6,6 +6,7 @@ use 5.036;
 use experimental qw/refaliasing declared_refs/;
 
 use Carp qw /croak/;
+use List::Util qw /min max/;
 use List::MoreUtils qw/minmax/;
 use Scalar::Util qw/weaken blessed/;
 use POSIX qw /ceil/;
@@ -139,6 +140,7 @@ sub draw {
             $y_spacing = $canvas_height / (@$label_array - 1);
             $alignments[0] = 'U';
             $alignments[$#$label_array] = 'L'; #  align bottom
+            # say join ' ', @$label_array;
         }
     }
     if (@$label_array) {
@@ -151,7 +153,7 @@ sub draw {
         my $i = -1;
         foreach my $label (@$label_array) {
             $i++;
-            say "$label will be plotted at $y";
+            # say "$label will be plotted at $y";
             $cx->set_source_rgb(0, 0, 0);
             my $extents = $cx->text_extents ($label);
             my $alignment = $alignments[$i] // '';
@@ -253,12 +255,13 @@ sub make_data {
 
         local $self->{log_mode} = 0; # hacky override - still needed?
 
-        my $height = 255;
+        my $height = 180;
         my $mid = ($height - 1) / 2;
-        foreach my $row (reverse 0..($height - 1)) {
+        foreach my $row (reverse 1..$height) {
             my $val = $row < $mid ? 1 / ($mid - $row) : $row - $mid;
+            # $val = $row / $mid;
             #  invert again so colours match legend text
-            my $colour = $self->get_colour_ratio (1/$val, 1/$mid, $mid);
+            my $colour = $self->get_colour_ratio ($val, 1/$mid, $mid);
             push @colours, [ $self->rgba_to_cairo($colour) ];
         }
     }
@@ -339,31 +342,192 @@ sub get_canape_colour_hash {
     return wantarray ? %canape_colour_hash : \%canape_colour_hash;
 }
 
+sub get_colour_divergent {
+    my ($self, $val, $min, $max) = @_;
+
+    state $default_colour = Gtk3::Gdk::RGBA::parse('black');
+
+    return $default_colour
+        if ! (defined $max && defined $min);
+
+    state $centre_colour = Gtk3::Gdk::RGBA::parse('#ffffbf');
+
+    my $centre = 0;
+    my $max_dist = max (abs($min), abs($max));
+
+    return $centre_colour
+        if $val == $centre || $max_dist == 0;
+
+    my $colour;
+    my @arr_cen = (0xff, 0xff, 0xbf);
+    my @arr_hi  = (0x45, 0x75, 0xb4); # blue
+    my @arr_lo  = (0xd7, 0x30, 0x27); # red
+
+    if ($self->get_invert_colours) {
+        @arr_lo  = (0x45, 0x75, 0xb4); # blue
+        @arr_hi  = (0xd7, 0x30, 0x27); # red
+    }
+
+    $max_dist = abs $max_dist;
+    my $pct = abs (($val - $centre) / $max_dist);
+
+    if ($self->get_log_mode) {
+        $pct = log (1 + 100 * $pct) / log (101);
+    }
+
+    #  handle out of range vals
+    $pct = min (1, $pct);
+
+    # interpolate between centre and extreme for each of R, G and B
+    my @rgb
+        = map {
+        ($arr_cen[$_]
+            + $pct
+            * (($val < $centre ? $arr_hi[$_] : $arr_lo[$_]) - $arr_cen[$_])
+        )} (0..2);
+
+    $colour = Gtk3::Gdk::RGBA::parse(sprintf ('rgb(%d,%d,%d)', @rgb));
+    return $colour;
+}
+
+sub get_colour_ratio {
+    my ($self, $val, $min, $max) = @_;
+
+    state $default_colour = Gtk3::Gdk::RGBA::parse('black');
+
+    return $default_colour
+        if ! (defined $min && defined $max);
+
+    state $centre_colour = Gtk3::Gdk::RGBA::parse('#ffffbf');
+
+    #  Perhaps should handle cases where min or max are zero,
+    #  but those should not be passed anyway so an error is
+    #  appropriate.
+    my $extreme = exp (max (abs log $min, log $max));
+
+    return $centre_colour
+        if $val == 1 || $extreme == 1;
+
+    # $min = 1 / $extreme;
+    # $max = $extreme;
+
+    #  simplify logic below
+    if ($extreme < 1) {
+        $extreme = 1 / $extreme;
+    }
+
+    my @arr_cen = (0xff, 0xff, 0xbf);
+    my @arr_hi  = (0x45, 0x75, 0xb4); # blue
+    my @arr_lo  = (0xd7, 0x30, 0x27); # red
+
+    if ($self->get_invert_colours) {
+        @arr_lo  = (0x45, 0x75, 0xb4); # blue
+        @arr_hi  = (0xd7, 0x30, 0x27); # red
+    }
+
+    #  ensure fractions get correct scaling
+    my $scaled = $val < 1 ? 1 / $val : $val;
+
+    my $pct = abs (($scaled - 1) / abs ($extreme - 1));
+    $pct = min ($pct, 1);  #  account for bounded ranges
+
+    if ($self->get_log_mode) {
+        $pct = log (1 + 100 * $pct) / log (101);
+    }
+
+    # interpolate between centre and extreme for each of R, G and B
+    my @rgb
+        = map {
+        ($arr_cen[$_]
+            + $pct
+            * (($val < 1 ? $arr_hi[$_] : $arr_lo[$_]) - $arr_cen[$_])
+        )} (0..2);
+
+    return Gtk3::Gdk::RGBA::parse(sprintf ('rgb(%f,%f,%f)', @rgb));
+}
+
 #  get labels that are not constant,
 #  e.g. from min and max or from categorical data
 sub get_dynamic_labels {
     my ($self, %args) = @_;
 
-    my @labels;
     if ($self->get_categorical_mode) {
         \my %l_hash = $self->{categorical}{labels} // {};
         my @keys = sort {$a <=> $b} keys %l_hash;
-        @labels = @l_hash{@keys};
+        my @labels = @l_hash{@keys};
+        return wantarray ? @labels : \@labels;
+    }
+
+    my @labels;
+    my $max = $self->{last_max};
+    my $min = $self->{last_min};
+    my $stats = $self->get_stats;
+    if ($self->get_divergent_mode) {
+        my $extent = max (abs($min), abs ($max));
+        my $mid = 0;
+        # my $mid2 = ($mid + $extent) / 2;
+        @labels = (
+            $mid - $extent,
+            $mid - $extent / 2,
+            $mid,
+            $mid + $extent / 2,
+            $mid + $extent
+        );
+
+        if ($self->get_log_mode) {
+            my $pct = abs (($labels[-2] - $mid) / abs ($extent));
+            $pct = log (1 + 100 * $pct) / log (101);
+            # say "P2: $pct";
+            $labels[-2] *= $pct;
+            $pct = abs (($labels[1] - $mid) / abs ($extent));
+            $pct = log (1 + 100 * $pct) / log (101);
+            # say "P1: $pct";
+            $labels[1] *= $pct;
+        }
+    }
+    elsif ($self->get_ratio_mode) {
+        my $max = exp (max (abs log $min, log $max)) // 1;
+        my $mid = 1 + ($max - 1) / 2;
+
+        @labels = (
+            1 / $max,
+            1 / $mid,
+            1,
+            $mid,
+            $max
+        );
+
+        if ($self->get_log_mode) {
+            my $pct = abs (($mid - 1) / abs ($max - 1));
+            $pct = log (1 + 100 * $pct) / log (101);
+            $labels[1]  = 1 / ($mid * $pct);
+            $labels[-2] = $mid * $pct;
+        }
     }
     else {
-        my $max = $self->{last_max};
-        my $min = $self->{last_min};
-        my $stats = $self->get_stats;
-
-        #  basic variant
-        my $n_labels = $args{n_labels} // 5;
+        #  basic variant for Hue, Sat and Grey
+        my $n_labels = $args{n_labels} // 4;
         my $interval = ($max - $min) / $n_labels;
-        for my $i (0 .. $n_labels - 1) {
-            push @labels, $min + $i * $interval;
+        if (!$self->get_log_mode) {
+            for my $i (0 .. $n_labels - 1) {
+                push @labels, $min + $i * $interval;
+            }
         }
-
-        @labels = map {$self->format_number_for_legend($_)} @labels;
+        else {
+            #  should use a method for each transform
+            #  (log and antilog)
+            #  orig:
+            #  $val = log (1 + 100 * ($val - $min) / ($max - $min)) / log (101);
+            for my $i (0 .. $n_labels - 1) {
+                my $log_step = log (101) * $i / $n_labels;
+                push @labels, (exp($log_step) - 1) / 100 * ($max - $min) + $min;
+            }
+        }
     }
+
+    #  labels are built "upside down", so correct for it here
+    #  also set the precision
+    @labels = reverse map {$self->format_number_for_legend($_)} @labels;
 
     return wantarray ? @labels : \@labels;
 }

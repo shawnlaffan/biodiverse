@@ -324,14 +324,16 @@ sub make_output_indices_array {
     my $groups_ref = $self->{groups_ref};
 
 # Make array
-    my @array = ();
-    foreach my $x (reverse $groups_ref->get_element_list_sorted(list => $element_array)) {
-#print ($model->get($iter, 0), "\n") if defined $model->get($iter, 0);    #debug
-        push(@array, $x);
-#print ($model->get($iter, 0), "\n") if defined $model->get($iter, 0);      #debug
-    }
+#     my @array = ();
+#     foreach my $x (reverse $groups_ref->get_element_list_sorted(list => $element_array)) {
+# #print ($model->get($iter, 0), "\n") if defined $model->get($iter, 0);    #debug
+#         push(@array, $x);
+# #print ($model->get($iter, 0), "\n") if defined $model->get($iter, 0);      #debug
+#     }
 
-    return [@array];
+    my $array = reverse $groups_ref->get_element_list_sorted(list => $element_array);
+
+    return $array;
 }
 
 # Generates ComboBox model with analyses
@@ -415,12 +417,12 @@ sub on_cell_selected {
     if (scalar @$data == 1) {
         $element = $data->[0];
     }
-    elsif (@$data) {  #  get the first sorted element that is in the matrix
-        my @sorted = $self->{groups_ref}->get_element_list_sorted (list => $data);
+    elsif (@$data) {  #  User drew a box - get the first sorted element that is in the matrix
+        my $sorted = $self->{groups_ref}->get_element_list_sorted (list => $data);
       CHECK_SORTED:
-        while (defined ($element = shift @sorted)) {
+        while (defined ($element = shift @$sorted)) {
             last CHECK_SORTED
-              if $self->{output_ref}->element_is_in_matrix (element => $element);
+              if $self->{output_ref}->element_is_in_matrix_aa ($element);
         }
     }
 
@@ -429,12 +431,16 @@ sub on_cell_selected {
         #  clear any highlights
         $self->{grid}->mark_with_circles ( [] );  #  needed?
         $self->{grid}->mark_with_dashes ( [] );  #  clear any nbr_set2 highlights
-        $self->{dendrogram}->clear_highlights;
+        state $warned = 0;
+        if (!$warned) {
+            warn 're-enable this';
+            # $self->{dendrogram}->clear_highlights;
+        }
         return;
     }
 
     return if $element eq $self->{selected_element};
-    return if ! $self->{output_ref}->element_is_in_matrix (element => $element);
+    return if ! $self->{output_ref}->element_is_in_matrix_aa ($element);
 
     #print "Element selected: $element\n";
 
@@ -629,7 +635,7 @@ sub recolour {
           if $elt eq $sel_element; #  mid grey by default
 
         return $self->get_excluded_cell_colour
-          if !$matrix_ref->element_is_in_matrix (element => $elt);
+          if !$matrix_ref->element_is_in_matrix_aa ($elt);
 
         my $val = $matrix_ref->get_defined_value_aa ($elt, $sel_element);
 

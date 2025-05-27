@@ -2233,6 +2233,7 @@ sub set_plot_min_max_values {
     $self->{plot_min_value} = $stats->{$self->{PLOT_STAT_MIN} || 'MIN'};
 
     $self->set_legend_ltgt_flags ($stats);
+    $self->{grid}->get_legend->set_stats ($stats);
 
     return;
 }
@@ -2305,7 +2306,7 @@ sub recolour {
     my $ccache = $colour_cache->{$list}{$index} //= {};
 
     my $legend = $grid->get_legend;
-    say STDERR $legend;
+    # say STDERR $legend;
 
     $legend->set_colour_mode_from_list_and_index (
         list  => $list,

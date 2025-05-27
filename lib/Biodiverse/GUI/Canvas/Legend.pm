@@ -125,22 +125,43 @@ sub draw {
         $y += $row_height;
     }
 
-    my $label_array = $data->{labels} // [];
+    my $label_array = $data->{labels};
+    my $y_spacing = $canvas_height / (@$label_array || 1);
+    my @alignments;
+    if (!@$label_array) {
+        $label_array = $self->get_dynamic_labels;
+        if ($self->get_categorical_mode) {
+            #  need to recalc this since we have a new array
+            $y_spacing = $canvas_height / (@$label_array || 1);
+        }
+        else {
+            # we want to label the corners for continuous dynamic types
+            $y_spacing = $canvas_height / (@$label_array - 1);
+            $alignments[0] = 'U';
+            $alignments[$#$label_array] = 'L'; #  align bottom
+        }
+    }
     if (@$label_array) {
         $cx->select_font_face("Sans", "normal", "normal");
         $cx->set_font_size(12);
-        my $gap_extents = $cx->text_extents ('n');  #  an en-space
-        my $x_gap = $gap_extents->{width};
+        my $x_gap_extents = $cx->text_extents ('n');  #  an en-space
+        my $x_gap = $x_gap_extents->{width};
         # my $y_spacing = $row_height;  #  this only works for one label per row
-        my $y_spacing = $canvas_height / (@$label_array || 1);
         $y = $y_origin + $row_height / 2; #  centre on boxes
+        my $i = -1;
         foreach my $label (@$label_array) {
+            $i++;
             say "$label will be plotted at $y";
             $cx->set_source_rgb(0, 0, 0);
             my $extents = $cx->text_extents ($label);
+            my $alignment = $alignments[$i] // '';
+            my $y_off
+                = $alignment eq 'U' ?  $extents->{height} #  align vertical top
+                : $alignment eq 'L' ?  $row_height - $extents->{height} / 2 #  vertical bottom
+                : $extents->{height} / 2;                 #  vertical centre
             $cx->move_to(  #  right align with a small offset
                 $x_origin - $extents->{width} - $x_gap,
-                $y + $extents->{height} / 2,
+                $y + $y_off,
             );
             $cx->show_text($label);
             $y += $y_spacing;
@@ -318,6 +339,49 @@ sub get_canape_colour_hash {
     return wantarray ? %canape_colour_hash : \%canape_colour_hash;
 }
 
+#  get labels that are not constant,
+#  e.g. from min and max or from categorical data
+sub get_dynamic_labels {
+    my ($self, %args) = @_;
+
+    my @labels;
+    if ($self->get_categorical_mode) {
+        \my %l_hash = $self->{categorical}{labels} // {};
+        my @keys = sort {$a <=> $b} keys %l_hash;
+        @labels = @l_hash{@keys};
+    }
+    else {
+        my $max = $self->{last_max};
+        my $min = $self->{last_min};
+        my $stats = $self->get_stats;
+
+        #  basic variant
+        my $n_labels = $args{n_labels} // 5;
+        my $interval = ($max - $min) / $n_labels;
+        for my $i (0 .. $n_labels - 1) {
+            push @labels, $min + $i * $interval;
+        }
+
+        @labels = map {$self->format_number_for_legend($_)} @labels;
+    }
+
+    return wantarray ? @labels : \@labels;
+}
+
+sub format_number_for_legend {
+    my ($self, $val) = @_;
+
+    my $text = sprintf ('%.4f', $val); # round to 4 d.p.
+    if ($text == 0) {
+        $text = sprintf ('%.2e', $val);
+    }
+    if ($text == 0) {
+        $text = 0;  #  make sure it is 0 and not 0.00e+000
+    };
+    return $text;
+}
+
+
 sub set_colour_mode_from_list_and_index {
     my ($self, %args) = @_;
     my $index = $args{index} // '';
@@ -428,6 +492,15 @@ sub get_mode_as_string {
     $mode_string //= $self->get_mode;
 
     return $mode_string;
+}
+
+sub set_stats {
+    my ($self, $stats) = @_;
+    $self->{current_index_stats} = $stats;
+}
+
+sub get_stats {
+    $_[0]->{current_index_stats};
 }
 
 sub make_mark {

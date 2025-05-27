@@ -107,18 +107,18 @@ sub draw {
     my ($canvas_w, $canvas_h, $canvas_x, $canvas_y) = @$draw_size{qw/width height x y/};
     ($canvas_x, $canvas_y) = (0,0);
     my $width = LEGEND_WIDTH;
-    my $canvas_height = $canvas_h / 1.1;
+    my $legend_height = $canvas_h / 1.1;
     # my $x_origin = $canvas_w - ($canvas_w - $canvas_w / 1.1) / 2 - $width;
     my $x_origin = $canvas_w - $width - X_LEGEND_OFFSET;
     my $centre_y = $canvas_h / 2;
-    my $y_origin = $centre_y - $canvas_height / 2;  # FIXME?
+    my $y_origin = $centre_y - $legend_height / 2;  # FIXME?
 
     my $colour_array = $data->{colours};
     if ($self->get_invert_colours) {
         #  reverse a copy
         $colour_array = [reverse @$colour_array];
     }
-    my $row_height = $canvas_height / @$colour_array;
+    my $row_height = $legend_height / @$colour_array;
     my $y = $y_origin;
     $cx->set_line_width(1);
     foreach my $colour (@$colour_array) {
@@ -130,17 +130,17 @@ sub draw {
     }
 
     my $label_array = $data->{labels};
-    my $y_spacing = $canvas_height / (@$label_array || 1);
+    my $y_spacing = $legend_height / (@$label_array || 1);
     my @alignments;
     if (!@$label_array) {
         $label_array = $self->get_dynamic_labels;
         if ($self->get_categorical_mode) {
             #  need to recalc this since we have a new array
-            $y_spacing = $canvas_height / (@$label_array || 1);
+            $y_spacing = $legend_height / (@$label_array || 1);
         }
         else {
             # we want to label the corners for continuous dynamic types
-            $y_spacing = $canvas_height / (@$label_array - 1);
+            $y_spacing = $legend_height / (@$label_array - 1);
             $alignments[0] = 'U';
             $alignments[$#$label_array] = 'L'; #  align bottom
             # say join ' ', @$label_array;
@@ -173,12 +173,17 @@ sub draw {
         }
     }
 
-    #  now the outline
-    $cx->set_source_rgb((0.5)x3);
-    $cx->set_line_width(2);
-    my @rect = ($x_origin, $y_origin, $width, $canvas_height);
-    $cx->rectangle(@rect);
-    $cx->stroke;
+    #  now the outline - but was not used in Gtk2 version
+    #  A no-op now but if we don't do it then a line is drawn
+    #  to the mouse when hovering on cells.
+    if (1) {
+        $cx->set_source_rgb((0.5) x 3);
+        $cx->set_line_width(2);
+        my @rect = ($x_origin, $y_origin, $width, $legend_height);
+        @rect = (0,0,0,0);  #  no-op
+        $cx->rectangle(@rect);
+        $cx->stroke;
+    }
 
     $cx->set_matrix($orig_mx);
 

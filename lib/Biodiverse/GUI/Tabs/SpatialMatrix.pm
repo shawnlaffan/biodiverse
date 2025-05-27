@@ -266,7 +266,7 @@ sub init_grid {
 
     $self->{grid} = Biodiverse::GUI::Canvas::Grid->new(
         frame           => $frame,
-        show_legend     => 0,
+        show_legend     => 1,
         show_value      => 0,
         hover_func      => $hover_closure,
         ctl_click_func  => $click_closure, # Middle click or ctl left-click
@@ -582,17 +582,12 @@ sub set_plot_min_max_values {
 
     my $matrix_ref = $self->{output_ref};
 
-    my $stats = $self->{stats};
-
-    if (not $stats) {
-        $stats = $matrix_ref->get_summary_stats;
-        $self->{stats} = $stats;  #  store it
-    }
+    my $stats = $self->{stats} //= $matrix_ref->get_summary_stats;
 
     $self->{plot_max_value} = $stats->{$self->{PLOT_STAT_MAX} || 'MAX'};
     $self->{plot_min_value} = $stats->{$self->{PLOT_STAT_MIN} || 'MIN'};
 
-    $self->set_legend_ltgt_flags ($stats);
+    # $self->set_legend_ltgt_flags ($stats);
 
     return;
 }
@@ -622,6 +617,8 @@ sub recolour {
 
     my $matrix_ref  = $self->{output_ref};
     my $sel_element = $self->{selected_element};
+
+    $grid->get_legend->set_stats ($self->{stats});
 
     my $legend = $grid->get_legend;
 

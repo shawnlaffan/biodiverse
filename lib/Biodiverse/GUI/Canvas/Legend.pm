@@ -469,7 +469,6 @@ sub get_dynamic_labels {
     my @labels;
     my $max = $self->{last_max};
     my $min = $self->{last_min};
-    my $stats = $self->get_stats;
     if ($self->get_divergent_mode) {
         my $extent = max (abs($min), abs ($max));
         my $mid = 0;
@@ -537,6 +536,17 @@ sub get_dynamic_labels {
     #  labels are built "upside down", so correct for it here
     #  also set the precision
     @labels = reverse map {$self->format_number_for_legend($_)} @labels;
+
+    #  flag when data exceed legend range
+    my $stats = $self->get_stats;
+    if ($max < $stats->{MAX}) {
+        # $labels[0] = ">=$labels[0]";
+        $labels[0] = "\x{2A7E}$labels[0]";
+    }
+    if ($min > $stats->{MIN}) {
+        # $labels[-1] = "<=$labels[-1]";
+        $labels[-1] = "\x{2A7D}$labels[-1]";
+    }
 
     return wantarray ? @labels : \@labels;
 }

@@ -515,9 +515,9 @@ sub get_dynamic_labels {
     else {
         #  basic variant for Hue, Sat and Grey
         my $n_labels = $args{n_labels} // 4;
-        my $interval = ($max - $min) / $n_labels;
+        my $interval = ($max - $min) / ($n_labels - 1);
         if (!$self->get_log_mode) {
-            for my $i (0 .. $n_labels - 1) {
+            for my $i (0 .. $n_labels - 2) {
                 push @labels, $min + $i * $interval;
             }
         }
@@ -526,11 +526,12 @@ sub get_dynamic_labels {
             #  (log and antilog)
             #  orig:
             #  $val = log (1 + 100 * ($val - $min) / ($max - $min)) / log (101);
-            for my $i (0 .. $n_labels - 1) {
-                my $log_step = log (101) * $i / $n_labels;
+            for my $i (0 .. $n_labels - 2) {
+                my $log_step = log (101) * $i / ($n_labels - 1);
                 push @labels, (exp($log_step) - 1) / 100 * ($max - $min) + $min;
             }
         }
+        push @labels, $max;
     }
 
     #  labels are built "upside down", so correct for it here

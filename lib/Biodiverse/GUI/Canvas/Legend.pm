@@ -110,6 +110,10 @@ sub draw {
     my $y_origin = $centre_y - $canvas_height / 2;  # FIXME?
 
     my $colour_array = $data->{colours};
+    if ($self->get_invert_colours) {
+        #  reverse a copy
+        $colour_array = [reverse @$colour_array];
+    }
     my $row_height = $canvas_height / @$colour_array;
     my $y = $y_origin;
     $cx->set_line_width(1);
@@ -290,6 +294,16 @@ sub make_data {
     $self->{rows_to_plot} = $results;
 
     return $results;
+}
+
+#  flip the colour ranges if true
+sub get_invert_colours {
+    $_[0]->{invert_colours};
+};
+
+sub set_invert_colours {
+    my ($self, $bool) = @_;
+    $self->{invert_colours} = !!$bool;
 }
 
 sub get_canape_colour_hash {

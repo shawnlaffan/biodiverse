@@ -16,12 +16,11 @@ use parent qw /Biodiverse::GUI::Legend/;
 ##########################################################
 # Constants
 ##########################################################
-use constant BORDER_SIZE        => 20;
-use constant LEGEND_WIDTH       => 20;
-use constant MARK_X_LEGEND_OFFSET  => 0.01;
-use constant MARK_Y_LEGEND_OFFSET  => 8;
-use constant LEGEND_HEIGHT  => 380;
-use constant INDEX_RECT         => 2;  # Canvas (square) rectangle for the cell
+# use constant BORDER_SIZE      => 20;
+use constant LEGEND_WIDTH      => 20;
+use constant X_LEGEND_OFFSET   => 2;
+use constant X_LEGEND_TEXT_GAP => 4;
+use constant Y_LEGEND_OFFSET   => 8;
 
 use constant COLOUR_BLACK        => Gtk3::Gdk::RGBA::parse('black');
 use constant COLOUR_WHITE        => Gtk3::Gdk::RGBA::parse('white');
@@ -87,11 +86,6 @@ sub get_width {
     return $self->{width_px} //= LEGEND_WIDTH;
 }
 
-sub get_height {
-    my $self = shift;
-    return $self->{height_px} //= LEGEND_HEIGHT;
-}
-
 sub draw {
     my ($self, $cx) = @_;
 
@@ -108,14 +102,15 @@ sub draw {
     my $draw_size = $drawable->get_allocation();
     my ($canvas_w, $canvas_h, $canvas_x, $canvas_y) = @$draw_size{qw/width height x y/};
     ($canvas_x, $canvas_y) = (0,0);
-    my $width = 20;
-    my $height = $canvas_h / 1.1;
-    my $x_origin = $canvas_w - ($canvas_w - $canvas_w / 1.1) / 2 - $width;
+    my $width = LEGEND_WIDTH;
+    my $canvas_height = $canvas_h / 1.1;
+    # my $x_origin = $canvas_w - ($canvas_w - $canvas_w / 1.1) / 2 - $width;
+    my $x_origin = $canvas_w - $width - X_LEGEND_OFFSET;
     my $centre_y = $canvas_h / 2;
-    my $y_origin = $centre_y - $height / 2;  # FIXME
+    my $y_origin = $centre_y - $canvas_height / 2;  # FIXME?
 
     my $colour_array = $data->{colours};
-    my $row_height = $height / @$colour_array;
+    my $row_height = $canvas_height / @$colour_array;
     my $y = $y_origin;
     $cx->set_line_width(1);
     foreach my $colour (@$colour_array) {
@@ -126,10 +121,32 @@ sub draw {
         $y += $row_height;
     }
 
+    my $label_array = $data->{labels} // [];
+    if (@$label_array) {
+        $cx->select_font_face("Sans", "normal", "normal");
+        $cx->set_font_size(12);
+        my $gap_extents = $cx->text_extents ('n');  #  an en-space
+        my $x_gap = $gap_extents->{width};
+        # my $y_spacing = $row_height;  #  this only works for one label per row
+        my $y_spacing = $canvas_height / (@$label_array || 1);
+        $y = $y_origin + $row_height / 2; #  centre on boxes
+        foreach my $label (@$label_array) {
+            say "$label will be plotted at $y";
+            $cx->set_source_rgb(0, 0, 0);
+            my $extents = $cx->text_extents ($label);
+            $cx->move_to(  #  right align with a small offset
+                $x_origin - $extents->{width} - $x_gap,
+                $y + $extents->{height} / 2,
+            );
+            $cx->show_text($label);
+            $y += $y_spacing;
+        }
+    }
+
     #  now the outline
     $cx->set_source_rgb((0.5)x3);
     $cx->set_line_width(2);
-    my @rect = ($x_origin, $y_origin, $width, $height);
+    my @rect = ($x_origin, $y_origin, $width, $canvas_height);
     $cx->rectangle(@rect);
     $cx->stroke;
 

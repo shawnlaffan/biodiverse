@@ -127,6 +127,12 @@ sub get_legend {
     return $self->{legend} // croak 'There is no legend';
 }
 
+#  a shorthand
+sub legend {
+    $_[0]->get_legend;
+}
+
+
 sub show_legend {
     my $self = shift;
     say STDERR "$self->show_legend not implemented yet";

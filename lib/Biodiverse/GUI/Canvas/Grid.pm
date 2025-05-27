@@ -551,6 +551,16 @@ sub get_legend_hue {
     $legend->get_hue;
 }
 
+sub show_legend {
+    my $self = shift;
+    $self->get_legend->show;
+}
+
+sub hide_legend {
+    my $self = shift;
+    $self->get_legend->hide;
+}
+
 sub mark_with_circles {
     my ($self, $elements) = @_;
 

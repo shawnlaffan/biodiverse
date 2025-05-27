@@ -885,8 +885,8 @@ sub init_grid {
         frame           => $frame,
         # hscroll => $hscroll,
         # vscroll => $vscroll,
-        show_legend     => 0,
-        show_value      => 0,
+        show_legend     => 1,
+        show_value      => 0,  #  still used?
         hover_func      => $hover_closure,
         ctl_click_func  => $click_closure, # Middle click or ctl left-click
         select_func     => $select_closure,
@@ -2347,7 +2347,7 @@ sub recolour {
     #    !$output_ref->group_passed_def_query(group => $elt);
     #};
 
-    $self->show_legend;
+    # $self->show_legend;
 
     $grid->colour($colour_func);
     #$grid->hide_some_cells($defq_callback);

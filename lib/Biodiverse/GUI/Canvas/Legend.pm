@@ -34,19 +34,20 @@ sub new {
     my %args         = @_;
 
     my $canvas       = $args{drawable};
-    my $legend_marks = $args{legend_marks} // [qw/nw w w sw/];
+    # my $legend_marks = $args{legend_marks} // [qw/nw w w sw/];
     my $legend_mode  = $args{legend_mode}  // 'Hue';
-    my $width_px     = $args{width_px}     // 0;
-    my $height_px    = $args{height_px}    // 0;
+    my $width_px     = $args{width_px}     // 0;  #  still used?
+    my $height_px    = $args{height_px}    // 0;  #  still used?
 
     my $self = {
         drawable     => $canvas,
-        legend_marks => $legend_marks,
+        # legend_marks => $legend_marks,
         legend_mode  => $legend_mode,
         width_px     => $width_px,
         height_px    => $height_px,
         hue          => $args{hue} // 0,
         parent       => $args{parent},
+        show         => $args{show} // $args{show_legend} // 1,
     };
     #  we need to know about the parent to get things like the transform matrix
     weaken $self->{parent};
@@ -89,6 +90,8 @@ sub get_width {
 
 sub draw {
     my ($self, $cx) = @_;
+
+    return if !$self->is_visible;
 
     my $drawable = $self->drawable;
 

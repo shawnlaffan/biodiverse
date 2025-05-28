@@ -563,12 +563,10 @@ sub init_dendrogram {
     my $self = shift;
 
     my $frame       = $self->get_xmlpage_object('spatialPhylogenyFrame');
+    my $outer_frame = $self->get_xmlpage_object('frame_spatial_tree_plot');
     my $graph_frame = $self->get_xmlpage_object('spatialPhylogenyGraphFrame');
-    my $hscroll     = $self->get_xmlpage_object('spatialPhylogenyHScroll');
-    my $vscroll     = $self->get_xmlpage_object('spatialPhylogenyVScroll');
-
-    my $list_combo  = undef;  #  these are under the control of the spatial plot, not the dendrogram
-    my $index_combo = undef;
+    # my $hscroll     = $self->get_xmlpage_object('spatialPhylogenyHScroll');
+    # my $vscroll     = $self->get_xmlpage_object('spatialPhylogenyVScroll');
 
     my $hover_closure       = sub { $self->on_phylogeny_hover(@_); };
     my $highlight_closure   = sub { $self->on_phylogeny_highlight(@_); };
@@ -576,30 +574,32 @@ sub init_dendrogram {
     my $click_closure       = sub { $self->on_phylogeny_click(@_); };
     my $select_closure      = sub { $self->on_phylogeny_select(@_); };
 
-    #  disable for now
-    # $self->{dendrogram} = Biodiverse::GUI::Dendrogram->new(
-    #     main_frame  => $frame,
-    #     graph_frame => $graph_frame,
-    #     hscroll     => $hscroll,
-    #     vscroll     => $vscroll,
-    #     grid        => undef,
-    #     list_combo  => undef,  #  the combos are under the control of the spatial plot, not the dendrogram
-    #     index_combo => undef,
-    #     hover_func      => $hover_closure,
-    #     highlight_func  => $highlight_closure,
-    #     ctrl_click_func => $ctrl_click_closure,
-    #     click_func      => $click_closure,
-    #     select_func     => $select_closure,
-    #     parent_tab      => $self,
-    #     want_legend     => 1,
-    #     no_use_slider_to_select_nodes => 1,
-    # );
-    #  cannot colour more than one in a phylogeny
-    # $self->{dendrogram}->set_num_clusters (1);
-    # $self->set_dendrogram_colour_for_undef(COLOUR_GRAY);  #  default
+    my $drawable = Gtk3::DrawingArea->new;
+    $frame->set (expand => 1);  #  otherwise we shrink to not be visible
+    $frame->add($drawable);
 
-    warn 'FIXME HERE';
-    # $self->{dendrogram}->set_parent_tab($self);
+    my $tree = Biodiverse::GUI::Canvas::Tree->new(
+        frame       => $frame,
+        # graph_frame => $graph_frame,
+        # hscroll     => $hscroll,
+        # vscroll     => $vscroll,
+        grid        => undef,
+        # hover_func      => $hover_closure,
+        # highlight_func  => $highlight_closure,
+        # ctrl_click_func => $ctrl_click_closure,
+        # click_func      => $click_closure,
+        # select_func     => $select_closure,
+        parent_tab      => $self,
+        want_legend     => 1,
+        no_use_slider_to_select_nodes => 1,
+        drawable        => $drawable,
+        window          => $outer_frame,
+    );
+    $self->{dendrogram} = $tree;
+    $tree->set_parent_tab($self);
+    # cannot colour more than one in a phylogeny
+    $tree->set_num_clusters (1);
+    $self->set_dendrogram_colour_for_undef(COLOUR_GRAY);  #  default
 
 
     $self->{no_dendro_legend_for} = {
@@ -609,6 +609,8 @@ sub init_dendrogram {
 
     $self->init_branch_colouring_menu;
     $self->init_dendrogram_legend;
+
+    $outer_frame->show_all;
     
     return 1;
 }

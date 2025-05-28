@@ -35,12 +35,16 @@ sub new {
     #  rebless
     bless $self, $class;
 
+    $self->init_legend(%args, parent => $self);
+
+    warn 'Tree is using default data';
     $self->{data} = $self->get_data($args{ntips});
     $self->init_plot_coords;
     # say join ' ', $self->get_data_extents;
 
     $self->{callbacks} = {
         plot => sub {shift->draw (@_)},
+        #  update graph if present
     };
 
     return $self;
@@ -412,5 +416,16 @@ sub get_data {
 
     return \%tree;
 }
+
+sub set_num_clusters {
+    my ($self, $n) = @_;
+    $self->{num_clusters} = $n;
+}
+
+sub get_num_clusters {
+    my ($self) = @_;
+    return $self->{num_clusters};
+}
+
 
 1;

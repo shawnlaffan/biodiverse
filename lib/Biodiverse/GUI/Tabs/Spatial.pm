@@ -2075,6 +2075,9 @@ sub on_active_list_changed {
     my $self = shift;
     my $combo = shift;
 
+    #  negative value means empty list
+    return if $combo->get_active < 0;
+
     my $iter = $combo->get_active_iter() || return;
     my ($list) = eval { $self->{output_lists_model}->get($iter, 0) };
     warn 'list problem ' if $@;
@@ -2162,9 +2165,13 @@ sub on_active_index_changed {
     my ($self, $combo) = @_;
     $combo ||= $self->get_xmlpage_object('comboIndices');
 
+    #  is there an active item?
+    return if $combo->get_active < 0;
+
     my $iter = $combo->get_active_iter() || return;
 
     #  this can be called before the list contents are set
+    #  update: should be fixed now
     my ($index) = eval {$self->{output_indices_model}->get($iter, 0)};
     if ($@) {
         warn '$self->{output_indices_model}->get($iter, 0) failed';

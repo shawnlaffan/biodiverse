@@ -1172,25 +1172,27 @@ sub on_selected_phylogeny_changed {
     # phylogenies
     my $phylogeny = $self->get_current_tree;
     warn 'remove eval when ready';
-    my $dendro_tree = eval { $self->{dendrogram}->get_cluster };
+    my $dendro_tree = eval { $self->{dendrogram}->get_current_tree };
 
     #  don't trigger needless redraws
     return if ($dendro_tree && $phylogeny) && refaddr ($phylogeny) == refaddr ($dendro_tree);
 
-    if ($self->{dendrogram}) {
-        warn 'latent eval';
-        eval {$self->{dendrogram}->clear};
-    }
+    # if ($self->{dendrogram}) {
+    #     warn 'latent eval';
+    #     eval {$self->{dendrogram}->set_current_tree(undef)};
+    # }
     if ($phylogeny) {
         warn 'Clear eval later';
         eval {
-            $self->{dendrogram}->set_cluster($phylogeny, $self->{plot_mode} //= 'length'); #  now storing tree objects directly
+            $self->{dendrogram}->set_current_tree($phylogeny, $self->{plot_mode} //= 'length'); #  now storing tree objects directly
             $self->set_phylogeny_options_sensitive(1);
-        }
+        };
+        warn $@ if $@;
     }
     else {
         warn 'latent eval';
-        eval {$self->{dendrogram}->set_cluster(undef, $self->{plot_mode} //= 'length')};
+        eval {$self->{dendrogram}->set_tree(undef, $self->{plot_mode} //= 'length')};
+        warn $@ if $@;
         $self->set_phylogeny_options_sensitive(0);
         my $str = '<i>No selected tree</i>';
         $self->get_xmlpage_object('spatial_label_VL_tree')->set_markup($str);

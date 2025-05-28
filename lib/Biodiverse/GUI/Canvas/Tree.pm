@@ -7,8 +7,10 @@ our $VERSION = '4.99_002';
 
 use experimental qw /refaliasing declared_refs for_list/;
 use Glib qw/TRUE FALSE/;
+use Scalar::Util qw /refaddr/;
 use List::Util qw /min max/;
 use List::MoreUtils qw /minmax/;
+use Ref::Util qw /is_coderef/;
 use POSIX qw /floor/;
 use Carp qw /croak confess/;
 
@@ -37,9 +39,9 @@ sub new {
 
     $self->init_legend(%args, parent => $self);
 
-    warn 'Tree is using default data';
-    $self->{data} = $self->get_data($args{ntips});
-    $self->init_plot_coords;
+    # warn 'Tree is using default data';
+    # $self->{data} = $self->get_data($args{ntips});
+    # $self->init_plot_coords;
     # say join ' ', $self->get_data_extents;
 
     $self->{callbacks} = {
@@ -53,6 +55,86 @@ sub new {
 sub callback_order {
     my $self = shift;
     return ('plot');
+}
+
+sub set_current_tree {
+    my ($self, $tree, $plot_mode) = @_;
+
+    if (!defined $tree) {
+        $self->{data} = {};
+        $self->{current_tree} = undef;
+        $self->{plot_coords_generated} = undef;
+        return;
+    }
+
+    state %mode_methods = (
+        length => 'get_length',
+        depth  => 'get_depth',
+    );
+
+    #  future proofing: allow a code ref
+    my $len_method
+        = is_coderef($plot_mode)
+        ? $plot_mode
+        : $mode_methods{$plot_mode} // 'get_length';
+
+    #  Don't needlessly regenerate the data
+    return if defined $self->{current_tree}
+        && refaddr($tree) == refaddr($self->{current_tree})
+        && $self->{plot_mode} eq $len_method;
+
+    use Sort::Key qw /ikeysort rikeysort/;
+    $tree->number_terminal_nodes;  #  need to keep this in a cache for easier cleanup
+    my $terminals = $tree->get_terminal_node_refs;
+    my @tips = ikeysort {$_->get_value('TERMINAL_NODE_FIRST')} @$terminals;
+
+    my $longest_path = 0;
+
+    my %branch_hash;
+    foreach my $node (@tips) {
+        my $name = $node->get_name;
+        $branch_hash{$name}{node_ref} = $node;
+        $branch_hash{$name}{ntips}    = 0;
+        my $len  = $node->$len_method;
+        $branch_hash{$name}{length} = $len;
+        my $path = $branch_hash{$name}{path_to_root} = [$len];  #  still needed?
+        my $parent = $node;
+        while ($parent = $parent->get_parent) {
+            my $this_len = $parent->$len_method;
+            $len += $this_len;
+            push @$path, $this_len;
+            my $parent_name = $parent->get_name;
+            $branch_hash{$parent_name}{ntips}++;
+            $branch_hash{$parent_name}{node_ref} //= $parent;
+            $branch_hash{$parent_name}{length} //= $this_len;
+        }
+        $longest_path = $len if $len > $longest_path;
+    }
+
+    my @roots = $tree->get_root_node_refs;  #  we can have multiple roots
+    my $root_tree_node = $roots[0];
+    my $root = $branch_hash{$root_tree_node->get_name};
+
+    my %properties = (
+        root         => $root,
+        by_node      => \%branch_hash,
+        tips         => \@tips,
+        ntips        => scalar (@tips),
+        longest_path => $longest_path,
+    );
+
+    $self->{data} = \%properties;
+    $self->{current_tree} = $tree;
+    $self->{plot_mode} = $len_method;
+    $self->{plot_coords_generated} = undef;
+
+    $self->init_plot_coords;
+
+    return;
+}
+
+sub get_current_tree {
+    $_[0]->{current_tree};
 }
 
 sub _on_motion {
@@ -227,7 +309,7 @@ sub x_scale {
 }
 
 sub y_scale {
-    1 / $_[0]->{data}{root}{ntips};
+    1 / $_[0]->{data}{ntips};
 }
 
 sub draw {
@@ -281,9 +363,33 @@ sub init_plot_coords {
 
     return if $self->{plot_coords_generated};
 
-    $self->init_y_coords;
-
     my $data = $self->{data};
+
+    #  start with the y-coords
+    my $tree = $self->get_current_tree;
+    \my %branch_hash = $data->{by_node};
+
+    #  set the initial y-coord
+    #  need to climb up the tree
+    my @targets = map {$_->get_name} rikeysort {$_->get_depth} $tree->get_node_refs;
+    foreach my $bname (@targets) {
+        my $branch_ref = $branch_hash{$bname};
+        my $node_ref   = $branch_ref->{node_ref};
+        if (!$branch_ref->{ntips}) {
+            $branch_ref->{children} = [];
+            #  same as terminal_node_last for a tip
+            $branch_ref->{_y} = $node_ref->get_value('TERMINAL_NODE_FIRST') - 0.5;
+        }
+        else {
+            my @children = map {$_->get_name} $node_ref->get_children;
+            $branch_ref->{children} = \@children;
+            #  average of first and last
+            $branch_ref->{_y}
+                = ($branch_hash{$children[0]}->{_y} + $branch_hash{$children[-1]}->{_y}) / 2;
+        }
+    }
+
+    #  and now the x-coords
     my $root = $data->{root};
     my @branches = ($root);
     my $node_hash = $data->{by_node};
@@ -341,7 +447,8 @@ sub init_y_coords {
         my $y_sum = 0;
         my $count = 0;
 
-        foreach my $child (map {$data->{by_node}{$_}} @{$node->{children}}) {
+        my $tree_node_ref = $node->{name};
+        foreach my $child (map {$data->{by_node}{$_->get_name}} $tree_node_ref->get_children) {
             $self->init_y_coords($child, $current_y_ref);
             $y_sum += $child->{_y};
             $count++;

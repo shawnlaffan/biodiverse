@@ -644,7 +644,6 @@ sub recolour {
 
     $grid->colour($colour_func);
     $grid->set_legend_min_max($min, $max);
-    $grid->update_legend;
 
     return;
 }

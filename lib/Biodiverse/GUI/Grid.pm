@@ -217,14 +217,10 @@ sub set_legend {
 }
 
 # Update the position and/or mode of the legend.
+#  No longer needed - left for relictual calls
 sub update_legend {
-    my $self = shift;
-
-    Carp::cluck 'update_legend called';
-    # return if !($self->{width_px} && $self->{height_px});
-    #
-    # $self->get_legend->make_rect;
-    # $self->get_legend->reposition($self->{width_px}, $self->{height_px});
+    # my $self = shift;
+    # Carp::cluck 'update_legend called';
 
     return;
 }

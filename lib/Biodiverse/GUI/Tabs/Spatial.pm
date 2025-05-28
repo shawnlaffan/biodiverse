@@ -2341,18 +2341,8 @@ sub recolour {
         return $colour;
     };
     
-    #my $defq_callback = sub {
-    #    my $elt = shift // return;
-    #    !$output_ref->group_passed_def_query(group => $elt);
-    #};
-
-    # $self->show_legend;
-
     $grid->colour($colour_func);
-    #$grid->hide_some_cells($defq_callback);
     $legend->set_min_max($min, $max);
-
-    $self->{grid}->update_legend;
 
     return;
 }

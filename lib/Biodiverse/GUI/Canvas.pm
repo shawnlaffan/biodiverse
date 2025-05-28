@@ -149,9 +149,8 @@ sub hide_legend {
     return;
 }
 
+#  stub now - remove in future
 sub update_legend {
-    my $self = shift;
-    say STDERR "$self->update_legend not implemented yet";
     return;
 }
 

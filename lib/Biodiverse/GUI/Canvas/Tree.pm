@@ -88,11 +88,12 @@ sub set_current_tree {
     my $terminals = $tree->get_terminal_node_refs;
     my @tips = ikeysort {$_->get_value('TERMINAL_NODE_FIRST')} @$terminals;
 
+    #  this could probably be optimised but we'll need to profile first
     my $longest_path = 0;
-
     my %branch_hash;
     foreach my $node (@tips) {
         my $name = $node->get_name;
+        $branch_hash{$name}{name} = $name;
         $branch_hash{$name}{node_ref} = $node;
         $branch_hash{$name}{ntips}    = 0;
         my $len  = $node->$len_method;
@@ -105,8 +106,11 @@ sub set_current_tree {
             push @$path, $this_len;
             my $parent_name = $parent->get_name;
             $branch_hash{$parent_name}{ntips}++;
-            $branch_hash{$parent_name}{node_ref} //= $parent;
-            $branch_hash{$parent_name}{length} //= $this_len;
+            if (!$branch_hash{$parent_name}{node_ref}) {
+                $branch_hash{$parent_name}{node_ref} = $parent;
+                $branch_hash{$parent_name}{length}   = $this_len;
+                $branch_hash{$parent_name}{name}     = $parent_name;
+            }
         }
         $longest_path = $len if $len > $longest_path;
     }
@@ -460,7 +464,7 @@ sub init_y_coords {
 }
 
 
-sub get_data {
+sub get_toy_data {
     my ($self, $ntips) = @_;
 
     $ntips //= 8;

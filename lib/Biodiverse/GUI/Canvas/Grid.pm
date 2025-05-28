@@ -202,19 +202,14 @@ sub get_data {
 sub draw_cells_cb {
     my ($self, $context) = @_;
 
-    # Solid box
-    # my $mx = $context->get_matrix;
-    # $context->set_matrix(Cairo::Matrix->init_identity);
     $context->set_line_width(max($self->{cellsizes}[0] / 100));
-    # $context->set_matrix($mx);
+
     my $data = $self->{data};
-    # my $n = 0;
     my $draw_borders = $self->get_cell_show_outline;
     my @outline_colour = $self->rgba_to_cairo ($self->get_cell_outline_colour);
+
     foreach my $key (keys %$data) {
         \my @rgb = $data->{$key}{rgb} // next;
-        # \my @coord = $data->{$key}{coord};
-        # \my @bounds = $data->{$key}{bounds};
         \my @rect = $data->{$key}{rect};
         $context->set_source_rgb(@rgb);
         $context->rectangle(@rect);
@@ -224,10 +219,7 @@ sub draw_cells_cb {
             $context->rectangle(@rect);
             $context->stroke;
         }
-        # $n++;
     }
-    # say "Updated $n";
-    # $initialised = 1;
 
     return;
 }

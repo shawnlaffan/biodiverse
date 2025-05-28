@@ -21,7 +21,7 @@ use constant COLOUR_WHITE => Gtk3::Gdk::RGBA::parse('white');
 use constant COLOUR_GRAY  => Gtk3::Gdk::RGBA::parse('rgb(210,210,210)');
 use constant COLOUR_RED   => Gtk3::Gdk::RGBA::parse('red');
 use constant COLOUR_FAILED_DEF_QUERY => Gtk3::Gdk::RGBA::parse('white');
-
+use constant CELL_OUTLINE_COLOUR => Gtk3::Gdk::RGBA::parse('black');
 
 use parent 'Biodiverse::GUI::Canvas';
 
@@ -31,6 +31,10 @@ sub new {
 
     #  rebless
     bless $self, $class;
+
+    if (!exists $args{show_cell_outlines}) {
+        $self->{show_cell_outlines} = 1;
+    }
 
     $self->init_legend(%args, parent => $self);
 
@@ -204,7 +208,9 @@ sub draw_cells_cb {
     $context->set_line_width(max($self->{cellsizes}[0] / 100));
     # $context->set_matrix($mx);
     my $data = $self->{data};
-    my $n = 0;
+    # my $n = 0;
+    my $draw_borders = $self->get_cell_show_outline;
+    my @outline_colour = $self->rgba_to_cairo ($self->get_cell_outline_colour);
     foreach my $key (keys %$data) {
         \my @rgb = $data->{$key}{rgb} // next;
         # \my @coord = $data->{$key}{coord};
@@ -213,10 +219,12 @@ sub draw_cells_cb {
         $context->set_source_rgb(@rgb);
         $context->rectangle(@rect);
         $context->fill;
-        $context->set_source_rgb(0, 0, 0);
-        $context->rectangle(@rect);
-        $context->stroke;
-        $n++;
+        if ($draw_borders) {
+            $context->set_source_rgb(@outline_colour);
+            $context->rectangle(@rect);
+            $context->stroke;
+        }
+        # $n++;
     }
     # say "Updated $n";
     # $initialised = 1;
@@ -779,5 +787,36 @@ END_OF_ERROR
 }
 
 
+sub get_cell_outline_colour {
+    $_[0]->{cell_outline_colour} //= CELL_OUTLINE_COLOUR;
+}
+
+
+sub set_cell_outline_colour {
+    my ($self, $colour) = @_;
+
+    #  should not be calling out to parent here
+    $colour //= $self->get_parent_tab->get_colour_from_chooser ($self->get_cell_outline_colour);
+
+    #  if still no colour chosen
+    return if !$colour;
+
+    $self->{cell_outline_colour} = $colour;  #  store for later re-use
+
+    return;
+}
+
+sub set_cell_show_outline {
+    my ($self, $active) = @_;
+
+    $self->{show_cell_outlines} = $active;
+
+    return;
+}
+
+sub get_cell_show_outline {
+    my ($self) = @_;
+    return $self->{show_cell_outlines};
+}
 
 1;  # end of package

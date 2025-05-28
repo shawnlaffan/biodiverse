@@ -87,6 +87,10 @@ sub set_parent_tab {
     return;
 }
 
+sub get_parent_tab {
+    $_[0]->{page};
+}
+
 sub dump_self {
     my $self = shift;
     use DDP;
@@ -724,6 +728,13 @@ sub plot_bottom_up {!!0};
 sub reset_disp {
     my $self = shift;
     $self->{disp} = { %{$self->{dims}} };
+}
+
+#  leaner than rgb_to_array
+sub rgba_to_cairo {
+    my ($self, $rgba) = @_;
+    my @res = ($rgba->red, $rgba->green, $rgba->blue);
+    return wantarray ? @res : \@res;
 }
 
 sub rgb_to_array {

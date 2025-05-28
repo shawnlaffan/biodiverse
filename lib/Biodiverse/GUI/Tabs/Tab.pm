@@ -976,14 +976,19 @@ sub get_colour_from_chooser {
     my ($self, $colour) = @_;
 
     my $dialog = Gtk3::ColorSelectionDialog->new ('Select a colour');
-    my $selector = $dialog->colorsel;  #  get_color_selection?
+    my $selector = $dialog->get_color_selection;
 
     if ($colour) {
-        $selector->set_current_color ($colour);
+        if ($colour->isa('Gtk3::Gdk::Color')) {
+            $selector->set_current_color($colour);
+        }
+        else {
+            $selector->set_current_rgba($colour);
+        }
     }
 
     if ($dialog->run eq 'ok') {
-        $colour = $selector->get_current_color;
+        $colour = $selector->get_current_rgba;
     }
     $dialog->destroy;
 

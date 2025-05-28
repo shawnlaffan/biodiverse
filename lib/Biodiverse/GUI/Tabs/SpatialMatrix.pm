@@ -593,8 +593,6 @@ sub set_plot_min_max_values {
     $self->{plot_max_value} = $stats->{$self->{PLOT_STAT_MAX} || 'MAX'};
     $self->{plot_min_value} = $stats->{$self->{PLOT_STAT_MIN} || 'MIN'};
 
-    # $self->set_legend_ltgt_flags ($stats);
-
     return;
 }
 

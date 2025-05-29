@@ -357,6 +357,8 @@ sub draw {
     my $h_line_width = $self->get_horizontal_line_width;
     my $v_line_width = $self->get_vertical_line_width ($h_line_width);
 
+    $cx->set_line_cap ('round');
+
     foreach my $branch (values %$node_hash) {
 
         my ($x_r, $x_l, $y) = @{$branch}{qw/x_r x_l y/};

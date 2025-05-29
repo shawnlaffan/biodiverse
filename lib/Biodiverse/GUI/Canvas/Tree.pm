@@ -357,7 +357,7 @@ sub draw {
     my $h_line_width = $self->get_horizontal_line_width;
     my $v_line_width = $self->get_vertical_line_width ($h_line_width);
 
-    $cx->set_line_cap ('round');
+    $cx->set_line_cap ('butt');
 
     foreach my $branch (values %$node_hash) {
 
@@ -374,10 +374,12 @@ sub draw {
         #  vertical connectors - will be more direct in biodiverse as they are objects already
         my @children = map {$node_hash->{$_}} @{$branch->{children}};
         if (@children) {
+            $cx->set_line_cap ('round');
             $cx->set_line_width($v_line_width);
             $cx->move_to($x_l, $children[0]{y});  #  first child
             $cx->line_to($x_l, $children[-1]{y});  #  last child
             $cx->stroke;
+            $cx->set_line_cap ('butt');
         }
     }
 

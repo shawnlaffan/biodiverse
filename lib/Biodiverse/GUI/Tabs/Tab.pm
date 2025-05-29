@@ -1034,8 +1034,7 @@ sub on_set_tree_line_widths {
         default    => $self->{dendrogram}->{branch_line_width} // 0,
         min        => 0,
         max        => 15,
-        label_text => "Branch line thickness in pixels\n"
-                    . 'Does not affect the vertical connectors',
+        label_text => "Branch line thickness in pixels",
         tooltip    => 'Set to zero to let the system calculate a default',
     };
     bless $props, $parameter_metadata_class;
@@ -1421,8 +1420,7 @@ EOT
         set_tree_branch_line_widths => {
             type     => 'Gtk3::MenuItem',
             label    => 'Set tree branch line widths',
-            tooltip  => "Set the width of the tree branches.\n"
-                . "Does not affect the vertical connectors.",
+            tooltip  => "Set the width of the tree branches in pixels.",
             event    => 'activate',
             callback => \&on_set_tree_line_widths,
         },

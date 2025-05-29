@@ -597,8 +597,8 @@ sub cairo_draw {
     $self->{cairo_context} = $context;
     $self->{orig_tfm_mx}   = $context->get_matrix;
 
-    $context->set_source_rgb(0.9, 0.9, 0.7);
-    $context->paint;
+    # $context->set_source_rgb(0.9, 0.9, 0.7);
+    # $context->paint;
 
     #  we autosize to the drawing area when this is set each call
     $self->{matrix} = $self->get_tfm_mx($widget);

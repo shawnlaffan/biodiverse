@@ -363,9 +363,9 @@ sub draw {
 
     $self->init_plot_coords;
 
-    $cx->set_source_rgb(0.8, 0.8, 0.8);
-    $cx->rectangle (0, 0, 1, 1);
-    $cx->fill;
+    # $cx->set_source_rgb(0.8, 0.8, 0.8);
+    # $cx->rectangle (0, 0, 1, 1);
+    # $cx->fill;
 
     my $h_line_width = $self->get_horizontal_line_width;
     my $v_line_width = $self->get_vertical_line_width ($h_line_width);
@@ -379,12 +379,14 @@ sub draw {
         $cx->set_line_width($h_line_width);
 
         #  mid-grey
-        $cx->set_source_rgb(0.4, 0.4, 0.4);
+        # $cx->set_source_rgb(0.4, 0.4, 0.4);
+        #  black
+        $cx->set_source_rgb(0, 0, 0);
         $cx->move_to($x_r, $y);
         $cx->line_to($x_l, $y);
         $cx->stroke;
 
-        #  vertical connectors - will be more direct in biodiverse as they are objects already
+        #  vertical connectors
         my @children = map {$node_hash->{$_}} @{$branch->{children}};
         if (@children) {
             $cx->set_line_cap ('round');

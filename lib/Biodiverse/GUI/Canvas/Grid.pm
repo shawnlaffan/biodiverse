@@ -664,8 +664,9 @@ sub load_shapefile {
     my ($self, $shapefile) = @_;
 
     my $fname = $shapefile->{filebase};
-    my $cached = $self->{_cache}{shapefiles}{$fname};
-    return $cached if $cached;
+    my $shape_cache = $self->get_cached_value_dor_set_default_href ('shapefiles');
+    return $shape_cache->{$fname}
+        if $shape_cache->{$fname};
 
     my $dims = $self->{dims};
     my ($min_x, $min_y, $max_x, $max_y) = @$dims{qw/xmin ymin xmax ymax/};
@@ -773,7 +774,7 @@ END_OF_ERROR
         );
     }
 
-    $self->{_cache}{shapefiles}{$fname} = \@features;
+    $shape_cache->{$fname} = \@features;
 
     return \@features;
 }

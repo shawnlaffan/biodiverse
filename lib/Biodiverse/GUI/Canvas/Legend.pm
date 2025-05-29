@@ -13,6 +13,7 @@ use POSIX qw /ceil/;
 
 #  we do not inherit from Biodiverse::GUI::Canvas as we are called by it
 use parent qw /Biodiverse::GUI::Legend/;
+use parent qw /Biodiverse::Common::Caching/;
 
 ##########################################################
 # Constants
@@ -207,18 +208,12 @@ sub make_data {
 
     #  cache all but categorical for now
     my $mode_string = $self->get_mode_as_string;
-    if ($mode_string ne 'categorical') {
-        my $data = $self->{_cache}{data}{$mode_string};
-        return $data if $data;
-    }
-    #  Need to update this comment as it is from the old code.
-    #  Now we generate rows that can be plotted later.
-    # Create and colour the legend according to the colouring
-    # scheme specified by $self->{legend_mode}. Each colour
-    # mode has a different range as specified by $height.
-    # Once the legend is create it is scaled to the height
-    # of the canvas in reposition and according to each
-    # mode's scaling factor held in $self->{legend_scaling_factor}.
+    my $cached_data = $self->get_cached_value_dor_set_default_href ('data');
+
+    return $cached_data->{$mode_string}
+        if $mode_string ne 'categorical' && $cached_data->{$mode_string};
+
+    #  Now we generate rows of colours and labels that can be plotted later.
 
     my @colours;
     my @labels;
@@ -322,8 +317,8 @@ sub make_data {
     }
 
     my $results = { labels => \@labels, colours => \@colours };
-    $self->{_cache}{data}{$mode_string} = $results;
-    $self->{rows_to_plot} = $results;
+    $cached_data->{$mode_string} = $results;
+    $self->{rows_to_plot}        = $results;
 
     return $results;
 }

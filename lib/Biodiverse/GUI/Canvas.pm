@@ -19,6 +19,7 @@ use Time::HiRes qw/time/;
 
 use constant COLOUR_WHITE => Gtk3::Gdk::RGBA::parse('white');
 
+use parent qw /Biodiverse::Common::Caching/;
 
 sub new {
     my ($class, %args) = @_;

@@ -274,7 +274,7 @@ sub draw_slider {
 
     my $line_width = ($y1 - $y0) / 100;  #  need to work on this
 
-    $cx->set_source_rgb(0, 0, 1);
+    $cx->set_source_rgba(0, 0, 1, 0.5);
     $cx->move_to($x, 0);
     $cx->line_to($x, 1);
     $cx->stroke;

@@ -23,8 +23,13 @@ sub populate_from_tree {
     my ($self, $tree) = @_;
 
     my $branch_hash = $tree->{data}{by_node};
-    my $line_width  = $tree->get_line_width;
+    my $line_width  = max ($tree->get_horizontal_line_width, 0.02);  #  need to tweak this
     my $lw2         = $self->{lw2} //= $line_width / 2;
+
+    if ($self->{line_width} && ($line_width == $self->{line_width})) {
+        say "Tree index: Line width unchanged ($line_width), not rebuilding";
+        return $self;
+    }
 
     local $| = 1;
     say 'Sorting';
@@ -83,6 +88,7 @@ sub populate_from_tree {
 
     $self->{boxes} = \%boxes;
     $self->{rtree} = $rtree;
+    $self->{line_width} = $line_width;
 
     return $self;
 }

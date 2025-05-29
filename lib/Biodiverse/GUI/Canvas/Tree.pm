@@ -13,6 +13,7 @@ use List::MoreUtils qw /minmax/;
 use Ref::Util qw /is_coderef/;
 use POSIX qw /floor/;
 use Carp qw /croak confess/;
+use Sort::Key qw /rnkeysort/;
 
 use Biodiverse::GUI::Canvas::Tree::Index;
 
@@ -69,7 +70,7 @@ sub set_current_tree {
 
     state %mode_methods = (
         length => 'get_length',
-        depth  => 'get_depth',
+        depth  => sub {1},
     );
 
     #  future proofing: allow a code ref
@@ -574,5 +575,89 @@ sub get_branch_line_width {
     $_[0]->{branch_line_width} //= 0;
 }
 
+#sub make_total_length_array_inner {
+#    my ($node, $length_so_far, $array, $lf) = @_;
+#
+#    $node->set_value(total_length_gui => $length_so_far);
+#    push @{$array}, $node;
+#
+#    # Do the children
+#    my $length_total = $lf->($node) + $length_so_far;
+#    foreach my $child ($node->get_children) {
+#        make_total_length_array_inner($child, $length_total, $array, $lf);
+#    }
+#
+#    return;
+#}
+
+##########################################################
+# Drawing the tree
+##########################################################
+
+# whether to plot by 'length' or 'depth'
+sub set_plot_mode {
+    my ($self, $plot_mode) = @_;
+
+    $self->{plot_mode} = $plot_mode;
+    my $tree = $self->{current_tree};
+
+    #  Much commented code due to porting across from Dendrogram.pm
+
+    # Work out how to get the "length" based on mode
+    if ($plot_mode eq 'length') {
+        #  handled in the plot method
+        delete $self->{length_func};
+    }
+    elsif ($plot_mode eq 'depth') {
+        delete $self->{length_func};
+    }
+    elsif ($plot_mode =~ 'equal_length|range_weighted') {
+        #  Create an alternate tree with the chosen properties.
+        #  Use a cache for speed.
+        #  Basedata will not change for lifetime of object
+        #  as GUI does not support in-place deletions.
+        my $gui_tree  = $self->get_parent_tab->get_current_tree;
+        my $cache_key = "tree_for_plot_mode_${plot_mode}_from_${gui_tree}";
+        my $cache = $self->get_cached_value_dor_set_default_href ($cache_key);
+        my $alt_tree  = $cache->{tree};
+
+        if (!defined $alt_tree) {
+            #  alt_tree can be processed in both if-conditions below
+            $alt_tree = $gui_tree;
+            if ($plot_mode =~ 'equal_length') {
+                $alt_tree = $alt_tree->clone_tree_with_equalised_branch_lengths;
+            }
+            if ($plot_mode =~ 'range_weighted') {
+                my $bd = $self->get_parent_tab->get_base_ref;
+                $alt_tree = $alt_tree->clone_without_caches;
+                NODE:
+                foreach my $node (rnkeysort {$_->get_depth} $alt_tree->get_node_refs) {
+                    my $range = $node->get_node_range(basedata_ref => $bd);
+                    $node->set_length_aa($range ? $node->get_length / $range : 0);
+                }
+            }
+            my $func = sub {
+                $alt_tree->get_node_ref_aa($_[0]->get_name)->get_length;
+            };
+            $self->{length_func} = $func;
+            $plot_mode = $func;
+            $cache->{tree} = $alt_tree;
+            $cache->{plot_mode} = $plot_mode;
+        }
+        $plot_mode = $cache->{plot_mode};
+
+        #  We are passed nodes from the original tree, so use their names to
+        #  look up the ref in the alt tree.  Too complex now?
+        #  don't use a state var as we cache on it and don't detect changes otherwise
+
+    }
+    else {
+        die "Invalid cluster-plotting mode - $plot_mode";
+    }
+
+    $self->set_current_tree ($tree, $plot_mode);
+
+    return;
+}
 
 1;

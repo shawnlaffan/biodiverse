@@ -65,6 +65,7 @@ sub set_current_tree {
         $self->{data} = {};
         $self->{current_tree} = undef;
         $self->{plot_coords_generated} = undef;
+        $self->{length_func} = undef;
         return;
     }
 
@@ -73,16 +74,14 @@ sub set_current_tree {
         depth  => sub {1},
     );
 
-    #  future proofing: allow a code ref
-    my $len_method
-        = is_coderef($plot_mode)
-        ? $plot_mode
-        : $mode_methods{$plot_mode} // 'get_length';
+    my $len_method = $self->{length_func}
+        // $mode_methods{$plot_mode}
+        // 'get_length';
 
     #  Don't needlessly regenerate the data
     return if defined $self->{current_tree}
         && refaddr($tree) == refaddr($self->{current_tree})
-        && $self->{plot_mode} eq $len_method;
+        && $self->{plot_mode} eq $plot_mode;
 
     use Sort::Key qw /ikeysort rikeysort/;
     $tree->number_terminal_nodes;  #  need to keep this in a cache for easier cleanup
@@ -598,18 +597,20 @@ sub get_branch_line_width {
 sub set_plot_mode {
     my ($self, $plot_mode) = @_;
 
-    $self->{plot_mode} = $plot_mode;
+    #  Actually set in set_current_tree when we call it,
+    #  so the name of this sub is a bit misleading.
+    # $self->{plot_mode} = $plot_mode;
+
     my $tree = $self->{current_tree};
 
     #  Much commented code due to porting across from Dendrogram.pm
 
     # Work out how to get the "length" based on mode
     if ($plot_mode eq 'length') {
-        #  handled in the plot method
-        delete $self->{length_func};
+        $self->{length_func} = 'get_length';
     }
     elsif ($plot_mode eq 'depth') {
-        delete $self->{length_func};
+        $self->{length_func} = sub {1};
     }
     elsif ($plot_mode =~ 'equal_length|range_weighted') {
         #  Create an alternate tree with the chosen properties.
@@ -619,7 +620,8 @@ sub set_plot_mode {
         my $gui_tree  = $self->get_parent_tab->get_current_tree;
         my $cache_key = "tree_for_plot_mode_${plot_mode}_from_${gui_tree}";
         my $cache = $self->get_cached_value_dor_set_default_href ($cache_key);
-        my $alt_tree  = $cache->{tree};
+        my $alt_tree = $cache->{tree};
+        my $callback = $cache->{callback};
 
         if (!defined $alt_tree) {
             #  alt_tree can be processed in both if-conditions below
@@ -636,20 +638,15 @@ sub set_plot_mode {
                     $node->set_length_aa($range ? $node->get_length / $range : 0);
                 }
             }
-            my $func = sub {
-                $alt_tree->get_node_ref_aa($_[0]->get_name)->get_length;
+            #  return zero if not in the tree
+            $callback = sub {
+                my $node_ref = $alt_tree->get_node_ref_or_undef_aa($_[0]->get_name);
+                return $node_ref ? $node_ref->get_length : 0;
             };
-            $self->{length_func} = $func;
-            $plot_mode = $func;
             $cache->{tree} = $alt_tree;
-            $cache->{plot_mode} = $plot_mode;
+            $cache->{callback} = $callback;
         }
-        $plot_mode = $cache->{plot_mode};
-
-        #  We are passed nodes from the original tree, so use their names to
-        #  look up the ref in the alt tree.  Too complex now?
-        #  don't use a state var as we cache on it and don't detect changes otherwise
-
+        $self->{length_func} = $callback;
     }
     else {
         die "Invalid cluster-plotting mode - $plot_mode";

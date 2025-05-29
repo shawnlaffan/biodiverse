@@ -463,6 +463,11 @@ sub get_node_ref_aa {
       // Biodiverse::Tree::NotExistsNode->throw("[Tree] $_[1] does not exist, cannot get ref (aa)");
 }
 
+sub get_node_ref_or_undef_aa {
+    no autovivification;
+    $_[0]->{TREE_BY_NAME}{$_[1]};
+}
+
 #  used when importing from a BDX file, as they don't keep weakened refs weak.
 #  not anymore - let the destroy method handle it
 sub weaken_parent_refs {

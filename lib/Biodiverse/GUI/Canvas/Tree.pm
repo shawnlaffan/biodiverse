@@ -81,7 +81,18 @@ sub set_current_tree {
     #  Don't needlessly regenerate the data
     return if defined $self->{current_tree}
         && refaddr($tree) == refaddr($self->{current_tree})
+        && defined $self->{plot_mode}
         && $self->{plot_mode} eq $plot_mode;
+
+    $self->{$plot_mode} = $plot_mode;
+
+    my $cache = $self->get_cached_value_dor_set_default_href('cached_data');
+    if (my $data = $cache->{$tree}{$plot_mode}) {
+        $self->{data} = $data;
+        $self->{current_tree} = $tree;
+        say "Using cached data to plot ", $tree->get_name, " using mode $plot_mode";
+        return;
+    }
 
     use Sort::Key qw /ikeysort rikeysort/;
     $tree->number_terminal_nodes;  #  need to keep this in a cache for easier cleanup
@@ -129,10 +140,12 @@ sub set_current_tree {
 
     $self->{data} = \%properties;
     $self->{current_tree} = $tree;
-    $self->{plot_mode} = $len_method;
+    # $self->{plot_mode} = $len_method;
     $self->{plot_coords_generated} = undef;
 
     $self->init_plot_coords;
+
+    $cache->{$tree}{$plot_mode} = $self->{data};
 
     return;
 }

@@ -2650,12 +2650,12 @@ sub on_tree_undef_colour_changed {
     my $colour_dialog = Gtk3::ColorSelectionDialog->new('Select colour');
     my $colour_select = $colour_dialog->get_color_selection();
     if (my $current_colour = $self->get_dendrogram_colour_for_undef) {
-        $colour_select->set_current_color ($current_colour);
+        $colour_select->set_current_rgba ($current_colour);
     }
     $colour_dialog->show_all();
     my $response = $colour_dialog->run;
     if ($response eq 'ok') {
-        my $hue = $colour_select->get_current_color();
+        my $hue = $colour_select->get_current_rgba();
         $self->set_dendrogram_colour_for_undef ($hue);
         $self->{dendrogram}->update_legend;
     }

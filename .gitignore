@@ -16,6 +16,7 @@ t/*.results
 
 /.idea
 biodiverse.iml
+*.iml
 
 /xx.bps
 /biodiverseb.iml

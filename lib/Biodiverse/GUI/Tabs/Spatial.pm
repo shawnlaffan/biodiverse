@@ -608,7 +608,7 @@ sub init_dendrogram {
     };
 
     $self->init_branch_colouring_menu;
-    $self->init_dendrogram_legend;
+    # $self->init_dendrogram_legend;
 
     $outer_frame->show_all;
     
@@ -827,14 +827,8 @@ EOT
     return $text;
 }
 
+# no-op now
 sub init_dendrogram_legend {
-    my $self = shift;
-
-    warn "Ignoring dendrogram legend errors - fixme when graphics updated";
-    my $legend = eval {$self->{dendrogram}->get_legend};
-    return if !$legend;
-
-    #  we used to do more here
     return;
 }
 
@@ -1727,12 +1721,12 @@ sub on_grid_hover {
         #}
 
         # dendrogram highlighting from labels.pm
-        state $warned = 0;
-        if (!$warned) {
-            warn 'FIXME dendro clear highlights';
-            $warned++;
-        }
-        # $self->{dendrogram}->clear_highlights();
+        # state $warned = 0;
+        # if (!$warned) {
+        #     warn 'FIXME dendro clear highlights';
+        #     $warned++;
+        # }
+        $self->{dendrogram}->set_branch_highlights();
 
         #  does this even trigger now?
         my $group = $element; # is this the same?
@@ -1757,7 +1751,7 @@ sub on_grid_hover {
         $self->{grid}->mark_with_circles ([]);  #  might not be needed now
         $self->{grid}->mark_with_dashes ([]);
 
-        $self->{dendrogram}->clear_highlights();
+        $self->{dendrogram}->set_branch_highlights();
     }
 
     return;
@@ -1776,9 +1770,9 @@ my @dendro_highlight_branch_colours
   = map {Gtk3::Gdk::RGBA::parse($_)} ('#1F78B4', '#E31A1C', '#000000');
 
 sub highlight_paths_on_dendrogram {
-    state $warned;
-    warn 'FIXME highlight_paths_on_dendrogram not implemented yet' if !$warned++;
-    return;
+    # state $warned;
+    # warn 'FIXME highlight_paths_on_dendrogram not implemented yet' if !$warned++;
+    # return;
 
     my ($self, $hashrefs, $group) = @_;
 
@@ -1812,6 +1806,8 @@ sub highlight_paths_on_dendrogram {
         ];
     }
 
+    my %branch_colours;
+
     foreach my $idx (0, 1) {
         my $alt_idx = $idx ? 0 : 1;
         my $href    = $hashrefs->[$idx];
@@ -1834,11 +1830,12 @@ sub highlight_paths_on_dendrogram {
                   ? $dendro_highlight_branch_colours[-1]
                   : $colour;
 
-                $dendrogram->highlight_node ($node_ref, $colour_ref);
-                $dendrogram->set_node_colour(
-                    colour_ref => $colour_ref,
-                    node_name  => $node_name,
-                );
+                # $dendrogram->highlight_node ($node_ref, $colour_ref);
+                $branch_colours{$node_name} = $colour_ref;
+                # $dendrogram->set_node_colour(
+                #     colour_ref => $colour_ref,
+                #     node_name  => $node_name,
+                # );
 
                 $done{$node_name}[$idx]++;
 
@@ -1846,6 +1843,7 @@ sub highlight_paths_on_dendrogram {
             }
         }
     }
+    $dendrogram->set_branch_highlights (\%branch_colours);
 
     return;
 }

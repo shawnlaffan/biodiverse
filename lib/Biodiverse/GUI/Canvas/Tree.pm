@@ -10,7 +10,7 @@ use Glib qw/TRUE FALSE/;
 use Scalar::Util qw /refaddr/;
 use List::Util qw /min max/;
 use List::MoreUtils qw /minmax/;
-use Ref::Util qw /is_coderef/;
+use Ref::Util qw /is_coderef is_blessed_ref is_arrayref/;
 use POSIX qw /floor/;
 use Carp qw /croak confess/;
 use Sort::Key qw /rnkeysort/;
@@ -18,6 +18,20 @@ use Sort::Key qw /rnkeysort/;
 use Biodiverse::GUI::Canvas::Tree::Index;
 
 use parent 'Biodiverse::GUI::Canvas';
+
+use constant COLOUR_BLACK => Gtk3::Gdk::RGBA::parse('#000000000000');
+use constant COLOUR_WHITE => Gtk3::Gdk::RGBA::parse('#FFFFFFFFFFFF');
+use constant COLOUR_GRAY  => Gtk3::Gdk::RGBA::parse('#D2D2D2D2D2D2');
+use constant COLOUR_RED   => Gtk3::Gdk::RGBA::parse('#FFFF00000000');
+
+use constant COLOUR_PALETTE_OVERFLOW  => COLOUR_WHITE;
+use constant COLOUR_OUTSIDE_SELECTION => COLOUR_WHITE;
+use constant COLOUR_NOT_IN_TREE       => COLOUR_BLACK;
+use constant COLOUR_LIST_UNDEF        => COLOUR_WHITE;
+
+use constant DEFAULT_LINE_COLOUR      => COLOUR_BLACK;
+use constant DEFAULT_LINE_COLOUR_RGB  => "#000000";
+use constant DEFAULT_LINE_COLOUR_VERT => Gtk3::Gdk::RGBA::parse('#7F7F7F');  #  '#4D4D4D'
 
 sub new {
     my ($class, %args) = @_;
@@ -370,6 +384,17 @@ sub draw {
     my $h_line_width = $self->get_horizontal_line_width;
     my $v_line_width = $self->get_vertical_line_width ($h_line_width);
 
+    \my %highlight_hash = $self->{branch_highlights} // {};
+    \my %colour_hash    = $self->{branch_colours} // {};
+    my $have_highlights = keys %highlight_hash;
+    my $default_colour
+        = $have_highlights
+        ? $self->{default_highlight_colour}
+        : $self->{default_branch_colour} // DEFAULT_LINE_COLOUR;
+
+    my @h_colour = $self->rgb_to_array($default_colour);
+    my @v_colour = $self->rgb_to_array(DEFAULT_LINE_COLOUR_VERT);
+
     $cx->set_line_cap ('butt');
 
     foreach my $branch (values %$node_hash) {
@@ -378,10 +403,26 @@ sub draw {
 
         $cx->set_line_width($h_line_width);
 
-        #  mid-grey
-        # $cx->set_source_rgb(0.4, 0.4, 0.4);
-        #  black
-        $cx->set_source_rgb(0, 0, 0);
+        my $name = $branch->{name};
+
+        #  Use colours from highlights if set.
+        #  Highlights fall back to colour hash if true
+        #  but not a colour or array ref.
+        my $colour = $highlight_hash{$name};
+        if ($have_highlights && $colour) {
+            if (!is_blessed_ref($colour)) {
+                $colour = $colour_hash{$name}; #highlight using original colour
+            }
+        }
+        else {
+            $colour = $colour_hash{$name};
+        }
+        my @col_array
+            = is_blessed_ref ($colour) ? $self->rgb_to_array($colour)
+            : is_arrayref ($colour)    ? @$colour
+            : @h_colour;
+
+        $cx->set_source_rgb(@col_array);
         $cx->move_to($x_r, $y);
         $cx->line_to($x_l, $y);
         $cx->stroke;
@@ -391,6 +432,7 @@ sub draw {
         if (@children) {
             $cx->set_line_cap ('round');
             $cx->set_line_width($v_line_width);
+            $cx->set_source_rgb (@v_colour);
             $cx->move_to($x_l, $children[0]{y});  #  first child
             $cx->line_to($x_l, $children[-1]{y});  #  last child
             $cx->stroke;
@@ -668,6 +710,32 @@ sub set_plot_mode {
     }
 
     $self->set_current_tree ($tree, $plot_mode);
+
+    return;
+}
+
+sub set_branch_colours {
+    my ($self, $branch_hash) = @_;
+
+    $branch_hash //= {};
+
+    #  do we want this?
+    $self->{default_branch_colour} = keys %$branch_hash ? COLOUR_GRAY :DEFAULT_LINE_COLOUR;
+
+    $self->{branch_colours} = $branch_hash;
+
+    return;
+}
+
+#  highlights override colours, possibly also specifying the colour to use
+sub set_branch_highlights {
+    my ($self, $branch_hash) = @_;
+
+    $branch_hash //= {};
+
+    $self->{default_highlight_colour} = keys %$branch_hash ? COLOUR_GRAY : DEFAULT_LINE_COLOUR;
+
+    $self->{branch_highlights} = $branch_hash;
 
     return;
 }

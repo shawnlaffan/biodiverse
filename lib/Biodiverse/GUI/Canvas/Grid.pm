@@ -71,13 +71,13 @@ sub _on_motion {
 
     my ($x, $y) = $self->get_event_xy($event);
 
-    #  do nothing if more than one cell off the grid
-    \my @c = $self->get_cell_sizes;
-    return FALSE
-        if ($x > $self->xmax + $c[0])
-        || ($y > $self->ymax + $c[1])
-        || ($x < $self->xmin - $c[0])
-        || ($y < $self->ymin - $c[1]);
+    #  do nothing if more than one cell off the grid - not needed now
+    # \my @c = $self->get_cell_sizes;
+    # return FALSE
+    #     if ($x > $self->xmax + $c[0])
+    #     || ($y > $self->ymax + $c[1])
+    #     || ($x < $self->xmin - $c[0])
+    #     || ($y < $self->ymin - $c[1]);
 
     my $key = $self->snap_coord_to_grid_id($x, $y);
     my $last_key = $self->{last_motion_key} //= '';
@@ -588,6 +588,11 @@ sub mark_with_dashes {
     $self->{highlights}{dashes} = $elements;
 
     return;
+}
+
+sub clear_marks {
+    my ($self, $elements) = @_;
+    $self->{highlights} = undef;
 }
 
 sub plot_highlights {

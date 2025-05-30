@@ -586,7 +586,7 @@ sub init_dendrogram {
         highlight_func  => $highlight_closure,
         ctrl_click_func => $ctrl_click_closure,
         click_func      => $click_closure,
-        # select_func     => $select_closure,
+        select_func     => $select_closure,
         parent_tab      => $self,
         want_legend     => 1,
         no_use_slider_to_select_nodes => 1,
@@ -1237,16 +1237,9 @@ sub on_phylogeny_click {
     if ($self->{tool} eq 'Select') {
         $self->{dendrogram}->do_colour_nodes_below($node);
         if (!$node) {  #  clear the highlights.  Maybe should copy Clustering.pm and add a leave event
-            $self->{grid}->mark_with_circles ( [] );
-            $self->{grid}->mark_with_dashes  ( [] );
+            $self->{grid}->clear_marks;
         }
     }
-    # elsif ($self->{tool} eq 'ZoomOut') {
-    #     $self->{dendrogram}->zoom_out();
-    # }
-    # elsif ($self->{tool} eq 'ZoomFit') {
-    #     $self->{dendrogram}->zoom_fit();
-    # }
 
     return;
 }
@@ -1264,9 +1257,8 @@ sub on_phylogeny_select {
 }
 
 sub on_phylogeny_popup {
-    my $self = shift;
-    my $node_ref = shift;
-    #my $basedata_ref = $self->{base_ref};
+    my ($self, $node_ref) = @_;
+
     my $basedata_ref = $self->get_base_ref;
 
     my ($sources, $default_source) = get_sources_for_node($node_ref, $basedata_ref);
@@ -1714,8 +1706,7 @@ sub on_grid_hover {
         $self->highlight_paths_on_dendrogram ([\%labels1, \%labels2], $group);
     }
     else {
-        $self->{grid}->mark_with_circles ([]);  #  might not be needed now
-        $self->{grid}->mark_with_dashes ([]);
+        $self->{grid}->clear_marks;
         $self->{dendrogram}->clear_highlights();
     }
 

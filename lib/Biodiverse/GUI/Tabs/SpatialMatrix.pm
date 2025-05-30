@@ -430,13 +430,8 @@ sub on_cell_selected {
     #  clicked on the background area
     if (!defined $element) {
         #  clear any highlights
-        $self->{grid}->mark_with_circles ( [] );  #  needed?
-        $self->{grid}->mark_with_dashes ( [] );  #  clear any nbr_set2 highlights
-        state $warned = 0;
-        if (!$warned) {
-            warn 're-enable this';
-            # $self->{dendrogram}->clear_highlights;
-        }
+        $self->{grid}->clear_marks;
+        $self->{dendrogram}->clear_highlights;
         return;
     }
 

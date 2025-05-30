@@ -581,7 +581,12 @@ sub on_button_press {
         return FALSE;
     }
     elsif (not $self->selecting and $self->in_selectable_mode) {
-        if (($e_button == 1 && $e_state >= [ 'control-mask' ] || $e_state >= [ 'shift-mask' ]) || $e_button == 2) {
+        my $ctl_click
+            = ($e_button == 1
+                && $e_state >= [ 'control-mask' ]
+                || $e_state >= [ 'shift-mask' ])
+            || $e_button == 2;
+        if ($ctl_click) {
             $self->_on_ctl_click($widget, $event);
             return TRUE;
         }

@@ -276,12 +276,32 @@ sub _select_while_not_selecting {
     return FALSE if $x > $self->xmax || $y > $self->ymax;
 
     my @branches = $self->get_index->query_point_nearest_y ($x, $y);
-    foreach my $branch (@branches) {
-        say 'BT: ' . $branch->{name} if $branch;
+    if (@branches) {
+        if (my $f = $self->{click_func}) {
+            # $f->($branches[0]->{node_ref});  #  colouring is complex - leave for later
+        };
     }
 
     return;
 }
+
+sub _on_ctl_click {
+    my ($self, $widget, $event) = @_;
+
+    my ($x, $y) = $self->get_event_xy($event);
+
+    return FALSE if $x > $self->xmax || $y > $self->ymax || $x < $self->xmin || $y < $self->ymin;
+
+    my $f = $self->{ctrl_click_func};
+
+    my @branches = $self->get_index->query_point_nearest_y ($x, $y);
+    if ($f && @branches) {
+        $f->($branches[0]->{node_ref});
+    }
+
+    return FALSE;
+}
+
 
 sub draw_slider {
     my ($self, $cx) = @_;

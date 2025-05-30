@@ -141,6 +141,12 @@ sub legend {
     $_[0]->get_legend;
 }
 
+#  false if no legend
+sub legend_is_visible {
+    my $self = shift;
+    my $legend = eval {$self->legend};
+    return $legend ? $legend->is_visible : !!0;
+}
 
 sub show_legend {
     my $self = shift;
@@ -664,6 +670,8 @@ sub get_tfm_mx {
     ($canvas_x, $canvas_y) = (0,0);  #  no longer needed below
     my ($off_x, $off_y)    = (0,0);
 
+    $canvas_w -= $self->_get_legend_offset_for_tfm_mx;
+
     # centre on 0,0 allowing for window edges
     $mx->translate(
         $canvas_x + $canvas_w / 2 - $off_x,
@@ -677,6 +685,18 @@ sub get_tfm_mx {
     $mx->translate(-$xcen, -$ycen);
 
     return $mx;
+}
+
+
+sub _get_legend_offset_for_tfm_mx {
+    my $self = shift;
+    my $offset = 0;
+    my $legend = $self->get_legend;
+    if ($legend && $legend->is_visible) {
+        $offset = 2 * $legend->get_width;
+    }
+
+    return $offset;
 }
 
 sub get_identity_tfm_mx {

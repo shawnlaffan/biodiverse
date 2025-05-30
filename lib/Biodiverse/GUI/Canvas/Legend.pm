@@ -35,17 +35,12 @@ sub new {
     my %args         = @_;
 
     my $canvas       = $args{drawable};
-    # my $legend_marks = $args{legend_marks} // [qw/nw w w sw/];
     my $legend_mode  = $args{legend_mode}  // 'Hue';
-    my $width_px     = $args{width_px}     // 0;  #  still used?
-    my $height_px    = $args{height_px}    // 0;  #  still used?
 
     my $self = {
         drawable     => $canvas,
-        # legend_marks => $legend_marks,
         legend_mode  => $legend_mode,
-        width_px     => $width_px,
-        height_px    => $height_px,
+        width_px     => LEGEND_WIDTH,
         hue          => $args{hue} // 0,
         parent       => $args{parent},
         show         => $args{show} // $args{show_legend} // 1,
@@ -86,7 +81,7 @@ sub is_visible {
 
 sub get_width {
     my $self = shift;
-    return $self->{width_px} //= LEGEND_WIDTH;
+    return $self->{width_px} ||= LEGEND_WIDTH;
 }
 
 sub draw {

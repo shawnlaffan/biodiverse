@@ -269,6 +269,7 @@ sub init_grid {
         show_legend     => 1,
         show_value      => 0,
         hover_func      => $hover_closure,
+        end_hover_func  => sub { $self->on_end_grid_hover(@_)},
         ctl_click_func  => $click_closure, # Middle click or ctl left-click
         select_func     => $select_closure,
         grid_click_func => $grid_click_closure, # Left click

@@ -368,6 +368,8 @@ sub y_scale {
 sub draw {
     my ($self, $cx) = @_;
 
+    return if !$self->get_current_tree;
+
     #  need to handle negative branches - these can push the rhs out past the root
     #  (or really the root inwards relative to the branches)
 
@@ -397,6 +399,7 @@ sub draw {
 
     $cx->set_line_cap ('butt');
 
+    #  FIXME: should plot highlights over the top of the rest, i.e. in a second pass
     foreach my $branch (values %$node_hash) {
 
         my ($x_r, $x_l, $y) = @{$branch}{qw/x_r x_l y/};
@@ -450,10 +453,11 @@ sub init_plot_coords {
 
     return if $self->{plot_coords_generated};
 
-    my $data = $self->{data};
-
     #  start with the y-coords
     my $tree = $self->get_current_tree;
+    return if !$tree;
+
+    my $data = $self->{data};
     \my %branch_hash = $data->{by_node};
 
     #  set the initial y-coord

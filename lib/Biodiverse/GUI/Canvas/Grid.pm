@@ -71,7 +71,13 @@ sub _on_motion {
 
     my ($x, $y) = $self->get_event_xy($event);
 
-    return FALSE if $x > $self->xmax || $y > $self->ymax || $x < $self->xmin || $y < $self->ymin;
+    #  do nothing if more than one cell off the grid
+    \my @c = $self->get_cell_sizes;
+    return FALSE
+        if ($x > $self->xmax + $c[0])
+        || ($y > $self->ymax + $c[1])
+        || ($x < $self->xmin - $c[0])
+        || ($y < $self->ymin - $c[1]);
 
     my $key = $self->snap_coord_to_grid_id($x, $y);
     my $last_key = $self->{last_motion_key} //= '';
@@ -400,7 +406,7 @@ sub set_base_struct {
 
     $self->{data_source} = $source;
 
-    my @res = $self->get_cell_sizes($source);  #  handles zero and text
+    my @res = $self->calculate_cell_sizes($source);  #  handles zero and text
 
     my ($cell_x, $cell_y) = @res[0,1];  #  just grab first two for now
     $cell_y ||= $cell_x;  #  default to a square if not defined or zero
@@ -472,7 +478,7 @@ sub set_base_struct {
     return 1;
 }
 
-sub get_cell_sizes {
+sub calculate_cell_sizes {
     my ($self, $data) = @_;
 
     #  handle text groups here
@@ -521,6 +527,10 @@ sub get_cell_sizes {
     say '[Grid] Using cellsizes ', join (', ', @cell_sizes);
 
     return wantarray ? @cell_sizes : \@cell_sizes;
+}
+
+sub get_cell_sizes {
+    $_[0]{cellsizes};
 }
 
 sub colour {

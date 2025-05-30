@@ -1720,12 +1720,6 @@ sub on_grid_hover {
         #    $nbrs_hash_inner{$element} = 1;
         #}
 
-        # dendrogram highlighting from labels.pm
-        # state $warned = 0;
-        # if (!$warned) {
-        #     warn 'FIXME dendro clear highlights';
-        #     $warned++;
-        # }
         $self->{dendrogram}->set_branch_highlights();
 
         #  does this even trigger now?
@@ -1830,12 +1824,7 @@ sub highlight_paths_on_dendrogram {
                   ? $dendro_highlight_branch_colours[-1]
                   : $colour;
 
-                # $dendrogram->highlight_node ($node_ref, $colour_ref);
                 $branch_colours{$node_name} = $colour_ref;
-                # $dendrogram->set_node_colour(
-                #     colour_ref => $colour_ref,
-                #     node_name  => $node_name,
-                # );
 
                 $done{$node_name}[$idx]++;
 
@@ -1843,6 +1832,9 @@ sub highlight_paths_on_dendrogram {
             }
         }
     }
+    #  clear previous colours
+    $dendrogram->set_branch_colours ();
+    #  now highlight, which also can pass colours
     $dendrogram->set_branch_highlights (\%branch_colours);
 
     return;
@@ -1892,6 +1884,7 @@ sub colour_branches_on_dendrogram {
     }
 
     my %done;
+    my %colours;
 
     my $colour_for_undef = $legend->get_colour_for_undef // COLOUR_BLACK;
 
@@ -1920,11 +1913,7 @@ sub colour_branches_on_dendrogram {
                 ? $legend->$colour_method ($val, @minmax_args)
                 : $colour_for_undef;
 
-            $dendrogram->highlight_node ($node_ref, $colour_ref);
-            $dendrogram->set_node_colour(
-                colour_ref => $colour_ref,
-                node_name  => $node_name,
-            );
+            $colours{$node_name} = $colour_ref;
 
             $done{$node_name}++;
 
@@ -1932,6 +1921,11 @@ sub colour_branches_on_dendrogram {
         }
     }
 
+    #  colour via highlights
+    $dendrogram->set_branch_colours ();
+    $dendrogram->set_branch_highlights (\%colours);
+
+    return;
 }
 
 sub on_end_grid_hover {

@@ -715,25 +715,33 @@ sub set_plot_mode {
 }
 
 sub set_branch_colours {
-    my ($self, $branch_hash) = @_;
+    my ($self, $branch_hash, $default_colour) = @_;
 
     $branch_hash //= {};
 
     #  do we want this?
-    $self->{default_branch_colour} = keys %$branch_hash ? COLOUR_GRAY :DEFAULT_LINE_COLOUR;
+    $self->{default_branch_colour}
+        = keys %$branch_hash
+        ? ($default_colour // COLOUR_GRAY)
+        : DEFAULT_LINE_COLOUR;
 
     $self->{branch_colours} = $branch_hash;
 
     return;
 }
 
-#  highlights override colours, possibly also specifying the colour to use
+#  Highlights override colours, possibly also specifying the colour to use
+#  Allows easier reversion to a previous colour set.
+#  Highlights are also coloured last (or will be)
 sub set_branch_highlights {
-    my ($self, $branch_hash) = @_;
+    my ($self, $branch_hash, $default_colour) = @_;
 
     $branch_hash //= {};
 
-    $self->{default_highlight_colour} = keys %$branch_hash ? COLOUR_GRAY : DEFAULT_LINE_COLOUR;
+    $self->{default_highlight_colour}
+        = keys %$branch_hash
+        ? ($default_colour // COLOUR_GRAY)
+        : DEFAULT_LINE_COLOUR;
 
     $self->{branch_highlights} = $branch_hash;
 

@@ -583,7 +583,7 @@ sub init_dendrogram {
         # graph_frame => $graph_frame,
         grid        => undef,
         hover_func      => $hover_closure,
-        # highlight_func  => $highlight_closure,
+        highlight_func  => $highlight_closure,
         # ctrl_click_func => $ctrl_click_closure,
         # click_func      => $click_closure,
         # select_func     => $select_closure,
@@ -1207,17 +1207,14 @@ sub on_phylogeny_hover {
 # many other phylogeny methods are given in Labels.pm
 # Called by dendrogram when user hovers over a node
 sub on_phylogeny_highlight {
-    my $self = shift;
-    my $node = shift;
+    my ($self, $node) = @_;
 
     return if !$node;
 
-    #say "for node $node";
-    my $terminal_elements = (defined $node) ? $node->get_terminal_elements : {};
+    my $terminal_elements = $node->get_terminal_elements;
 
     # Hash of groups that have the selected labels
     my %groups;
-    my ($iter, $label, $hash);
 
     my $bd = $self->get_base_ref;
 
@@ -1225,13 +1222,11 @@ sub on_phylogeny_highlight {
     foreach my $label (keys %$terminal_elements) {
         my $containing = eval {$bd->get_groups_with_label_as_hash(label => $label)};
         next LABEL if !$containing;
-
-        #print "have label: $label\n";
-        @groups{keys %$containing} = values %$containing;
+        @groups{keys %$containing} = ();
     }
 
-    $self->{grid}->mark_if_exists( \%groups, 'circle' );
-    $self->{grid}->mark_if_exists( {}, 'minus' );  #  clear any nbr_set2 highlights
+    $self->{grid}->mark_with_circles ( [keys %groups] );
+    $self->{grid}->mark_with_dashes  ( [] );  #  clear any nbr_set2 highlights
 
     return;
 }
@@ -1243,8 +1238,8 @@ sub on_phylogeny_click {
         my $node = shift;
         $self->{dendrogram}->do_colour_nodes_below($node);
         if (!$node) {  #  clear the highlights.  Maybe should copy Clustering.pm and add a leave event
-            $self->{grid}->mark_if_exists( {}, 'circle' );
-            $self->{grid}->mark_if_exists( {}, 'minus');
+            $self->{grid}->mark_with_circles ( [] );
+            $self->{grid}->mark_with_dashes  ( [] );
         }
     }
     elsif ($self->{tool} eq 'ZoomOut') {

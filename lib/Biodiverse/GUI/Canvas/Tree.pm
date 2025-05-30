@@ -216,6 +216,9 @@ sub _on_motion {
         if (my $f = $self->{hover_func}) {
             $f->($results[0]->{node_ref});
         }
+        if (my $f = $self->{highlight_func}) {
+            $f->($results[0]->{node_ref});
+        }
     }
     elsif (my $g = $self->{end_hover_func}) {
         $g->();

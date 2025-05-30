@@ -170,7 +170,7 @@ sub get_current_tree {
 }
 
 sub _on_motion {
-    my ($self, $widget, $event, $ref_status) = @_;
+    my ($self, $widget, $event) = @_;
 
     return FALSE if $self->{mode} ne 'select';
     return FALSE if !$self->{plot_coords_generated};
@@ -201,7 +201,7 @@ sub _on_motion {
             if ($x >= $b[0] && $x < $b[2] && $y >= $b[1] && $y < $b[3]) {
                 $self->set_cursor_from_name ('pointer');
                 $self->{motion_cursor_name} = 'pointer';
-                return FALSE;
+                # return FALSE;
             }
             else {
                 #  reset - needs to be in a conditional or we stop the slide
@@ -212,6 +212,26 @@ sub _on_motion {
     }
 
     \my @results = $self->get_index->query_point ($x, $y);
+    my $f = $self->{hover_func};
+    if (@results == 1) {
+        #  need to find nearest to mouse when there are many
+        $f->($results[0]->{node_ref});
+    }
+    elsif (@results) {
+        my $branch = shift @results;  #  destructive
+        my $d = abs ($y - $branch->{y});
+        #  avoid blocks for speed
+        ($d > abs ($y - $_->{y}) and $branch = $_)
+            foreach @results;
+
+        $f->($branch->{node_ref});
+    }
+    elsif (my $g = $self->{end_hover_func}) {
+        $g->();
+    }
+    # else {
+        # say 'no results';
+    # }
 
     #  should get cursor name from mode
     my $new_cursor_name = @results ? 'pointer' : 'default';

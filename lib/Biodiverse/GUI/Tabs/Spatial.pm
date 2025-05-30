@@ -581,10 +581,8 @@ sub init_dendrogram {
     my $tree = Biodiverse::GUI::Canvas::Tree->new(
         frame       => $frame,
         # graph_frame => $graph_frame,
-        # hscroll     => $hscroll,
-        # vscroll     => $vscroll,
         grid        => undef,
-        # hover_func      => $hover_closure,
+        hover_func      => $hover_closure,
         # highlight_func  => $highlight_closure,
         # ctrl_click_func => $ctrl_click_closure,
         # click_func      => $click_closure,
@@ -1190,17 +1188,14 @@ sub set_phylogeny_options_sensitive {
 # Called by dendrogram when user hovers over a node
 # Updates those info labels
 sub on_phylogeny_hover {
-    my $self = shift;
-    my $node = shift || return;
+    my ($self, $branch) = @_;
 
-    no warnings 'uninitialized';  #  don't complain if nodes have not been numbered
-
-    my $map_text = '<b>Node label: </b> ' . $node->get_name;
+    my $map_text = '<b>Node label: </b> ' . $branch->get_name;
     my $dendro_text = sprintf (
         '<b>Node Length: </b> %.4f <b>Element numbers: First</b> %d <b>Last:</b> %d',
-         $node->get_total_length, # round to 4 d.p.
-         $node->get_value ('TERMINAL_NODE_FIRST'),
-         $node->get_value ('TERMINAL_NODE_LAST'),
+        $branch->get_total_length, # round to 4 d.p.
+        $branch->get_value ('TERMINAL_NODE_FIRST') // '',
+        $branch->get_value ('TERMINAL_NODE_LAST')  // '',
     );
 
     $self->get_xmlpage_object('lblOutput')->set_markup($map_text);

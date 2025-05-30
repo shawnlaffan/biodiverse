@@ -60,7 +60,8 @@ sub new {
     # say join ' ', $self->get_data_extents;
 
     $self->{callbacks} = {
-        plot => sub {shift->draw (@_)},
+        plot   => sub {shift->draw (@_)},
+        legend => sub {shift->get_legend->draw(@_)},
         #  update graph if present
     };
 
@@ -69,7 +70,7 @@ sub new {
 
 sub callback_order {
     my $self = shift;
-    return ('plot');
+    return (qw /plot legend/);
 }
 
 sub set_current_tree {

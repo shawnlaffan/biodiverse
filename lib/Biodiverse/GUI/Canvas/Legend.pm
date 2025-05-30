@@ -462,8 +462,9 @@ sub get_dynamic_labels {
     }
 
     my @labels;
-    my $max = $self->{last_max};
-    my $min = $self->{last_min};
+    #  arbitrary defaults in case we are called before any stats are set
+    my $max = $self->{last_max} // 2;
+    my $min = $self->{last_min} // $max - 1;
     if ($self->get_divergent_mode) {
         my $extent = max (abs($min), abs ($max));
         my $mid = 0;
@@ -532,15 +533,18 @@ sub get_dynamic_labels {
     #  also set the precision
     @labels = reverse map {$self->format_number_for_legend($_)} @labels;
 
-    #  flag when data exceed legend range
-    my $stats = $self->get_stats;
-    if ($max < $stats->{MAX}) {
-        # $labels[0] = ">=$labels[0]";
-        $labels[0] = "\x{2A7E}$labels[0]";
-    }
-    if ($min > $stats->{MIN}) {
-        # $labels[-1] = "<=$labels[-1]";
-        $labels[-1] = "\x{2A7D}$labels[-1]";
+    #  Flag when data exceed legend range.
+    #  Conditional because we do not always have stats,
+    #  e.g. tree lists might only have min and max.
+    if (my $stats = $self->get_stats) {
+        if ($max < $stats->{MAX}) {
+            # $labels[0] = ">=$labels[0]";
+            $labels[0] = "\x{2A7E}$labels[0]";
+        }
+        if ($min > $stats->{MIN}) {
+            # $labels[-1] = "<=$labels[-1]";
+            $labels[-1] = "\x{2A7D}$labels[-1]";
+        }
     }
 
     return wantarray ? @labels : \@labels;

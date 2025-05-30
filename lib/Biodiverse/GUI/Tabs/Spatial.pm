@@ -649,7 +649,6 @@ sub init_branch_colouring_menu {
         my $chk_show_legend = $self->{checkbox_show_tree_legend};
         my $show_legend = $chk_show_legend ? $chk_show_legend->get_active : 1;
         if ($show_legend) {
-            $self->{dendrogram}->update_legend;  #  need dendrogram to pass on coords
             $self->{dendrogram}->get_legend->show;
         }
         $self->{current_branch_colouring_source} = [$output_ref, $listname];
@@ -1861,6 +1860,7 @@ sub colour_branches_on_dendrogram {
       = $self->get_index_min_max_values_across_full_list ($list_name, $output_ref);
     my ($min, $max) = @$minmax;  #  should not need to pass this
     $legend->set_min_max ($min, $max);
+    #  FLAG STATS
 
     #  currently does not handle ratio or CANAPE - these do not yet apply for tree branches
     my @minmax_args = ($min, $max);
@@ -1868,7 +1868,7 @@ sub colour_branches_on_dendrogram {
 
     my $checkbox_show_tree_legend = $self->{checkbox_show_tree_legend};
     if ($checkbox_show_tree_legend->get_active) {
-        $dendrogram->update_legend;  #  need dendrogram to pass on coords
+        # $dendrogram->update_legend;  #  need dendrogram to pass on coords
         $legend->show;
     }
 

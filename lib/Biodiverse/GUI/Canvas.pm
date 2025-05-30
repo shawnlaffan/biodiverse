@@ -140,13 +140,17 @@ sub legend {
 
 sub show_legend {
     my $self = shift;
-    say STDERR "$self->show_legend not implemented yet";
+    my $legend = eval {$self->{legend}};
+    return if !$legend;
+    $legend->show;
     return;
 }
 
-sub hide_legend {
+sub show_legend {
     my $self = shift;
-    say STDERR "$self->hide_legend not implemented yet";
+    my $legend = eval {$self->{legend}};
+    return if !$legend;
+    $legend->hide;
     return;
 }
 

@@ -826,11 +826,6 @@ EOT
     return $text;
 }
 
-# no-op now
-sub init_dendrogram_legend {
-    return;
-}
-
 sub set_dendrogram_colour_for_undef {
     my ($self, $colour) = @_;
     my $dendrogram = $self->{dendrogram};
@@ -870,7 +865,7 @@ sub init_grid {
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
     my $select_closure = sub { $self->on_grid_select(@_); };
     $select_closure = undef;  #  not sure we need this for the spatial tab
-    # my $end_hover_closure = sub { $self->on_end_grid_hover(@_); };
+    my $end_hover_closure = sub { $self->on_end_grid_hover(@_); };
 
     my $drawable = Gtk3::DrawingArea->new;
     $frame->set (expand => 1);  #  otherwise we shrink to not be visible
@@ -886,7 +881,7 @@ sub init_grid {
         ctl_click_func  => $click_closure, # Middle click or ctl left-click
         select_func     => $select_closure,
         grid_click_func => $grid_click_closure, # Left click
-        # end_hover_func  => $end_hover_closure,  # TO BE IMPLEMENTED IN CANVAS - might not be needed
+        end_hover_func  => $end_hover_closure,  #  we go from cell to background
         drawable        => $drawable,
         window          => $outer_frame,
     );
@@ -1708,7 +1703,7 @@ sub on_grid_hover {
         #    $nbrs_hash_inner{$element} = 1;
         #}
 
-        $self->{dendrogram}->set_branch_highlights();
+        $self->{dendrogram}->clear_highlights();
 
         #  does this even trigger now?
         my $group = $element; # is this the same?
@@ -1732,8 +1727,7 @@ sub on_grid_hover {
     else {
         $self->{grid}->mark_with_circles ([]);  #  might not be needed now
         $self->{grid}->mark_with_dashes ([]);
-
-        $self->{dendrogram}->set_branch_highlights();
+        $self->{dendrogram}->clear_highlights();
     }
 
     return;
@@ -1922,7 +1916,7 @@ sub on_end_grid_hover {
     my $dendrogram = $self->{dendrogram}
       // return;
 
-    $dendrogram->clear_highlights ($dendrogram->get_default_line_colour);
+    $dendrogram->clear_highlights ();
 }
 
 sub get_trees_are_available_to_plot {

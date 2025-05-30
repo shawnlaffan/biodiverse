@@ -88,6 +88,9 @@ sub _on_motion {
         if ($self->in_select_mode) {
             $self->reset_cursor;
         }
+        if (my $g = $self->{end_hover_func}) {
+            $g->($key);
+        }
     }
     elsif ($last_key ne $key && $f) {
         #  these callbacks add to the highlights so any draw is done then

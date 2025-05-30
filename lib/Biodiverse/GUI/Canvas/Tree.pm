@@ -743,6 +743,11 @@ sub set_branch_highlights {
 
     $branch_hash //= {};
 
+    #  Trigger a redraw when we clear.
+    my $queue_draw
+        = !scalar keys %$branch_hash
+          && scalar keys %{$self->{branch_highlights} // {}};
+
     $self->{default_highlight_colour}
         = keys %$branch_hash
         ? ($default_colour // COLOUR_GRAY)
@@ -750,7 +755,15 @@ sub set_branch_highlights {
 
     $self->{branch_highlights} = $branch_hash;
 
+    $self->queue_draw if $queue_draw;
+
     return;
 }
+
+#  a helper method
+sub clear_highlights {
+    $_[0]->set_branch_highlights ();
+}
+
 
 1;

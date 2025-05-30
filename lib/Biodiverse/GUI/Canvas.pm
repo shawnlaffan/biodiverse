@@ -116,6 +116,10 @@ sub drawable {
     $_[0]->{drawable};
 }
 
+sub queue_draw {
+    $_[0]->drawable->queue_draw;
+}
+
 sub set_legend_mode {
     my ($self, @rest) = @_;
     $self->get_legend->set_mode(@rest);

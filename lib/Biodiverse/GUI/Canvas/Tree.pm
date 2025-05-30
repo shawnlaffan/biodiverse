@@ -211,27 +211,15 @@ sub _on_motion {
 
     }
 
-    \my @results = $self->get_index->query_point ($x, $y);
-    my $f = $self->{hover_func};
-    if (@results == 1) {
-        #  need to find nearest to mouse when there are many
-        $f->($results[0]->{node_ref});
-    }
-    elsif (@results) {
-        my $branch = shift @results;  #  destructive
-        my $d = abs ($y - $branch->{y});
-        #  avoid blocks for speed
-        ($d > abs ($y - $_->{y}) and $branch = $_)
-            foreach @results;
-
-        $f->($branch->{node_ref});
+    \my @results = $self->get_index->query_point_nearest_y ($x, $y);
+    if (@results) {
+        if (my $f = $self->{hover_func}) {
+            $f->($results[0]->{node_ref});
+        }
     }
     elsif (my $g = $self->{end_hover_func}) {
         $g->();
     }
-    # else {
-        # say 'no results';
-    # }
 
     #  should get cursor name from mode
     my $new_cursor_name = @results ? 'pointer' : 'default';

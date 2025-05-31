@@ -156,7 +156,7 @@ sub show_legend {
     return;
 }
 
-sub show_legend {
+sub hide_legend {
     my $self = shift;
     my $legend = eval {$self->{legend}};
     return if !$legend;

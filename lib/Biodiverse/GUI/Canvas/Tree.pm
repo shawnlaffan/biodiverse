@@ -7,9 +7,9 @@ our $VERSION = '4.99_002';
 
 use experimental qw /refaliasing declared_refs for_list/;
 use Glib qw/TRUE FALSE/;
-use Scalar::Util qw /refaddr/;
-use List::Util qw /min max/;
-use List::MoreUtils qw /minmax/;
+use Scalar::Util qw /refaddr blessed/;
+use List::Util qw /min max pairs/;
+use List::MoreUtils qw /minmax firstidx/;
 use Ref::Util qw /is_coderef is_blessed_ref is_arrayref/;
 use POSIX qw /floor/;
 use Carp qw /croak confess/;
@@ -275,14 +275,16 @@ sub _select_while_not_selecting {
 
     return FALSE if $x > $self->xmax || $y > $self->ymax;
 
-    my @branches = $self->get_index->query_point_nearest_y ($x, $y);
-    if (@branches) {
-        if (my $f = $self->{click_func}) {
-            # $f->($branches[0]->{node_ref});  #  colouring is complex - leave for later
-        };
+    #  If in cloister mode we might not want to pass the undef,
+    #  but that's probably best handled in the callback.
+    if (my $f = $self->{click_func}) {
+        my @branches = $self->get_index->query_point_nearest_y ($x, $y);
+        my $node_ref = @branches ? $branches[0]->{node_ref} : undef;
+        $f->($node_ref);
+        $self->queue_draw;
     }
 
-    return;
+    return FALSE;
 }
 
 sub _on_ctl_click {
@@ -794,6 +796,752 @@ sub set_branch_highlights {
 #  a helper method
 sub clear_highlights {
     $_[0]->set_branch_highlights ();
+}
+
+# Colours the dendrogram lines with palette colours
+sub recolour_cluster_lines {
+    my ($self, $cluster_nodes, $colour_descendents) = @_;
+
+    #  negate the arg
+    $colour_descendents = !$colour_descendents;
+
+    my ($colour_ref, $line, $list_ref, $val);
+    my %coloured_nodes;
+
+    my $map = $self->{map};
+    my $list_name    = $self->{analysis_list_name}  // '';
+    my $list_index   = $self->{analysis_list_index} // '';
+    my $analysis_min = $self->{analysis_min};
+    my $analysis_max = $self->{analysis_max};
+    my $colour_mode  = $self->get_cluster_colour_mode();
+
+    my ($legend, @minmax_args, $colour_method);
+    if ($colour_mode ne 'palette' and not $self->in_multiselect_mode) {
+        $legend = $map->get_legend;
+        $legend->set_colour_mode_from_list_and_index(
+            list  => $list_name,
+            index => $list_index,
+        );
+        @minmax_args = ($analysis_min, $analysis_max);
+        $colour_method = $legend->get_colour_method;
+    }
+
+    my %colour_hash;
+    foreach my $node_ref (@$cluster_nodes) {
+
+        my $node_name = $node_ref->get_name;
+
+        if ($colour_mode eq 'palette') {
+            $colour_ref = $self->{node_palette_colours}{$node_name} || COLOUR_RED;
+        }
+        elsif ($self->in_multiselect_mode) {
+            $colour_ref = $self->get_current_multiselect_colour;
+            if ($colour_ref || $self->in_multiselect_clear_mode) {
+                $self->store_multiselect_colour ($node_name => $colour_ref);
+            }
+
+        }
+        elsif ($colour_mode eq 'list-values') {
+
+            $list_ref = $node_ref->get_list_ref (list => $list_name);
+            $val = defined $list_ref
+                ? $list_ref->{$list_index}
+                : undef;  #  allows for missing lists
+
+            $colour_ref = defined $val
+                ? $legend->$colour_method ($val, @minmax_args)
+                : undef;
+        }
+        else {
+            die "unknown colouring mode $colour_mode\n";
+        }
+
+        $colour_hash{$node_name} = $colour_ref;
+
+        # if colour is undef then we're clearing back to default
+        # $colour_ref ||= DEFAULT_LINE_COLOUR;
+
+        # $line = $self->{node_lines}{$node_name};
+        # if ($line) {
+        #     $line->set(fill_color_gdk => $colour_ref);
+        # }
+
+        # And also colour all nodes below
+        # - don't cache on the tree as we can get recursion stack blow-outs
+        # - https://github.com/shawnlaffan/biodiverse/issues/549
+        # We could cache on $self if it were needed.
+        if ($colour_descendents) {
+            my $descendants = $node_ref->get_all_descendants (cache => 0);
+            foreach my $child_name (keys %$descendants) {
+                $colour_hash{$child_name} = $colour_ref;
+                # $self->colour_line(
+                #     $child_ref,
+                #     $colour_ref,
+                #     \%coloured_nodes,
+                # );
+            }
+        }
+
+        $coloured_nodes{$node_name} = $node_ref; # mark as coloured
+    }
+
+    #  not needed now as the tree colouring handles it
+    if (0 && !$self->in_multiselect_mode) {
+        if ($self->{recolour_nodes}) {
+            #print "[Dendrogram] Recolouring ", scalar keys %{ $self->{recolour_nodes} }, " nodes\n";
+            # uncolour previously coloured nodes that aren't being coloured this time
+            NODE:
+            foreach my $node_name (keys %{ $self->{recolour_nodes} }) {
+                next NODE if exists $coloured_nodes{$node_name};
+
+                $self->{node_lines}->{$node_name}->set(fill_color_gdk => DEFAULT_LINE_COLOUR);
+                $self->set_node_colour(
+                    colour_ref => DEFAULT_LINE_COLOUR,
+                    node_name  => $node_name,
+                );
+            }
+
+            #print "[Dendrogram] Recoloured nodes\n";
+        }
+        $self->{recolour_nodes} = \%coloured_nodes;
+    }
+
+    $self->set_branch_colours(\%colour_hash);
+
+    return;
+}
+
+
+# Colours a certain number of nodes below
+sub do_colour_nodes_below {
+    my ($self, $start_node) = @_;
+
+    #  Don't clear if we are multi-select - allows for mis-hits when
+    #  selecting branches.
+    return if !$start_node && $self->in_multiselect_mode;
+
+    $self->{colour_start_node} = $start_node;
+
+    my $num_clusters = $self->get_num_clusters;
+    my $original_num_clusters = $num_clusters;
+    my $excess_flag = 0;
+    my $terminal_element_hash_ref;
+
+    my @colour_nodes;
+
+    if (defined $start_node) {
+
+        # Get list of nodes to colour
+        #print "[Dendrogram] Grouping...\n";
+        my $node_hash = $start_node->group_nodes_below (
+            num_clusters => $num_clusters,
+            type => $self->{group_mode}
+        );
+        @colour_nodes = values %$node_hash;
+        #print "[Dendrogram] Done Grouping...\n";
+
+        # FIXME: why loop instead of just grouping with
+        # num_clusters => $self->get_palette_max_colours
+        #  make sure we don't exceed the maximum number of colours
+        while (scalar @colour_nodes > $self->get_palette_max_colours) {
+            $excess_flag = 1;
+
+            # Group again with 1 fewer colours
+            $num_clusters --;
+            $node_hash = $start_node->group_nodes_below (
+                num_clusters => $num_clusters,
+                type => $self->{group_mode},
+            );
+            @colour_nodes = values %$node_hash;
+        }
+        $num_clusters = scalar @colour_nodes;  #not always the same, so make them equal now
+
+        if ($self->in_multiselect_mode) {
+            #  we need a hash of the terminals
+            # (multiselect only has one node)
+            $terminal_element_hash_ref = $colour_nodes[0]->get_terminal_elements;
+        }
+
+        #  keep the user informed of what happened
+        if ($original_num_clusters != $num_clusters) {
+            say "[Dendrogram] Could not colour requested number of clusters ($original_num_clusters)";
+
+            if ($original_num_clusters < $num_clusters) {
+                if ($excess_flag) {
+                    printf "[Dendrogram] More clusters were requested (%d)"
+                        . "than available colours (%d))\n",
+                        $original_num_clusters,
+                        $self->get_palette_max_colours;
+                }
+                else {
+                    say "[Dendrogram] Requested number not feasible.  Returned $num_clusters.";
+                }
+            }
+            else {
+                say "[Dendrogram] Fewer clusters were identified ($num_clusters)";
+            }
+        }
+    }
+    elsif (!$self->in_multiselect_mode) {
+        say "[Dendrogram] Clearing colouring";
+    }
+
+    # Set up colouring
+    #print "num clusters = $num_clusters\n";
+    $self->assign_cluster_palette_colours(\@colour_nodes);
+    $self->map_elements_to_clusters(\@colour_nodes);
+
+    $self->recolour_cluster_elements($terminal_element_hash_ref);
+    $self->recolour_cluster_lines(\@colour_nodes);
+    $self->set_processed_nodes(\@colour_nodes);
+    # if ($self->{map}) {
+    #     $self->{map}->update_legend;  #  needed?
+    # }
+
+    return;
+}
+
+# Colours the element map with colours for the established clusters
+sub recolour_cluster_elements {
+    my ($self, $terminal_element_subset) = @_;
+
+    my $map = $self->{map};
+    return if not defined $map;
+
+    warn 'recolour_cluster_elements is unlikely to not work yet';
+
+    my $list_name         = $self->{analysis_list_name}  // '';
+    my $list_index        = $self->{analysis_list_index} // '';
+    my $analysis_min      = $self->{analysis_min};
+    my $analysis_max      = $self->{analysis_max};
+    my $terminal_elements = $self->{terminal_elements};
+
+    my $parent_tab = $self->{parent_tab};
+    my $colour_for_undef = $parent_tab->get_undef_cell_colour;
+
+    my $cluster_colour_mode = $self->get_cluster_colour_mode();
+    my $colour_callback;
+
+    if ($cluster_colour_mode eq 'palette') {
+        # sets colours according to palette
+        $colour_callback = sub {
+            my $elt = shift;
+            my $cluster_node = $self->{element_to_cluster}{$elt};
+
+            my $colour_ref
+                = $cluster_node ? (
+                $self->{node_palette_colours}{$cluster_node->get_name}
+                    || COLOUR_PALETTE_OVERFLOW
+            )
+                : exists $terminal_elements->{$elt} ? COLOUR_OUTSIDE_SELECTION
+                : $self->get_colour_not_in_tree;
+
+            return $colour_ref;
+        };
+    }
+    elsif ($self->in_multiselect_mode) {
+        my $multiselect_colour = $self->get_current_multiselect_colour;
+
+        # sets colours according to multiselect palette
+        $colour_callback = sub {
+            my $elt = shift;
+
+            return -1
+                if    $terminal_element_subset
+                    && !exists $terminal_element_subset->{$elt};
+
+            my $cluster_node = $self->{element_to_cluster}{$elt};
+
+            return -1 if !$cluster_node;
+
+            return $multiselect_colour || COLOUR_OUTSIDE_SELECTION;
+            #COLOUR_PALETTE_OVERFLOW;
+        };
+    }
+    elsif ($cluster_colour_mode eq 'list-values') {
+        my $legend = $map->get_legend;
+        $legend->set_colour_mode_from_list_and_index (
+            list  => $list_name,
+            index => $list_index,
+        );
+        my @minmax_args = ($analysis_min, $analysis_max);
+        my $colour_method = $legend->get_colour_method;
+
+        # sets colours according to (usually spatial)
+        # list value for the element's cluster
+        $colour_callback = sub {
+            my $elt = shift;
+
+            my $cluster_node = $self->{element_to_cluster}{$elt};
+
+            if ($cluster_node) {
+
+                my $list_ref = $cluster_node->get_list_ref (list => $list_name)
+                    // return $colour_for_undef;
+
+                my $val = $list_ref->{$list_index}
+                    // return $colour_for_undef;
+
+                return $legend->$colour_method ($val, @minmax_args);
+            }
+
+            return exists $terminal_elements->{$elt}
+                ? COLOUR_OUTSIDE_SELECTION
+                : $self->get_colour_not_in_tree;
+
+        };
+    }
+
+    die "Invalid cluster colour mode $cluster_colour_mode\n"
+        if !defined $colour_callback;
+
+    $map->colour ($colour_callback);
+
+    return;
+}
+
+
+sub get_processed_nodes {
+    $_[0]->{processed_nodes}
+}
+
+sub set_processed_nodes {
+    $_[0]->{processed_nodes} = $_[1];
+}
+
+
+sub set_cluster_colour_mode {
+    my ($self, $mode) = @_;
+    $self->{cluster_colour_mode} = $mode;
+}
+
+sub get_cluster_colour_mode {
+    my ($self) = @_;
+    return $self->{cluster_colour_mode} //= 'palette';
+}
+
+# Returns a list of colours to use for colouring however-many clusters
+# returns STRING COLOURS
+sub get_palette {
+    my ($self, $num_clusters) = @_;
+    #print "Choosing colour palette for $num_clusters clusters\n";
+
+    return wantarray ? () : []
+        if $num_clusters <= 0;  # trap bad numclusters
+
+    my @colourset
+        = $num_clusters <=  9 ? $self->get_gdk_colors_colorbrewer9
+        : $num_clusters <= 13 ? $self->get_gdk_colors_colorbrewer13
+        : (DEFAULT_LINE_COLOUR) x $num_clusters;
+
+    #  return the relevant slice
+    my @colours = @colourset[0 .. $num_clusters - 1];
+
+    return wantarray ? @colours : \@colours;
+}
+
+sub get_palette_max_colours {
+    my $self = shift;
+    if (blessed ($self)
+        and blessed ($self->{cluster})
+        and defined $self->{cluster}->get_param ('MAX_COLOURS')) {
+
+        return $self->{cluster}->get_param ('MAX_COLOURS');
+    }
+
+    return 13;  #  modify if more are added to the palettes.
+}
+
+
+sub get_palette_colorbrewer9 {
+    # Set1 colour scheme from www.colorbrewer2.org
+    no warnings 'qw';  #  we know the hashes are not comments
+    return qw  '#E41A1C #377EB8 #4DAF4A #984EA3
+        #FF7F00 #FFFF33 #A65628 #F781BF
+        #999999';
+}
+
+sub get_palette_colorbrewer13 {
+    # Paired colour scheme from colorbrewer, plus a dark grey
+    #  note - this works poorly when 9 or fewer groups are selected
+    no warnings 'qw';  #  we know the hashes are not comments
+    return qw  '#A6CEE3 #1F78B4 #B2DF8A #33A02C
+        #FB9A99 #E31A1C #FDBF6F #FF7F00
+        #CAB2D6 #6A3D9A #FFFF99 #B15928
+        #4B4B4B';
+}
+
+sub get_gdk_colors_colorbrewer9 {
+    my $self = shift;
+    my @colours
+        = map {Gtk3::Gdk::RGBA::parse ($_)}
+        $self->get_palette_colorbrewer9;
+    return @colours;
+}
+
+sub get_gdk_colors_colorbrewer13 {
+    my $self = shift;
+    my @colours
+        = map {Gtk3::Gdk::RGBA::parse ($_)}
+        $self->get_palette_colorbrewer13;
+    return @colours;
+}
+
+# Assigns palette-based colours to selected nodes
+sub assign_cluster_palette_colours {
+    my ($self, $cluster_nodes) = @_;
+
+    # don't set cluster colours if don't have enough palette values
+    if (scalar @$cluster_nodes > $self->get_palette_max_colours()) {
+        #print "[Dendrogram] not assigning palette colours (too many clusters)\n";
+
+        # clear existing values
+        foreach my $j (0..$#{$cluster_nodes}) {
+            #$cluster_nodes->[$j]->set_cached_value(__gui_palette_colour => undef);
+            $self->{node_palette_colours}{$cluster_nodes->[$j]->get_name} = undef;
+        }
+
+    }
+    else {
+
+        my @palette = $self->get_palette (scalar @$cluster_nodes);
+
+        # so we sort them to make the colour order consistent
+        my %sort_by_firstnode;
+        my $i = 0;  #  in case we dont have numbered nodes
+        foreach my $node_ref (@$cluster_nodes) {
+            my $firstnode = ($node_ref->get_terminal_node_first_number // $i);
+            $sort_by_firstnode{$firstnode} = $node_ref;
+            $i++;
+        }
+
+        my @sorted_clusters = @sort_by_firstnode{sort {$a <=> $b} keys %sort_by_firstnode};
+
+        # assign colours
+        $self->{node_palette_colours} = undef;  #  clear previous
+
+        foreach my $k (0..$#sorted_clusters) {
+            my $colour_ref = $palette[$k];
+            say $palette[$k] // 'undefined';
+            say join ' ', $self->rgb_to_array ($palette[$k]);
+            if (!blessed $colour_ref) {
+                $colour_ref = Gtk3::Gdk::RGBA::parse($colour_ref);
+            }
+            $self->{node_palette_colours}{$sorted_clusters[$k]->get_name} = $colour_ref;
+        }
+    }
+
+    return;
+}
+
+sub map_elements_to_clusters {
+    my ($self, $cluster_nodes) = @_;
+
+    my %map;
+
+    foreach my $node_ref (@$cluster_nodes) {
+        my $terminal_elements = $node_ref->get_terminal_elements();
+        @map{keys %$terminal_elements} = ($node_ref) x scalar keys %$terminal_elements;
+    }
+
+    $self->{element_to_cluster} = \%map;
+
+    return;
+}
+
+
+sub reset_multiselect_undone_stack {
+    my $self = shift;
+    $self->get_tree_object->set_cached_value (
+        GUI_MULTISELECT_UNDONE_STACK => [],
+    );
+}
+
+sub get_multiselect_undone_stack {
+    my $self = shift;
+    my $undone_stack = $self->get_tree_object->get_cached_value_dor_set_default_aa (
+        GUI_MULTISELECT_UNDONE_STACK => [],
+    );
+    return $undone_stack;
+}
+
+sub undo_multiselect_click {
+    my ($self, $offset) = @_;
+
+    return if !$self->in_multiselect_mode;
+
+    #  convert zero to 1, or should we make noise?
+    $offset ||= 1;
+
+    croak "offset value should not be negative (got $offset)\n"
+        if $offset < 0;
+
+    my $colour_store = $self->get_multiselect_colour_store;
+
+    #  don't splice an empty array
+    return if !@$colour_store;
+
+    #  splice off the end of colour store, assuming we are in undo mode
+    my @undone = splice @$colour_store, -$offset;
+
+    my $undone_stack = $self->get_multiselect_undone_stack;
+
+    #  store in reverse order
+    unshift @$undone_stack, reverse @undone;
+
+    $self->replay_multiselect_store;
+    $self->get_parent_tab->set_project_dirty;
+}
+
+sub redo_multiselect_click {
+    my ($self, $offset) = @_;
+
+    return if !$self->in_multiselect_mode;
+
+    #  convert zero to 1, or should we make noise?
+    $offset ||= 1;
+
+    croak "offset value should not be negative (got $offset)\n"
+        if $offset < 0;
+
+    my $undone_stack = $self->get_multiselect_undone_stack;
+
+    #  nothing to redo
+    return if !@$undone_stack;
+
+    my $colour_store = $self->get_multiselect_colour_store;
+
+    my @undone = splice @$undone_stack, 0, min ($offset, scalar @$undone_stack);
+
+    push @$colour_store, @undone;
+
+    $self->replay_multiselect_store;
+    $self->get_parent_tab->set_project_dirty;
+}
+
+sub replay_multiselect_store {
+    my $self = shift;
+    #my %args = @_;
+
+    return if !$self->in_multiselect_mode;
+
+    #  clear current colouring of elements
+    #  this is a mess - we should not have to switch to palette mode for this to work
+    $self->set_cluster_colour_mode( 'palette' );
+    $self->{element_to_cluster}  = {};
+    $self->{recolour_nodes}      = undef;
+    $self->set_processed_nodes (undef);
+    $self->recolour_cluster_elements;
+    $self->set_cluster_colour_mode( 'multiselect' );
+
+    #   The next bit of code probably does too much
+    #   but getting it to work was not simple
+    my $tree = $self->get_tree_object;
+    my $node_ref_array = $tree->get_root_node_refs;
+
+    #my $was_in_clear_mode = $self->in_multiselect_clear_mode;
+    my $old_seq_sel_no_store = $self->{multiselect_no_store};
+    $self->{multiselect_no_store} = 1;
+    $self->enter_multiselect_clear_mode ('no_store');
+    $self->map_elements_to_clusters ($node_ref_array);
+    $self->recolour_cluster_lines ($node_ref_array);
+    #if (!$was_in_clear_mode) {
+    $self->leave_multiselect_clear_mode;
+    #}
+    $self->{multiselect_no_store} = $old_seq_sel_no_store;
+
+
+    my $colour_store = $self->get_multiselect_colour_store;
+
+    return if !@$colour_store;
+
+    #  use a copy to avoid infinite recursion, as the
+    #  ref can be appended to in one of the called subs
+    my @pairs = @$colour_store;
+
+    #  ensure recolouring works
+    $self->map_elements_to_clusters (
+        [map {$tree->get_node_ref (node => $_->[0])} @pairs]
+    );
+
+    foreach my $pair (@pairs) {
+        $self->{multiselect_no_store} = 1;
+        my $was_in_clear_mode = 0;
+        my $node_ref = $tree->get_node_ref (node => $pair->[0]);
+        $self->set_current_multiselect_colour ($pair->[1]);
+        my $elements = $node_ref->get_terminal_elements;
+        if (!defined $pair->[1]) {
+            $was_in_clear_mode = 1;
+            $self->enter_multiselect_clear_mode;
+        }
+        $self->recolour_cluster_elements ($elements);
+        $self->set_processed_nodes ([$node_ref]);  #  clunky - poss needed because we call get_processed_nodes below?
+        $self->recolour_cluster_lines($self->get_processed_nodes);
+        if ($was_in_clear_mode) {
+            $self->leave_multiselect_clear_mode;
+        }
+    }
+    $self->{multiselect_no_store} = $old_seq_sel_no_store;
+
+}
+
+sub in_multiselect_mode {
+    my $self = shift;
+    my $mode = $self->get_cluster_colour_mode() // '';
+    return $mode eq 'multiselect';
+}
+
+sub in_multiselect_clear_mode {
+    my $self = shift;
+    return ($self->get_cluster_colour_mode() // '')  eq 'multiselect'
+        && eval {$self->{selector_toggle}->get_active};
+}
+
+sub enter_multiselect_clear_mode {
+    my ($self, $no_store) = @_;
+    eval {$self->{selector_toggle}->set_active (1)};
+}
+
+sub leave_multiselect_clear_mode {
+    my $self = shift;
+    eval {$self->{selector_toggle}->set_active (0)};
+}
+
+sub in_multiselect_autoincrement_colour_mode {
+    my $self = shift;
+    eval {$self->{autoincrement_toggle}->get_active};
+}
+
+sub clear_multiselect_colours_from_plot {
+    my $self = shift;
+
+    return if !$self->in_multiselect_mode;
+
+    # temp override, as multiselect colour mode has side effects
+    my $old_mode = $self->get_cluster_colour_mode();
+    $self->set_cluster_colour_mode( 'palette' );
+    #local $self->{cluster_colour_mode} = 'palette';
+
+    my $colour_store = $self->get_multiselect_colour_store;
+    if (@$colour_store) {
+        my $tree = $self->get_tree_object;
+        my @coloured_nodes = map {$tree->get_node_ref (node => $_->[0])} @$colour_store;
+        #  clear current colouring
+        #$self->recolour_cluster_elements;
+        $self->recolour_cluster_lines (\@coloured_nodes);
+    }
+
+    $self->set_cluster_colour_mode( $old_mode );
+
+    return;
+}
+
+#  later we can get this from a cached value on the tree object
+sub get_multiselect_colour_store {
+    my $self = shift;
+    my $tree = $self->get_tree_object;
+    my $store
+        = $tree->get_cached_value_dor_set_default_aa (
+        GUI_MULTISELECT_COLOUR_STORE => [],
+    );
+    return $store;
+}
+
+sub store_multiselect_colour {
+    my $self = shift;
+    my @pairs = @_;  #  usually get only one name/colour pair
+
+    return if $self->{multiselect_no_store};
+
+    my $store = $self->get_multiselect_colour_store;
+
+    PAIR:
+    foreach my $pair (pairs @pairs) {
+        #  don't store refs
+        if (blessed $pair->[0]) {
+            $pair->[0] = $pair->[0]->get_name;
+        }
+        #  don't store Gdk objects due to serialisation issues
+        if (blessed $pair->[1]) {
+            $pair->[1] = $pair->[1]->to_string;
+        }
+
+        ##  Don't store duplicates.
+        ##  We get double triggers for some reason due to a
+        ##  higher sub being called twice for each colour event
+        next PAIR
+            if scalar @$store
+                &&  $store->[-1][0] eq $pair->[0]
+                && ($store->[-1][1] // '') eq ($pair->[1] // '');
+
+        push @$store, $pair;
+    }
+
+    #  reset the redo stack
+    $self->reset_multiselect_undone_stack;
+    $self->get_parent_tab->set_project_dirty;
+
+    return;
+}
+
+sub get_current_multiselect_colour {
+    my $self = shift;
+
+    return if $self->in_multiselect_clear_mode;
+
+    my $colour;
+    eval {
+        $colour = $self->{selector_colorbutton}->get_color;
+    };
+
+    return $colour;
+}
+
+sub set_current_multiselect_colour {
+    my ($self, $colour) = @_;
+
+    return if !defined $colour;  #  should we croak?
+
+    eval {
+        if ((blessed $colour // '') !~ /Gtk3::Gdk::RGBA/) {
+            $colour = Gtk3::Gdk::RGBA::parse  ($colour);
+        }
+        $colour = $self->{selector_colorbutton}->set_color ($colour);
+    };
+
+    return $colour;
+}
+
+sub increment_multiselect_colour {
+    my ($self, $force_increment) = @_;
+
+    return if !$force_increment
+        && !$self->in_multiselect_mode;
+
+    return if $self->in_multiselect_clear_mode;
+    return if !$self->in_multiselect_autoincrement_colour_mode;
+
+    my $colour = $self->get_current_multiselect_colour;
+
+    my @colours = $self->get_gdk_colors_colorbrewer13;
+
+    if (my $last_colour = $self->{last_multiselect_colour}) {
+        my $i = firstidx {$last_colour->equal($_)} @colours;
+        $i++;
+        $i %= scalar @colours;
+        $colour = $colours[$i];
+    }
+    else {
+        $colour = $colours[0];
+    }
+
+    eval {
+        $self->{selector_colorbutton}->set_color ($colour);
+    };
+
+    $self->{last_multiselect_colour} = $colour;
+
+    return;
 }
 
 

@@ -572,7 +572,7 @@ sub init_dendrogram {
     my $highlight_closure   = sub { $self->on_phylogeny_highlight(@_); };
     my $ctrl_click_closure  = sub { $self->on_phylogeny_popup(@_); };
     my $click_closure       = sub { $self->on_phylogeny_click(@_); };
-    my $select_closure      = sub { $self->on_phylogeny_select(@_); };
+    # my $select_closure      = sub { $self->on_phylogeny_select(@_); };
 
     my $drawable = Gtk3::DrawingArea->new;
     $frame->set (expand => 1);  #  otherwise we shrink to not be visible
@@ -586,7 +586,7 @@ sub init_dendrogram {
         highlight_func  => $highlight_closure,
         ctrl_click_func => $ctrl_click_closure,
         click_func      => $click_closure,
-        select_func     => $select_closure,
+        # select_func     => $select_closure,  #  used to handle zooming, not needed now
         parent_tab      => $self,
         want_legend     => 1,
         no_use_slider_to_select_nodes => 1,
@@ -1244,15 +1244,16 @@ sub on_phylogeny_click {
     return;
 }
 
+#  a no-op now the canvas handles zooming
 sub on_phylogeny_select {
-    my $self = shift;
-    my $rect = shift; # [x1, y1, x2, y2]
-
-    if ($self->{tool} eq 'ZoomIn') {
-        my $grid = $self->{dendrogram};
-        $self->handle_grid_drag_zoom ($grid, $rect);
-    }
-
+    # my $self = shift;
+    # my $rect = shift; # [x1, y1, x2, y2]
+    #
+    # if ($self->{tool} eq 'ZoomIn') {
+    #     my $grid = $self->{dendrogram};
+    #     $self->handle_grid_drag_zoom ($grid, $rect);
+    # }
+    #
     return;
 }
 

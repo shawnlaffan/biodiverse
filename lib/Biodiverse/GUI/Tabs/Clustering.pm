@@ -1475,11 +1475,9 @@ sub on_grid_hover {
         my $cluster_ref = $self->{output_ref};
         $self->{dendrogram}->clear_highlights();
 
-        my $node_ref = eval {$cluster_ref->get_node_ref (node => $element)};
+        my $node_ref = $cluster_ref->get_node_ref_or_undef_aa ($element);
         if ($self->{use_highlight_path} and $node_ref) {
-            warn 'FIXME cluster on_grid_hover';
-            eval {$self->{dendrogram}->highlight_path($node_ref)};
-            warn $@ if $@;
+            $self->{dendrogram}->highlight_path($node_ref);
         }
 
         my $analysis_name = $self->{grid}{analysis};
@@ -1505,6 +1503,8 @@ sub on_grid_hover {
         $string = '';  #  clear the markup
     }
     $self->get_xmlpage_object('lblMap')->set_markup($string);
+
+    $self->{dendrogram}->queue_draw;
 
     return;
 }

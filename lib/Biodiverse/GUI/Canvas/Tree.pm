@@ -10,7 +10,7 @@ use Glib qw/TRUE FALSE/;
 use Scalar::Util qw /refaddr blessed/;
 use List::Util qw /min max pairs/;
 use List::MoreUtils qw /minmax firstidx/;
-use Ref::Util qw /is_coderef is_blessed_ref is_arrayref/;
+use Ref::Util qw /is_coderef is_blessed_ref is_arrayref is_ref/;
 use POSIX qw /floor/;
 use Carp qw /croak confess/;
 use Sort::Key qw /rnkeysort/;
@@ -446,6 +446,7 @@ sub draw {
     \my %highlight_hash = $self->{branch_highlights} // {};
     \my %colour_hash    = $self->{branch_colours} // {};
     my $have_highlights = keys %highlight_hash;
+    # say 'HAVE HIGHLIGHTS' if $have_highlights;
     my $default_colour
         = $have_highlights
         ? $self->{default_highlight_colour}
@@ -468,15 +469,19 @@ sub draw {
         #  Use colours from highlights if set.
         #  Highlights fall back to colour hash if true
         #  but not a colour or array ref.
-        my $colour = $highlight_hash{$name};
-        if ($have_highlights && $colour) {
-            if (!is_blessed_ref($colour)) {
-                $colour = $colour_hash{$name}; #highlight using original colour
+        my $colour;
+        if ($have_highlights) {
+            $colour = $highlight_hash{$name} // $default_colour;
+            #  Highlight using original colour if we are
+            #  not some sort of reference.
+            if (!is_ref($colour)) {
+                $colour = $colour_hash{$name};
             }
         }
         else {
             $colour = $colour_hash{$name};
         }
+        #  should handle other ref types?
         my @col_array
             = is_blessed_ref ($colour) ? $self->rgb_to_array($colour)
             : is_arrayref ($colour)    ? @$colour

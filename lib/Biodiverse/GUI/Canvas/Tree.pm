@@ -1172,11 +1172,18 @@ sub set_processed_nodes {
 sub set_cluster_colour_mode {
     my ($self, $mode) = @_;
     $self->{cluster_colour_mode} = $mode;
+
+    if (!defined $mode or $mode =~ /palette|multi/) {
+        $self->hide_legend;
+    }
+
+    return $mode;
 }
 
 sub get_cluster_colour_mode {
     my ($self) = @_;
-    return $self->{cluster_colour_mode} //= 'palette';
+    return $self->{cluster_colour_mode}
+        // do {$self->set_cluster_colour_mode('palette')};
 }
 
 # Returns a list of colours to use for colouring however-many clusters

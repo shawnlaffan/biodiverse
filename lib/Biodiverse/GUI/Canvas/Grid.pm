@@ -10,6 +10,7 @@ use experimental qw /refaliasing declared_refs for_list/;
 use Glib qw/TRUE FALSE/;
 use List::Util qw /min max/;
 use List::MoreUtils qw /minmax/;
+use Ref::Util qw /is_hashref/;
 use POSIX qw /floor/;
 use Carp qw /croak confess/;
 use Tree::R;
@@ -536,7 +537,9 @@ sub get_cell_sizes {
 }
 
 sub colour {
-    my ($self, $callback) = @_;
+    my ($self, $colours) = @_;
+
+    my $is_hash = is_hashref($colours);
 
     my $colour_none = $self->get_colour_for_undef // COLOUR_WHITE;
 
@@ -546,7 +549,13 @@ sub colour {
         #  sometimes we are called before all cells have contents - should be a loop exit?
         next CELL if !defined $cell->{coord};
 
-        my $colour_ref = $callback->($cell->{element}) // $colour_none;
+        #  one day we will just pass a hash
+        my $elt = $cell->{element};
+        my $colour_ref
+            = $is_hash
+            ? $colours->{$elt}
+            : $colours->($elt);
+        $colour_ref //= $colour_none;
 
         next CELL if $colour_ref eq '-1';
 

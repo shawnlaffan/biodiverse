@@ -41,6 +41,11 @@ sub new {
     $args{map_list_combo}  //= delete $args{list_combo};  # Combo for selecting how to colour the grid (based on spatial result or cluster)
     $args{map_index_combo} //= delete $args{index_combo}; # Combo for selecting how to colour the grid (which spatial result)
 
+    #  default to on
+    if (!exists $args{use_highlight_func}) {
+        $args{use_highlight_func} = defined $args{highlight_func};
+    }
+
     my $size = 1;
     $args{dims} = {
         xmin    => 0,
@@ -239,8 +244,10 @@ sub _on_motion {
         if (my $f = $self->{hover_func}) {
             $f->($results[0]->{node_ref});
         }
-        if (my $f = $self->{highlight_func}) {
-            $f->($results[0]->{node_ref});
+        if ($self->use_highlight_func) {
+            if (my $f = $self->{highlight_func}) {
+                $f->($results[0]->{node_ref});
+            }
         }
     }
     elsif (my $g = $self->{end_hover_func}) {
@@ -833,6 +840,21 @@ sub set_branch_highlights {
 #  a helper method
 sub clear_highlights {
     $_[0]->set_branch_highlights ();
+}
+
+sub set_use_highlight_func {
+    my ($self, $value) = @_;
+
+    # Perhaps a bit clever but first
+    # call sets to 1 if value is undef.
+    $self->{use_highlight_func}
+        = !!($value // !$self->{use_highlight_func});
+
+    return;
+}
+
+sub use_highlight_func {
+    $_[0]->{use_highlight_func};
 }
 
 # Colours the dendrogram lines with palette colours

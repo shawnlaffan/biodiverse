@@ -35,6 +35,12 @@ use constant DEFAULT_LINE_COLOUR_VERT => Gtk3::Gdk::RGBA::parse('#7F7F7F');  #  
 
 sub new {
     my ($class, %args) = @_;
+
+    #  these should be handled by the parent and are here for porting reasons
+    $args{map}             //= delete $args{grid};        # Grid.pm object of the dataset to link in
+    $args{map_list_combo}  //= delete $args{list_combo};  # Combo for selecting how to colour the grid (based on spatial result or cluster)
+    $args{map_index_combo} //= delete $args{index_combo}; # Combo for selecting how to colour the grid (which spatial result)
+
     my $size = 1;
     $args{dims} = {
         xmin    => 0,
@@ -51,6 +57,23 @@ sub new {
 
     #  rebless
     bless $self, $class;
+
+    # starting off with the "clustering" view, not a spatial analysis
+    $self->{sp_list}  = undef;
+    $self->{sp_index} = undef;
+
+    #  more leftovers fron Dendrogram.pm
+    #  but not sure they are needed now?
+    # clean up if we are a refresh - should also be the job of the caller
+    # if (my $child = $frame->get_child) {
+    #     $frame->remove( $child );
+    # }
+    # my $graph_frame = $self->{graph_frame};
+    # if ($graph_frame) {
+    #     if (my $child = $graph_frame->get_child) {
+    #         $graph_frame->remove($child);
+    #     }
+    # }
 
     $self->init_legend(%args, parent => $self);
 
@@ -752,6 +775,15 @@ sub set_plot_mode {
     return;
 }
 
+# whether to group by 'length' or 'depth' for colouring
+sub set_group_mode {
+    my ($self, $mode) = @_;
+    $self->{group_mode} = $mode;
+    warn 'group mode not yet supported';
+    # $self->recolour();
+    return;
+}
+
 sub set_branch_colours {
     my ($self, $branch_hash, $default_colour) = @_;
 
@@ -1020,7 +1052,7 @@ sub recolour_cluster_elements {
     my $colour_for_undef = $parent_tab->get_undef_cell_colour;
 
     my $cluster_colour_mode = $self->get_cluster_colour_mode();
-    my $colour_callback;
+    my $colour_callback;  #  should just build a hash and pass that to the map
 
     if ($cluster_colour_mode eq 'palette') {
         # sets colours according to palette
@@ -1222,8 +1254,6 @@ sub assign_cluster_palette_colours {
 
         foreach my $k (0..$#sorted_clusters) {
             my $colour_ref = $palette[$k];
-            say $palette[$k] // 'undefined';
-            say join ' ', $self->rgb_to_array ($palette[$k]);
             if (!blessed $colour_ref) {
                 $colour_ref = Gtk3::Gdk::RGBA::parse($colour_ref);
             }
@@ -1233,6 +1263,15 @@ sub assign_cluster_palette_colours {
 
     return;
 }
+
+# Gets a hash of nodes which have been coloured
+# Used by Spatial tab for getting an element's "cluster" (ie: coloured node that it's under)
+#     hash of names (with refs as values)
+sub get_cluster_node_for_element {
+    my ($self, $element) = @_;
+    return $self->{element_to_cluster}{$element};
+}
+
 
 sub map_elements_to_clusters {
     my ($self, $cluster_nodes) = @_;
@@ -1512,6 +1551,24 @@ sub set_current_multiselect_colour {
     return $colour;
 }
 
+#  should be controlled by the parent tab
+sub init_multiselect {
+    my ($self) = @_;
+    #  leftovers from Dendrogram.pm
+    foreach my $widget_name (qw /selector_toggle selector_colorbutton autoincrement_toggle/) {
+        eval {
+            $self->{$widget_name}
+                = $self->get_parent_tab->get_xmlpage_object($widget_name);
+        };
+        warn $@ if $@;
+    }
+
+    #  also initialises it
+    $self->increment_multiselect_colour(1);
+
+    return;
+}
+
 sub increment_multiselect_colour {
     my ($self, $force_increment) = @_;
 
@@ -1544,5 +1601,152 @@ sub increment_multiselect_colour {
     return;
 }
 
+# Highlights all nodes above and including the given node
+sub highlight_path {
+    my ($self, $node_ref, $node_colour) = @_;
+
+    # set path to highlighted colour
+    my %highlights;
+    while ($node_ref) {
+        my $name = $node_ref->get_name;
+        # my $colour_ref =  $node_colour
+        #     || $self->get_node_colour_aa ($node_ref->get_name)
+        #     || DEFAULT_LINE_COLOUR;
+        $highlights{$name} = 1;
+
+        $node_ref = $node_ref->get_parent;
+    }
+
+    $self->set_branch_highlights(\%highlights);
+
+    return;
+}
+
+
+##########################################################
+# The map combobox business
+# This is the one that selects how to colour the map
+#  FIXME:  This should all be in Clustering.pm
+##########################################################
+
+# Provides list of results for tab to use as it sees fit
+sub get_map_lists {
+    my $self = shift;
+    my $lists = scalar $self->{tree_node}->get_hash_lists();
+    return [sort @$lists];
+}
+
+# Combo-box for the list of results (eg: REDUNDANCY or ENDC_SINGLE) to use for the map
+sub setup_map_list_model {
+    my $self  = shift;
+    my $lists = shift;
+
+    my $combo = $self->{map_list_combo};
+
+    #  some uses don't have the map list
+    #  - need to clean up the logic and abstract such components to a different class
+    return if !defined $combo;
+
+    my $model = Gtk3::ListStore->new('Glib::String');
+    my $iter;
+
+    # Add all the analyses
+    foreach my $list (sort @$lists) {
+        #print "[Dendrogram] Adding map list $list\n";
+        $iter = $model->append;
+        $model->set($iter, 0, $list);
+    }
+
+    #  add the multiselect selector
+    $iter = $model->insert(0);
+    $model->set($iter, 0, '<i>User defined</i>');
+
+    # Add & select, the "cluster" analysis (distinctive colour for every cluster)
+    $iter = $model->insert(0);
+    $model->set($iter, 0, '<i>Cluster</i>');
+
+    if ($combo) {
+        $combo->set_model($model);
+        $combo->set_active_iter($iter);
+    }
+
+    return;
+}
+
+sub update_map_list_model {
+    my $self = shift;
+
+    $self->setup_map_list_model( scalar $self->{tree_node}->get_hash_lists() );
+}
+
+# Provides list of map indices for tab to use as it sees fit.
+# Context sensitive on currently selected map list.
+# Is it used anywhere?
+sub get_map_indices {
+    my $self = shift;
+    if (not defined $self->{analysis_list_name}) {
+        return [];
+    }
+
+    my $list_ref = $self->{tree_node}->get_list_ref(
+        list => $self->{analysis_list_name},
+    );
+
+    #  clunky - need to shift that method to a more general class
+    return scalar sort_list_with_tree_names_aa ([keys %$list_ref]);
+}
+
+# Combo-box for analysis within the list of results (eg: REDUNDANCY or ENDC_SINGLE)
+sub setup_map_index_model {
+    my $self = shift;
+    my $indices = shift;
+
+    my $model = Gtk3::ListStore->new('Glib::String');
+    my $combo = $self->{map_index_combo};
+
+    return if !defined $combo;
+
+    $combo->set_model($model);
+
+    my $iter;
+
+    # Add all the analyses
+    if ($indices) { # can be undef if we want to clear the list (eg: selecting "Cluster" mode)
+
+        # restore previously selected index for this list
+        my $selected_index = $self->{selected_list_index}{$indices};
+        my $selected_iter = undef;
+
+        foreach my $key (sort_list_with_tree_names_aa ([keys %$indices])) {
+            #print "[Dendrogram] Adding map analysis $key\n";
+            $iter = $model->append;
+            $model->set($iter, 0, $key);
+
+            if (defined $selected_index && $selected_index eq $key) {
+                $selected_iter = $iter;
+            }
+        }
+
+        if ($selected_iter) {
+            $self->{map_index_combo}->set_active_iter($selected_iter);
+        }
+        else {
+            $self->{map_index_combo}->set_active_iter($model->get_iter_first);
+        }
+    }
+
+    return;
+}
+
+
+sub get_colour_not_in_tree {
+    my $self = shift;
+
+    my $colour = eval {
+        $self->get_parent_tab->get_excluded_cell_colour
+    } || COLOUR_NOT_IN_TREE;
+
+    return $colour;
+}
 
 1;

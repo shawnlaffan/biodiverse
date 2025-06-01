@@ -14,13 +14,15 @@ use Sort::Key::Natural qw /natsort/;
 
 use Biodiverse::GUI::GUIManager;
 #use Biodiverse::GUI::ProgressDialog;
-use Biodiverse::GUI::Grid;
-use Biodiverse::GUI::Dendrogram;
+# use Biodiverse::GUI::Grid;
+# use Biodiverse::GUI::Dendrogram;
 use Biodiverse::GUI::Overlays;
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::CellPopup;
 use Biodiverse::GUI::SpatialParams;
 use Biodiverse::GUI::Tabs::CalculationsTree;
+use Biodiverse::GUI::Canvas::Grid;
+use Biodiverse::GUI::Canvas::Tree;
 
 use Biodiverse::Indices;
 use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
@@ -578,9 +580,8 @@ sub on_show_hide_parameters {
 sub init_map {
     my $self = shift;
 
-    my $frame   = $self->get_xmlpage_object('mapFrame');
-    my $hscroll = $self->get_xmlpage_object('mapHScroll');
-    my $vscroll = $self->get_xmlpage_object('mapVScroll');
+    my $frame       = $self->get_xmlpage_object('mapFrame');
+    my $outer_frame = $self->get_xmlpage_object('map_outer_frame');
 
     my $click_closure      = sub { $self->on_grid_popup(@_); };
     my $hover_closure      = sub { $self->on_grid_hover(@_); };
@@ -588,19 +589,23 @@ sub init_map {
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
     my $end_hover_closure  = sub { $self->on_end_grid_hover(@_); };
 
-    my $grid = $self->{grid} = Biodiverse::GUI::Grid->new(
-        frame => $frame,
-        hscroll => $hscroll,
-        vscroll => $vscroll,
-        show_legend => 1,
-        show_value  => 0,
-        hover_func  => $hover_closure,
-        click_func  => $click_closure,
-        select_func => $select_closure,
+    my $drawable = Gtk3::DrawingArea->new;
+    $frame->set (expand => 1);  #  otherwise we shrink to not be visible
+    $frame->add($drawable);
+
+    my $grid = $self->{grid} = Biodiverse::GUI::Canvas::Grid->new(
+        frame           => $frame,
+        show_legend     => 1,
+        show_value      => 0,
+        hover_func      => $hover_closure,
+        click_func      => $click_closure,
+        select_func     => $select_closure,
         grid_click_func => $grid_click_closure,
-        end_hover_func  => $end_hover_closure
+        end_hover_func  => $end_hover_closure,
+        drawable        => $drawable,
+        window          => $outer_frame,
     );
-    $self->{grid}->set_parent_tab($self);
+    $grid->set_parent_tab($self);
 
     $grid->set_base_struct($self->{basedata_ref}->get_groups_ref);
 
@@ -617,6 +622,8 @@ sub init_map {
 
     $self->warn_if_basedata_has_gt2_axes;
 
+    $frame->show_all;
+
     return;
 }
 
@@ -624,9 +631,8 @@ sub init_dendrogram {
     my $self = shift;
 
     my $frame       =  $self->get_xmlpage_object('clusterFrame');
+    my $outer_frame =  $self->get_xmlpage_object('dendro_outer_frame');
     my $graph_frame =  $self->get_xmlpage_object('graphFrame');
-    my $hscroll     =  $self->get_xmlpage_object('clusterHScroll');
-    my $vscroll     =  $self->get_xmlpage_object('clusterVScroll');
     my $list_combo  =  $self->get_xmlpage_object('comboMapList');
     my $index_combo =  $self->get_xmlpage_object('comboMapShow');
     my $spinbutton  =  $self->get_xmlpage_object('spinClusters');
@@ -637,27 +643,33 @@ sub init_dendrogram {
     my $click_closure       = sub { $self->on_dendrogram_click(@_); };
     my $select_closure      = sub { $self->on_dendrogram_select(@_); };
 
-    $self->{dendrogram} = Biodiverse::GUI::Dendrogram->new(
-        main_frame  => $frame,
-        graph_frame => $graph_frame,
-        hscroll     => $hscroll,
-        vscroll     => $vscroll,
-        grid        => $self->{grid},
-        list_combo  => $list_combo,
-        index_combo => $index_combo,
+    my $drawable = Gtk3::DrawingArea->new;
+    $frame->set (expand => 1);  #  otherwise we shrink to not be visible
+    $frame->add($drawable);
+
+    $self->{dendrogram} = Biodiverse::GUI::Canvas::Tree->new(
+        frame           => $frame,
+        graph_frame     => $graph_frame,
+        grid            => $self->{grid},
+        list_combo      => $list_combo,
+        index_combo     => $index_combo,
         hover_func      => $hover_closure,
         highlight_func  => $highlight_closure,
         ctrl_click_func => $popup_closure,
-        click_func      => $click_closure, # click_func
+        click_func      => $click_closure,  # click_func
         select_func     => $select_closure, # select_func
         parent_tab      => $self,
         basedata_ref    => undef, # basedata_ref
+        drawable        => $drawable,
+        window          => $outer_frame,
+        num_clusters    => 6,
     );
 
     # TODO: Abstract this properly
     #$self->{dendrogram}->{map_lists_ready_cb} = sub { $self->on_map_lists_ready(@_) };
 
     $self->{dendrogram}->set_parent_tab($self);
+    $self->{dendrogram}->init_multiselect;
 
     if ($self->{existing}) {
         my $cluster_ref = $self->{output_ref};
@@ -670,13 +682,15 @@ sub init_dendrogram {
 
         #print Data::Dumper::Dumper($cluster_ref);
         if (defined $cluster_ref) {
-            $self->{dendrogram}->set_cluster($cluster_ref, $self->{plot_mode});
+            $self->{dendrogram}->set_current_tree($cluster_ref, $self->{plot_mode});
         }
         $self->{dendrogram}->set_group_mode($self->{group_mode});
     }
 
     #  set the number of clusters in the spinbutton
     $spinbutton->set_value( $self->{dendrogram}->get_num_clusters );
+
+    $frame->show_all;
 
     return;
 }
@@ -749,9 +763,12 @@ sub on_combo_map_list_changed {
 
     my $combo = $self->get_xmlpage_object('comboMapList');
 
+    # this can occur if we are a new cluster output
+    #  as there are no map lists
+    return if $combo->get_active < 0;
+
     my $iter = $combo->get_active_iter;
-    return if ! defined $iter; # this can occur if we are a new cluster output
-                                #  as there are no map lists
+    # return if ! defined $iter;  #  always defined with Gtk3
 
     my $model = $combo->get_model;
     my $list  = $model->get($iter, 0);
@@ -1370,7 +1387,7 @@ sub on_run_analysis {
         $self->get_xmlpage_object('toolbarClustering')->show;
 
         if (defined $output_ref) {
-            $self->{dendrogram}->set_cluster($output_ref, $self->{plot_mode});
+            $self->{dendrogram}->set_current_tree($output_ref, $self->{plot_mode});
         }
 
         $self->init_colour_clusters;
@@ -1421,7 +1438,7 @@ sub on_dendrogram_highlight {
     my $node = shift;
 
     my $terminal_elements = (defined $node) ? $node->get_terminal_elements : {};
-    $self->{grid}->mark_if_exists( $terminal_elements, 'circle' );
+    $self->{grid}->mark_with_circles ( [keys %$terminal_elements] );
 
     #my @elts = keys %$terminal_elements;
     #print "marked: @elts\n";
@@ -1460,7 +1477,9 @@ sub on_grid_hover {
 
         my $node_ref = eval {$cluster_ref->get_node_ref (node => $element)};
         if ($self->{use_highlight_path} and $node_ref) {
-            $self->{dendrogram}->highlight_path($node_ref);
+            warn 'FIXME cluster on_grid_hover';
+            eval {$self->{dendrogram}->highlight_path($node_ref)};
+            warn $@ if $@;
         }
 
         my $analysis_name = $self->{grid}{analysis};
@@ -1548,15 +1567,14 @@ sub on_dendrogram_click {
 # Returns which coloured node the given element is under
 #    works up the parent chain until it finds or match, undef otherwise
 sub get_coloured_node_for_element {
-    my $self = shift;
-    my $element = shift;
+    my ($self, $element) = @_;
 
     return $self->{dendrogram}->get_cluster_node_for_element($element);
 }
 
 sub get_sources_for_node {
-    my $node_ref = shift;
-    my $basedata_ref = shift;
+    my ($node_ref, $basedata_ref) = @_;
+
     my %sources;
     #print Data::Dumper::Dumper($node_ref->get_value_keys);
     $sources{'Labels (cluster) calc_abc2'} = sub { show_cluster_labelsABC2(@_, $node_ref, $basedata_ref); };

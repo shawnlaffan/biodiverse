@@ -218,7 +218,7 @@ sub draw_cells_cb {
     my @outline_colour = $self->rgba_to_cairo ($self->get_cell_outline_colour);
 
     foreach my $key (keys %$data) {
-        \my @rgb = $data->{$key}{rgb} // next;
+        \my @rgb = $data->{$key}{rgb} // [1,1,1];  #  should use a default
         \my @rect = $data->{$key}{rect};
         $context->set_source_rgb(@rgb);
         $context->rectangle(@rect);
@@ -315,7 +315,9 @@ sub underlay_cb {
     ];
 
     $context->set_line_width(3);
-    $context->set_source_rgb(0.53, 0.53, 0.53);
+    # $context->set_source_rgb(0.53, 0.53, 0.53);
+    $context->set_source_rgb(0.8, 0.8, 0.8);
+
     # say "Setting path";
     #  should be able to use the path structure directly as a Cairo::Path?
     foreach my $elt (@$path) {
@@ -534,12 +536,9 @@ sub get_cell_sizes {
 }
 
 sub colour {
-    my $self     = shift;
-    my $callback = shift;
+    my ($self, $callback) = @_;
 
     my $colour_none = $self->get_colour_for_undef // COLOUR_WHITE;
-
-    # \my %element_data_map = $self->{element_data_map};
 
     CELL:
     foreach my $cell (values %{$self->{data}}) {

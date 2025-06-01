@@ -21,7 +21,6 @@
   <object class="GtkBox" id="hboxClusteringPage">
     <property name="visible">True</property>
     <property name="can-focus">False</property>
-    <property name="orientation">vertical</property>
     <child>
       <object class="GtkToolbar" id="toolbarClustering">
         <property name="visible">True</property>
@@ -478,6 +477,9 @@ Colours are currently taken from the outer ring.</property>
                                           <object class="GtkTreeView" id="treeSpatialCalculations">
                                             <property name="visible">True</property>
                                             <property name="can-focus">True</property>
+                                            <child internal-child="selection">
+                                              <object class="GtkTreeSelection"/>
+                                            </child>
                                           </object>
                                         </child>
                                       </object>
@@ -1093,7 +1095,7 @@ for RegionGrower analyses.  </property>
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkFrame" id="frame19">
+                      <object class="GtkFrame" id="map_outer_frame">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="label-xalign">0.009999999776482582</property>
@@ -1112,18 +1114,6 @@ for RegionGrower analyses.  </property>
                                   <placeholder/>
                                 </child>
                                 <child>
-                                  <object class="GtkVScrollbar" id="mapVScroll">
-                                    <property name="visible">True</property>
-                                    <property name="can-focus">False</property>
-                                    <property name="adjustment">adjustment2</property>
-                                  </object>
-                                  <packing>
-                                    <property name="left-attach">1</property>
-                                    <property name="right-attach">2</property>
-                                    <property name="x-options">GTK_FILL</property>
-                                  </packing>
-                                </child>
-                                <child>
                                   <object class="GtkFrame" id="mapFrame">
                                     <property name="visible">True</property>
                                     <property name="can-focus">False</property>
@@ -1136,16 +1126,10 @@ for RegionGrower analyses.  </property>
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkHScrollbar" id="mapHScroll">
-                                    <property name="visible">True</property>
-                                    <property name="can-focus">False</property>
-                                    <property name="adjustment">adjustment3</property>
-                                  </object>
-                                  <packing>
-                                    <property name="top-attach">1</property>
-                                    <property name="bottom-attach">2</property>
-                                    <property name="y-options">GTK_FILL</property>
-                                  </packing>
+                                  <placeholder/>
+                                </child>
+                                <child>
+                                  <placeholder/>
                                 </child>
                               </object>
                               <packing>
@@ -1170,7 +1154,7 @@ for RegionGrower analyses.  </property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkFrame" id="frame21">
+                  <object class="GtkFrame" id="dendro_outer_frame">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="border-width">2</property>
@@ -1185,18 +1169,6 @@ for RegionGrower analyses.  </property>
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
                             <property name="n-rows">2</property>
-                            <child>
-                              <object class="GtkHScrollbar" id="clusterHScroll">
-                                <property name="visible">True</property>
-                                <property name="can-focus">False</property>
-                                <property name="adjustment">adjustment4</property>
-                              </object>
-                              <packing>
-                                <property name="top-attach">1</property>
-                                <property name="bottom-attach">2</property>
-                                <property name="y-options">GTK_FILL</property>
-                              </packing>
-                            </child>
                             <child>
                               <object class="GtkVPaned" id="vpaneDendrogram">
                                 <property name="visible">True</property>
@@ -1215,17 +1187,7 @@ for RegionGrower analyses.  </property>
                                       </object>
                                     </child>
                                     <child>
-                                      <object class="GtkVScrollbar" id="clusterVScroll">
-                                        <property name="visible">True</property>
-                                        <property name="can-focus">False</property>
-                                        <property name="adjustment">adjustment5</property>
-                                      </object>
-                                      <packing>
-                                        <property name="left-attach">1</property>
-                                        <property name="right-attach">2</property>
-                                        <property name="x-options"/>
-                                        <property name="y-options">GTK_FILL</property>
-                                      </packing>
+                                      <placeholder/>
                                     </child>
                                   </object>
                                   <packing>
@@ -1249,6 +1211,9 @@ for RegionGrower analyses.  </property>
                               <packing>
                                 <property name="x-options">GTK_FILL</property>
                               </packing>
+                            </child>
+                            <child>
+                              <placeholder/>
                             </child>
                           </object>
                           <packing>

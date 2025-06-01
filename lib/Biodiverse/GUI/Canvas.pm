@@ -286,7 +286,7 @@ sub get_event_xy {
 
 sub set_cursor_from_name {
     my ($self, $name) = @_;
-    my $window = $self->{window}->get_window;
+    my $window = $self->{frame}->get_window;
     my $display = $window->get_display;
 
     my $cursor = Gtk3::Gdk::Cursor->new_from_name ($display, $name // 'pointer');

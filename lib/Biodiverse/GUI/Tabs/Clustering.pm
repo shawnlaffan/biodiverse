@@ -1931,20 +1931,17 @@ sub set_cell_outline_menuitem_active {
 
 
 sub on_group_mode_changed {
-    my $self = shift;
-    my $combo = shift;
-    my $mode = $combo->get_active;
-    if ($mode == 0) {
-        $mode = 'depth';
-    }
-    elsif ($mode == 1) {
-        $mode = 'length';
-    }
-    else {
-        die "[Clustering tab] - on_group_mode_changed - invalid mode $mode";
-    }
+    my ($self, $combo) = @_;
+    my $i = $combo->get_active;
 
-    print "[Clustering tab] Changing mode to $mode\n";
+    die "[Clustering tab] - on_group_mode_changed - invalid mode number $i"
+      if $i != 0 && $i != 1;
+
+    state @modes = (qw /depth length/);
+    my $mode = $modes[$i];
+
+
+    say "[Clustering tab] Changing mode to $mode";
     $self->{group_mode} = $mode;
     $self->{dendrogram}->set_group_mode($mode);
 }

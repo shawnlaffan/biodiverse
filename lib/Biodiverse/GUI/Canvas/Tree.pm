@@ -881,10 +881,16 @@ sub set_plot_mode {
 # whether to group by 'length' or 'depth' for colouring
 sub set_group_mode {
     my ($self, $mode) = @_;
-    $self->{group_mode} = $mode;
-    warn 'group mode not yet supported';
-    # $self->recolour();
+    if ($mode ne $self->get_group_mode) {
+        $self->{group_mode} = $mode;
+        $self->recolour;
+    }
     return;
+}
+
+sub get_group_mode {
+    my ($self) = @_;
+    $self->{group_mode} //= 'length';
 }
 
 sub set_branch_colours {

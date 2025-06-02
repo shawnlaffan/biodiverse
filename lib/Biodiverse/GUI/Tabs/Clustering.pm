@@ -828,8 +828,7 @@ sub on_combo_map_list_changed {
 ##################################################
 
 sub make_indices_model {
-    my $self = shift;
-    my $cluster_ref = shift;
+    my ($self, $cluster_ref) = @_;
 
     # Get index that should be selected
     my $index_used;

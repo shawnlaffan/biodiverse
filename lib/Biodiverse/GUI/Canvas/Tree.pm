@@ -93,6 +93,20 @@ sub new {
         #  update graph if present
     };
 
+    # Process changes for the map
+    if (my $combo = $self->{map_index_combo}) {
+        $combo->signal_connect_swapped(
+            changed => \&on_map_index_combo_changed,
+            $self,
+        );
+    }
+    if (my $combo = $self->{map_list_combo}) {
+        $combo->signal_connect_swapped (
+            changed => \&on_map_list_combo_changed,
+            $self
+        );
+    }
+
     return $self;
 }
 
@@ -187,6 +201,15 @@ sub set_current_tree {
     $self->{plot_coords_generated} = undef;
 
     $self->init_plot_coords;
+
+    if ($self->{map_list_combo}) {
+        $self->setup_map_list_model( scalar $tree->get_hash_lists() );
+    }
+
+    # TODO: Abstract this properly - but not sure it is used any more
+    if (exists $self->{map_lists_ready_cb}) {
+        $self->{map_lists_ready_cb}->($self->get_map_lists());
+    }
 
     $cache->{$tree}{$plot_mode} = $self->{data};
 
@@ -1170,8 +1193,14 @@ sub set_processed_nodes {
 
 
 sub set_cluster_colour_mode {
-    my ($self, $mode) = @_;
+    my ($self, $mode, $fallback) = @_;
     $self->{cluster_colour_mode} = $mode;
+
+    #  should not be needed now, but just in case
+    if ($mode eq 'value') {
+        warn 'set_cluster_colour_mode called with mode set to value';
+        $mode = $fallback // die;
+    }
 
     if (!defined $mode or $mode =~ /palette|multi/) {
         $self->hide_legend;
@@ -1672,8 +1701,7 @@ sub get_map_lists {
 
 # Combo-box for the list of results (eg: REDUNDANCY or ENDC_SINGLE) to use for the map
 sub setup_map_list_model {
-    my $self  = shift;
-    my $lists = shift;
+    my ($self, $lists) = @_;
 
     my $combo = $self->{map_list_combo};
 
@@ -1782,5 +1810,119 @@ sub get_colour_not_in_tree {
 
     return $colour;
 }
+
+#  FIXME - should be done by parent tab
+# Change of list to display on the map
+# Can either be the Cluster "list" (coloured by node) or a spatial analysis list
+sub on_map_list_combo_changed {
+    my ($self, $combo) = @_;
+    $combo ||= $self->{map_list_combo};
+
+    return if $combo->get_active < 0;
+
+    my $iter  = $combo->get_active_iter;
+    my $model = $combo->get_model;
+    my $list  = $model->get($iter, 0);
+
+    $self->{analysis_list_name}  = undef;
+    $self->{analysis_list_index} = undef;
+    $self->{analysis_min}        = undef;
+    $self->{analysis_max}        = undef;
+
+    #  multiselect hides it
+    if ($self->{slider}) {
+        eval {$self->{slider}->show};
+        warn $@ if $@;
+        # $self->{graph_slider}->show;
+    }
+
+    if ($list eq '<i>Cluster</i>') {
+        # Selected cluster-palette-colouring mode
+        $self->clear_multiselect_colours_from_plot;
+
+        $self->set_cluster_colour_mode('palette');
+
+        $self->get_parent_tab->on_clusters_changed;
+
+        $self->recolour_cluster_elements;
+        $self->recolour_cluster_lines($self->get_processed_nodes);
+
+        # blank out the index combo
+        $self->setup_map_index_model(undef);
+    }
+    elsif ($list eq '<i>User defined</i>') {
+        if ($self->{slider}) {
+            $self->{slider}->hide;
+            # $self->{graph_slider}->hide;
+        }
+
+        $self->set_cluster_colour_mode('multiselect');
+
+        $self->set_num_clusters (1, 'no_recolour');
+
+        $self->replay_multiselect_store;
+
+        # blank out the index combo
+        $self->setup_map_index_model(undef);
+    }
+    else {
+        $self->clear_multiselect_colours_from_plot;
+
+        $self->get_parent_tab->on_clusters_changed;
+
+        # Selected analysis-colouring mode
+        $self->{analysis_list_name} = $list;
+
+        $self->setup_map_index_model($self->{current_tree}->get_list_ref(list => $list));
+        $self->on_map_index_combo_changed;
+    }
+
+    return;
+}
+
+#  FIXME - should be done by parent tab
+sub on_map_index_combo_changed {
+    my ($self, $combo) = @_;
+    $combo ||= $self->{map_index_combo};
+
+    return if $combo->get_active < 0;
+
+    my $index = undef;
+    my $iter  = $combo->get_active_iter;
+
+    if ($iter) {
+        $index = $combo->get_model->get($iter, 0);
+        $self->{analysis_list_index} = $index;
+
+        my $map = $self->{map};
+
+        my @minmax = $self->get_parent_tab->set_plot_min_max_values;
+
+        # say "[Dendrogram] Setting grid to use index $index";
+        #  must set this before legend min max
+        $map->set_legend_colour_mode_from_list_and_index (
+            list  => $self->{analysis_list_name},
+            index => $self->{analysis_list_index},
+        );
+        $map->set_legend_min_max(@minmax);
+        $self->get_parent_tab->on_colour_mode_changed;
+
+        $self->set_cluster_colour_mode("list-values");
+        $self->recolour_cluster_elements();
+
+        # $self->recolour_cluster_lines($self->get_processed_nodes);
+
+        # $map->update_legend;
+    }
+    else {
+        $self->{analysis_list_index} = undef;
+        $self->{analysis_min}        = undef;
+        $self->{analysis_max}        = undef;
+    }
+
+    return;
+}
+
+
 
 1;

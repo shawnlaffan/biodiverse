@@ -1889,7 +1889,7 @@ sub colour_branches_on_dendrogram {
     $dendrogram->set_branch_colours ();
     $dendrogram->set_branch_highlights (\%colours);
 
-    return;
+    return \%colours;
 }
 
 sub on_end_grid_hover {

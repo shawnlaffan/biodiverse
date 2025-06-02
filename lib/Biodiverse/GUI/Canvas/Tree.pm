@@ -16,6 +16,7 @@ use Carp qw /croak confess/;
 use Sort::Key qw /rnkeysort/;
 
 use Biodiverse::GUI::Canvas::Tree::Index;
+use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
 
 use parent 'Biodiverse::GUI::Canvas';
 
@@ -882,10 +883,10 @@ sub use_highlight_func {
 
 # Colours the dendrogram lines with palette colours
 sub recolour_cluster_lines {
-    my ($self, $cluster_nodes, $colour_descendents) = @_;
+    my ($self, $cluster_nodes, $no_colour_descendants) = @_;
 
-    #  negate the arg
-    $colour_descendents = !$colour_descendents;
+    #  this is never passed at the moment
+    my $colour_descendants = !$no_colour_descendants;;
 
     my ($colour_ref, $line, $list_ref, $val);
     my %coloured_nodes;
@@ -893,18 +894,12 @@ sub recolour_cluster_lines {
     my $map = $self->{map};
     my $list_name    = $self->{analysis_list_name}  // '';
     my $list_index   = $self->{analysis_list_index} // '';
-    my $analysis_min = $self->{analysis_min};
-    my $analysis_max = $self->{analysis_max};
     my $colour_mode  = $self->get_cluster_colour_mode();
 
     my ($legend, @minmax_args, $colour_method);
     if ($colour_mode ne 'palette' and not $self->in_multiselect_mode) {
         $legend = $map->get_legend;
-        $legend->set_colour_mode_from_list_and_index(
-            list  => $list_name,
-            index => $list_index,
-        );
-        @minmax_args = ($analysis_min, $analysis_max);
+        @minmax_args = $legend->get_min_max;
         $colour_method = $legend->get_colour_method;
     }
 
@@ -952,7 +947,7 @@ sub recolour_cluster_lines {
         # - don't cache on the tree as we can get recursion stack blow-outs
         # - https://github.com/shawnlaffan/biodiverse/issues/549
         # We could cache on $self if it were needed.
-        if ($colour_descendents) {
+        if ($colour_descendants) {
             my $descendants = $node_ref->get_all_descendants (cache => 0);
             foreach my $child_name (keys %$descendants) {
                 $colour_hash{$child_name} = $colour_ref;
@@ -994,7 +989,7 @@ sub recolour_cluster_lines {
 }
 
 
-# Colours a certain number of nodes below
+# Colours a certain number of nodes below a start node
 sub do_colour_nodes_below {
     my ($self, $start_node) = @_;
 
@@ -1073,12 +1068,9 @@ sub do_colour_nodes_below {
     $self->assign_cluster_palette_colours(\@colour_nodes);
     $self->map_elements_to_clusters(\@colour_nodes);
 
-    $self->recolour_cluster_elements($terminal_element_hash_ref);
     $self->recolour_cluster_lines(\@colour_nodes);
+    $self->recolour_cluster_elements($terminal_element_hash_ref);
     $self->set_processed_nodes(\@colour_nodes);
-    # if ($self->{map}) {
-    #     $self->{map}->update_legend;  #  needed?
-    # }
 
     return;
 }
@@ -1094,8 +1086,8 @@ sub recolour_cluster_elements {
 
     my $list_name         = $self->{analysis_list_name}  // '';
     my $list_index        = $self->{analysis_list_index} // '';
-    my $analysis_min      = $self->{analysis_min};
-    my $analysis_max      = $self->{analysis_max};
+    # my $analysis_min      = $self->{analysis_min};
+    # my $analysis_max      = $self->{analysis_max};
     my $terminal_elements = $self->{terminal_elements};
 
     my $parent_tab = $self->{parent_tab};
@@ -1108,7 +1100,7 @@ sub recolour_cluster_elements {
         # sets colours according to palette
         $colour_callback = sub {
             my $elt = shift;
-            my $cluster_node = $self->{element_to_cluster}{$elt};
+            my $cluster_node = $self->{element_to_cluster_remap}{$elt};
 
             my $colour_ref
                 = $cluster_node ? (
@@ -1132,7 +1124,7 @@ sub recolour_cluster_elements {
                 if    $terminal_element_subset
                     && !exists $terminal_element_subset->{$elt};
 
-            my $cluster_node = $self->{element_to_cluster}{$elt};
+            my $cluster_node = $self->{element_to_cluster_remap}{$elt};
 
             return -1 if !$cluster_node;
 
@@ -1142,11 +1134,13 @@ sub recolour_cluster_elements {
     }
     elsif ($cluster_colour_mode eq 'list-values') {
         my $legend = $map->get_legend;
-        $legend->set_colour_mode_from_list_and_index (
-            list  => $list_name,
-            index => $list_index,
-        );
-        my @minmax_args = ($analysis_min, $analysis_max);
+        #  these should already be set
+        # $legend->set_colour_mode_from_list_and_index (
+        #     list  => $list_name,
+        #     index => $list_index,
+        # );
+        # my @minmax_args = ($analysis_min, $analysis_max);
+        my @minmax_args = $legend->get_min_max;
         my $colour_method = $legend->get_colour_method;
 
         # sets colours according to (usually spatial)
@@ -1154,11 +1148,11 @@ sub recolour_cluster_elements {
         $colour_callback = sub {
             my $elt = shift;
 
-            my $cluster_node = $self->{element_to_cluster}{$elt};
+            my $cluster_node = $self->{element_to_cluster_remap}{$elt};
 
             if ($cluster_node) {
 
-                my $list_ref = $cluster_node->get_list_ref (list => $list_name)
+                my $list_ref = $cluster_node->get_list_ref_aa ($list_name)
                     // return $colour_for_undef;
 
                 my $val = $list_ref->{$list_index}
@@ -1332,7 +1326,7 @@ sub assign_cluster_palette_colours {
 #     hash of names (with refs as values)
 sub get_cluster_node_for_element {
     my ($self, $element) = @_;
-    return $self->{element_to_cluster}{$element};
+    return $self->{element_to_cluster_remap}{$element};
 }
 
 
@@ -1346,7 +1340,7 @@ sub map_elements_to_clusters {
         @map{keys %$terminal_elements} = ($node_ref) x scalar keys %$terminal_elements;
     }
 
-    $self->{element_to_cluster} = \%map;
+    $self->{element_to_cluster_remap} = \%map;
 
     return;
 }
@@ -1430,7 +1424,7 @@ sub replay_multiselect_store {
     #  clear current colouring of elements
     #  this is a mess - we should not have to switch to palette mode for this to work
     $self->set_cluster_colour_mode( 'palette' );
-    $self->{element_to_cluster}  = {};
+    $self->{element_to_cluster_remap}  = {};
     $self->{recolour_nodes}      = undef;
     $self->set_processed_nodes (undef);
     $self->recolour_cluster_elements;
@@ -1894,21 +1888,24 @@ sub on_map_index_combo_changed {
         $index = $combo->get_model->get($iter, 0);
         $self->{analysis_list_index} = $index;
 
-        my $map = $self->{map};
-
-        my @minmax = $self->get_parent_tab->set_plot_min_max_values;
-
-        # say "[Dendrogram] Setting grid to use index $index";
-        #  must set this before legend min max
-        $map->set_legend_colour_mode_from_list_and_index (
-            list  => $self->{analysis_list_name},
-            index => $self->{analysis_list_index},
-        );
-        $map->set_legend_min_max(@minmax);
-        $self->get_parent_tab->on_colour_mode_changed;
+        # my $map = $self->{map};
 
         $self->set_cluster_colour_mode("list-values");
-        $self->recolour_cluster_elements();
+
+        #  sets the min and max and triggers the recolour
+        my @minmax = $self->get_parent_tab->set_plot_min_max_values;
+
+        # foreach my $object ($self->{map}, $self) {
+        #     #  must set this before legend min max
+        #     $object->set_legend_colour_mode_from_list_and_index(
+        #         list  => $self->{analysis_list_name},
+        #         index => $self->{analysis_list_index},
+        #     );
+        #     $object->set_legend_min_max(@minmax);
+        # }
+        # $self->get_parent_tab->on_colour_mode_changed;
+        # $self->recolour_cluster_elements();
+        $self->recolour;
 
         # $self->recolour_cluster_lines($self->get_processed_nodes);
 
@@ -1923,6 +1920,14 @@ sub on_map_index_combo_changed {
     return;
 }
 
+sub recolour {
+    my $self = shift;
 
+    if ($self->{colour_start_node}) {
+        $self->do_colour_nodes_below($self->{colour_start_node});
+    }
+
+    return;
+}
 
 1;

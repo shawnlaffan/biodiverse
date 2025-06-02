@@ -746,6 +746,49 @@ sub set_min_max {
     return;
 }
 
+sub get_min_max {
+    my ($self) = @_;
+    my @minmax = ($self->{last_min}, $self->{last_max});
+    return wantarray ? @minmax : \@minmax;
+}
+
+sub get_colour {
+    my ($self, $val, $min, $max) = @_;
+
+    state %colour_methods = (
+        Hue  => 'get_colour_hue',
+        Sat  => 'get_colour_saturation',
+        Grey => 'get_colour_grey',
+    );
+
+    my $method = $colour_methods{$self->{legend_mode}};
+
+    croak "Unknown colour system: $self->{legend_mode}\n"
+        if !$method;
+
+    #  slots need to be renamed
+    $min //= $self->{last_min};
+    $max //= $self->{last_max};
+
+    if (defined $min and $val < $min) {
+        $val = $min;
+    }
+    if (defined $max and $val > $max) {
+        $val = $max;
+    }
+    if ($self->get_log_mode) {
+        if ($max != $min) {
+            $val = log (1 + 100 * ($val - $min) / ($max - $min)) / log (101);
+        }
+        else {
+            $val = 0;
+        }
+        $min = 0;
+        $max = 1;
+    }
+
+    return $self->$method($val, $min, $max);
+}
 
 # Sets the hue for the saturation (constant-hue) colouring mode
 sub set_hue {

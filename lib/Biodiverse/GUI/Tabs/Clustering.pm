@@ -1949,14 +1949,11 @@ sub on_group_mode_changed {
 }
 
 sub recolour {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
     #  need to update the grid before the tree else the grid is not changed properly
-    $self->set_plot_min_max_values;
     $self->{grid}->set_legend_mode($self->{colour_mode});
-    # $self->{grid}->set_legend_min_max($self->get_plot_min_max_values);
-    # $self->{grid}->update_legend();
+    $self->set_plot_min_max_values;
 
     $self->{dendrogram}->recolour();
     if ($args{all_elements}) {
@@ -1981,10 +1978,17 @@ sub set_plot_min_max_values {
 
     $self->{plot_min_value} = $stats->{$self->{PLOT_STAT_MIN} || 'MIN'};
     $self->{plot_max_value} = $stats->{$self->{PLOT_STAT_MAX} || 'MAX'};
+    foreach my $canvas (qw /grid dendrogram/) {
+        my $legend = $self->{$canvas}->legend;
+        $legend->set_colour_mode_from_list_and_index(
+            list  => $self->{analysis_list_name},
+            index => $self->{analysis_list_index},
+        );
+        $legend->set_min_max($self->{plot_min_value}, $self->{plot_max_value});
+        $legend->set_stats ($stats);
+    }
 
-    $self->set_legend_ltgt_flags ($stats);
-
-    return $self->{dendrogram}->set_plot_min_max_values ($self->get_plot_min_max_values);
+    return;
 }
 
 #  Same as the version in Spatial.pm except it calls

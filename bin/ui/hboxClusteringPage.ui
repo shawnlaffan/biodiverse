@@ -1114,6 +1114,12 @@ for RegionGrower analyses.  </property>
                                   <placeholder/>
                                 </child>
                                 <child>
+                                  <placeholder/>
+                                </child>
+                                <child>
+                                  <placeholder/>
+                                </child>
+                                <child>
                                   <object class="GtkFrame" id="mapFrame">
                                     <property name="visible">True</property>
                                     <property name="can-focus">False</property>
@@ -1124,9 +1130,6 @@ for RegionGrower analyses.  </property>
                                     <property name="x-options">GTK_FILL</property>
                                     <property name="y-options">GTK_FILL</property>
                                   </packing>
-                                </child>
-                                <child>
-                                  <placeholder/>
                                 </child>
                                 <child>
                                   <placeholder/>
@@ -1149,7 +1152,7 @@ for RegionGrower analyses.  </property>
                     </child>
                   </object>
                   <packing>
-                    <property name="resize">False</property>
+                    <property name="resize">True</property>
                     <property name="shrink">True</property>
                   </packing>
                 </child>
@@ -1170,6 +1173,9 @@ for RegionGrower analyses.  </property>
                             <property name="can-focus">False</property>
                             <property name="n-rows">2</property>
                             <child>
+                              <placeholder/>
+                            </child>
+                            <child>
                               <object class="GtkVPaned" id="vpaneDendrogram">
                                 <property name="visible">True</property>
                                 <property name="can-focus">True</property>
@@ -1179,15 +1185,15 @@ for RegionGrower analyses.  </property>
                                     <property name="can-focus">False</property>
                                     <property name="n-columns">2</property>
                                     <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
                                       <object class="GtkFrame" id="clusterFrame">
                                         <property name="visible">True</property>
                                         <property name="can-focus">False</property>
                                         <property name="label-xalign">0</property>
                                         <property name="shadow-type">none</property>
                                       </object>
-                                    </child>
-                                    <child>
-                                      <placeholder/>
                                     </child>
                                   </object>
                                   <packing>
@@ -1211,9 +1217,6 @@ for RegionGrower analyses.  </property>
                               <packing>
                                 <property name="x-options">GTK_FILL</property>
                               </packing>
-                            </child>
-                            <child>
-                              <placeholder/>
                             </child>
                           </object>
                           <packing>

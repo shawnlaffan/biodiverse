@@ -1421,8 +1421,8 @@ sub on_dendrogram_hover {
     my $dendro_text = sprintf (
         '<b>Node Length: </b> %.4f <b>Element numbers: First</b> %d <b>Last:</b> %d',
          $node->get_total_length, # round to 4 d.p.
-         $node->get_value ('TERMINAL_NODE_FIRST'),
-         $node->get_value ('TERMINAL_NODE_LAST'),
+         $node->get_terminal_node_first_number,
+         $node->get_terminal_node_last_number,
     );
 
     $self->get_xmlpage_object('lblMap')->set_markup($map_text);

@@ -158,7 +158,7 @@ sub set_current_tree {
     use Sort::Key qw /ikeysort rikeysort/;
     $tree->number_terminal_nodes;  #  need to keep this in a cache for easier cleanup
     my $terminals = $tree->get_terminal_node_refs;
-    my @tips = ikeysort {$_->get_value('TERMINAL_NODE_FIRST')} @$terminals;
+    my @tips = ikeysort {$_->get_terminal_node_first_number} @$terminals;
 
     #  this could probably be optimised but we'll need to profile first
     my $longest_path = 0;
@@ -624,7 +624,7 @@ sub init_plot_coords {
         if (!$branch_ref->{ntips}) {
             $branch_ref->{children} = [];
             #  same as terminal_node_last for a tip
-            $branch_ref->{_y} = $node_ref->get_value('TERMINAL_NODE_FIRST') - 0.5;
+            $branch_ref->{_y} = $node_ref->get_terminal_node_first_number - 0.5;
         }
         else {
             my @children = map {$_->get_name} $node_ref->get_children;

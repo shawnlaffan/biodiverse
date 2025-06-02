@@ -373,7 +373,7 @@ sub _on_ctl_click {
     my $f = $self->{ctrl_click_func};
 
     my @branches;
-    if ($self->coord_in_root_marker_bbox($event->x, $event->y)) {
+    if ($self->coord_in_root_marker_bbox($x, $y)) {
         @branches = ($self->{data}{root});
     }
     else {

@@ -1109,7 +1109,8 @@ sub do_colour_nodes_below {
         if ($self->in_multiselect_mode) {
             #  we need a hash of the terminals
             # (multiselect only has one node)
-            $terminal_element_hash_ref = $colour_nodes[0]->get_terminal_elements;
+            # $terminal_element_hash_ref = $colour_nodes[0]->get_terminal_elements;
+            $self->increment_multiselect_colour;
         }
 
         #  keep the user informed of what happened
@@ -1421,14 +1422,14 @@ sub map_elements_to_clusters {
 
 sub reset_multiselect_undone_stack {
     my $self = shift;
-    $self->get_tree_object->set_cached_value (
+    $self->get_current_tree->set_cached_value (
         GUI_MULTISELECT_UNDONE_STACK => [],
     );
 }
 
 sub get_multiselect_undone_stack {
     my $self = shift;
-    my $undone_stack = $self->get_tree_object->get_cached_value_dor_set_default_aa (
+    my $undone_stack = $self->get_current_tree->get_cached_value_dor_set_default_aa (
         GUI_MULTISELECT_UNDONE_STACK => [],
     );
     return $undone_stack;
@@ -1505,7 +1506,7 @@ sub replay_multiselect_store {
 
     #   The next bit of code probably does too much
     #   but getting it to work was not simple
-    my $tree = $self->get_tree_object;
+    my $tree = $self->get_current_tree;
     my $node_ref_array = $tree->get_root_node_refs;
 
     #my $was_in_clear_mode = $self->in_multiselect_clear_mode;
@@ -1536,7 +1537,7 @@ sub replay_multiselect_store {
     foreach my $pair (@pairs) {
         $self->{multiselect_no_store} = 1;
         my $was_in_clear_mode = 0;
-        my $node_ref = $tree->get_node_ref (node => $pair->[0]);
+        my $node_ref = $tree->get_node_ref_aa ($pair->[0]);
         $self->set_current_multiselect_colour ($pair->[1]);
         my $elements = $node_ref->get_terminal_elements;
         if (!defined $pair->[1]) {
@@ -1578,7 +1579,9 @@ sub leave_multiselect_clear_mode {
 
 sub in_multiselect_autoincrement_colour_mode {
     my $self = shift;
-    eval {$self->{autoincrement_toggle}->get_active};
+    my $res = eval {$self->{autoincrement_toggle}->get_active};
+    warn $@ if $@;
+    return $res;
 }
 
 sub clear_multiselect_colours_from_plot {
@@ -1593,7 +1596,7 @@ sub clear_multiselect_colours_from_plot {
 
     my $colour_store = $self->get_multiselect_colour_store;
     if (@$colour_store) {
-        my $tree = $self->get_tree_object;
+        my $tree = $self->get_current_tree;
         my @coloured_nodes = map {$tree->get_node_ref (node => $_->[0])} @$colour_store;
         #  clear current colouring
         #$self->recolour_cluster_elements;
@@ -1608,7 +1611,7 @@ sub clear_multiselect_colours_from_plot {
 #  later we can get this from a cached value on the tree object
 sub get_multiselect_colour_store {
     my $self = shift;
-    my $tree = $self->get_tree_object;
+    my $tree = $self->get_current_tree;
     my $store
         = $tree->get_cached_value_dor_set_default_aa (
         GUI_MULTISELECT_COLOUR_STORE => [],
@@ -1660,7 +1663,7 @@ sub get_current_multiselect_colour {
 
     my $colour;
     eval {
-        $colour = $self->{selector_colorbutton}->get_color;
+        $colour = $self->{selector_colorbutton}->get_rgba;
     };
 
     return $colour;
@@ -1675,7 +1678,7 @@ sub set_current_multiselect_colour {
         if ((blessed $colour // '') !~ /Gtk3::Gdk::RGBA/) {
             $colour = Gtk3::Gdk::RGBA::parse  ($colour);
         }
-        $colour = $self->{selector_colorbutton}->set_color ($colour);
+        $colour = $self->{selector_colorbutton}->set_rgba ($colour);
     };
 
     return $colour;
@@ -1723,7 +1726,7 @@ sub increment_multiselect_colour {
     }
 
     eval {
-        $self->{selector_colorbutton}->set_color ($colour);
+        $self->{selector_colorbutton}->set_rgba ($colour);
     };
 
     $self->{last_multiselect_colour} = $colour;

@@ -765,8 +765,13 @@ sub get_toy_data {
 }
 
 sub set_num_clusters {
-    my ($self, $n) = @_;
-    $self->{num_clusters} = $n;
+    my ($self, $n, $no_recolour) = @_;
+
+    if ($self->get_num_clusters != $n and !$no_recolour) {
+        $self->{num_clusters} = $n;
+        $self->recolour();
+    }
+    return;
 }
 
 sub get_num_clusters {
@@ -1138,7 +1143,7 @@ sub recolour_cluster_elements {
     my $map = $self->{map};
     return if not defined $map;
 
-    warn 'recolour_cluster_elements is unlikely to not work yet';
+    # warn 'recolour_cluster_elements is unlikely to not work yet';
 
     my $list_name         = $self->{analysis_list_name}  // '';
     my $list_index        = $self->{analysis_list_index} // '';

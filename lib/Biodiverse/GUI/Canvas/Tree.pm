@@ -34,6 +34,9 @@ use constant DEFAULT_LINE_COLOUR      => COLOUR_BLACK;
 use constant DEFAULT_LINE_COLOUR_RGB  => "#000000";
 use constant DEFAULT_LINE_COLOUR_VERT => Gtk3::Gdk::RGBA::parse('#7F7F7F');  #  '#4D4D4D'
 
+use constant PI => 3.1415927;
+
+
 sub new {
     my ($class, %args) = @_;
 
@@ -233,24 +236,31 @@ sub _on_motion {
 
     if (!$self->{no_draw_slider}) {
         my $slider = $self->{slider_coords};
-        \my @b = $slider->{bounds};
+        \my @sb = $slider->{bounds};
+        \my @rb = $self->{data}{root}{marker_bbox} // [];
 
         if ($self->{sliding}) {
             $slider->{x} = $x;
-            my $w = ($b[2] - $b[0]) / 2;
-            $b[0] = $x - $w;
-            $b[2] = $x + $w;
+            my $w = ($sb[2] - $sb[0]) / 2;
+            $sb[0] = $x - $w;
+            $sb[2] = $x + $w;
             $slider->{x} = $x;
 
             #  get the overlapping branches
-            my @bres = $self->get_index->intersects_slider(@b);
+            my @bres = $self->get_index->intersects_slider(@sb);
 
             $self->set_cursor_from_name ('pointer');
             $widget->queue_draw;
             return FALSE;
         }
         else {
-            if ($x >= $b[0] && $x < $b[2] && $y >= $b[1] && $y < $b[3]) {
+            if ($self->coord_in_root_marker_bbox ($x, $y)) {
+                #  on root marker box - same as slider for now
+                $self->set_cursor_from_name ('pointer');
+                $self->{motion_cursor_name} = 'pointer';
+            }
+            elsif ($x >= $sb[0] && $x < $sb[2] && $y >= $sb[1] && $y < $sb[3]) {
+                #  on slider
                 $self->set_cursor_from_name ('pointer');
                 $self->{motion_cursor_name} = 'pointer';
                 # return FALSE;
@@ -287,6 +297,12 @@ sub _on_motion {
     }
 
     return FALSE;
+}
+
+sub coord_in_root_marker_bbox {
+    my ($self, $x, $y) = @_;
+    \my @rb = $self->{data}{root}{marker_bbox} // [];
+    return $x >= $rb[0] && $x < $rb[2] && $y >= $rb[1] && $y < $rb[3];
 }
 
 sub get_index {
@@ -327,12 +343,18 @@ sub _select_while_not_selecting {
         }
     }
 
-    return FALSE if $x > $self->xmax || $y > $self->ymax;
+    # return FALSE if $x > $self->xmax || $y > $self->ymax;
 
     #  If in cloister mode we might not want to pass the undef,
     #  but that's probably best handled in the callback.
     if (my $f = $self->{click_func}) {
-        my @branches = $self->get_index->query_point_nearest_y ($x, $y);
+        my @branches;
+        if ($self->coord_in_root_marker_bbox($x, $y)) {
+            @branches = ($self->{data}{root});
+        }
+        else {
+            @branches = $self->get_index->query_point_nearest_y($x, $y);
+        }
         my $node_ref = @branches ? $branches[0]->{node_ref} : undef;
         $f->($node_ref);
         $self->queue_draw;
@@ -346,11 +368,18 @@ sub _on_ctl_click {
 
     my ($x, $y) = $self->get_event_xy($event);
 
-    return FALSE if $x > $self->xmax || $y > $self->ymax || $x < $self->xmin || $y < $self->ymin;
+    # return FALSE if $x > $self->xmax || $y > $self->ymax || $x < $self->xmin || $y < $self->ymin;
 
     my $f = $self->{ctrl_click_func};
 
-    my @branches = $self->get_index->query_point_nearest_y ($x, $y);
+    my @branches;
+    if ($self->coord_in_root_marker_bbox($event->x, $event->y)) {
+        @branches = ($self->{data}{root});
+    }
+    else {
+        @branches = $self->get_index->query_point_nearest_y($x, $y);
+    }
+
     if ($f && @branches) {
         $f->($branches[0]->{node_ref});
     }
@@ -535,6 +564,33 @@ sub draw {
             $cx->set_line_cap ('butt');
         }
     }
+
+    #  the root node gets a shape
+    if (1) {
+        my $radius = $v_line_width * 10;
+        my @root_coord = ($root->{x_r}, $root->{y});
+        my @bbox = (
+            $root_coord[0],
+            $root_coord[1]-$radius,
+            $root_coord[0]+$radius,
+            $root_coord[1]+$radius,
+        );
+        # @root_coord = $cx->device_to_user(@root_coord);
+        # my $mx = $cx->get_matrix;
+        # $cx->save;
+        # # $cx->set_matrix($self->get_orig_tfm_matrix);
+        # $cx->arc(@root_coord, $radius, 0, 2.0 * PI);
+        $cx->move_to(@root_coord);
+        $cx->line_to($bbox[2], $bbox[1]);
+        $cx->line_to($bbox[2], $bbox[3]);
+        $cx->line_to(@root_coord);
+        #  sienna
+        $cx->set_source_rgba(160 / 255, 82 / 255, 45 / 255, 0.4);
+        $cx->fill;
+        # $cx->set_matrix($mx);
+        # $cx->restore;
+        $root->{marker_bbox} = \@bbox;
+    };
 
     $self->draw_slider($cx);
 

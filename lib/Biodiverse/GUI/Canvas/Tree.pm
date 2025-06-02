@@ -273,7 +273,13 @@ sub _on_motion {
 
     }
 
-    \my @results = $self->get_index->query_point_nearest_y ($x, $y);
+    my @results;
+    if ($self->coord_in_root_marker_bbox ($x, $y)) {
+        @results = $self->{data}{root};
+    }
+    else {
+        \@results = $self->get_index->query_point_nearest_y($x, $y);
+    }
     if (@results) {
         if (my $f = $self->{hover_func}) {
             $f->($results[0]->{node_ref});

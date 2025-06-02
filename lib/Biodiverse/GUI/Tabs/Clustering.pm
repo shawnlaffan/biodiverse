@@ -1449,10 +1449,11 @@ sub on_dendrogram_select {
     my $self = shift;
     my $rect = shift; # [x1, y1, x2, y2]
 
-    if ($self->{tool} eq 'ZoomIn') {
-        my $grid = $self->{dendrogram};
-        $self->handle_grid_drag_zoom ($grid, $rect);
-    }
+    #  disable now
+    # if ($self->{tool} eq 'ZoomIn') {
+    #     my $grid = $self->{dendrogram};
+    #     $self->handle_grid_drag_zoom ($grid, $rect);
+    # }
 
     return;
 }
@@ -1883,10 +1884,10 @@ sub choose_tool {
 
     $self->{tool} = $tool;
 
-    $self->{grid}->{drag_mode}       = $drag_modes{$tool};
-    $self->{dendrogram}->{drag_mode} = $drag_modes{$tool};
-
-    $self->set_display_cursors ($tool);
+    foreach my $canvas (qw /grid dendrogram/) {
+        next if ! blessed ($self->{$canvas} // '');  # might not be initialised yet
+        $self->{$canvas}->set_mode ($tool);
+    }
 }
 
 

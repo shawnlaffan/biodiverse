@@ -369,6 +369,18 @@ sub get_tree_menu_items {
         ),
         {
             type     => 'Gtk3::CheckMenuItem',
+            label    => 'Show the slider bar',
+            tooltip  => "When deselected, the slider bar will not be shown.",
+            event    => 'toggled',
+            callback => sub {
+                my ($self, $menuitem) = @_;
+                my $bool = $menuitem->get_active;
+                $self->{dendrogram}->set_show_slider ($bool);
+            },
+            active   => 1,
+        },
+        {
+            type     => 'Gtk3::CheckMenuItem',
             label    => 'Use the slider bar to select branches for colouring',
             tooltip  => "When deselected, the slider bar will not change the display colours.",
             event    => 'toggled',

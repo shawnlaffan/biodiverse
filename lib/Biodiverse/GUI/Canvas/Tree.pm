@@ -239,7 +239,7 @@ sub _on_motion {
 
     my $current_cursor_name = $self->{motion_cursor_name} //= 'default';
 
-    if (!$self->{no_draw_slider}) {
+    if ($self->get_show_slider) {
         my $slider = $self->{slider_coords};
         \my @sb = $slider->{bounds};
         \my @rb = $self->{data}{root}{marker_bbox} // [];
@@ -340,7 +340,7 @@ sub _on_button_release {
 sub _select_while_not_selecting {
     my ($self, $widget, $x, $y) = @_;
 
-    if (!$self->{no_draw_slider} && $self->{selecting}) {
+    if ($self->get_show_slider && $self->{selecting}) {
         my $slider = $self->{slider_coords};
         \my @b = $slider->{bounds};
         if ($x >= $b[0] && $x < $b[2] && $y >= $b[1] && $y < $b[3]) {
@@ -398,11 +398,20 @@ sub _on_ctl_click {
     return FALSE;
 }
 
+sub set_show_slider {
+    my ($self, $bool) = @_;
+    $self->{draw_slider} = !!$bool;
+}
+
+sub get_show_slider {
+    my ($self) = @_;
+    $self->{draw_slider} //= !0;
+}
 
 sub draw_slider {
     my ($self, $cx) = @_;
 
-    return if $self->{no_draw_slider};
+    return if !$self->get_show_slider;
 
     #  might only need the x coord
     my $slider_coords

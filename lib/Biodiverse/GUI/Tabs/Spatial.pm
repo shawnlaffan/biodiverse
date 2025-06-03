@@ -579,19 +579,20 @@ sub init_dendrogram {
     $frame->add($drawable);
 
     my $tree = Biodiverse::GUI::Canvas::Tree->new(
-        frame       => $frame,
+        frame                         => $frame,
         # graph_frame => $graph_frame,
-        grid        => undef,
-        hover_func      => $hover_closure,
-        highlight_func  => $highlight_closure,
-        ctrl_click_func => $ctrl_click_closure,
-        click_func      => $click_closure,
+        grid                          => undef,
+        hover_func                    => $hover_closure,
+        highlight_func                => $highlight_closure,
+        ctrl_click_func               => $ctrl_click_closure,
+        click_func                    => $click_closure,
         # select_func     => $select_closure,  #  used to handle zooming, not needed now
-        parent_tab      => $self,
-        want_legend     => 1,
+        parent_tab                    => $self,
+        want_legend                   => 1,
         no_use_slider_to_select_nodes => 1,
-        drawable        => $drawable,
-        window          => $outer_frame,
+        drawable                      => $drawable,
+        window                        => $outer_frame,
+        use_slider_to_select_nodes    => 0,
     );
     $self->{dendrogram} = $tree;
     $tree->set_parent_tab($self);

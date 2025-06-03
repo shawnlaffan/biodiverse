@@ -338,7 +338,7 @@ sub do_slider_intersection {
     #     $self->highlight_node($node);
     # }
 
-    # return if ! $self->{use_slider_to_select_nodes};
+    return if ! $self->{use_slider_to_select_nodes};
 
     # Set up colouring
     #  these methods want tree nodes, not canvas branches

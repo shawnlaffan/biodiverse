@@ -1131,7 +1131,7 @@ sub do_colour_nodes_below {
         $self->map_elements_to_clusters(\@colour_nodes);
 
         $self->recolour_cluster_lines(\@colour_nodes);
-        $self->recolour_cluster_elements($terminal_element_hash_ref);
+        $self->recolour_cluster_map($terminal_element_hash_ref);
         $self->set_processed_nodes(\@colour_nodes);
     }
     else {
@@ -1153,14 +1153,14 @@ sub recolour_multiselect {
     $self->map_elements_to_clusters($coloured_nodes);
 
     $self->recolour_cluster_lines($coloured_nodes);
-    $self->recolour_cluster_elements();
+    $self->recolour_cluster_map();
     $self->set_processed_nodes($coloured_nodes);
     return;
 }
 
 
 # Colours the element map with colours for the established clusters
-sub recolour_cluster_elements {
+sub recolour_cluster_map {
     my ($self, $terminal_element_subset) = @_;
 
     my $map = $self->{map};
@@ -1571,7 +1571,7 @@ sub replay_multiselect_store {
     $self->{element_to_cluster_remap}  = {};
     $self->{recolour_nodes}      = undef;
     $self->set_processed_nodes (undef);
-    $self->recolour_cluster_elements;
+    $self->recolour_cluster_map;
     $self->set_cluster_colour_mode( 'multiselect' );
 
     #   The next bit of code probably does too much
@@ -1614,7 +1614,7 @@ sub replay_multiselect_store {
             $was_in_clear_mode = 1;
             $self->enter_multiselect_clear_mode;
         }
-        $self->recolour_cluster_elements ($elements);
+        $self->recolour_cluster_map ($elements);
         $self->set_processed_nodes ([$node_ref]);  #  clunky - poss needed because we call get_processed_nodes below?
         $self->recolour_cluster_lines($self->get_processed_nodes);
         if ($was_in_clear_mode) {
@@ -1985,7 +1985,7 @@ sub on_map_list_combo_changed {
 
         $self->get_parent_tab->on_clusters_changed;
 
-        $self->recolour_cluster_elements;
+        $self->recolour_cluster_map;
         $self->recolour_cluster_lines($self->get_processed_nodes);
 
         # blank out the index combo

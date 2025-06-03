@@ -250,11 +250,12 @@ sub _on_motion {
             $sb[2] = $x + $w;
             $slider->{x} = $x;
 
+            $self->set_cursor_from_name ('sb_h_double_arrow');
+
             #  get the overlapping branches
             my @bres = $self->get_index->intersects_slider(@sb);
+            $self->do_slider_intersection(\@bres);
 
-            # $self->set_cursor_from_name ('pointer');
-            $self->set_cursor_from_name ('sb_h_double_arrow');
             $widget->queue_draw;
             return FALSE;
         }
@@ -315,6 +316,36 @@ sub coord_in_root_marker_bbox {
     my ($self, $x, $y) = @_;
     \my @rb = $self->{data}{root}{marker_bbox} // [];
     return $x >= $rb[0] && $x < $rb[2] && $y >= $rb[1] && $y < $rb[3];
+}
+
+sub do_slider_intersection {
+    my ($self, $nodes) = @_;
+
+    # Update the slider textbox
+    #   [Number of nodes intersecting]
+    #   Above as percentage of total elements
+    # my $num_intersecting = scalar @intersecting_nodes;
+    # my $percent = sprintf('%.1f', $num_intersecting * 100 / $self->{num_nodes}); # round to 1 d.p.
+    # my $l_text  = sprintf('%.2f', $length_along);
+    # my $text = "$num_intersecting nodes\n$percent%\n"
+    #     . ($using_length ? 'L' : 'D')
+    #     . ": $l_text";
+    # $self->{clusters_text}->set( text => $text );
+
+    # # Highlight the lines in the dendrogram
+    # $self->clear_highlights;
+    # foreach my $node (values %$node_hash) {
+    #     $self->highlight_node($node);
+    # }
+
+    # return if ! $self->{use_slider_to_select_nodes};
+
+    # Set up colouring
+    #  these methods want tree nodes, not canvas branches
+    my @colour_nodes = map {$_->{node_ref}} @$nodes;
+    $self->recolour_normal (\@colour_nodes);
+
+    return;
 }
 
 sub get_index {
@@ -1131,18 +1162,32 @@ sub do_colour_nodes_below {
     # Set up colouring
     #print "num clusters = $num_clusters\n";
     if (!$in_multiselect_mode) {
-        $self->assign_cluster_palette_colours(\@colour_nodes);
-        $self->map_elements_to_clusters(\@colour_nodes);
-
-        $self->recolour_cluster_lines(\@colour_nodes);
-        $self->recolour_cluster_map($terminal_element_hash_ref);
-        $self->set_processed_nodes(\@colour_nodes);
+        # $self->assign_cluster_palette_colours(\@colour_nodes);
+        # $self->map_elements_to_clusters(\@colour_nodes);
+        #
+        # $self->recolour_cluster_lines(\@colour_nodes);
+        # $self->recolour_cluster_map($terminal_element_hash_ref);
+        # $self->set_processed_nodes(\@colour_nodes);
+        $self->recolour_normal(\@colour_nodes, $terminal_element_hash_ref);
     }
     else {
         $self->update_multiselect_colours(\@colour_nodes);
         $self->recolour_multiselect;
         $self->increment_multiselect_colour;
     }
+
+    return;
+}
+
+#  a bad name, but not multiselect
+sub recolour_normal {
+    my ($self, $colour_nodes, $terminal_element_hash_ref) = @_;
+
+    $self->assign_cluster_palette_colours($colour_nodes);
+    $self->map_elements_to_clusters($colour_nodes);
+    $self->recolour_cluster_lines($colour_nodes);
+    $self->recolour_cluster_map($terminal_element_hash_ref);
+    $self->set_processed_nodes($colour_nodes);
 
     return;
 }

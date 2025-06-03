@@ -1089,13 +1089,6 @@ sub do_colour_nodes_below {
         }
         $num_clusters = scalar @colour_nodes;  #not always the same, so make them equal now
 
-        # if ($in_multiselect_mode) {
-            #  we need a hash of the terminals
-            # (multiselect only has one node)
-            # $terminal_element_hash_ref = $colour_nodes[0]->get_terminal_elements;
-            # $self->increment_multiselect_colour;
-        # }
-
         #  keep the user informed of what happened
         if ($original_num_clusters != $num_clusters) {
             say "[Dendrogram] Could not colour requested number of clusters ($original_num_clusters)";
@@ -1161,8 +1154,6 @@ sub recolour_cluster_map {
 
     my $map = $self->{map};
     return if not defined $map;
-
-    # warn 'recolour_cluster_elements is unlikely to not work yet';
 
     my $list_name         = $self->{analysis_list_name}  // '';
     my $list_index        = $self->{analysis_list_index} // '';
@@ -1268,7 +1259,10 @@ sub set_processed_nodes {
 
 sub set_cluster_colour_mode {
     my ($self, $mode, $fallback) = @_;
-    $self->{cluster_colour_mode} = $mode;
+
+    my $prev_mode = $self->{cluster_colour_mode} // '';
+
+    return if $mode eq $prev_mode;
 
     #  should not be needed now, but just in case
     if ($mode eq 'value') {
@@ -1276,8 +1270,25 @@ sub set_cluster_colour_mode {
         $mode = $fallback // die;
     }
 
+    $self->{cluster_colour_mode} = $mode;
+
     if (!defined $mode or $mode =~ /palette|multi/) {
         $self->hide_legend;
+    }
+
+    #  Store the set of nodes to colour before we enter multi-select
+    #  and reinstate after leaving.  Might only need the start node.
+    if ($prev_mode =~ /multi/) {
+        my $prev_nodes = delete $self->{multiselect}{prev_processed_nodes};
+        $self->set_processed_nodes($prev_nodes);
+        $self->{colour_start_node}
+            = delete $self->{multiselect}{prev_colour_start_node};
+        $self->{element_to_cluster_remap} = {};
+    }
+    elsif ($mode =~ /multi/) {
+        $self->{multiselect}{prev_processed_nodes} = $self->get_processed_nodes;
+        $self->{multiselect}{prev_colour_start_node} = $self->{colour_start_node};
+        $self->{element_to_cluster_remap} = {};
     }
 
     return $mode;
@@ -1851,8 +1862,11 @@ sub on_map_list_combo_changed {
 
         $self->get_parent_tab->on_clusters_changed;
 
+        my $processed_nodes = $self->get_processed_nodes;
+        $self->recolour_cluster_lines($processed_nodes);
+        #  not sure why we need to do this here
+        $self->map_elements_to_clusters($processed_nodes);
         $self->recolour_cluster_map;
-        $self->recolour_cluster_lines($self->get_processed_nodes);
 
         # blank out the index combo
         $self->setup_map_index_model(undef);
@@ -1903,25 +1917,19 @@ sub on_map_index_combo_changed {
         # my $map = $self->{map};
 
         $self->set_cluster_colour_mode("list-values");
+        $combo->show;
+        $combo->set_sensitive(1);
 
         #  sets the min and max and triggers the recolour
         my @minmax = $self->get_parent_tab->set_plot_min_max_values;
 
-        # foreach my $object ($self->{map}, $self) {
-        #     #  must set this before legend min max
-        #     $object->set_legend_colour_mode_from_list_and_index(
-        #         list  => $self->{analysis_list_name},
-        #         index => $self->{analysis_list_index},
-        #     );
-        #     $object->set_legend_min_max(@minmax);
-        # }
-        # $self->get_parent_tab->on_colour_mode_changed;
-        # $self->recolour_cluster_elements();
-        $self->recolour;
+        # $self->recolour;
+        my $processed_nodes = $self->get_processed_nodes;
+        $self->recolour_cluster_lines($processed_nodes);
+        #  not sure why we need to do this here
+        $self->map_elements_to_clusters($processed_nodes);
+        $self->recolour_cluster_map;
 
-        # $self->recolour_cluster_lines($self->get_processed_nodes);
-
-        # $map->update_legend;
     }
     else {
         $self->{analysis_list_index} = undef;

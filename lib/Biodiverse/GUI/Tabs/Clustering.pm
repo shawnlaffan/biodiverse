@@ -1952,7 +1952,7 @@ sub recolour {
 
     $self->{dendrogram}->recolour();
     if ($args{all_elements}) {
-        $self->{dendrogram}->recolour_cluster_elements;
+        $self->{dendrogram}->recolour_cluster_map;
     }
 }
 

@@ -1452,6 +1452,7 @@ sub update_multiselect_colours {
     my $colour_string = blessed $colour_ref ? $colour_ref->to_string : $colour_ref;
     push @$node_array, map { [$_, $colour_string] } @$cluster_nodes;
 
+    $self->get_parent_tab->set_project_dirty;
 
     return;
 }
@@ -1552,11 +1553,8 @@ sub redo_multiselect_click {
 
 sub replay_multiselect_store {
     my $self = shift;
-    #my %args = @_;
 
-    #  do nothing now given we have changed the system
-    # return if !$self->in_multiselect_mode;
-    # return if $self->in_multiselect_mode;
+    return if !$self->in_multiselect_mode;
 
     #  should be a method
     $self->{element_to_cluster_remap} = {};
@@ -1564,65 +1562,6 @@ sub replay_multiselect_store {
     $self->recolour_multiselect;
 
     return;
-
-    #  clear current colouring of elements
-    #  this is a mess - we should not have to switch to palette mode for this to work
-    $self->set_cluster_colour_mode( 'palette' );
-    $self->{element_to_cluster_remap}  = {};
-    $self->{recolour_nodes}      = undef;
-    $self->set_processed_nodes (undef);
-    $self->recolour_cluster_map;
-    $self->set_cluster_colour_mode( 'multiselect' );
-
-    #   The next bit of code probably does too much
-    #   but getting it to work was not simple
-    my $tree = $self->get_current_tree;
-    my $node_ref_array = $tree->get_root_node_refs;
-
-    #my $was_in_clear_mode = $self->in_multiselect_clear_mode;
-    my $old_seq_sel_no_store = $self->{multiselect_no_store};
-    $self->{multiselect_no_store} = 1;
-    $self->enter_multiselect_clear_mode ('no_store');
-    $self->map_elements_to_clusters ($node_ref_array);
-    $self->recolour_cluster_lines ($node_ref_array);
-    #if (!$was_in_clear_mode) {
-    $self->leave_multiselect_clear_mode;
-    #}
-    $self->{multiselect_no_store} = $old_seq_sel_no_store;
-
-
-    my $colour_store = $self->get_multiselect_colour_store;
-
-    return if !@$colour_store;
-
-    #  use a copy to avoid infinite recursion, as the
-    #  ref can be appended to in one of the called subs
-    my @pairs = @$colour_store;
-
-    #  ensure recolouring works
-    $self->map_elements_to_clusters (
-        [map {$tree->get_node_ref (node => $_->[0])} @pairs]
-    );
-
-    foreach my $pair (@pairs) {
-        $self->{multiselect_no_store} = 1;
-        my $was_in_clear_mode = 0;
-        my $node_ref = $tree->get_node_ref_aa ($pair->[0]);
-        $self->set_current_multiselect_colour ($pair->[1]);
-        my $elements = $node_ref->get_terminal_elements;
-        if (!defined $pair->[1]) {
-            $was_in_clear_mode = 1;
-            $self->enter_multiselect_clear_mode;
-        }
-        $self->recolour_cluster_map ($elements);
-        $self->set_processed_nodes ([$node_ref]);  #  clunky - poss needed because we call get_processed_nodes below?
-        $self->recolour_cluster_lines($self->get_processed_nodes);
-        if ($was_in_clear_mode) {
-            $self->leave_multiselect_clear_mode;
-        }
-    }
-    $self->{multiselect_no_store} = $old_seq_sel_no_store;
-
 }
 
 sub in_multiselect_mode {
@@ -1654,78 +1593,10 @@ sub in_multiselect_autoincrement_colour_mode {
     return $res;
 }
 
-sub clear_multiselect_colours_from_plot {
-    my $self = shift;
-
-    return;
-
-    return if !$self->in_multiselect_mode;
-
-    # temp override, as multiselect colour mode has side effects
-    my $old_mode = $self->get_cluster_colour_mode();
-    $self->set_cluster_colour_mode( 'palette' );
-    #local $self->{cluster_colour_mode} = 'palette';
-
-    my $colour_store = $self->get_multiselect_colour_store;
-    if (@$colour_store) {
-        my $tree = $self->get_current_tree;
-        my @coloured_nodes = map {$tree->get_node_ref (node => $_->[0])} @$colour_store;
-        #  clear current colouring
-        #$self->recolour_cluster_elements;
-        $self->recolour_cluster_lines (\@coloured_nodes);
-    }
-
-    $self->set_cluster_colour_mode( $old_mode );
-
-    return;
-}
-
-#  later we can get this from a cached value on the tree object
+#  a wrapper method now
 sub get_multiselect_colour_store {
     my $self = shift;
-    my $tree = $self->get_current_tree;
-    my $store
-        = $tree->get_cached_value_dor_set_default_aa (
-        GUI_MULTISELECT_COLOUR_STORE => [],
-    );
-    return $store;
-}
-
-sub store_multiselect_colour {
-    my $self = shift;
-    my @pairs = @_;  #  usually get only one name/colour pair
-
-    return if $self->{multiselect_no_store};
-
-    my $store = $self->get_multiselect_colour_store;
-
-    PAIR:
-    foreach my $pair (pairs @pairs) {
-        #  don't store refs
-        if (blessed $pair->[0]) {
-            $pair->[0] = $pair->[0]->get_name;
-        }
-        #  don't store Gdk objects due to serialisation issues
-        if (blessed $pair->[1]) {
-            $pair->[1] = $pair->[1]->to_string;
-        }
-
-        ##  Don't store duplicates.
-        ##  We get double triggers for some reason due to a
-        ##  higher sub being called twice for each colour event
-        next PAIR
-            if scalar @$store
-                &&  $store->[-1][0] eq $pair->[0]
-                && ($store->[-1][1] // '') eq ($pair->[1] // '');
-
-        push @$store, $pair;
-    }
-
-    #  reset the redo stack
-    $self->reset_multiselect_undone_stack;
-    $self->get_parent_tab->set_project_dirty;
-
-    return;
+    return $self->get_multiselect_node_array;
 }
 
 sub get_current_multiselect_colour {
@@ -1979,7 +1850,6 @@ sub on_map_list_combo_changed {
 
     if ($list eq '<i>Cluster</i>') {
         # Selected cluster-palette-colouring mode
-        $self->clear_multiselect_colours_from_plot;
 
         $self->set_cluster_colour_mode('palette');
 
@@ -2007,7 +1877,6 @@ sub on_map_list_combo_changed {
         $self->setup_map_index_model(undef);
     }
     else {
-        $self->clear_multiselect_colours_from_plot;
 
         $self->get_parent_tab->on_clusters_changed;
 

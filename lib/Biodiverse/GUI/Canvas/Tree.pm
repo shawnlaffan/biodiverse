@@ -162,19 +162,22 @@ sub set_current_tree {
 
     #  this could probably be optimised but we'll need to profile first
     my $longest_path = 0;
+    my $widest_path  = 0;  #  handle negative branch lengths as these can go past the root
     my %branch_hash;
     foreach my $node (@tips) {
         my $name = $node->get_name;
         $branch_hash{$name}{name} = $name;
         $branch_hash{$name}{node_ref} = $node;
         $branch_hash{$name}{ntips}    = 0;
-        my $len  = $node->$len_method;
+        my $len   = $node->$len_method;
+        my $width = $len;
         $branch_hash{$name}{length} = $len;
         my $path = $branch_hash{$name}{path_to_root} = [$len];  #  still needed?
         my $parent = $node;
         while ($parent = $parent->get_parent) {
             my $this_len = $parent->$len_method;
             $len += $this_len;
+            $width = max ($width, $len);
             push @$path, $this_len;
             my $parent_name = $parent->get_name;
             $branch_hash{$parent_name}{ntips}++;
@@ -185,6 +188,7 @@ sub set_current_tree {
             }
         }
         $longest_path = $len if $len > $longest_path;
+        $widest_path  = $width if $width > $widest_path;
     }
 
     my @roots = $tree->get_root_node_refs;  #  we can have multiple roots
@@ -195,8 +199,9 @@ sub set_current_tree {
         root         => $root,
         by_node      => \%branch_hash,
         tips         => \@tips,
-        ntips        => scalar (@tips),
+        ntips        => scalar(@tips),
         longest_path => $longest_path,
+        widest_path  => $widest_path,
     );
 
     $self->{data} = \%properties;
@@ -481,7 +486,7 @@ sub get_vertical_line_width {
 }
 
 sub x_scale {
-    1 / $_[0]->{data}{longest_path}
+    1 / $_[0]->{data}{widest_path}
 }
 
 sub y_scale {
@@ -643,7 +648,7 @@ sub init_plot_coords {
     my $x_scale  = $self->x_scale;
     my $y_scale  = $self->y_scale;
 
-    $root->{x_r} //= 1;
+    $root->{x_r} //= $data->{longest_path} / $data->{widest_path};
 
     while (my $branch = shift @branches) {
         $branch->{y} = $branch->{_y} * $y_scale;

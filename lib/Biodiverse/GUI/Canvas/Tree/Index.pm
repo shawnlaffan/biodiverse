@@ -8,6 +8,7 @@ our $VERSION = '4.99_002';
 use Tree::R;
 use POSIX qw /floor/;
 use List::Util qw /min max reduce/;
+use List::MoreUtils qw /minmax/;
 use Time::HiRes qw /time/;
 use experimental qw /refaliasing/;
 
@@ -48,7 +49,7 @@ sub populate_from_tree {
     my %boxes;
     foreach my $branch (values %$branch_hash) {
 
-        my ($x_l, $x_r) = @$branch{qw /x_l x_r/};
+        my ($x_l, $x_r) = minmax (@$branch{qw /x_l x_r/});  #  handle neg lens
         $x_l = 0 if $x_l < 0;  #  dirty and underhanded - should round off
 
         #  Maxima go one cell past the coord, partly to allow for
@@ -102,7 +103,8 @@ sub intersects_slider {
     my %bres_hash;
     foreach my $box (@results) {
         foreach my $branch (@$box) {
-            if (!exists $bres_hash{$branch->{name}} or max ($b[0], $branch->{x_l}) <= min ($b[2], $branch->{x_r})) {
+            my ($x_l, $x_r) = minmax (@$branch{qw /x_l x_r/});  #  allow for negative branches
+            if (!exists $bres_hash{$branch->{name}} or max ($b[0], $x_l) <= min ($b[2], $x_r)) {
                 # branch intersects slider
                 $bres_hash{$branch->{name}} //= $branch;
             }
@@ -125,7 +127,8 @@ sub query_point {
     my %bres_hash;
     foreach my $box (@candidates) {
         foreach my $branch (@$box) {
-            if ($branch->{x_l} <= $x && $branch->{x_r} >= $x && $y <= $branch->{y} + $lw2 && $y >= $branch->{y} - $lw2) {
+            my ($x_l, $x_r) = minmax (@$branch{qw /x_l x_r/});  #  allow for negative branches
+            if ($x_l <= $x && $x_r >= $x && $y <= $branch->{y} + $lw2 && $y >= $branch->{y} - $lw2) {
                 # branch intersects slider
                 $bres_hash{$branch->{name}} //= $branch;
             }
@@ -147,7 +150,7 @@ sub query_point_nearest_y {
         if @candidates <= 1;
 
     #  find the branch closest to $y
-    my @bres2 = reduce {abs ($a->{y}) < abs ($a->{y}) ? $a : $b } @candidates;
+    my @bres2 = reduce {abs ($y - $a->{y}) < abs ($y - $b->{y}) ? $a : $b } @candidates;
 
     return wantarray ? @bres2 : \@bres2;
 }

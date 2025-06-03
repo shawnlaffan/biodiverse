@@ -990,6 +990,10 @@ sub recolour_cluster_lines {
         }
         elsif ($self->in_multiselect_mode) {
             $colour_ref = $node_ref->[1];
+            #  should be stored as strings for serialisation purposes
+            if (defined $colour_ref && !blessed $colour_ref) {
+                $colour_ref = Gtk3::Gdk::RGBA::parse ($colour_ref);
+            };
             $node_ref   = $node_ref->[0];
             $node_name  = $node_ref->get_name;
         }
@@ -1132,18 +1136,28 @@ sub do_colour_nodes_below {
     }
     else {
         $self->update_multiselect_colours(\@colour_nodes);
-        #  rebuilds the whole thing - could optimise later
-        my $coloured_nodes = $self->get_multiselect_node_refs;
-        $self->map_elements_to_clusters($coloured_nodes);
-
-        $self->recolour_cluster_lines($coloured_nodes);
-        $self->recolour_cluster_elements();
-        $self->set_processed_nodes($coloured_nodes);
+        $self->recolour_multiselect;
         $self->increment_multiselect_colour;
     }
 
     return;
 }
+
+sub recolour_multiselect {
+    my ($self) = @_;
+
+    return if !$self->in_multiselect_mode;
+
+    #  rebuilds the whole thing - could optimise later
+    my $coloured_nodes = $self->get_multiselect_node_refs;
+    $self->map_elements_to_clusters($coloured_nodes);
+
+    $self->recolour_cluster_lines($coloured_nodes);
+    $self->recolour_cluster_elements();
+    $self->set_processed_nodes($coloured_nodes);
+    return;
+}
+
 
 # Colours the element map with colours for the established clusters
 sub recolour_cluster_elements {
@@ -1191,13 +1205,13 @@ sub recolour_cluster_elements {
         $colour_callback = sub {
             my $elt = shift;
 
-            return -1
+            return undef
                 if    $terminal_element_subset
                     && !exists $terminal_element_subset->{$elt};
 
             my $cluster_node = $self->{element_to_cluster_remap}{$elt};
 
-            return -1 if !$cluster_node;
+            return undef if !$cluster_node;
 
             return $multiselect_colour_hash{$elt} || COLOUR_OUTSIDE_SELECTION;
         };
@@ -1393,7 +1407,12 @@ sub assign_cluster_palette_colours {
 
 sub get_multiselect_node_array {
     my ($self) = @_;
-    $self->{multiselect}{node_array} //= [];
+    my $array
+        = $self->{multiselect}{node_array}
+        //= $self->get_current_tree->get_cached_value_dor_set_default_aa (
+            GUI_MULTISELECT_COLOUR_STORE => []
+        );
+    return $array;
 }
 
 sub get_multiselect_colour_hash {
@@ -1419,13 +1438,20 @@ sub update_multiselect_colours {
     my ($self, $cluster_nodes) = @_;
 
     my $node_array  = $self->get_multiselect_node_array;
-    my $colour_ref = $self->get_current_multiselect_colour;
+    my $colour_ref  = $self->get_current_multiselect_colour;
+    \my %colour_hash = $self->get_multiselect_colour_hash;
 
+    #  need Gtk colours here
     if (defined $colour_ref && !blessed $colour_ref) {
         $colour_ref = Gtk3::Gdk::RGBA::parse($colour_ref);
     }
+    @colour_hash{@$cluster_nodes} = ($colour_ref) x @$cluster_nodes;
 
-    push @$node_array, map { [$_, $colour_ref] } @$cluster_nodes;
+    #  Store stringified versions as we store on the tree object
+    #  and Gtk objects do not survive serialisation.
+    my $colour_string = blessed $colour_ref ? $colour_ref->to_string : $colour_ref;
+    push @$node_array, map { [$_, $colour_string] } @$cluster_nodes;
+
 
     return;
 }
@@ -1528,7 +1554,16 @@ sub replay_multiselect_store {
     my $self = shift;
     #my %args = @_;
 
-    return if !$self->in_multiselect_mode;
+    #  do nothing now given we have changed the system
+    # return if !$self->in_multiselect_mode;
+    # return if $self->in_multiselect_mode;
+
+    #  should be a method
+    $self->{element_to_cluster_remap} = {};
+
+    $self->recolour_multiselect;
+
+    return;
 
     #  clear current colouring of elements
     #  this is a mess - we should not have to switch to palette mode for this to work
@@ -1621,6 +1656,8 @@ sub in_multiselect_autoincrement_colour_mode {
 
 sub clear_multiselect_colours_from_plot {
     my $self = shift;
+
+    return;
 
     return if !$self->in_multiselect_mode;
 

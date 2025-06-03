@@ -8,7 +8,7 @@ our $VERSION = '4.99_002';
 use experimental qw /refaliasing declared_refs for_list/;
 use Glib qw/TRUE FALSE/;
 use Scalar::Util qw /refaddr blessed/;
-use List::Util qw /min max pairs/;
+use List::Util qw /min max pairs uniq/;
 use List::MoreUtils qw /minmax firstidx/;
 use Ref::Util qw /is_coderef is_blessed_ref is_arrayref is_ref/;
 use POSIX qw /floor/;
@@ -958,10 +958,12 @@ sub use_highlight_func {
 sub recolour_cluster_lines {
     my ($self, $cluster_nodes, $no_colour_descendants) = @_;
 
-    #  this is never passed at the moment
-    my $colour_descendants = !$no_colour_descendants;;
+    if ($self->in_multiselect_mode) {
+        #  a different structure, handled below
+        $cluster_nodes = $self->get_multiselect_node_array;
+    }
 
-    my ($colour_ref, $line, $list_ref, $val);
+    my ($colour_ref, $list_ref, $val);
     my %coloured_nodes;
 
     my $map = $self->{map};
@@ -977,21 +979,22 @@ sub recolour_cluster_lines {
     }
 
     my %colour_hash;
-    foreach my $node_ref (@$cluster_nodes) {
+    foreach my $ref (@$cluster_nodes) {
+        #  copy as loop-aliasing messes up the multiselect array
+        my $node_ref = $ref;
 
-        my $node_name = $node_ref->get_name;
-
+        my $node_name;
         if ($colour_mode eq 'palette') {
+            $node_name = $node_ref->get_name;
             $colour_ref = $self->{node_palette_colours}{$node_name} || COLOUR_RED;
         }
         elsif ($self->in_multiselect_mode) {
-            $colour_ref = $self->get_current_multiselect_colour;
-            if ($colour_ref || $self->in_multiselect_clear_mode) {
-                $self->store_multiselect_colour ($node_name => $colour_ref);
-            }
-
+            $colour_ref = $node_ref->[1];
+            $node_ref   = $node_ref->[0];
+            $node_name  = $node_ref->get_name;
         }
         elsif ($colour_mode eq 'list-values') {
+            $node_name = $node_ref->get_name;
 
             $list_ref = $node_ref->get_list_ref (list => $list_name);
             $val = defined $list_ref
@@ -1020,45 +1023,21 @@ sub recolour_cluster_lines {
         # - don't cache on the tree as we can get recursion stack blow-outs
         # - https://github.com/shawnlaffan/biodiverse/issues/549
         # We could cache on $self if it were needed.
-        if ($colour_descendants) {
+        if (!$no_colour_descendants) {
             my $descendants = $node_ref->get_all_descendants (cache => 0);
-            foreach my $child_name (keys %$descendants) {
-                $colour_hash{$child_name} = $colour_ref;
-                # $self->colour_line(
-                #     $child_ref,
-                #     $colour_ref,
-                #     \%coloured_nodes,
-                # );
-            }
+            @colour_hash{keys %$descendants} = ($colour_ref) x keys %$descendants;
         }
 
         $coloured_nodes{$node_name} = $node_ref; # mark as coloured
     }
 
-    #  not needed now as the tree colouring handles it
-    if (0 && !$self->in_multiselect_mode) {
-        if ($self->{recolour_nodes}) {
-            #print "[Dendrogram] Recolouring ", scalar keys %{ $self->{recolour_nodes} }, " nodes\n";
-            # uncolour previously coloured nodes that aren't being coloured this time
-            NODE:
-            foreach my $node_name (keys %{ $self->{recolour_nodes} }) {
-                next NODE if exists $coloured_nodes{$node_name};
-
-                $self->{node_lines}->{$node_name}->set(fill_color_gdk => DEFAULT_LINE_COLOUR);
-                $self->set_node_colour(
-                    colour_ref => DEFAULT_LINE_COLOUR,
-                    node_name  => $node_name,
-                );
-            }
-
-            #print "[Dendrogram] Recoloured nodes\n";
-        }
-        $self->{recolour_nodes} = \%coloured_nodes;
-    }
-
     $self->set_branch_colours(\%colour_hash);
 
-    return;
+    if ($self->in_multiselect_mode) {
+        $self->set_multiselect_colour_hash(\%colour_hash);
+    }
+
+    return \%colour_hash;
 }
 
 
@@ -1066,13 +1045,15 @@ sub recolour_cluster_lines {
 sub do_colour_nodes_below {
     my ($self, $start_node) = @_;
 
+    my $in_multiselect_mode = $self->in_multiselect_mode;
+
     #  Don't clear if we are multi-select - allows for mis-hits when
     #  selecting branches.
-    return if !$start_node && $self->in_multiselect_mode;
+    return if !$start_node && $in_multiselect_mode;
 
     $self->{colour_start_node} = $start_node;
 
-    my $num_clusters = $self->get_num_clusters;
+    my $num_clusters = $in_multiselect_mode ? 1 : $self->get_num_clusters;
     my $original_num_clusters = $num_clusters;
     my $excess_flag = 0;
     my $terminal_element_hash_ref;
@@ -1083,10 +1064,12 @@ sub do_colour_nodes_below {
 
         # Get list of nodes to colour
         #print "[Dendrogram] Grouping...\n";
-        my $node_hash = $start_node->group_nodes_below (
-            num_clusters => $num_clusters,
-            type => $self->{group_mode}
-        );
+        my $node_hash = $in_multiselect_mode
+            ? {$start_node->get_name => $start_node}
+            : $start_node->group_nodes_below (
+                num_clusters => $num_clusters,
+                type => $self->{group_mode}
+            );
         @colour_nodes = values %$node_hash;
         #print "[Dendrogram] Done Grouping...\n";
 
@@ -1106,12 +1089,12 @@ sub do_colour_nodes_below {
         }
         $num_clusters = scalar @colour_nodes;  #not always the same, so make them equal now
 
-        if ($self->in_multiselect_mode) {
+        # if ($in_multiselect_mode) {
             #  we need a hash of the terminals
             # (multiselect only has one node)
             # $terminal_element_hash_ref = $colour_nodes[0]->get_terminal_elements;
-            $self->increment_multiselect_colour;
-        }
+            # $self->increment_multiselect_colour;
+        # }
 
         #  keep the user informed of what happened
         if ($original_num_clusters != $num_clusters) {
@@ -1133,18 +1116,31 @@ sub do_colour_nodes_below {
             }
         }
     }
-    elsif (!$self->in_multiselect_mode) {
+    elsif (!$in_multiselect_mode) {
         say "[Dendrogram] Clearing colouring";
     }
 
     # Set up colouring
     #print "num clusters = $num_clusters\n";
-    $self->assign_cluster_palette_colours(\@colour_nodes);
-    $self->map_elements_to_clusters(\@colour_nodes);
+    if (!$in_multiselect_mode) {
+        $self->assign_cluster_palette_colours(\@colour_nodes);
+        $self->map_elements_to_clusters(\@colour_nodes);
 
-    $self->recolour_cluster_lines(\@colour_nodes);
-    $self->recolour_cluster_elements($terminal_element_hash_ref);
-    $self->set_processed_nodes(\@colour_nodes);
+        $self->recolour_cluster_lines(\@colour_nodes);
+        $self->recolour_cluster_elements($terminal_element_hash_ref);
+        $self->set_processed_nodes(\@colour_nodes);
+    }
+    else {
+        $self->update_multiselect_colours(\@colour_nodes);
+        #  rebuilds the whole thing - could optimise later
+        my $coloured_nodes = $self->get_multiselect_node_refs;
+        $self->map_elements_to_clusters($coloured_nodes);
+
+        $self->recolour_cluster_lines($coloured_nodes);
+        $self->recolour_cluster_elements();
+        $self->set_processed_nodes($coloured_nodes);
+        $self->increment_multiselect_colour;
+    }
 
     return;
 }
@@ -1188,9 +1184,10 @@ sub recolour_cluster_elements {
         };
     }
     elsif ($self->in_multiselect_mode) {
-        my $multiselect_colour = $self->get_current_multiselect_colour;
+        # my $multiselect_colour = $self->get_current_multiselect_colour;
+        \my %multiselect_colour_hash = $self->get_multiselect_colour_hash;
 
-        # sets colours according to multiselect palette
+        # sets colours according to multiselect palette - could be simplified
         $colour_callback = sub {
             my $elt = shift;
 
@@ -1202,8 +1199,7 @@ sub recolour_cluster_elements {
 
             return -1 if !$cluster_node;
 
-            return $multiselect_colour || COLOUR_OUTSIDE_SELECTION;
-            #COLOUR_PALETTE_OVERFLOW;
+            return $multiselect_colour_hash{$elt} || COLOUR_OUTSIDE_SELECTION;
         };
     }
     elsif ($cluster_colour_mode eq 'list-values') {
@@ -1391,6 +1387,45 @@ sub assign_cluster_palette_colours {
             $self->{node_palette_colours}{$sorted_clusters[$k]->get_name} = $colour_ref;
         }
     }
+
+    return;
+}
+
+sub get_multiselect_node_array {
+    my ($self) = @_;
+    $self->{multiselect}{node_array} //= [];
+}
+
+sub get_multiselect_colour_hash {
+    my ($self) = @_;
+    $self->{multiselect}{node_colour_hash} //= {};
+}
+
+sub set_multiselect_colour_hash {
+    my ($self, $hash) = @_;
+    $self->{multiselect}{node_colour_hash} = ($hash // {});
+}
+
+sub get_multiselect_node_refs {
+    my ($self) = @_;
+
+    my $array = $self->get_multiselect_node_array;
+    my @refs = map {$_->[0]} @$array;
+
+    return wantarray ? @refs : \@refs;
+}
+
+sub update_multiselect_colours {
+    my ($self, $cluster_nodes) = @_;
+
+    my $node_array  = $self->get_multiselect_node_array;
+    my $colour_ref = $self->get_current_multiselect_colour;
+
+    if (defined $colour_ref && !blessed $colour_ref) {
+        $colour_ref = Gtk3::Gdk::RGBA::parse($colour_ref);
+    }
+
+    push @$node_array, map { [$_, $colour_ref] } @$cluster_nodes;
 
     return;
 }
@@ -1661,9 +1696,8 @@ sub get_current_multiselect_colour {
 
     return if $self->in_multiselect_clear_mode;
 
-    my $colour;
-    eval {
-        $colour = $self->{selector_colorbutton}->get_rgba;
+    my $colour = eval {
+        $self->{selector_colorbutton}->get_rgba;
     };
 
     return $colour;

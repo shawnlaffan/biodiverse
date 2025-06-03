@@ -242,7 +242,6 @@ sub _on_motion {
     if ($self->get_show_slider) {
         my $slider = $self->{slider_coords};
         \my @sb = $slider->{bounds};
-        \my @rb = $self->{data}{root}{marker_bbox} // [];
 
         if ($self->{sliding}) {
             $slider->{x} = $x;
@@ -254,7 +253,8 @@ sub _on_motion {
             #  get the overlapping branches
             my @bres = $self->get_index->intersects_slider(@sb);
 
-            $self->set_cursor_from_name ('pointer');
+            # $self->set_cursor_from_name ('pointer');
+            $self->set_cursor_from_name ('sb_h_double_arrow');
             $widget->queue_draw;
             return FALSE;
         }
@@ -266,7 +266,8 @@ sub _on_motion {
             }
             elsif ($x >= $sb[0] && $x < $sb[2] && $y >= $sb[1] && $y < $sb[3]) {
                 #  on slider
-                $self->set_cursor_from_name ('pointer');
+                $self->set_cursor_from_name ('sb_h_double_arrow');
+                # $self->set_cursor_from_name ('pointer');
                 $self->{motion_cursor_name} = 'pointer';
                 # return FALSE;
             }

@@ -818,10 +818,6 @@ sub get_branch_line_width {
 sub set_plot_mode {
     my ($self, $plot_mode) = @_;
 
-    #  Actually set in set_current_tree when we call it,
-    #  so the name of this sub is a bit misleading.
-    # $self->{plot_mode} = $plot_mode;
-
     my $tree = $self->{current_tree};
 
     #  Much commented code due to porting across from Dendrogram.pm

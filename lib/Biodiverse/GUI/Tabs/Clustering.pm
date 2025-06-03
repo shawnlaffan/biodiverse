@@ -1838,18 +1838,15 @@ sub on_clusters_changed {
 }
 
 sub on_plot_mode_changed {
-    my $self = shift;
-    my $combo = shift;
-    my $mode = $combo->get_active;
-    if ($mode == 0) {
-        $mode = 'depth';
-    }
-    elsif ($mode == 1) {
-        $mode = 'length';
-    }
-    else {
-        die "[Clustering tab] - on_plot_mode_changed - invalid mode $mode";
-    }
+    my ($self, $combo) = @_;
+
+    my $i = $combo->get_active;
+
+    die "[Clustering tab] - on_group_mode_changed - invalid mode number $i"
+        if $i != 0 && $i != 1;
+
+    state @modes = (qw /depth length/);
+    my $mode = $modes[$i];
 
     print "[Clustering tab] Changing mode to $mode\n";
     $self->{plot_mode} = $mode;

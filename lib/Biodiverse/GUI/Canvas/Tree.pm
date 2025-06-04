@@ -250,7 +250,7 @@ sub _on_motion {
     my $current_cursor_name = $self->{motion_cursor_name} //= 'default';
 
     if ($self->get_show_slider) {
-        my $slider = $self->{slider_coords};
+        my $slider = $self->get_slider_coords;
         \my @sb = $slider->{bounds};
 
         if ($self->{sliding}) {
@@ -266,7 +266,7 @@ sub _on_motion {
             my @bres = $self->get_index->intersects_slider(@sb);
             $self->do_slider_intersection(\@bres);
 
-            $widget->queue_draw;
+            $self->queue_draw;
             return FALSE;
         }
         else {
@@ -383,7 +383,7 @@ sub _select_while_not_selecting {
     my ($self, $widget, $x, $y) = @_;
 
     if ($self->get_show_slider && $self->{selecting}) {
-        my $slider = $self->{slider_coords};
+        my $slider = $self->get_slider_coords;
         \my @b = $slider->{bounds};
         if ($x >= $b[0] && $x < $b[2] && $y >= $b[1] && $y < $b[3]) {
             $self->{sliding} = 1;
@@ -450,18 +450,22 @@ sub get_show_slider {
     $self->{draw_slider} //= !0;
 }
 
+sub get_slider_coords {
+    my ($self) = @_;
+    return $self->{slider_coords} //= {
+        x  => 1,
+        y0 => 0,
+        y1 => 1,
+    };
+}
+
 sub draw_slider {
     my ($self, $cx) = @_;
 
     return if !$self->get_show_slider;
 
     #  might only need the x coord
-    my $slider_coords
-      = $self->{slider_coords} //= {
-          x  => 1,
-          y0 => 0,
-          y1 => 1,
-      };
+    my $slider_coords = $self->get_slider_coords;
 
     my ($x, $y0, $y1) = @{$slider_coords}{qw/x y0 y1/};
 
@@ -542,6 +546,12 @@ sub x_scale {
 
 sub y_scale {
     1 / $_[0]->{data}{ntips};
+}
+
+sub queue_draw {
+    my ($self) = @_;
+    $self->SUPER::queue_draw;  #  self
+    $self->get_scree_plot->queue_draw;
 }
 
 sub draw {

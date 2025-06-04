@@ -52,10 +52,11 @@ sub get_show_slider {
     $self->get_tree_canvas->get_show_slider;
 }
 
-# sub callback_order {
-#     my $self = shift;
-#     return ('plot');
-# }
+sub get_slider_coords {
+    my ($self) = @_;
+    $self->get_tree_canvas->get_slider_coords;
+}
+
 
 #  no mouse or keyboard interaction
 sub on_button_release {}
@@ -69,27 +70,28 @@ sub draw_slider {
 
     return if !$self->get_show_slider;
 
-    #  might only need the x coord  - ultimately will get from the tree
-    my $slider_coords
-      = $self->{slider_coords} //= {
-          x  => 1,
-          y0 => 0,
-          y1 => 1,
-      };
+    #  might only need the x coord
+    my $slider_coords = $self->get_slider_coords;
 
     my ($x, $y0, $y1) = @{$slider_coords}{qw/x y0 y1/};
 
     my $line_width = ($y1 - $y0) / 100;  #  need to work on this
 
     $cx->set_source_rgba(0, 0, 1, 0.5);
-    $cx->move_to($x, 0);
-    $cx->line_to($x, 1);
-    $cx->stroke;
-
-    $slider_coords->{bounds} = [
-        $x - $line_width / 2, $y0,
-        $x + $line_width / 2, $y1,
-    ];
+    my $bounds = $slider_coords->{bounds};
+    if (0 && $bounds) {  #  disabled for now
+        $cx->rectangle(
+            $bounds->[0],
+            $bounds->[1],
+            $bounds->[2] - $bounds->[0],
+            $bounds->[3] - $bounds->[1],
+        );
+    }
+    else {
+        $cx->move_to($x, 0);
+        $cx->line_to($x, 1);
+        $cx->stroke;
+    }
 
     return;
 }

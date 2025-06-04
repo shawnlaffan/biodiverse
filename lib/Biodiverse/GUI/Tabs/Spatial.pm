@@ -563,7 +563,6 @@ sub init_dendrogram {
     my $self = shift;
 
     my $frame       = $self->get_xmlpage_object('spatialPhylogenyFrame');
-    my $outer_frame = $self->get_xmlpage_object('frame_spatial_tree_plot');
     my $graph_frame = $self->get_xmlpage_object('spatialPhylogenyGraphFrame');
     # my $hscroll     = $self->get_xmlpage_object('spatialPhylogenyHScroll');
     # my $vscroll     = $self->get_xmlpage_object('spatialPhylogenyVScroll');
@@ -587,11 +586,9 @@ sub init_dendrogram {
         ctrl_click_func               => $ctrl_click_closure,
         click_func                    => $click_closure,
         # select_func     => $select_closure,  #  used to handle zooming, not needed now
-        parent_tab                    => $self,
         want_legend                   => 1,
         no_use_slider_to_select_nodes => 1,
         drawable                      => $drawable,
-        window                        => $outer_frame,
         use_slider_to_select_nodes    => 0,
     );
     $self->{dendrogram} = $tree;
@@ -608,9 +605,8 @@ sub init_dendrogram {
     };
 
     $self->init_branch_colouring_menu;
-    # $self->init_dendrogram_legend;
 
-    $outer_frame->show_all;
+    $tree->show_all;
     
     return 1;
 }

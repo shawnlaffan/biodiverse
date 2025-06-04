@@ -593,7 +593,6 @@ sub init_map {
     my $self = shift;
 
     my $frame       = $self->get_xmlpage_object('mapFrame');
-    my $outer_frame = $self->get_xmlpage_object('map_outer_frame');
 
     my $click_closure      = sub { $self->on_grid_popup(@_); };
     my $hover_closure      = sub { $self->on_grid_hover(@_); };
@@ -615,7 +614,6 @@ sub init_map {
         grid_click_func => $grid_click_closure,
         end_hover_func  => $end_hover_closure,
         drawable        => $drawable,
-        window          => $outer_frame,
     );
     $grid->set_parent_tab($self);
 
@@ -634,7 +632,7 @@ sub init_map {
 
     $self->warn_if_basedata_has_gt2_axes;
 
-    $frame->show_all;
+    $grid->show_all;
 
     return;
 }
@@ -643,7 +641,6 @@ sub init_dendrogram {
     my $self = shift;
 
     my $frame       =  $self->get_xmlpage_object('clusterFrame');
-    my $outer_frame =  $self->get_xmlpage_object('dendro_outer_frame');
     my $graph_frame =  $self->get_xmlpage_object('graphFrame');
     my $list_combo  =  $self->get_xmlpage_object('comboMapList');
     my $index_combo =  $self->get_xmlpage_object('comboMapShow');
@@ -659,7 +656,7 @@ sub init_dendrogram {
     $frame->set (expand => 1);  #  otherwise we shrink to not be visible
     $frame->add($drawable);
 
-    $self->{dendrogram} = Biodiverse::GUI::Canvas::Tree->new(
+    my $dendro = $self->{dendrogram} = Biodiverse::GUI::Canvas::Tree->new(
         frame           => $frame,
         graph_frame     => $graph_frame,
         grid            => $self->{grid},
@@ -673,15 +670,14 @@ sub init_dendrogram {
         parent_tab      => $self,
         basedata_ref    => undef, # basedata_ref
         drawable        => $drawable,
-        window          => $outer_frame,
         num_clusters    => 6,
     );
 
     # TODO: Abstract this properly
     #$self->{dendrogram}->{map_lists_ready_cb} = sub { $self->on_map_lists_ready(@_) };
 
-    $self->{dendrogram}->set_parent_tab($self);
-    $self->{dendrogram}->init_multiselect;
+    $dendro->set_parent_tab($self);
+    $dendro->init_multiselect;
 
     if ($self->{existing}) {
         my $cluster_ref = $self->{output_ref};
@@ -692,17 +688,16 @@ sub init_dendrogram {
         #  the defined test is for very backwards compatibility
         return if defined $completed && ! $completed;
 
-        #print Data::Dumper::Dumper($cluster_ref);
         if (defined $cluster_ref) {
-            $self->{dendrogram}->set_current_tree($cluster_ref, $self->{plot_mode});
+            $dendro->set_current_tree($cluster_ref, $self->{plot_mode});
         }
-        $self->{dendrogram}->set_group_mode($self->{group_mode});
+        $dendro->set_group_mode($self->{group_mode});
     }
 
     #  set the number of clusters in the spinbutton
     $spinbutton->set_value( $self->{dendrogram}->get_num_clusters );
 
-    $frame->show_all;
+    $dendro->show_all;
 
     return;
 }

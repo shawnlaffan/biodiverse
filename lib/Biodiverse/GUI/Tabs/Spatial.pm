@@ -844,13 +844,6 @@ sub get_dendrogram_colour_for_undef {
 sub init_grid {
     my $self = shift;
     my $frame   = $self->get_xmlpage_object('gridFrame');
-    #  if we re-add scroll bars then we need to recreate these
-    # my $hscroll = $self->get_xmlpage_object('gridHScroll');
-    # my $vscroll = $self->get_xmlpage_object('gridVScroll');
-    # $hscroll && $hscroll->hide;  #  if we hide these then there is no plot
-    # $hscroll && $vscroll->hide;
-    my $outer_frame = $self->get_xmlpage_object('spatial_hpaned') // die "Cannot find item spatial_hpaned";
-    # $outer_frame->set_default_size(200, 200);
 
     $self->{initialising_grid} = 1;
 
@@ -873,8 +866,6 @@ sub init_grid {
 
     my $grid = $self->{grid} = Biodiverse::GUI::Canvas::Grid->new(
         frame           => $frame,
-        # hscroll => $hscroll,
-        # vscroll => $vscroll,
         show_legend     => 1,
         show_value      => 0,  #  still used?
         hover_func      => $hover_closure,
@@ -883,7 +874,6 @@ sub init_grid {
         grid_click_func => $grid_click_closure, # Left click
         end_hover_func  => $end_hover_closure,  #  we go from cell to background
         drawable        => $drawable,
-        window          => $outer_frame,
     );
     $grid->set_parent_tab($self);
 
@@ -916,7 +906,7 @@ sub init_grid {
 
     $self->warn_if_basedata_has_gt2_axes;
 
-    $outer_frame->show_all;
+    $grid->show_all;
 
     return;
 }

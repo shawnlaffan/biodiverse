@@ -243,13 +243,8 @@ sub get_tree_menu_items {
 sub init_grid {
     my $self = shift;
     my $frame   = $self->get_xmlpage_object('gridFrame');
-    my $outer_frame = $self->get_xmlpage_object('spatial_hpaned') // die "Cannot find item spatial_hpaned";
-    # my $hscroll = $self->get_xmlpage_object('gridHScroll');
-    # my $vscroll = $self->get_xmlpage_object('gridVScroll');
 
-#print "Initialising grid\n";
-
-# Use closure to automatically pass $self (which grid doesn't know)
+    # Use closure to automatically pass $self (which grid doesn't know)
     my $hover_closure = sub { $self->on_grid_hover(@_); };
     my $click_closure = sub {
         Biodiverse::GUI::CellPopup::cell_clicked(
@@ -264,7 +259,7 @@ sub init_grid {
     $frame->set (expand => 1);  #  otherwise we shrink to not be visible
     $frame->add($drawable);
 
-    $self->{grid} = Biodiverse::GUI::Canvas::Grid->new(
+    my $grid = $self->{grid} = Biodiverse::GUI::Canvas::Grid->new(
         frame           => $frame,
         show_legend     => 1,
         show_value      => 0,
@@ -274,16 +269,15 @@ sub init_grid {
         select_func     => $select_closure,
         grid_click_func => $grid_click_closure, # Left click
         drawable        => $drawable,
-        window          => $outer_frame,
     );
-    $self->{grid}->set_parent_tab($self);
+    $grid->set_parent_tab($self);
 
     my $data = $self->{groups_ref};  #  should be the groups?
     my $elt_count = $data->get_element_count;
     my $completed = $data->get_param ('COMPLETED') // 1; #  old versions did not have this flag
 
     if (defined $data and $elt_count and $completed) {
-        $self->{grid}->set_base_struct ($data);
+        $grid->set_base_struct ($data);
     }
 
     my $menu_log_checkbox = $self->get_xmlpage_object('menu_colour_stretch_log_mode');
@@ -299,7 +293,7 @@ sub init_grid {
 
     $self->warn_if_basedata_has_gt2_axes;
 
-    $outer_frame->show_all;  #  try this
+    $grid->show_all;
 
     return;
 }

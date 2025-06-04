@@ -92,6 +92,14 @@ sub get_parent_tab {
     $_[0]->{page};
 }
 
+sub get_window {
+    $_[0]->{frame}->get_window;
+}
+
+sub show_all {
+    $_[0]->{frame}->show_all;
+}
+
 sub dump_self {
     my $self = shift;
     use DDP;
@@ -286,7 +294,7 @@ sub get_event_xy {
 
 sub set_cursor_from_name {
     my ($self, $name) = @_;
-    my $window = $self->{frame}->get_window;
+    my $window = $self->get_window;
     my $display = $window->get_display;
 
     my $cursor = Gtk3::Gdk::Cursor->new_from_name ($display, $name // 'pointer');

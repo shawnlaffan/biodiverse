@@ -88,6 +88,8 @@ sub draw {
     my ($self, $cx) = @_;
 
     return if !$self->is_visible;
+    #  don't draw if no sensible labels
+    return if $self->mode_is_continuous && !($self->get_stats || defined $self->{last_max});
 
     my $drawable = $self->drawable;
 
@@ -457,9 +459,10 @@ sub get_dynamic_labels {
     }
 
     my @labels;
+    my $stats = $self->get_stats // {};
     #  arbitrary defaults in case we are called before any stats are set
-    my $max = $self->{last_max} // 2;
-    my $min = $self->{last_min} // $max - 1;
+    my $max = $self->{last_max} // $stats->{MAX} // 2;
+    my $min = $self->{last_min} // $stats->{MIN} // 1;
     if ($self->get_divergent_mode) {
         my $extent = max (abs($min), abs ($max));
         my $mid = 0;
@@ -531,7 +534,7 @@ sub get_dynamic_labels {
     #  Flag when data exceed legend range.
     #  Conditional because we do not always have stats,
     #  e.g. tree lists might only have min and max.
-    if (my $stats = $self->get_stats) {
+    if (keys %$stats) {
         if ($max < $stats->{MAX}) {
             # $labels[0] = ">=$labels[0]";
             $labels[0] = "\x{2A7E}$labels[0]";
@@ -669,6 +672,11 @@ sub get_mode_as_string {
     $mode_string //= $self->get_mode;
 
     return $mode_string;
+}
+
+sub mode_is_continuous {
+    my ($self) = @_;
+    return $self->get_mode_as_string =~ /^(?:hue|sat|grey|ratio|divergent)/i;
 }
 
 sub set_stats {

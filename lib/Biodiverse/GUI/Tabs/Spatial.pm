@@ -599,6 +599,7 @@ sub init_dendrogram {
     # cannot colour more than one in a phylogeny
     $tree->set_num_clusters (1);
     $self->set_dendrogram_colour_for_undef(COLOUR_GRAY);  #  default
+    $tree->hide_legend;  #  start hidden
 
 
     $self->{no_dendro_legend_for} = {

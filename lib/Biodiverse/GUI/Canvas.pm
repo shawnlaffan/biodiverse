@@ -141,7 +141,7 @@ sub init_legend {
 
 sub get_legend {
     my $self = shift;
-    return $self->{legend} // croak 'There is no legend';
+    return $self->{legend}; # // croak 'There is no legend';
 }
 
 #  a shorthand
@@ -662,8 +662,8 @@ sub get_tfm_mx {
     my $disp_h = $self->{disp} //= {};
     my $dims_h = $self->{dims};
 
-    my $xcen = $disp_h->{xcen} //= $dims_h->{xcen};
-    my $ycen = $disp_h->{ycen} //= $dims_h->{ycen};
+    my $xcen = $disp_h->{xcen} //= $dims_h->{xcen} //= ($dims_h->{xmin} + $dims_h->{xmax}) / 2;
+    my $ycen = $disp_h->{ycen} //= $dims_h->{ycen} //= ($dims_h->{ymin} + $dims_h->{ymax}) / 2;
 
     if ($noisy) {
         my $fmt = "%9.2f %9.2f %9.2f %9.2f";
@@ -736,8 +736,8 @@ sub get_scale_factors {
 
     my $disp_h = $self->{disp} //= $self->{dims};
     my $dims_h = $self->{dims};
-    $disp_h->{xwidth}  //= $dims_h->{xwidth};
-    $disp_h->{yheight} //= $dims_h->{yheight};
+    $disp_h->{xwidth}  //= $dims_h->{xwidth}  //= ($dims_h->{xmax} - $dims_h->{xmin});
+    $disp_h->{yheight} //= $dims_h->{yheight} //= ($dims_h->{ymax} - $dims_h->{ymin});
 
     my @scale_factors = (
         $canvas_w / ($disp_h->{xwidth}  * $buffer_frac),

@@ -579,7 +579,6 @@ sub init_dendrogram {
 
     my $tree = Biodiverse::GUI::Canvas::Tree->new(
         frame                         => $frame,
-        # graph_frame => $graph_frame,
         grid                          => undef,
         hover_func                    => $hover_closure,
         highlight_func                => $highlight_closure,
@@ -597,6 +596,7 @@ sub init_dendrogram {
     $tree->set_num_clusters (1);
     $self->set_dendrogram_colour_for_undef(COLOUR_GRAY);  #  default
     $tree->hide_legend;  #  start hidden
+    $tree->init_scree_plot(frame => $graph_frame);
 
 
     $self->{no_dendro_legend_for} = {

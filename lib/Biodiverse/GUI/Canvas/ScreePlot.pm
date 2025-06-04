@@ -7,22 +7,43 @@ our $VERSION = '4.99_002';
 
 use experimental qw /refaliasing declared_refs for_list/;
 use Glib qw/TRUE FALSE/;
+use Scalar::Util qw /weaken/;
 use List::Util qw /min max sum/;
 use List::MoreUtils qw /minmax/;
 use POSIX qw /floor ceil/;
 use Carp qw /croak confess/;
 
-use parent 'Biodiverse::GUI::Canvas::Tree';
+use parent 'Biodiverse::GUI::Canvas';
 
 sub new {
     my ($class, %args) = @_;
 
-    my $self = Biodiverse::GUI::Canvas::Tree->new (%args);
+    my $self = Biodiverse::GUI::Canvas->new (%args);
 
     #  rebless
     bless $self, $class;
 
+    $self->{callbacks} = {draw => sub {shift->draw (@_)}};
+
     return $self;
+}
+
+sub callback_order {
+    my $self = shift;
+    return (qw /draw/);
+}
+
+sub set_tree_canvas {
+    my ($self, $tree_canvas) = @_;
+    $self->{tree_canvas} = $tree_canvas;
+    weaken $self->{tree_canvas};
+    # $self->init_plot_coords;
+    return $tree_canvas;
+}
+
+sub get_tree_canvas {
+    my ($self) = @_;
+    return $self->{tree_canvas};
 }
 
 # sub callback_order {
@@ -73,7 +94,7 @@ sub draw {
 
     $self->init_plot_coords;
 
-    my $data = $self->{graph_data};
+    my $data = $self->{data};
 
     $cx->set_source_rgb(0.8, 0.8, 0.8);
     $cx->rectangle (0, 0, 1, 1);
@@ -104,50 +125,63 @@ sub draw {
     return;
 }
 
+#  branch line width in canvas units
+sub get_line_width {
+    my ($self) = @_;
+
+    return 0.01;
+}
+
+
+#  requires the tree to have generated its data
 sub init_plot_coords {
     my ($self) = @_;
 
     return if $self->{plot_coords_generated};
 
-    $self->SUPER::init_plot_coords;
+    my $tree_canvas = $self->get_tree_canvas;
+
+    my $tree_data = $tree_canvas->get_data;
 
     #  now iterate over the branches and accumulate
     my $npoints = 50;
-    my $ntips   = $self->{data}{ntips};
-
-    # say join ' ', keys %{$self->{data}};
+    my $branches = $tree_data->{by_node};
+    my $nbranches = scalar keys %$branches;
 
     my @histogram;
 
     #  use the rtree and get the sum of tips for intersected branches
-    my $dims  = $self->{dims};
+    my $dims  = $tree_canvas->{dims};
     my @xdims = ($dims->{xmin}, $dims->{xmax});
     my @ydims = ($dims->{ymin}, $dims->{ymax});
 
     my $increment = ($xdims[1] - $xdims[0]) / $npoints;
-    my $rtree = $self->get_rtree;
+    my $index = $tree_canvas->get_index;
 
     my $x = $xdims[0];
+    my $prev_frac = 0;
     while ($x < $xdims[1]) {
-        my @branches;
-        $rtree->query_partly_within_rect($x, $ydims[0], $x+$increment, $ydims[1], \@branches);
+        my @branches = $index->intersects_slider($x, $ydims[0], $x+$increment, $ydims[1]);
 
-        #  only get parents
-        my %res_hash = map {$_->{name} => $_} @branches;
-        my @res2;
-        for my $branch (@branches) {
-            next if defined $branch->{parent} && exists $res_hash{$branch->{parent}};
-            push @res2, $branch;
-        }
-        %res_hash = map {$_->{name} => $_} @res2;
-
-        push @histogram, [$x, sum (map {$_->{ntips} / $ntips} @res2)];
+        my $branch_count_below = sum (map {($_->{node_ref}->get_descendent_count)} @branches);
+        my $frac = $branch_count_below / $nbranches;
+        #  this produces a stepped plot
+        push @histogram, ([$x, $prev_frac], [$x, $frac]);
         $x += $increment;
+        $prev_frac = $frac;
     }
 
-    push @histogram, [$xdims[1], $self->{data}{ntips} / $ntips];
+    push @histogram, ([$xdims[1], $prev_frac], [$xdims[1], 1]);
 
-    $self->{graph_data} = \@histogram;
+    $self->{dims} = {
+        xmin => $xdims[0],
+        xmax => $xdims[1],
+        ymin => 0,
+        ymax => 1,
+    };
+    $self->{data} = \@histogram;
+
+    $self->{plot_coords_generated} = 1;
 
     return;
 }

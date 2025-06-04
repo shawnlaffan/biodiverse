@@ -103,15 +103,16 @@ sub intersects_slider {
     my %bres_hash;
     foreach my $box (@results) {
         foreach my $branch (@$box) {
+            next if $bres_hash{$branch->{name}};
             my ($x_l, $x_r) = minmax (@$branch{qw /x_l x_r/});  #  allow for negative branches
-            if (!exists $bres_hash{$branch->{name}} or max ($b[0], $x_l) <= min ($b[2], $x_r)) {
+            if (max ($b[0], $x_l) <= min ($b[2], $x_r)) {
                 # branch intersects slider
                 $bres_hash{$branch->{name}} //= $branch;
             }
         }
     }
     #  exclude children if we have the parent
-    my @bres2 = grep {!exists $bres_hash{$_->{parent} // ''}} values %bres_hash;
+    my @bres2 = grep {!exists ($bres_hash{$_->{parent} // die "no parent for $_->{name}"})} values %bres_hash;
 
     return wantarray ? @bres2 : \@bres2;
 }

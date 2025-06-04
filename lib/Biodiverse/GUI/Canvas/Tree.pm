@@ -16,6 +16,7 @@ use Carp qw /croak confess/;
 use Sort::Key qw /rnkeysort/;
 
 use Biodiverse::GUI::Canvas::Tree::Index;
+use Biodiverse::GUI::Canvas::ScreePlot;
 use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
 
 use parent 'Biodiverse::GUI::Canvas';
@@ -92,9 +93,10 @@ sub new {
     # say join ' ', $self->get_data_extents;
 
     $self->{callbacks} = {
-        plot   => sub {shift->draw (@_)},
+        plot   => sub {shift->draw(@_)},
         legend => sub {shift->get_legend->draw(@_)},
-        #  update graph if present
+        # graph  => sub {shift->get_scree_plot->draw (@_))}
+        graph  => sub {},
     };
 
     # Process changes for the map
@@ -116,7 +118,7 @@ sub new {
 
 sub callback_order {
     my $self = shift;
-    return (qw /plot legend/);
+    return (qw /plot legend graph/);
 }
 
 sub set_current_tree {
@@ -166,13 +168,16 @@ sub set_current_tree {
     my %branch_hash;
     foreach my $node (@tips) {
         my $name = $node->get_name;
-        $branch_hash{$name}{name} = $name;
-        $branch_hash{$name}{node_ref} = $node;
-        $branch_hash{$name}{ntips}    = 0;
-        my $len   = $node->$len_method;
+        my $len  = $node->$len_method;
+        my $bref = $branch_hash{$name} = {
+            name     => $name,
+            node_ref => $node,
+            ntips    => 0,
+            length   => $len,
+            parent   => $node->get_parent_name,
+        };
         my $width = $len;
-        $branch_hash{$name}{length} = $len;
-        my $path = $branch_hash{$name}{path_to_root} = [$len];  #  still needed?
+        my $path = $bref->{path_to_root} = [$len];  #  still needed?
         my $parent = $node;
         while ($parent = $parent->get_parent) {
             my $this_len = $parent->$len_method;
@@ -180,12 +185,13 @@ sub set_current_tree {
             $width = max ($width, $len);
             push @$path, $this_len;
             my $parent_name = $parent->get_name;
-            $branch_hash{$parent_name}{ntips}++;
-            if (!$branch_hash{$parent_name}{node_ref}) {
-                $branch_hash{$parent_name}{node_ref} = $parent;
-                $branch_hash{$parent_name}{length}   = $this_len;
-                $branch_hash{$parent_name}{name}     = $parent_name;
-            }
+            my $pref = $branch_hash{$parent_name} //= {
+                node_ref => $parent,
+                length   => $this_len,
+                name     => $parent_name,
+                parent   => $parent->get_parent_name,
+            };
+            $pref->{ntips}++;
         }
         $longest_path = $len if $len > $longest_path;
         $widest_path  = $width if $width > $widest_path;
@@ -227,6 +233,10 @@ sub set_current_tree {
 
 sub get_current_tree {
     $_[0]->{current_tree};
+}
+
+sub get_data {
+    $_[0]->{data};
 }
 
 sub _on_motion {
@@ -709,6 +719,10 @@ sub init_plot_coords {
 
     #  trigger index generation
     my $box_index = $self->get_index;
+
+    if (my $scree_plot = $self->get_scree_plot) {
+        $scree_plot->init_plot_coords;
+    }
 
     return;
 }
@@ -2008,6 +2022,51 @@ sub recolour {
     }
 
     return;
+}
+
+###########################################
+##
+##  Graph stuff - we control the contents
+
+sub set_graph_frame {
+    my ($self, $frame) = @_;
+    die "Graph frame is already set"
+        if $self->{graph_frame};
+
+    $self->{graph_frame} = $frame;
+}
+
+sub init_scree_plot {
+    my ($self, %args) = @_;
+
+    my $frame = delete $args{frame};
+    $self->set_graph_frame ($frame);
+
+    my $da = (delete $args{drawing_area}) || Gtk3::DrawingArea->new;
+    $frame->set (expand => 1);  #  otherwise we shrink to not be visible
+    $frame->add($da);
+
+    my $graph = Biodiverse::GUI::Canvas::ScreePlot->new (
+        %args,
+        frame    => $frame,
+        drawable => $da,
+    );
+    $graph->set_tree_canvas($self);
+
+    $self->{scree_plot} = $graph;
+}
+
+sub get_scree_plot {
+    my ($self) = @_;
+    $self->{scree_plot};
+}
+
+sub show_all {
+    my ($self) = @_;
+    $self->SUPER::show_all;
+    if (my $plot = $self->get_scree_plot) {
+        $plot->show_all;
+    }
 }
 
 1;

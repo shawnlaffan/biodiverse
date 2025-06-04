@@ -1681,6 +1681,11 @@ sub weaken_parent_ref {
     return weaken ($_[0]->{_PARENT});
 }
 
+sub get_parent_name {
+    my $self = shift;
+    $self->is_root_node ? '' : $self->get_parent->get_name;
+}
+
 sub is_root_node {
     return !$_[0]->get_parent;  #  if it's false then it's a root node
 }

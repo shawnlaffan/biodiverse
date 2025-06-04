@@ -658,7 +658,6 @@ sub init_dendrogram {
 
     my $dendro = $self->{dendrogram} = Biodiverse::GUI::Canvas::Tree->new(
         frame           => $frame,
-        graph_frame     => $graph_frame,
         grid            => $self->{grid},
         list_combo      => $list_combo,
         index_combo     => $index_combo,
@@ -678,6 +677,7 @@ sub init_dendrogram {
 
     $dendro->set_parent_tab($self);
     $dendro->init_multiselect;
+    $dendro->init_scree_plot(frame => $graph_frame);
 
     if ($self->{existing}) {
         my $cluster_ref = $self->{output_ref};

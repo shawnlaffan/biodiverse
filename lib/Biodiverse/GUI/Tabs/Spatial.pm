@@ -1182,13 +1182,9 @@ sub set_phylogeny_options_sensitive {
 sub on_phylogeny_hover {
     my ($self, $branch) = @_;
 
-    my $map_text = '<b>Node label: </b> ' . $branch->get_name;
-    my $dendro_text = sprintf (
-        '<b>Node Length: </b> %.4f <b>Element numbers: First</b> %d <b>Last:</b> %d',
-        $branch->get_total_length, # round to 4 d.p.
-        $branch->get_value ('TERMINAL_NODE_FIRST') // '',
-        $branch->get_value ('TERMINAL_NODE_LAST')  // '',
-    );
+    return if !$branch;
+
+    my ($map_text, $dendro_text) = $self->get_phylogeny_hover_text ($branch);
 
     $self->get_xmlpage_object('lblOutput')->set_markup($map_text);
     $self->get_xmlpage_object('spatial_label_VL_tree')->set_markup($dendro_text);

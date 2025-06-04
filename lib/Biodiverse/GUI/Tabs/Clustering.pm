@@ -1419,18 +1419,11 @@ sub on_run_analysis {
 # Called by dendrogram when user hovers over a node
 # Updates those info labels
 sub on_dendrogram_hover {
-    my $self = shift;
-    my $node = shift || return;
+    my ($self, $branch) = @_;
 
-    # no warnings 'uninitialized';  #  don't complain if nodes have not been numbered
+    return if !$branch;
 
-    my $map_text = '<b>Node label: </b> ' . $node->get_name;
-    my $dendro_text = sprintf (
-        '<b>Node Length: </b>%.4f<b> Elt number range: </b>%d<b> - </b>%d',
-         $node->get_total_length, # round to 4 d.p.
-         $node->get_terminal_node_first_number // '',
-         $node->get_terminal_node_last_number // '',
-    );
+    my ($map_text, $dendro_text) = $self->get_phylogeny_hover_text ($branch);
 
     $self->get_xmlpage_object('lblMap')->set_markup($map_text);
     $self->get_xmlpage_object('lblDendrogram')->set_markup($dendro_text);

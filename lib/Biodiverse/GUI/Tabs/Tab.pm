@@ -1475,5 +1475,19 @@ EOT
     return $item;
 }
 
+sub get_phylogeny_hover_text {
+    my ($self, $branch) = @_;
+
+    my $map_text = '<b>Node: </b> ' . $branch->get_name;
+    my $dendro_text = sprintf (
+        '<b>Length: </b>%.4f<b> Elt number range: </b>%d<b> - </b>%d',
+        $branch->get_length, # round to 4 d.p.
+        $branch->get_terminal_node_first_number // '',
+        $branch->get_terminal_node_last_number // '',
+    );
+
+    return ($map_text, $dendro_text);
+}
+
 
 1;

@@ -579,7 +579,8 @@ sub remove_selected_labels_from_list {
     my $treeview2 = $self->get_xmlpage_object('listLabels2');
 
     my $selection = $treeview1->get_selection;
-    my @paths = $selection->get_selected_rows();
+    my ($p, $model) = $selection->get_selected_rows();
+    my @paths = $p ? @$p : [];
 
     my $global_model = $self->{labels_model};
 
@@ -647,7 +648,8 @@ sub get_selected_records {
 
     # Get the current selection
     my $selection = $self->get_xmlpage_object('listLabels1')->get_selection();
-    my @paths = $selection->get_selected_rows();
+    my ($p, $model) = $selection->get_selected_rows();
+    my @paths = $p ? @$p : [];
     #my @selected = map { ($_->get_indices)[0] } @paths;
     my $sorted_model = $selection->get_tree_view()->get_model();
     my $global_model = $self->{labels_model};
@@ -2065,30 +2067,48 @@ sub do_switch_selection {
 
 sub do_copy_selected_to_clipboard {
     my $args = shift;
-    my $self = $args->[0];
-    my $full_recs = $args->[1];
+    my ($self, $do_full_recs) = @$args;
 
-    my $clipboard = Gtk3::Clipboard->get(Gtk3::Gdk->SELECTION_CLIPBOARD);
+    my $clipboard = Gtk3::Clipboard::get(
+        Gtk3::Gdk::Atom::intern('CLIPBOARD', Glib::FALSE)
+    );
 
-    # Add text and HTML data to clipboard
-    # We'll be called back when someone pastes
-    eval {
-        $clipboard->set_with_data (
-            \&clipboard_get_func,
-            \&clipboard_clear_func,
-            [$self, $full_recs],
-            {target=>'STRING',        info => TYPE_TEXT},
-            {target=>'TEXT',          info => TYPE_TEXT},
-            {target=>'COMPOUND_TEXT', info => TYPE_TEXT},
-            {target=>'UTF8_STRING',   info => TYPE_TEXT},
-            {target=>'text/plain',    info => TYPE_TEXT},
-            {target=>'text/html',     info => TYPE_HTML},
-        );
-    };
-    warn $EVAL_ERROR if $EVAL_ERROR;
+    my $text = $self->get_text_for_clipboard ($do_full_recs);
+    $clipboard->set_text($text);
 
     return;
 }
+
+sub get_text_for_clipboard {
+    my ($self, $do_full_recs) = @_;
+
+    my $text = '';
+
+    # Generate the text
+    if ($do_full_recs) {
+        #  could iterate over $tree_view->get_columns
+        #  but we would then need to unescape the names
+        my $header = $self->{tree_model_column_names};
+        my $selected_records = $self->get_selected_records;
+        my @recs = map {[@$_[0..($#$_)-2]]} ($header, @$selected_records);
+        foreach my $rec (@recs) {
+            #  skip the selection cols
+            $text .= join "\t", (map {$_ // ''} @$rec);
+            $text .= "\n";
+        }
+
+    }
+    else {
+        my $selected_labels = $self->get_selected_labels;
+        $text .= join "\n", @$selected_labels;
+    }
+
+    # Give the data..
+    print "[Labels] Sending data for selection to clipboard\n";
+
+    return $text;
+}
+
 
 my $HTML_HEADER =<<'END_HTML_HEADER'
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"

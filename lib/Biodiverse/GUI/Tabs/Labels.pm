@@ -5,7 +5,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-use experimental qw(refaliasing);
+use experimental qw/refaliasing declared_refs/;
 
 #use Data::Dumper;
 use Sort::Key::Natural qw /natsort mkkey_natural/;
@@ -21,10 +21,11 @@ use HTML::QuickTable;
 use Gtk3;
 use Carp;
 use Biodiverse::GUI::GUIManager;
-use Biodiverse::GUI::MatrixGrid;
-use Biodiverse::GUI::Grid;
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::Overlays;
+use Biodiverse::GUI::Canvas::Matrix;
+use Biodiverse::GUI::Canvas::Grid;
+use Biodiverse::GUI::Canvas::Tree;
 
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
@@ -216,9 +217,6 @@ sub init_grid {
     my $self = shift;
 
     my $frame   = $self->get_xmlpage_object('gridFrameViewLabels');
-    my $lframe  = $self->get_xmlpage_object('gridFrameViewLabelsLegend');
-    my $hscroll = $self->get_xmlpage_object('gridHScrollViewLabels');
-    my $vscroll = $self->get_xmlpage_object('gridVScrollViewLabels');
 
     my $hover_closure  = sub { $self->on_grid_hover(@_); };
     my $click_closure  = sub { Biodiverse::GUI::CellPopup::cell_clicked($_[0], $self->{base_ref}); };
@@ -226,10 +224,8 @@ sub init_grid {
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
     my $end_hover_closure  = sub { $self->on_end_grid_hover(@_); };
 
-    $self->{grid} = Biodiverse::GUI::Grid->new(
-        frame => $frame,
-        hscroll => $hscroll,
-        vscroll => $vscroll,
+    my $grid = $self->{grid} = Biodiverse::GUI::Canvas::Grid->new(
+        frame       => $frame,
         show_legend => 0,
         show_value  => 0,
         hover_func      => $hover_closure,
@@ -238,17 +234,19 @@ sub init_grid {
         grid_click_func => $grid_click_closure,
         end_hover_func  => $end_hover_closure,
     );
-    $self->{grid}->set_parent_tab($self);
+    $grid->set_parent_tab($self);
 
-    eval {$self->{grid}->set_base_struct($self->{base_ref}->get_groups_ref)};
+    eval {$grid->set_base_struct($self->{base_ref}->get_groups_ref)};
     if ($EVAL_ERROR) {
         $self->{gui}->report_error ($EVAL_ERROR);
         return;
     }
 
-    $self->{grid}->set_legend_mode('Sat');
+    $grid->set_legend_mode('Sat');
 
     $self->warn_if_basedata_has_gt2_axes;
+
+    $frame->show_all;
 
     return 1;
 }
@@ -264,17 +262,24 @@ sub init_matrix_grid {
     my $select_closure = sub { $self->on_matrix_clicked(@_); };
     my $grid_click_closure = sub { $self->on_matrix_grid_clicked(@_); };
 
-    $self->{matrix_grid} = Biodiverse::GUI::MatrixGrid->new(
-        frame => $frame,
-        hscroll => $hscroll,
-        vscroll => $vscroll,
+    my $drawable = Gtk3::DrawingArea->new;
+    $frame->set (expand => 1);  #  otherwise we shrink to not be visible
+    $frame->add($drawable);
+
+    $self->{matrix_grid} = Biodiverse::GUI::Canvas::Matrix->new(
+        frame           => $frame,
         hover_func      => $hover_closure,
         select_func     => $select_closure,
         grid_click_func => $grid_click_closure,
+        drawable        => $drawable,
     );
     $self->{matrix_grid}->set_parent_tab($self);
 
+    warn 'FIXME - populate the matrix';
+
     $self->{matrix_drawn} = 0;
+
+    $frame->show_all;
 
     return 1;
 }
@@ -285,8 +290,6 @@ sub init_dendrogram {
 
     my $frame      = $self->get_xmlpage_object('phylogenyFrame');
     my $graph_frame = $self->get_xmlpage_object('phylogenyGraphFrame');
-    my $hscroll    = $self->get_xmlpage_object('phylogenyHScroll');
-    my $vscroll    = $self->get_xmlpage_object('phylogenyVScroll');
 
     my $list_combo  = $self->get_xmlpage_object('comboPhylogenyLists');
     my $index_combo = $self->get_xmlpage_object('comboPhylogenyShow');
@@ -296,11 +299,8 @@ sub init_dendrogram {
     my $click_closure      = sub { $self->on_phylogeny_click(@_); };
     my $select_closure      = sub { $self->on_phylogeny_select(@_); };
 
-    $self->{dendrogram} = Biodiverse::GUI::Dendrogram->new(
-        main_frame  => $frame,
-        graph_frame => $graph_frame,
-        hscroll     => $hscroll,
-        vscroll     => $vscroll,
+    my $dendro = $self->{dendrogram} = Biodiverse::GUI::Canvas::Tree->new(
+        frame  => $frame,
         grid        => undef,
         list_combo  => $list_combo,
         index_combo => $index_combo,
@@ -309,13 +309,14 @@ sub init_dendrogram {
         ctrl_click_func => $ctrl_click_closure,
         click_func      => $click_closure,
         select_func     => $select_closure,
-        parent_tab      => $self,
-        basedata_ref    => $self->{base_ref},
+        # basedata_ref    => $self->{base_ref},
     );
-    $self->{dendrogram}->set_parent_tab($self);
-
+    $dendro->set_parent_tab($self);
     #  cannot colour more than one in a phylogeny
-    $self->{dendrogram}->set_num_clusters (1);
+    $dendro->set_num_clusters (1);
+    $dendro->init_scree_plot(frame => $graph_frame);
+
+    $dendro->show_all;
 
     return 1;
 }
@@ -422,7 +423,7 @@ sub init_list {
     push @column_names, ('Selected', 'Selected_Col');
 
     # Set model to a wrapper that lets this list have independent sorting
-    my $wrapper_model = Gtk3::TreeModelSort->new( $self->{labels_model});
+    my $wrapper_model = Gtk3::TreeModelSort->new_with_model ( $self->{labels_model});
     $tree->set_model( $wrapper_model );
 
     my $sort_func = \&sort_by_column;
@@ -789,14 +790,14 @@ sub on_selected_phylogeny_changed {
 
     my $phylogeny = $self->{project}->get_selected_phylogeny;
 
-    $self->{dendrogram}->clear;
+    # $self->{dendrogram}->clear;
     if ($phylogeny) {
         #  now storing tree objects directly
-        $self->{dendrogram}->set_cluster($phylogeny, $self->{plot_mode} //= 'length');
+        $self->{dendrogram}->set_current_tree($phylogeny);
         $self->set_phylogeny_options_sensitive(1);
     }
     else {
-        $self->{dendrogram}->set_cluster(undef, $self->{plot_mode} //= 'length');
+        $self->{dendrogram}->set_current_tree(undef);
         $self->set_phylogeny_options_sensitive(0);
         my $str = '<i>No selected tree</i>';
         $self->get_xmlpage_object('label_VL_tree')->set_markup($str);
@@ -903,8 +904,7 @@ sub get_legend_log_mode {
 
 # Called when user changes selection in one of the two labels lists
 sub on_selected_labels_changed {
-    my $selection = shift;
-    my $args      = shift;
+    my ($selection, $args) = @_;
     my ($self, $id) = @$args;
 
     # Ignore waste-of-time events fired on on_phylogeny_click as it
@@ -923,7 +923,8 @@ sub on_selected_labels_changed {
     my $select_list_name = 'selected_' . $rowcol;
 
     # Select rows/cols in the matrix
-    my @paths = $selection->get_selected_rows();
+    my ($p, $model) = $selection->get_selected_rows();
+    my @paths = @{$p // []};  #  $p is undef for no selection
     my @selected = map { ($_->get_indices)[0] } @paths;
     $self->{$select_list_name} = \@selected;
 
@@ -1370,10 +1371,10 @@ sub on_phylogeny_highlight {
         my $containing = eval {$bd->get_groups_with_label_as_hash(label => $label)};
         next LABEL if !$containing;
 
-        @groups{keys %$containing} = values %$containing;
+        @groups{keys %$containing} = ();
     }
 
-    $self->{grid}->mark_if_exists( \%groups, 'circle' );
+    $self->{grid}->mark_with_circles ( [keys %groups] );
 
     if (defined $node) {
         my $text = 'Node: ' . $node->get_name;
@@ -1422,7 +1423,7 @@ sub on_phylogeny_click {
         on_selected_labels_changed($hselection, [$self, 'listLabels1']);
 
         # Remove the hover marks
-        $self->{grid}->mark_if_exists( {}, 'circle' );
+        $self->{grid}->mark_with_circle ( [] );
     }
     elsif ($self->{tool} eq 'ZoomOut') {
         $self->{dendrogram}->zoom_out();

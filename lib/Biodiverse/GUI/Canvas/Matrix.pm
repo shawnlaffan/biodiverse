@@ -16,7 +16,8 @@ use parent 'Biodiverse::GUI::Canvas::Grid';
 
 sub new {
     my ($class, %args) = @_;
-    my $size = $args{size};
+    my $size = delete $args{size};
+    $size //= 10;
     $args{dims} = {
         xmin    => 0,
         ymin    => 0,
@@ -31,7 +32,7 @@ sub new {
     $args{ncells_x} = $size;
     $args{ncells_y} = $size;
 
-    my $self = Biodiverse::GUI::Canvas->new (%args);
+    my $self = $class->SUPER::new(%args);
 
     #  rebless
     bless $self, $class;

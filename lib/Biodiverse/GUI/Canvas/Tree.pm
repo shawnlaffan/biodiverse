@@ -137,6 +137,8 @@ sub set_current_tree {
         depth  => sub {1},
     );
 
+    $plot_mode //= 'length';
+
     my $len_method = $self->{length_func}
         // $mode_methods{$plot_mode}
         // 'get_length';
@@ -843,7 +845,8 @@ sub get_toy_data {
 sub set_num_clusters {
     my ($self, $n, $no_recolour) = @_;
 
-    if ($self->get_num_clusters != $n and !$no_recolour) {
+    my $current = $self->get_num_clusters // 0;
+    if ($current != $n and !$no_recolour) {
         $self->{num_clusters} = $n;
         $self->recolour();
     }

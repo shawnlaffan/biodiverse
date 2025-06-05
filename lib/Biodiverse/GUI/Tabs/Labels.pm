@@ -624,7 +624,8 @@ sub get_selected_labels {
 
     # Get the current selection
     my $selection = $self->get_xmlpage_object('listLabels1')->get_selection();
-    my @paths = $selection->get_selected_rows();
+    my ($p, $model) = $selection->get_selected_rows();
+    my @paths = $p ? @$p : [];
     #my @selected = map { ($_->get_indices)[0] } @paths;
     my $sorted_model = $selection->get_tree_view()->get_model();
     my $global_model = $self->{labels_model};

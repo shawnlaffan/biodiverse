@@ -1019,22 +1019,24 @@ sub on_selected_labels_changed {
     else {
         $grid->set_legend_log_mode_off;
     }
+
     my $legend = $grid->get_legend;
+    $legend->set_min_max(0, $display_max_value);
 
     my $colour_func = sub {
         my $elt = shift;
         my $val = $group_richness{$elt};
         return COLOUR_GREY if !defined $val;
         return if !$val;
-        #if ($use_log) {
-        #    $val = log ($val + 1);
-        #}
         return $legend->get_colour($val, 0, $display_max_value);
     };
 
     $grid->colour($colour_func);
-    $grid->set_legend_min_max(0, $display_max_value);
-    #$self->{matrix_grid}->set_legend_min_max(0, $max_value);
+
+    #  messy - should store on $self
+    $legend->set_visible(
+        $self->get_xmlpage_object('menuitem_labels_show_legend')->get_active
+    );
 
     if (defined $tree) {
         #print "[Labels] Recolouring cluster lines\n";
@@ -1047,8 +1049,9 @@ sub on_selected_labels_changed {
     # have to run this after everything else is updated
     # otherwise incorrect nodes are selected.
     $self->set_selected_list_cols ($selection, $rowcol);
-    $grid->update_legend();
-    #$self->{matrix_grid}->update_legend();
+
+    $grid->queue_draw;
+
     return;
 }
 
@@ -1423,7 +1426,7 @@ sub on_phylogeny_click {
         on_selected_labels_changed($hselection, [$self, 'listLabels1']);
 
         # Remove the hover marks
-        $self->{grid}->mark_with_circle ( [] );
+        $self->{grid}->mark_with_circles ( [] );
     }
     elsif ($self->{tool} eq 'ZoomOut') {
         $self->{dendrogram}->zoom_out();
@@ -1729,7 +1732,6 @@ sub get_type {
 
 sub remove {
     my $self = shift;
-    $self->{grid}->destroy() if $self->{grid};
     $self->{notebook}->remove_page( $self->get_page_index );
     $self->{project}->delete_selection_callback('matrix', $self->{matrix_callback});
     $self->{project}->delete_selection_callback('phylogeny', $self->{phylogeny_callback});

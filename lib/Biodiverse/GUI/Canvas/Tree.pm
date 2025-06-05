@@ -581,12 +581,13 @@ sub draw {
     \my %colour_hash    = $self->{branch_colours} // {};
     my $have_highlights = keys %highlight_hash;
     # say 'HAVE HIGHLIGHTS' if $have_highlights;
-    my $default_colour
+    my $default_branch_colour = $self->{default_branch_colour} // DEFAULT_LINE_COLOUR;
+    my $default_highlight_colour
         = $have_highlights
         ? $self->{default_highlight_colour}
-        : $self->{default_branch_colour} // DEFAULT_LINE_COLOUR;
+        : $default_branch_colour;
 
-    my @h_colour = $self->rgb_to_array($default_colour);
+    my @h_colour = $self->rgb_to_array($default_branch_colour);
     my @v_colour = $self->rgb_to_array(DEFAULT_LINE_COLOUR_VERT);
 
     $cx->set_line_cap ('butt');
@@ -605,7 +606,9 @@ sub draw {
         #  but not a colour or array ref.
         my $colour;
         if ($have_highlights) {
-            $colour = $highlight_hash{$name} // $default_colour;
+            $colour = exists $highlight_hash{$name}
+                ? ($highlight_hash{$name} // $default_branch_colour)
+                : $default_highlight_colour;
             #  Highlight using original colour if we are
             #  not some sort of reference.
             if (!is_ref($colour)) {
@@ -968,10 +971,11 @@ sub set_branch_colours {
     $branch_hash //= {};
 
     #  do we want this?
-    $self->{default_branch_colour}
-        = keys %$branch_hash
-        ? ($default_colour // COLOUR_GRAY)
-        : DEFAULT_LINE_COLOUR;
+    # $self->{default_branch_colour}
+    #     = keys %$branch_hash
+    #     ? ($default_colour // COLOUR_GRAY)
+    #     : DEFAULT_LINE_COLOUR;
+    # $self->{default_branch_colour} = $default_colour;
 
     $self->{branch_colours} = $branch_hash;
 
@@ -1025,7 +1029,7 @@ sub use_highlight_func {
 
 # Colours the dendrogram lines with palette colours
 sub recolour_cluster_lines {
-    my ($self, $cluster_nodes, $no_colour_descendants) = @_;
+    my ($self, $cluster_nodes, $no_colour_descendants, $default_colour) = @_;
 
     if ($self->in_multiselect_mode) {
         #  a different structure, handled below
@@ -1083,14 +1087,6 @@ sub recolour_cluster_lines {
         }
 
         $colour_hash{$node_name} = $colour_ref;
-
-        # if colour is undef then we're clearing back to default
-        # $colour_ref ||= DEFAULT_LINE_COLOUR;
-
-        # $line = $self->{node_lines}{$node_name};
-        # if ($line) {
-        #     $line->set(fill_color_gdk => $colour_ref);
-        # }
 
         # And also colour all nodes below
         # - don't cache on the tree as we can get recursion stack blow-outs

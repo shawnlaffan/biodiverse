@@ -1042,7 +1042,7 @@ sub on_selected_labels_changed {
         #print "[Labels] Recolouring cluster lines\n";
         $self->{dendrogram}->recolour_cluster_lines(
             \@phylogeny_colour_nodes,
-            'no_colour_decendants',
+            'no_colour_descendants',
         );
     }
 
@@ -1247,16 +1247,10 @@ sub on_grid_hover {
     my $bd = $self->get_base_ref;
     my $labels = $bd->get_labels_in_group_as_hash_aa ($group);
 
-    
-    # highlight in the tree
-    foreach my $label (keys %$labels) {
-        # Might not match some or all nodes
-        next if !$tree->exists_node_name_aa ($label);
-        eval {
-            my $node_ref = $tree->get_node_ref_aa ($label);
-            $self->{dendrogram}->highlight_path($node_ref);
-        }
-    }
+    #  don't pollute the original hash
+    my %highlights;
+    @highlights{keys %$labels} = (1) x keys %$labels;
+    $self->{dendrogram}->set_branch_highlights (\%highlights);
 
     return;
 }

@@ -1763,11 +1763,10 @@ sub choose_tool {
 
     $self->{tool} = $tool;
 
-    $self->{grid}{drag_mode}        = $drag_modes{$tool};
-    $self->{matrix_grid}{drag_mode} = $drag_modes{$tool};
-    $self->{dendrogram}{drag_mode}  = $dendrogram_drag_modes{$tool};
-
-    $self->set_display_cursors ($tool);
+    foreach my $canvas (qw /grid dendrogram matrix/) {
+        next if ! blessed ($self->{$canvas} // '');  # might not be initialised yet
+        $self->{$canvas}->set_mode ($tool);
+    }
 }
 
 

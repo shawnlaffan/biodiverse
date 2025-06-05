@@ -600,10 +600,6 @@ sub init_map {
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
     my $end_hover_closure  = sub { $self->on_end_grid_hover(@_); };
 
-    my $drawable = Gtk3::DrawingArea->new;
-    $frame->set (expand => 1);  #  otherwise we shrink to not be visible
-    $frame->add($drawable);
-
     my $grid = $self->{grid} = Biodiverse::GUI::Canvas::Grid->new(
         frame           => $frame,
         show_legend     => 1,
@@ -613,7 +609,6 @@ sub init_map {
         select_func     => $select_closure,
         grid_click_func => $grid_click_closure,
         end_hover_func  => $end_hover_closure,
-        drawable        => $drawable,
     );
     $grid->set_parent_tab($self);
 
@@ -652,10 +647,6 @@ sub init_dendrogram {
     my $click_closure       = sub { $self->on_dendrogram_click(@_); };
     my $select_closure      = sub { $self->on_dendrogram_select(@_); };
 
-    my $drawable = Gtk3::DrawingArea->new;
-    $frame->set (expand => 1);  #  otherwise we shrink to not be visible
-    $frame->add($drawable);
-
     my $dendro = $self->{dendrogram} = Biodiverse::GUI::Canvas::Tree->new(
         frame           => $frame,
         grid            => $self->{grid},
@@ -668,7 +659,6 @@ sub init_dendrogram {
         select_func     => $select_closure, # select_func
         parent_tab      => $self,
         basedata_ref    => undef, # basedata_ref
-        drawable        => $drawable,
         num_clusters    => 6,
     );
 

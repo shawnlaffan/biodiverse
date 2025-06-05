@@ -26,6 +26,12 @@ sub new {
     my $self = \%args;
     bless $self, $class;
 
+    if (!$self->drawable) {
+        $self->{drawable} = Gtk3::DrawingArea->new;
+        $self->{frame}->set (expand => 1);  #  otherwise we shrink to not be visible
+        $self->{frame}->add($self->{drawable});
+    }
+
     $self->{mode} = 'select';
     $self->{dims}{scale} //= 1;
 
@@ -33,7 +39,7 @@ sub new {
     ##
     ## Add some signals and connect the drawing area to the window
     ##
-    my $drawable = $self->{drawable} // die 'Need a GtkDrawable to attach to';
+    my $drawable = $self->drawable // die 'Need a GtkDrawable to attach to';
 
 say STDERR "SETTING EVENTS on $drawable";
     $drawable->add_events(

@@ -573,10 +573,6 @@ sub init_dendrogram {
     my $click_closure       = sub { $self->on_phylogeny_click(@_); };
     # my $select_closure      = sub { $self->on_phylogeny_select(@_); };
 
-    my $drawable = Gtk3::DrawingArea->new;
-    $frame->set (expand => 1);  #  otherwise we shrink to not be visible
-    $frame->add($drawable);
-
     my $tree = Biodiverse::GUI::Canvas::Tree->new(
         frame                         => $frame,
         grid                          => undef,
@@ -587,7 +583,6 @@ sub init_dendrogram {
         # select_func     => $select_closure,  #  used to handle zooming, not needed now
         want_legend                   => 1,
         no_use_slider_to_select_nodes => 1,
-        drawable                      => $drawable,
         use_slider_to_select_nodes    => 0,
     );
     $self->{dendrogram} = $tree;

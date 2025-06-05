@@ -255,10 +255,6 @@ sub init_grid {
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
     my $select_closure     = sub { $self->on_grid_select(@_); };
 
-    my $drawable = Gtk3::DrawingArea->new;
-    $frame->set (expand => 1);  #  otherwise we shrink to not be visible
-    $frame->add($drawable);
-
     my $grid = $self->{grid} = Biodiverse::GUI::Canvas::Grid->new(
         frame           => $frame,
         show_legend     => 1,
@@ -268,7 +264,6 @@ sub init_grid {
         ctl_click_func  => $click_closure, # Middle click or ctl left-click
         select_func     => $select_closure,
         grid_click_func => $grid_click_closure, # Left click
-        drawable        => $drawable,
     );
     $grid->set_parent_tab($self);
 

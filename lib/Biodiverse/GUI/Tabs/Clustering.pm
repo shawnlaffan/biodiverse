@@ -1854,29 +1854,6 @@ my %drag_modes = (
     ZoomFit => 'click',
 );
 
-sub choose_tool {
-    my $self = shift;
-    my ($tool, ) = @_;
-
-    my $old_tool = $self->{tool};
-
-    if ($old_tool) {
-        $self->{ignore_tool_click} = 1;
-        my $widget = $self->get_xmlpage_object("btn${old_tool}ToolCL");
-        $widget->set_active(0);
-        my $new_widget = $self->get_xmlpage_object("btn${tool}ToolCL");
-        $new_widget->set_active(1);
-        $self->{ignore_tool_click} = 0;
-    }
-
-    $self->{tool} = $tool;
-
-    foreach my $canvas (qw /grid dendrogram/) {
-        next if ! blessed ($self->{$canvas} // '');  # might not be initialised yet
-        $self->{$canvas}->set_mode ($tool);
-    }
-}
-
 
 sub on_highlight_groups_on_map_changed {
     my $self = shift;

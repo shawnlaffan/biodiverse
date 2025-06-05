@@ -186,7 +186,7 @@ sub new {
 
     $self->get_xmlpage_object('menuitem_labels_overlays')->signal_connect_swapped(activate => \&on_overlays, $self);
 
-    $self->get_xmlpage_object("btnSelectToolVL")->set_active(1);
+    $self->get_xmlpage_object('btnSelectToolVL')->set_active(1);
 
     $self->get_xmlpage_object('menuitem_labels_show_legend')->signal_connect_swapped(
         toggled => \&on_show_hide_legend,
@@ -211,6 +211,10 @@ sub new {
     say "[GUI] - Loaded tab - Labels";
 
     return $self;
+}
+
+sub get_canvas_list {
+    qw /grid dendrogram matrix/;
 }
 
 sub init_grid {
@@ -1745,29 +1749,6 @@ my %dendrogram_drag_modes = (
     %drag_modes,
     Select  => 'click',
 );
-
-sub choose_tool {
-    my $self = shift;
-    my ($tool, ) = @_;
-
-    my $old_tool = $self->{tool};
-
-    if ($old_tool) {
-        $self->{ignore_tool_click} = 1;
-        my $widget = $self->get_xmlpage_object("btn${old_tool}ToolVL");
-        $widget->set_active(0);
-        my $new_widget = $self->get_xmlpage_object("btn${tool}ToolVL");
-        $new_widget->set_active(1);
-        $self->{ignore_tool_click} = 0;
-    }
-
-    $self->{tool} = $tool;
-
-    foreach my $canvas (qw /grid dendrogram matrix/) {
-        next if ! blessed ($self->{$canvas} // '');  # might not be initialised yet
-        $self->{$canvas}->set_mode ($tool);
-    }
-}
 
 
 #  no longer used?

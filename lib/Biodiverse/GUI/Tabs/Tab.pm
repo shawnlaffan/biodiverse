@@ -362,7 +362,41 @@ sub on_bare_key {
     }
 }
 
-sub choose_tool {}
+#  a default list
+sub get_canvas_list {
+    qw /grid dendrogram/;
+}
+
+sub choose_tool {
+    my $self = shift;
+    my ($tool, ) = @_;
+
+    my $old_tool = $self->{tool};
+
+    if ($old_tool) {
+        #  should really edit the ui files so they use the same names
+        my $class = blessed $self;
+        my $suffix
+            = $class =~ /Labels/  ? 'VL'
+            : $class =~ /Spatial/ ? 'SP'
+            : $class =~ /Cluster/ ? 'CL'
+            : die 'Unknown tab class';
+
+        $self->{ignore_tool_click} = 1;
+        my $widget = $self->get_xmlpage_object("btn${old_tool}Tool${suffix}");
+        $widget->set_active(0);
+        my $new_widget = $self->get_xmlpage_object("btn${tool}Tool${suffix}");
+        $new_widget->set_active(1);
+        $self->{ignore_tool_click} = 0;
+    }
+
+    $self->{tool} = $tool;
+
+    foreach my $canvas ($self->get_canvas_list) {
+        next if ! blessed ($self->{$canvas} // '');  # might not be initialised yet
+        $self->{$canvas}->set_mode ($tool);
+    }
+}
 
 sub get_removable { return 1; } # default - tabs removable
 

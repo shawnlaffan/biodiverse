@@ -2394,34 +2394,6 @@ sub get_options_menu {
     return $menu;
 }
 
-####
-# TODO: This whole section needs to be deduplicated between Labels.pm
-####
-sub choose_tool {
-    my $self = shift;
-    my ($tool, ) = @_;
-
-    my $old_tool = $self->{tool};
-
-    if ($old_tool) {
-        $self->{ignore_tool_click} = 1;
-        my $widget = $self->get_xmlpage_object("btn${old_tool}ToolSP");
-        $widget->set_active(0);
-        my $new_widget = $self->get_xmlpage_object("btn${tool}ToolSP");
-        $new_widget->set_active(1);
-        $self->{ignore_tool_click} = 0;
-    }
-
-    $self->{tool} = $tool;
-
-    foreach my $canvas (qw /grid dendrogram/) {
-        next if ! blessed ($self->{$canvas} // '');  # might not be initialised yet
-        # $self->{$canvas}{drag_mode} = $self->{drag_modes}{$tool};  #  still needed?
-        $self->{$canvas}->set_mode ($tool);
-    }
-
-    # $self->set_display_cursors ($tool);  #  canvas handles this now
-}
 
 #  cargo culted from SpatialParams.pm under the assumption that it will diverge over time
 sub run_options_dialogue {

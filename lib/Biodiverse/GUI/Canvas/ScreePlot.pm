@@ -104,8 +104,14 @@ sub draw {
 
     my $data = $self->{data};
 
+    #  displayed extent from the tree
+    my @de = $self->get_tree_canvas->get_displayed_extent;
+    my $left  = max (0, $de[0]);
+    my $width = min (1, $de[2]) - $left;
+
+    #  a rectangle showing the tree plot extent
     $cx->set_source_rgb(0.8, 0.8, 0.8);
-    $cx->rectangle (0, 0, 1, 1);
+    $cx->rectangle ($left, 0, $width, 1);
     $cx->fill;
 
     my $h_line_width = $self->get_line_width;

@@ -449,7 +449,7 @@ sub pan {
         $self->{last_pan_update} = $time;
 
         $self->{matrix} = $self->get_tfm_mx;
-        $widget->queue_draw;
+        $self->queue_draw;
     }
 
     return;
@@ -480,7 +480,7 @@ sub on_motion {
         #  update display if there was a function
         #  should we be deleting?
         if (defined delete $self->{highlights}) {
-            $widget->queue_draw;
+            $self->queue_draw;
             return FALSE;
         }
     }
@@ -535,7 +535,7 @@ sub on_button_release {
                 $self->{disp}{ycen} = $ycen;
             }
             $self->{matrix} = $self->get_tfm_mx;
-            $widget->queue_draw;
+            $self->queue_draw;
         }
         $self->_on_button_release ($x, $y) if $self->can('_on_button_release');
         $self->_on_selection_release ($x, $y) if $self->can('_on_selection_release');
@@ -573,7 +573,7 @@ sub on_button_press {
         #  reset
         $self->reset_disp;
         $self->{matrix} = $self->get_tfm_mx;
-        $widget->queue_draw;
+        $self->queue_draw;
         return FALSE;
     }
     elsif ($self->in_pan_mode && !$self->panning) {
@@ -770,6 +770,20 @@ sub reset_disp {
     my $self = shift;
     $self->{disp} = { %{$self->{dims}} };
 }
+
+
+sub get_displayed_extent {
+    my ($self) = @_;
+
+    my $draw_size = $self->{drawable}->get_allocation();
+
+    my ($x_l, $y_l) = $self->get_event_xy_from_mx ([$draw_size->{x}, $draw_size->{y}]);
+    my ($x_r, $y_u) = $self->get_event_xy_from_mx ([$draw_size->{width}, $draw_size->{height}]);
+
+    my @bounds = ($x_l, $y_l, $x_r, $y_u);
+    return wantarray ? @bounds : \@bounds;
+}
+
 
 #  leaner than rgb_to_array
 sub rgba_to_cairo {

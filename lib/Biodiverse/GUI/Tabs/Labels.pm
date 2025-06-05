@@ -2111,12 +2111,7 @@ sub get_text_for_clipboard {
 
 sub do_selection_export {
     my $args = shift;
-    my $self = $args->[0];
-    my $ref  = $args->[1];
-    my @rest_of_args;
-    if (scalar @$args > 2) {
-        @rest_of_args = @$args[2..$#$args];
-    }
+    my ($self, $ref, @rest_of_args) = @$args;
 
     my $selected_labels = $self->get_selected_labels;
 

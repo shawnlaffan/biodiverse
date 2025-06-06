@@ -971,10 +971,7 @@ sub copy_selected_tree_data_to_clipboard {
         my $selected_list = $self->get_comma_separated_selected_treeview_list ( 
             tree => $tree,
         );
-
-        foreach my $row (@$selected_list) {
-            push @copy_strings, $row;
-        }
+        push @copy_strings, @$selected_list;
     }
 
     # if they've selected nothing, get everything
@@ -985,9 +982,7 @@ sub copy_selected_tree_data_to_clipboard {
             my $selected_list = $self->get_comma_separated_complete_treeview_list ( 
                 tree => $tree,
             );
-            foreach my $row (@$selected_list) {
-                push @copy_strings, $row;
-            }
+            push @copy_strings, @$selected_list;
         }
     }
    
@@ -1022,9 +1017,11 @@ sub copy_selected_tree_data_to_clipboard {
 
     my $copy_string = join("\n", @copy_strings);
 
-    my $clipboard = Gtk3::Clipboard->get(Gtk3::Gdk->SELECTION_CLIPBOARD);
+    my $clipboard = Gtk3::Clipboard::get(
+        Gtk3::Gdk::Atom::intern('CLIPBOARD', Glib::FALSE)
+    );
     $clipboard->set_text($copy_string);
-    say "Copied following data to clipboard:\n$copy_string";
+    # say "Copied following data to clipboard:\n$copy_string";
 }
 
 
@@ -1055,7 +1052,8 @@ sub get_comma_separated_selected_treeview_list {
     my $selection = $tree->get_selection();
     my $model = $tree->get_model();
     my $columns = $model->get_n_columns();
-    my (@pathlist) = $selection->get_selected_rows();
+    my ($p, undef) = $selection->get_selected_rows();
+    my (@pathlist) = @{$p // []};
 
     foreach my $path (@pathlist) {
         my @column_data = ();
@@ -1114,6 +1112,7 @@ sub add_header_and_tooltip_to_treeview_column {
 
     $column->set_widget($header);
 
+    #FIXME for Gtk3
     my $tooltip = Gtk3::Tooltip->new();
     $tooltip->set_text( $header, $args{tooltip_text} );
 }

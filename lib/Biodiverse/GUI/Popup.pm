@@ -353,69 +353,30 @@ sub on_reuse_toggled {
 sub on_copy {
     my $popup = shift;
 
-    my $clipboard = Gtk3::Clipboard->get(Gtk3::Gdk->SELECTION_CLIPBOARD);
+    my $clipboard = Gtk3::Clipboard::get(
+        Gtk3::Gdk::Atom::intern('CLIPBOARD', Glib::FALSE)
+    );
 
-    # Add text and HTML (spreadsheet programs can read it) data to clipboard
-    # We'll be called back when someone pastes
-    eval {
-        $clipboard->set_with_data (
-            \&clipboard_get_func,
-            \&clipboard_clear_func,
-            $popup,
-            {target=>'STRING',        info => TYPE_TEXT},
-            {target=>'TEXT',          info => TYPE_TEXT},
-            {target=>'COMPOUND_TEXT', info => TYPE_TEXT},
-            {target=>'UTF8_STRING',   info => TYPE_TEXT},
-            {target=>'text/plain',    info => TYPE_TEXT},
-            {target=>'text/html',     info => TYPE_HTML},
-        );
-    };
-    warn $EVAL_ERROR if $EVAL_ERROR;
+    my $text = get_text_for_clipboard ($popup);
+    $clipboard->set_text($text);
 
     return;
 }
 
-sub clipboard_get_func {
-    my $clipboard = shift;
-    my $selection = shift;
-    my $datatype  = shift;
-    my $popup     = shift;
+sub get_text_for_clipboard {
+    my $popup = shift;
 
-    #print "[Popup] Clipboard data request (type $datatype)\n";
-
-    my $element  = $popup->{element};
-    my $list     = $popup->{list};
+    my $element = $popup->{element};
+    my $list = $popup->{list};
     my $listname = $popup->{listname};
-    my $model    = $list->get_model();
-    my $text;
+    my $model = $list->get_model();
 
-    if (! $model) {
+    #   should not happen now as we copy to clipboard immediately
+    if (!$model) {
         my $gui = Biodiverse::GUI::GUIManager->instance;
         my $e = "Unable to paste data.\nPopup has been closed so link with source data is lost\n";
         $gui->report_error($e);
         return;
-    }
-
-    # Start off with the "element" (ie: cell coordinates)
-    if ($datatype == TYPE_HTML) {
-        $text =<<'END_HTML_HEADER'
-        <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-        <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-
-        <head>
-            <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        </head>
-
-        <body>
-
-        <table>
-END_HTML_HEADER
-;
-        $text .= "<tr><td>$listname</td><td>$element</td></tr>";
-    }
-    else {
-        $text = "$listname\t$element\n";
     }
 
     # Generate the text
@@ -429,46 +390,25 @@ END_HTML_HEADER
         return;
     }
 
+    my $value_column = $popup->{value_column};
+
+    my $text = defined $value_column ? "$listname\t$element\n" : "$listname\n";
+
     while ($iter) {
         my $name = $model->get($iter, 0);
-        my $value = '';
-
-        if ($popup->{value_column}) {
-            $value = $model->get($iter, $popup->{value_column});
-        }
-
-        if ($datatype == TYPE_TEXT) {
+        if (defined $value_column) {
+            my $value = $model->get($iter, $value_column);
             $text .= "$name\t$value\n";
         }
-        elsif ($datatype == TYPE_HTML) {
-            $text .= "<tr><td>$name</td><td>$value</td></tr>\n";
+        else {
+            $text .= "$name\n";
         }
         last if !$model->iter_next($iter);
     }
 
-    if ($datatype == TYPE_HTML) {
-        $text .= "</table></body></html>\n";
-    }
-
-    # Give the data..
-    print "[Popup] Sending data for $element to clipboard\n";
-
-    if ($datatype == TYPE_HTML) {
-        my $atom = Gtk3::Gdk::Atom->intern('text/html');
-        $selection->set($atom, 8, $text);
-    }
-    elsif ($datatype == TYPE_TEXT) {
-        $selection->set_text($text);
-    }
-
-    return;
+    return $text;
 }
 
-sub clipboard_clear_func {
-    print "[Popup] Clipboard cleared\n";
-
-    return;
-}
 
 
 1;

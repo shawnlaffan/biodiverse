@@ -605,9 +605,9 @@ sub init_map {
         show_legend     => 1,
         show_value      => 0,
         hover_func      => $hover_closure,
-        click_func      => $click_closure,
-        select_func     => $select_closure,
-        grid_click_func => $grid_click_closure,
+        ctl_click_func  => $click_closure,
+        select_func     => $select_closure,      #  needed?
+        grid_click_func => $grid_click_closure,  #  needed?
         end_hover_func  => $end_hover_closure,
     );
     $grid->set_parent_tab($self);

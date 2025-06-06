@@ -368,22 +368,39 @@ sub do_basedata_attach_group_properties_from_rasters {
     );
     $chk_label_overlap->set_alignment(1, 0.5);
 
-    my $tooltip_group = Gtk3::Tooltip->new;
-    $tooltip_group->set_text(
-        $chk_label,
-          'This can be useful to check the imported values, but also because you '
-        . 'might want to run further analyses on these data.',
-        undef,
-    );
-    $tooltip_group->set_text(
-        $chk_label_overlap,
-          'Non-overlaps can occur if your data are in a different coordinate system '
-        . 'from the property rasters.  Note that data from any rasters prior to the '
-        . 'one that fails will be added.  If this is not set then extent mismatches '
-        . 'are silently ignored.  ',
-        undef,
-    );
-    
+    # my $tooltip_group = Gtk3::Tooltip->new;
+    # $tooltip_group->set_text(
+    #     $chk_label,
+    #       'This can be useful to check the imported values, but also because you '
+    #     . 'might want to run further analyses on these data.',
+    #     undef,
+    # );
+    # $tooltip_group->set_text(
+    #     $chk_label_overlap,
+    #       'Non-overlaps can occur if your data are in a different coordinate system '
+    #     . 'from the property rasters.  Note that data from any rasters prior to the '
+    #     . 'one that fails will be added.  If this is not set then extent mismatches '
+    #     . 'are silently ignored.  ',
+    #     undef,
+    # );
+
+    state $label_tooltip = <<~'EOT'
+        This can be useful to check the imported values,
+        but also because you might want to run further
+        analyses on these data.
+        EOT
+    ;
+    $chk_label->set_tooltip_text ($label_tooltip =~ s/\n/ /gr);
+
+    state $label_overlap_tooltip = <<~'EOT'
+        Non-overlaps can occur if your data are in a different coordinate system
+        from the property rasters.  Note that data from any rasters prior to the
+        one that fails will be added.  If this is not set then extent mismatches
+        are silently ignored.
+        EOT
+    ;
+    $chk_label_overlap->set_tooltip_text ($label_overlap_tooltip =~ s/\n/ /gr);
+
     foreach my $chk ([$chk_label, $checkbox], [$chk_label_overlap, $checkbox_overlap]) {
         my $hbox = Gtk3::HBox->new;
         $hbox->set_homogeneous (0);

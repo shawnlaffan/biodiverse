@@ -145,12 +145,15 @@ sub draw_cells_cb {
     my ($self, @args) = @_;
     $self->init_data;
     return if !$self->{mx_overlaps};
+    return if !$self->get_current_matrix;
     $self->SUPER::draw_cells_cb(@args);
     return;
 }
 
 sub recolour {
     my ($self) = @_;
+
+    state @default_colour = ((0.8) x 3);
 
     my $mx = $self->get_current_matrix;
     return if !$mx;
@@ -162,8 +165,6 @@ sub recolour {
 
     my $row_labels = $self->get_row_labels;
     my $col_labels = $self->get_col_labels;
-
-    state @default_colour = ((0.8) x 3);
 
     my $x = -1;
     for my $col_label (@$col_labels) {
@@ -177,7 +178,7 @@ sub recolour {
                 ? $self->rgb_to_array($legend->get_colour($val))
                 : @default_colour;
             $data->{"$x:$y"}->{rgb} = \@colour;
-            last ROW if $y == $x;
+            # last ROW if $y == $x;  #  cannot skip as row and col label arrays can differ
             $data->{"$y:$x"}->{rgb} = \@colour;
         }
     }
@@ -187,7 +188,8 @@ sub recolour {
 
 sub _get_data {  #  dev only
     my $self = shift;
-die;
+die 'should not be called';
+    
     my %data;
     my $n = $self->{size};
     my @cellsizes = (1, 1);

@@ -282,8 +282,6 @@ sub init_matrix_grid {
 
     $mg->set_current_matrix($project->get_selected_matrix);
 
-    # $self->{matrix_drawn} = 0;
-
     $frame->show_all;
 
     return 1;
@@ -853,6 +851,8 @@ sub on_selected_matrix_changed {
 
     my $mg = $self->{matrix_grid};
     $mg->set_current_matrix ($matrix_ref);
+    $mg->recolour;
+
     my $labels_are_in_mx = $mg->current_matrix_overlaps;
 
     #  hide the second list if no matrix selected
@@ -860,12 +860,10 @@ sub on_selected_matrix_changed {
     my $list = $self->get_xmlpage_object('listLabels1');
     my $col  = $list->get_column ($labels_model_list2_sel_col);
 
-    my $visible = !$labels_are_in_mx || ! defined $matrix_ref;
+    my $visible = $labels_are_in_mx && defined $matrix_ref;
 
     $list_window->set_visible($visible);
     $col->set_visible ($visible);
-
-    $mg->recolour;
 
     return;
 }
@@ -1140,53 +1138,17 @@ sub on_sorted {
         %args = @_;
     }
 
-    my $redraw = $args{redraw};
-
-    my $hmodel   = $self->get_xmlpage_object('listLabels1')->get_model();
-    my $vmodel   = $self->get_xmlpage_object('listLabels2')->get_model();
-    my $model    = $self->{labels_model};
     my $mx       = $self->{matrix_ref};
     my $mg       = $self->{matrix_grid};
 
-    my $values_func = sub {
-        my ($h, $v) = @_; # integer indices
-
-        my $hiter = $hmodel->iter_nth_child(undef,$h);
-        my $viter = $vmodel->iter_nth_child(undef,$v);
-
-        #  a kludge - we should not have such cases,
-        #  but deletions cause them
-        return if !defined $hiter or !defined $viter;
-
-# some bug in Gtk3-perl stops me from just doing
-# $hlabel = $hmodel->get($hiter, 0)
-#
-        my $hi = $hmodel->convert_iter_to_child_iter($hiter);
-        my $vi = $vmodel->convert_iter_to_child_iter($viter);
-
-        my $hlabel = $model->get($hi, 0);
-        my $vlabel = $model->get($vi, 0);
-
-        return $mx->get_value_aa( $hlabel, $vlabel);
-    };
-
     my $label_widget = $self->get_xmlpage_object('lblMatrix');
-    # my $drawable = $self->{matrix_drawable};
     if ($mx) {
         if ($mg->current_matrix_overlaps) {
-            $mg->queue_draw;  # fixme temporary
-            # if ($redraw || !$self->{matrix_drawn}) {
-            #     my $num_values
-            #         = $self->{base_ref}->get_labels_ref->get_element_count;
-            #     $self->{matrix_grid}->draw_matrix( $num_values );
-            #     $self->{matrix_drawn} = 1;
-            # }
-            # $self->{matrix_grid}->set_values($values_func);
-            # $self->{matrix_grid}->set_colouring(
-            #     $mx->get_min_value,
-            #     $mx->get_max_value,
-            # );
-            # $self->{matrix_grid}->set_current_matrix ($mx);
+            my $row_labels = $self->get_sorted_labels_from_list_pane(1);
+            my $col_labels = $self->get_sorted_labels_from_list_pane(2);
+            $mg->set_row_labels($row_labels);
+            $mg->set_col_labels($col_labels);
+            $mg->recolour;
         }
         else {
             my $str = '<i>No matrix elements in basedata</i>';
@@ -1195,18 +1157,11 @@ sub on_sorted {
     }
     else {
         # clear matrix
-        # $self->{matrix_grid}->draw_matrix( 0 );
-        # $self->{matrix_drawn} = 0;
-        # $self->{matrix_drawable} = 0;
         my $str = '<i>No selected matrix</i>';
         $label_widget->set_markup($str);
+        $mg->set_visible(0);
     }
-
-    # if (!$drawable) {
-    #     $self->{matrix_grid}->set_values( sub { return undef; } );
-    #     $self->{matrix_grid}->set_colouring(0, 0);
-    #     $self->{matrix_grid}->highlight(undef, undef);
-    # }
+    $mg->queue_draw;
 
     return;
 }

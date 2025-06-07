@@ -173,7 +173,7 @@ sub recolour {
         ROW:
         for my $row_label (@$row_labels) {
             $y++;
-            my $val = $mx->get_value (element1 => $col_label, element2 => $row_label);
+            my $val = $mx->get_defined_value_aa ($col_label, $row_label);
             my @colour = defined $val
                 ? $self->rgb_to_array($legend->get_colour($val))
                 : @default_colour;

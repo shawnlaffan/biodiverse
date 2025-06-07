@@ -214,7 +214,7 @@ sub new {
 }
 
 sub get_canvas_list {
-    qw /grid dendrogram matrix/;
+    qw /grid dendrogram matrix_grid/;
 }
 
 sub init_grid {

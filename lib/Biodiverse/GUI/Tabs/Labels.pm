@@ -1574,8 +1574,10 @@ sub show_phylogeny_descendents {
 ##################################################
 
 sub on_matrix_hover {
-    my $self = shift;
-    my ($h, $v) = @_; # integer indices
+    my ($self, $key) = @_;
+
+    #  should use a method for this
+    my ($h, $v) = split ':', $key;
 
     my $hmodel = $self->get_xmlpage_object('listLabels1')->get_model();
     my $vmodel = $self->get_xmlpage_object('listLabels2')->get_model();
@@ -1599,12 +1601,13 @@ sub on_matrix_hover {
         if (not $matrix_ref) {
             $str = "<b>Matrix</b>: none selected";
         }
-        elsif ($matrix_ref->element_pair_exists(element1 => $hlabel, element2 => $vlabel) == 0) {
+        elsif (!$matrix_ref->element_pair_exists_aa($hlabel, $vlabel)) {
             $str = "<b>Matrix</b> ($hlabel, $vlabel): not in matrix";
         }
         else {
-            my $value = $matrix_ref->get_value(element1 => $hlabel, element2 => $vlabel);
-            $str = sprintf ("<b>Matrix</b> ($hlabel, $vlabel): %.4f", $value);
+            my $value = $matrix_ref->get_defined_value_aa($hlabel, $vlabel);
+            $str = "<b>Matrix</b> ($hlabel, $vlabel): ";
+            $str .= defined $value ? sprintf ("%.4f", $value) : 'undef';
         }
     }
     else {
@@ -1617,10 +1620,15 @@ sub on_matrix_hover {
 }
 
 sub on_matrix_clicked {
-    my $self = shift;
-    my %args = @_;
+    my ($self, $groups , $ignore_change, $rect) = @_;
+
+    return if !$self->{matrix_grid}->current_matrix_overlaps;
+
+    #  FIXME
+return;
+my %args;
     my $cell_coords  = $args{cell_coords};
-    my $pixel_coords = $args{pixel_coords};
+    # my $pixel_coords = $args{pixel_coords};
 
     #print "horez=$h_start-$h_end vert=$v_start-$v_end\n";
 
@@ -1657,9 +1665,9 @@ sub on_matrix_clicked {
         $hlist->scroll_to_cell( $h_start );
         $vlist->scroll_to_cell( $v_start );
     }
-    elsif ($self->{tool} eq 'ZoomIn') {
-        $self->handle_grid_drag_zoom ($self->{matrix_grid}, $pixel_coords);
-    }
+    # elsif ($self->{tool} eq 'ZoomIn') {
+    #     $self->handle_grid_drag_zoom ($self->{matrix_grid}, $pixel_coords);
+    # }
 
     return;
 }

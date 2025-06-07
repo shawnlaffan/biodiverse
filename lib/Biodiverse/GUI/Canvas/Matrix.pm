@@ -11,6 +11,7 @@ use List::Util qw /min max any/;
 use List::MoreUtils qw /minmax/;
 use POSIX qw /floor/;
 use Carp qw /croak confess/;
+use Tree::R;
 
 use parent 'Biodiverse::GUI::Canvas::Grid';
 
@@ -24,15 +25,21 @@ sub new {
     my $row_labels = $self->get_row_labels // die 'row labels not set';
     my $size = @$row_labels;
 
+    #  This aligns cell labels on the coords
+    my $dim_cen = ($size + 1) / 2;
+    my $dim_max = $size + 0.5;
+    my $dim_min = -0.5;
+    my $dim_span = $size + 1;
+
     $self->{dims} = {
-        xmin    => 0,
-        ymin    => 0,
-        xmax    => $size,
-        ymax    => $size,
-        xwidth  => $size,
-        yheight => $size,
-        xcen    => $size / 2,
-        ycen    => $size / 2,
+        xmin    => $dim_min,
+        ymin    => $dim_min,
+        xmax    => $dim_max,
+        ymax    => $dim_max,
+        xwidth  => $dim_span,
+        yheight => $dim_span,
+        xcen    => $dim_cen,
+        ycen    => $dim_cen,
     };
     $self->{cellsizes} = [1, 1];
     $self->{ncells_x} = $size;
@@ -99,6 +106,12 @@ sub init_data {
             $data{$key}{centroid} = [ $x, $y ];
             $data{$key}{rgb} = $default_rgb;
         }
+    }
+
+    #  now build an rtree - random order is faster so it is outside the initial allocation
+    my $rtree = $self->{rtree} = Tree::R->new;
+    foreach my $key (keys %data) {
+        $rtree->insert($data{$key}{element}, @{ $data{$key}{bounds} });
     }
 
     return $self->{data} = \%data;

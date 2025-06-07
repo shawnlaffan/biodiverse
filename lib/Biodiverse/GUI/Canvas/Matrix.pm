@@ -122,6 +122,10 @@ sub set_current_matrix {
     return if !$have_overlap;
 
     $self->{current_matrix} = $mx;
+    my $legend = $self->get_legend;
+    my $stats = $mx->get_summary_stats;
+    $legend->set_stats ($stats);
+    $legend->set_min_max ($stats->{MIN}, $stats->{MAX});
     $self->init_data;
 
     return;
@@ -145,9 +149,45 @@ sub draw_cells_cb {
     return;
 }
 
+sub recolour {
+    my ($self) = @_;
+
+    my $mx = $self->get_current_matrix;
+    return if !$mx;
+
+    my $data = $self->{data};
+    return if !keys %$data;
+
+    my $legend = $self->legend;
+
+    my $row_labels = $self->get_row_labels;
+    my $col_labels = $self->get_col_labels;
+
+    state @default_colour = ((0.8) x 3);
+
+    my $x = -1;
+    for my $col_label (@$col_labels) {
+        $x++;
+        my $y = -1;
+        ROW:
+        for my $row_label (@$row_labels) {
+            $y++;
+            my $val = $mx->get_value (element1 => $col_label, element2 => $row_label);
+            my @colour = defined $val
+                ? $self->rgb_to_array($legend->get_colour($val))
+                : @default_colour;
+            $data->{"$x:$y"}->{rgb} = \@colour;
+            last ROW if $y == $x;
+            $data->{"$y:$x"}->{rgb} = \@colour;
+        }
+    }
+
+    return;
+}
+
 sub _get_data {  #  dev only
     my $self = shift;
-
+die;
     my %data;
     my $n = $self->{size};
     my @cellsizes = (1, 1);

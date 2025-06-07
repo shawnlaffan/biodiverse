@@ -845,8 +845,7 @@ sub on_highlight_groups_on_map_changed {
 }
 
 sub on_selected_matrix_changed {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
     my $matrix_ref = $self->{project}->get_selected_matrix;
 
@@ -866,12 +865,7 @@ sub on_selected_matrix_changed {
     $list_window->set_visible($visible);
     $col->set_visible ($visible);
 
-    # matrix
-    $self->{matrix_drawable} = $labels_are_in_mx;
-    # if ($labels_are_in_mx) {
-    #     $self->on_sorted(%args); # (this reloads the whole matrix anyway)
-    #     # $self->{matrix_grid}->zoom_fit();
-    # }
+    $mg->recolour;
 
     return;
 }

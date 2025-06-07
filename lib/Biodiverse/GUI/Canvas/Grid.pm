@@ -163,7 +163,7 @@ sub _on_selection_release {
     return FALSE;
 }
 
-sub get_data {
+sub _get_data {
     my $self = shift;
     my $dims = $self->{dims};
     my ($xmin, $xmax, $ymin, $ymax, $cellsizes) = (@$dims{qw/xmin xmax ymin ymax/}, $self->{cellsizes});

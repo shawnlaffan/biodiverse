@@ -261,33 +261,54 @@ sub init_matrix_grid {
     my $self = shift;
 
     my $frame   = $self->get_xmlpage_object('matrixFrame');
-    my $hscroll = $self->get_xmlpage_object('matrixHScroll');
-    my $vscroll = $self->get_xmlpage_object('matrixVScroll');
+    my $project = $self->{project};
 
     my $hover_closure  = sub { $self->on_matrix_hover(@_); };
     my $select_closure = sub { $self->on_matrix_clicked(@_); };
     my $grid_click_closure = sub { $self->on_matrix_grid_clicked(@_); };
 
-    my $drawable = Gtk3::DrawingArea->new;
-    $frame->set (expand => 1);  #  otherwise we shrink to not be visible
-    $frame->add($drawable);
+    my $row_labels = $self->get_sorted_labels_from_list_pane(1);
+    my $col_labels = $self->get_sorted_labels_from_list_pane(2);
 
-    $self->{matrix_grid} = Biodiverse::GUI::Canvas::Matrix->new(
+    my $mg = $self->{matrix_grid} = Biodiverse::GUI::Canvas::Matrix->new(
         frame           => $frame,
         hover_func      => $hover_closure,
         select_func     => $select_closure,
-        grid_click_func => $grid_click_closure,
-        drawable        => $drawable,
+        grid_click_func => $grid_click_closure, #  should be ctrl-click?
+        row_labels      => $row_labels,
+        col_labels      => $col_labels,
     );
-    $self->{matrix_grid}->set_parent_tab($self);
+    $mg->set_parent_tab($self);
 
-    warn 'FIXME - populate the matrix';
+    $mg->set_current_matrix($project->get_selected_matrix);
 
-    $self->{matrix_drawn} = 0;
+    # $self->{matrix_drawn} = 0;
 
     $frame->show_all;
 
     return 1;
+}
+
+sub get_sorted_labels_from_list_pane {
+    my ($self, $list_num) = @_;
+
+    $list_num //= 1;
+    croak "Invalid list num $list_num"
+        if !($list_num == 1 || $list_num == 2);
+
+    my $list_name = "listLabels$list_num";
+    my $model   = $self->get_xmlpage_object($list_name)->get_model();
+
+    my @labels;
+    my $iter = $model->get_iter_first;
+
+    while ($iter) {
+        my $label = $model->get($iter, 0);  #  first col is label
+        push @labels, $label;
+        last if !$model->iter_next($iter);
+    }
+
+    return wantarray ? @labels : \@labels;
 }
 
 # For the phylogeny tree:
@@ -623,10 +644,11 @@ sub remove_selected_labels_from_list {
 
 
 sub get_selected_labels {
-    my $self = shift;
+    my ($self, $list_num) = @_;
+    $list_num ||= 1;
 
     # Get the current selection
-    my $selection = $self->get_xmlpage_object('listLabels1')->get_selection();
+    my $selection = $self->get_xmlpage_object("listLabels$list_num")->get_selection();
     my ($p, $model) = $selection->get_selected_rows();
     my @paths = $p ? @$p : [];
     #my @selected = map { ($_->get_indices)[0] } @paths;
@@ -830,30 +852,26 @@ sub on_selected_matrix_changed {
 
     $self->{matrix_ref} = $matrix_ref;
 
+    my $mg = $self->{matrix_grid};
+    $mg->set_current_matrix ($matrix_ref);
+    my $labels_are_in_mx = $mg->current_matrix_overlaps;
+
     #  hide the second list if no matrix selected
     my $list_window = $self->get_xmlpage_object('scrolledwindow_labels2');
-
     my $list = $self->get_xmlpage_object('listLabels1');
     my $col  = $list->get_column ($labels_model_list2_sel_col);
-    
-    my $labels_are_in_mx = $self->some_labels_are_in_matrix;
 
-    if (!$labels_are_in_mx || ! defined $matrix_ref) {
-        #  hide the second list and the list 2 selection col
-        $list_window->hide;
-        $col->set_visible (0);
-    }
-    else {
-        $list_window->show;
-        $col->set_visible (1);
-    }
+    my $visible = !$labels_are_in_mx || ! defined $matrix_ref;
+
+    $list_window->set_visible($visible);
+    $col->set_visible ($visible);
 
     # matrix
     $self->{matrix_drawable} = $labels_are_in_mx;
-    if ($labels_are_in_mx) {
-        $self->on_sorted(%args); # (this reloads the whole matrix anyway)
-        $self->{matrix_grid}->zoom_fit();
-    }
+    # if ($labels_are_in_mx) {
+    #     $self->on_sorted(%args); # (this reloads the whole matrix anyway)
+    #     # $self->{matrix_grid}->zoom_fit();
+    # }
 
     return;
 }
@@ -1133,7 +1151,8 @@ sub on_sorted {
     my $hmodel   = $self->get_xmlpage_object('listLabels1')->get_model();
     my $vmodel   = $self->get_xmlpage_object('listLabels2')->get_model();
     my $model    = $self->{labels_model};
-    my $matrix_ref = $self->{matrix_ref};
+    my $mx       = $self->{matrix_ref};
+    my $mg       = $self->{matrix_grid};
 
     my $values_func = sub {
         my ($h, $v) = @_; # integer indices
@@ -1154,27 +1173,26 @@ sub on_sorted {
         my $hlabel = $model->get($hi, 0);
         my $vlabel = $model->get($vi, 0);
 
-        return $matrix_ref->get_value(
-            element1 => $hlabel,
-            element2 => $vlabel,
-        );
+        return $mx->get_value_aa( $hlabel, $vlabel);
     };
 
     my $label_widget = $self->get_xmlpage_object('lblMatrix');
-    my $drawable = $self->{matrix_drawable};
-    if ($matrix_ref) {
-        if ($drawable) {
-            if ($redraw || !$self->{matrix_drawn}) {
-                my $num_values
-                    = $self->{base_ref}->get_labels_ref->get_element_count;
-                $self->{matrix_grid}->draw_matrix( $num_values );
-                $self->{matrix_drawn} = 1;
-            }
-            $self->{matrix_grid}->set_values($values_func);
-            $self->{matrix_grid}->set_colouring(
-                $matrix_ref->get_min_value,
-                $matrix_ref->get_max_value,
-            );
+    # my $drawable = $self->{matrix_drawable};
+    if ($mx) {
+        if ($mg->current_matrix_overlaps) {
+            $mg->queue_draw;  # fixme temporary
+            # if ($redraw || !$self->{matrix_drawn}) {
+            #     my $num_values
+            #         = $self->{base_ref}->get_labels_ref->get_element_count;
+            #     $self->{matrix_grid}->draw_matrix( $num_values );
+            #     $self->{matrix_drawn} = 1;
+            # }
+            # $self->{matrix_grid}->set_values($values_func);
+            # $self->{matrix_grid}->set_colouring(
+            #     $mx->get_min_value,
+            #     $mx->get_max_value,
+            # );
+            # $self->{matrix_grid}->set_current_matrix ($mx);
         }
         else {
             my $str = '<i>No matrix elements in basedata</i>';
@@ -1182,37 +1200,21 @@ sub on_sorted {
         }
     }
     else {
-# clear matrix
-        $self->{matrix_grid}->draw_matrix( 0 );
-        $self->{matrix_drawn} = 0;
-        $self->{matrix_drawable} = 0;
+        # clear matrix
+        # $self->{matrix_grid}->draw_matrix( 0 );
+        # $self->{matrix_drawn} = 0;
+        # $self->{matrix_drawable} = 0;
         my $str = '<i>No selected matrix</i>';
         $label_widget->set_markup($str);
     }
 
-    if (!$drawable) {
-        $self->{matrix_grid}->set_values( sub { return undef; } );
-        $self->{matrix_grid}->set_colouring(0, 0);
-        $self->{matrix_grid}->highlight(undef, undef);
-    }
+    # if (!$drawable) {
+    #     $self->{matrix_grid}->set_values( sub { return undef; } );
+    #     $self->{matrix_grid}->set_colouring(0, 0);
+    #     $self->{matrix_grid}->highlight(undef, undef);
+    # }
 
     return;
-}
-
-#  how many labels are in the matrix?  We don't draw it if there are none.
-sub get_label_count_in_matrix {
-    my $self = shift;
-
-    return if !$self->{matrix_ref};
-
-#  should probably use List::MoreUtils::any
-    my %labels      = $self->{base_ref}->get_labels_ref->get_element_hash;
-    my %mx_elements = $self->{matrix_ref}->get_elements;
-    my $mx_count    = scalar keys %mx_elements;
-    delete @mx_elements{keys %labels};
-
-#  if the counts differ then we have commonality
-    return $mx_count != scalar keys %mx_elements;
 }
 
 sub some_labels_are_in_matrix {
@@ -1235,8 +1237,7 @@ sub some_labels_are_in_matrix {
 ##################################################
 
 sub on_grid_hover {
-    my $self = shift;
-    my $group = shift;
+    my ($self, $group) = @_;
 
     my $pfx = $self->get_grid_text_pfx;
 

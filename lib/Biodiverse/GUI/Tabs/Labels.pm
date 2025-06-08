@@ -1576,37 +1576,24 @@ sub show_phylogeny_descendents {
 sub on_matrix_hover {
     my ($self, $key) = @_;
 
-    #  should use a method for this
-    my ($h, $v) = split ':', $key;
-
-    my $hmodel = $self->get_xmlpage_object('listLabels1')->get_model();
-    my $vmodel = $self->get_xmlpage_object('listLabels2')->get_model();
-
-    my ($hiter, $viter) = ($hmodel->iter_nth_child(undef,$h), $vmodel->iter_nth_child(undef,$v));
+    my $mg = $self->{matrix_grid};
+    my ($col_label, $row_label) = $mg->get_labels_from_coord_id ($key);
 
     my $str;
 
-    if (defined $hiter && defined $viter) {
-
-        # some bug in Gtk3-perl stops me from just doing $hlabel = $hmodel->get($hiter, 0)
-        #
-        my ($hi, $vi) = ($hmodel->convert_iter_to_child_iter($hiter), $vmodel->convert_iter_to_child_iter($viter));
-
-        my $model = $self->{labels_model};
-        my $hlabel = $model->get($hi, 0);
-        my $vlabel = $model->get($vi, 0);
+    if (defined $row_label && defined $col_label) {
 
         my $matrix_ref = $self->{matrix_ref};
 
         if (not $matrix_ref) {
             $str = "<b>Matrix</b>: none selected";
         }
-        elsif (!$matrix_ref->element_pair_exists_aa($hlabel, $vlabel)) {
-            $str = "<b>Matrix</b> ($hlabel, $vlabel): not in matrix";
+        elsif (!$matrix_ref->element_pair_exists_aa($col_label, $row_label)) {
+            $str = "<b>Matrix</b> ($col_label, $row_label): not in matrix";
         }
         else {
-            my $value = $matrix_ref->get_defined_value_aa($hlabel, $vlabel);
-            $str = "<b>Matrix</b> ($hlabel, $vlabel): ";
+            my $value = $matrix_ref->get_defined_value_aa($col_label, $row_label);
+            $str = "<b>Matrix</b> ($col_label, $row_label): ";
             $str .= defined $value ? sprintf ("%.4f", $value) : 'undef';
         }
     }

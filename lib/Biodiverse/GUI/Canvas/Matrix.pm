@@ -154,6 +154,23 @@ sub current_matrix_overlaps {
     return $self->{mx_overlaps};
 }
 
+sub get_labels_from_coord_id {
+    my ($self, $id) = @_;
+
+    return if !exists $self->{data};
+    return if !exists $self->{data}{$id};
+
+    my $row_labels = $self->get_row_labels;
+    my $col_labels = $self->get_col_labels;
+
+    my ($col, $row) = split ':', $id;
+
+    my $col_label = $col_labels->[$row];
+    my $row_label = $row_labels->[$col];
+
+    return ($col_label, $row_label);
+}
+
 sub draw_cells_cb {
     my ($self, @args) = @_;
     $self->init_data;
@@ -191,8 +208,6 @@ sub recolour {
                 ? $self->rgb_to_array($legend->get_colour($val))
                 : @default_colour;
             $data->{"$x:$y"}->{rgb} = \@colour;
-            # last ROW if $y == $x;  #  cannot skip as row and col label arrays can differ
-            $data->{"$y:$x"}->{rgb} = \@colour;
         }
     }
 

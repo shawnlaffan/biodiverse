@@ -214,6 +214,10 @@ sub recolour {
     return;
 }
 
+sub highlight {
+    warn 'matrix highlight method not yet implemented';
+}
+
 sub _get_data {  #  dev only
     my $self = shift;
 die 'should not be called';

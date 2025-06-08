@@ -14,6 +14,7 @@ use List::MoreUtils qw /firstidx any/;
 use List::Util qw /max/;
 use Scalar::Util qw /weaken/;
 use Ref::Util qw /is_ref is_arrayref is_hashref/;
+use POSIX qw /floor ceil/;
 use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
 
 use HTML::QuickTable;
@@ -1607,24 +1608,18 @@ sub on_matrix_hover {
 }
 
 sub on_matrix_clicked {
-    my ($self, $groups , $ignore_change, $rect) = @_;
+    my ($self, $cell_ids, undef, $rect) = @_;
 
     return if !$self->{matrix_grid}->current_matrix_overlaps;
 
-    #  FIXME
-return;
-my %args;
-    my $cell_coords  = $args{cell_coords};
-    # my $pixel_coords = $args{pixel_coords};
-
-    #print "horez=$h_start-$h_end vert=$v_start-$v_end\n";
-
     if ($self->{tool} eq 'Select') {
-        my ($h_start, $h_end, $v_start, $v_end) = @{$cell_coords};
-        $h_start = Gtk3::TreePath->new_from_indices($h_start);
-        $h_end   = Gtk3::TreePath->new_from_indices($h_end);
-        $v_start = Gtk3::TreePath->new_from_indices($v_start);
-        $v_end   = Gtk3::TreePath->new_from_indices($v_end);
+        my ($h_start, $v_start, $h_end, $v_end) = @{$rect};
+
+        #  round down so single cell selections work as expected
+        $h_start = Gtk3::TreePath->new_from_indices(max (0, floor ($h_start)));
+        $h_end   = Gtk3::TreePath->new_from_indices(floor  ($h_end));
+        $v_start = Gtk3::TreePath->new_from_indices(max (0, floor ($v_start)));
+        $v_end   = Gtk3::TreePath->new_from_indices(floor  ($v_end));
 
         my $hlist = $self->get_xmlpage_object('listLabels1');
         my $vlist = $self->get_xmlpage_object('listLabels2');
@@ -1649,12 +1644,13 @@ my %args;
         };
         warn $EVAL_ERROR if $EVAL_ERROR;
 
-        $hlist->scroll_to_cell( $h_start );
-        $vlist->scroll_to_cell( $v_start );
+        #  scroll_to_cell now needs six params, so this needs updating.
+        #  The sticking point is that if the list is sorted by selection then
+        #  Those are already moved to the top or bottom of the list.
+        #  So skip for now.
+        # $hlist->scroll_to_cell( $h_start );
+        # $vlist->scroll_to_cell( $v_start );
     }
-    # elsif ($self->{tool} eq 'ZoomIn') {
-    #     $self->handle_grid_drag_zoom ($self->{matrix_grid}, $pixel_coords);
-    # }
 
     return;
 }

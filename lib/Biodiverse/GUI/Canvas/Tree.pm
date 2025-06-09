@@ -505,8 +505,12 @@ sub draw_slider {
         $cx->select_font_face("Sans", "normal", "bold");
         $cx->set_font_size( 12 );
         my $margin = 2;
-        my $width   = max map {my $e = $cx->text_extents($_); $margin + $e->{width}} @text;
-        my $rect_ht = sum map {my $e = $cx->text_extents($_); $margin + $e->{height}} @text;
+        my @text_extents = map {$cx->text_extents($_)} @text;
+        my $width   = max map {$_->{width}} @text_extents;
+        my $rect_ht = sum map {$margin + $_->{height}} @text_extents;
+        if ($loc[0] + $width > $draw_size->{width}) {
+            $loc[0] -= $width;
+        }
 
         $cx->move_to(@loc);
         $cx->set_source_rgba(0, 0, 1, 0.5);

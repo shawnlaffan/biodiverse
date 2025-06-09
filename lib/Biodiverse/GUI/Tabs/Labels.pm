@@ -10,7 +10,7 @@ use experimental qw/refaliasing declared_refs/;
 #use Data::Dumper;
 use Sort::Key::Natural qw /natsort mkkey_natural/;
 
-use List::MoreUtils qw /firstidx any/;
+use List::MoreUtils qw /firstidx any minmax/;
 use List::Util qw /max/;
 use Scalar::Util qw /weaken/;
 use Ref::Util qw /is_ref is_arrayref is_hashref/;
@@ -949,10 +949,13 @@ sub on_selected_labels_changed {
     $self->{$select_list_name} = \@selected;
 
     if ($self->{matrix_ref}) {
-        $self->{matrix_grid}->highlight(
+        my $x = undef;
+        $self->{matrix_grid}->highlight (
             $self->{selected_rows},
             $self->{selected_cols},
         );
+        $self->{matrix_grid}->recolour;
+        $self->{matrix_grid}->queue_draw;
     }
 
     #  need to avoid changing paths due to re-sorts
@@ -1608,18 +1611,21 @@ sub on_matrix_hover {
 }
 
 sub on_matrix_clicked {
-    my ($self, $cell_ids, undef, $rect) = @_;
+    my ($self, $cells, undef, $rect) = @_;
 
     return if !$self->{matrix_grid}->current_matrix_overlaps;
 
     if ($self->{tool} eq 'Select') {
-        my ($h_start, $v_start, $h_end, $v_end) = @{$rect};
+        #  We could use $rect but there were off-by-one issues,
+        #  possibly because it needs to round to the nearest mid-point.
+        #  It can be looked into if profiling flags this as a bottleneck.
+        my ($h_start, $h_end) = minmax map {$_->{coord}[0]} @$cells;
+        my ($v_start, $v_end) = minmax map {$_->{coord}[1]} @$cells;
 
-        #  round down so single cell selections work as expected
-        $h_start = Gtk3::TreePath->new_from_indices(max (0, floor ($h_start)));
-        $h_end   = Gtk3::TreePath->new_from_indices(floor  ($h_end));
-        $v_start = Gtk3::TreePath->new_from_indices(max (0, floor ($v_start)));
-        $v_end   = Gtk3::TreePath->new_from_indices(floor  ($v_end));
+        $h_start = Gtk3::TreePath->new_from_indices($h_start);
+        $h_end   = Gtk3::TreePath->new_from_indices($h_end);
+        $v_start = Gtk3::TreePath->new_from_indices($v_start);
+        $v_end   = Gtk3::TreePath->new_from_indices($v_end);
 
         #  list1 is the y-axis
         my $vlist = $self->get_xmlpage_object('listLabels1');
@@ -1648,7 +1654,7 @@ sub on_matrix_clicked {
         #  scroll_to_cell now needs six params, so this needs updating.
         #  The sticking point is that if the list is sorted by selection then
         #  Those are already moved to the top or bottom of the list.
-        #  So skip for now.
+        #  So disable for now.
         # $hlist->scroll_to_cell( $h_start );
         # $vlist->scroll_to_cell( $v_start );
     }

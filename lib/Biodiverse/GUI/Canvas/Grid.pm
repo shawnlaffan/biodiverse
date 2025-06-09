@@ -219,9 +219,14 @@ sub draw_cells_cb {
     my @outline_colour = $self->rgba_to_cairo ($self->get_cell_outline_colour);
 
     foreach my $key (keys %$data) {
-        \my @rgb = $data->{$key}{rgb} // [1,1,1];  #  should use a default
         \my @rect = $data->{$key}{rect};
-        $context->set_source_rgb(@rgb);
+        if (my $rgba = $data->{$key}{rgba}) {
+            $context->set_source_rgba(@$rgba);
+        }
+        else {
+            my $rgb = $data->{$key}{rgb} // [1,1,1];  #  should use a default
+            $context->set_source_rgb(@$rgb);
+        }
         $context->rectangle(@rect);
         $context->fill;
         if ($draw_borders) {

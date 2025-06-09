@@ -275,7 +275,7 @@ sub init_matrix_grid {
         frame           => $frame,
         hover_func      => $hover_closure,
         select_func     => $select_closure,
-        grid_click_func => $grid_click_closure, #  should be ctrl-click?
+        # grid_click_func => $grid_click_closure, #  not used now - was zooming
         row_labels      => $row_labels,
         col_labels      => $col_labels,
     );

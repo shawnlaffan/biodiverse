@@ -125,7 +125,6 @@ sub set_current_tree {
     my ($self, $tree, $plot_mode) = @_;
 
     $plot_mode //= 'length';
-    $self->{plot_mode} = $plot_mode;
 
     if (!defined $tree) {
         $self->{data} = {};
@@ -150,7 +149,7 @@ sub set_current_tree {
         && defined $self->{plot_mode}
         && $self->{plot_mode} eq $plot_mode;
 
-    $self->{$plot_mode} = $plot_mode;
+    $self->{plot_mode} = $plot_mode;
 
     my $cache = $self->get_cached_value_dor_set_default_href('cached_data');
     if (my $data = $cache->{$tree}{$plot_mode}) {
@@ -902,7 +901,7 @@ sub get_branch_line_width {
 ##########################################################
 
 sub get_plot_mode {
-    $_->{plot_mode} //= 'length';
+    $_[0]->{plot_mode};
 }
 
 # whether to plot by 'length' or 'depth'

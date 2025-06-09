@@ -124,6 +124,9 @@ sub callback_order {
 sub set_current_tree {
     my ($self, $tree, $plot_mode) = @_;
 
+    $plot_mode //= 'length';
+    $self->{plot_mode} = $plot_mode;
+
     if (!defined $tree) {
         $self->{data} = {};
         $self->{current_tree} = undef;
@@ -136,8 +139,6 @@ sub set_current_tree {
         length => 'get_length',
         depth  => sub {1},
     );
-
-    $plot_mode //= 'length';
 
     my $len_method = $self->{length_func}
         // $mode_methods{$plot_mode}
@@ -241,6 +242,13 @@ sub get_data {
     $_[0]->{data};
 }
 
+sub get_branch_count {
+    my ($self) = @_;
+    my $data = $self->get_data // return 0;
+    my $branches = $data->{by_node} // return 0;
+    scalar %{$branches // {}};
+}
+
 sub _on_motion {
     my ($self, $widget, $event) = @_;
 
@@ -333,22 +341,7 @@ sub coord_in_root_marker_bbox {
 sub do_slider_intersection {
     my ($self, $nodes) = @_;
 
-    # Update the slider textbox
-    #   [Number of nodes intersecting]
-    #   Above as percentage of total elements
-    # my $num_intersecting = scalar @intersecting_nodes;
-    # my $percent = sprintf('%.1f', $num_intersecting * 100 / $self->{num_nodes}); # round to 1 d.p.
-    # my $l_text  = sprintf('%.2f', $length_along);
-    # my $text = "$num_intersecting nodes\n$percent%\n"
-    #     . ($using_length ? 'L' : 'D')
-    #     . ": $l_text";
-    # $self->{clusters_text}->set( text => $text );
-
-    # # Highlight the lines in the dendrogram
-    # $self->clear_highlights;
-    # foreach my $node (values %$node_hash) {
-    #     $self->highlight_node($node);
-    # }
+    $self->{slider_intersection} = $nodes // [];
 
     return if ! $self->{use_slider_to_select_nodes};
 
@@ -358,6 +351,10 @@ sub do_slider_intersection {
     $self->recolour_normal (\@colour_nodes);
 
     return;
+}
+
+sub get_slider_intersection {
+    $_[0]->{slider_intersection} // [];
 }
 
 sub get_index {
@@ -484,17 +481,42 @@ sub draw_slider {
     ];
 
     if ($self->{sliding}) {
-        my $text = 'ST';
+        # Update the slider textbox
+        #   [Number of nodes intersecting]
+        #   Above as percentage of total elements
+        my $intersecting = $self->get_slider_intersection;
+        my $num_intersecting = scalar @$intersecting;
+        my $percent = sprintf('%.1f', $num_intersecting * 100 / $self->get_branch_count); # round to 1 d.p.
+        my $l_text  = sprintf('%.2f', $x);
+        my $text = "$num_intersecting branches\n$percent%\n"
+            . ($self->get_plot_mode eq 'depth' ? 'D' : 'L')
+            . ": $l_text";
+        #  just one val until we get PangoCairo working
+        $text = "$num_intersecting branches";
+
         my $old_mx = $cx->get_matrix;
         #  needs to work in page units
-        my @loc = $cx->user_to_device ($x, ($y1+$y0)/2);
-        $cx->set_matrix($self->{orig_tfm_mx});
-        $cx->set_source_rgb(0, 0, 1);
+        my @loc = $cx->user_to_device ($x, $y1);
+        $cx->set_matrix($self->get_orig_tfm_matrix);
+
+        my @offsets = @{$self->{px_offsets} // []};
+        $loc[0] += $offsets[0];
+        $loc[1] += $offsets[1];
+
+        my $draw_size = $self->drawable->get_allocation();
+        $loc[1] = $draw_size->{y};
+
         $cx->select_font_face("Sans", "normal", "bold");
-        $cx->set_font_size( 50 );
+        $cx->set_font_size( 12 );
+        my $extents = $cx->text_extents ($text);
         $cx->move_to(@loc);
+        $cx->set_source_rgba(0, 0, 1, 0.5);
+        $cx->rectangle (@loc, $extents->{width}, $extents->{height});
+        $cx->fill;
+        $cx->move_to($loc[0], $loc[1] + $extents->{height});
+        $cx->set_source_rgba(1, 1, 1, 0.5);
         $cx->show_text($text);
-        $cx->stroke;
+        # $cx->stroke;
         $cx->set_matrix($old_mx);
     };
 
@@ -871,24 +893,13 @@ sub get_branch_line_width {
     $_[0]->{branch_line_width} //= 0;
 }
 
-#sub make_total_length_array_inner {
-#    my ($node, $length_so_far, $array, $lf) = @_;
-#
-#    $node->set_value(total_length_gui => $length_so_far);
-#    push @{$array}, $node;
-#
-#    # Do the children
-#    my $length_total = $lf->($node) + $length_so_far;
-#    foreach my $child ($node->get_children) {
-#        make_total_length_array_inner($child, $length_total, $array, $lf);
-#    }
-#
-#    return;
-#}
-
 ##########################################################
 # Drawing the tree
 ##########################################################
+
+sub get_plot_mode {
+    $_->{plot_mode} //= 'length';
+}
 
 # whether to plot by 'length' or 'depth'
 sub set_plot_mode {

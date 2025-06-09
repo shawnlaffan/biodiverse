@@ -1621,8 +1621,9 @@ sub on_matrix_clicked {
         $v_start = Gtk3::TreePath->new_from_indices(max (0, floor ($v_start)));
         $v_end   = Gtk3::TreePath->new_from_indices(floor  ($v_end));
 
-        my $hlist = $self->get_xmlpage_object('listLabels1');
-        my $vlist = $self->get_xmlpage_object('listLabels2');
+        #  list1 is the y-axis
+        my $vlist = $self->get_xmlpage_object('listLabels1');
+        my $hlist = $self->get_xmlpage_object('listLabels2');
 
         my $hsel = $hlist->get_selection;
         my $vsel = $vlist->get_selection;

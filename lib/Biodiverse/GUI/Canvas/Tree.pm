@@ -8,7 +8,7 @@ our $VERSION = '4.99_002';
 use experimental qw /refaliasing declared_refs for_list/;
 use Glib qw/TRUE FALSE/;
 use Scalar::Util qw /refaddr blessed/;
-use List::Util qw /min max pairs uniq/;
+use List::Util qw /min max pairs uniq sum/;
 use List::MoreUtils qw /minmax firstidx/;
 use Ref::Util qw /is_coderef is_blessed_ref is_arrayref is_ref/;
 use POSIX qw /floor/;
@@ -482,17 +482,14 @@ sub draw_slider {
 
     if ($self->{sliding}) {
         # Update the slider textbox
-        #   [Number of nodes intersecting]
-        #   Above as percentage of total elements
+        #  Cannot get Pango::Cairo to work so do it by hand.
         my $intersecting = $self->get_slider_intersection;
         my $num_intersecting = scalar @$intersecting;
-        my $percent = sprintf('%.1f', $num_intersecting * 100 / $self->get_branch_count); # round to 1 d.p.
-        my $l_text  = sprintf('%.2f', $x);
-        my $text = "$num_intersecting branches\n$percent%\n"
-            . ($self->get_plot_mode eq 'depth' ? 'D' : 'L')
-            . ": $l_text";
-        #  just one val until we get PangoCairo working
-        $text = "$num_intersecting branches";
+        my @text = (
+            "$num_intersecting branches ",
+            sprintf('%.1f%% of total ', $num_intersecting * 100 / $self->get_branch_count), # round to 1 d.p.
+            sprintf('%s frac: %.2f ', ($self->get_plot_mode eq 'depth' ? 'D' : 'L'), $x),
+        );
 
         my $old_mx = $cx->get_matrix;
         #  needs to work in page units
@@ -508,15 +505,22 @@ sub draw_slider {
 
         $cx->select_font_face("Sans", "normal", "bold");
         $cx->set_font_size( 12 );
-        my $extents = $cx->text_extents ($text);
+        my $margin = 2;
+        my $width   = max map {my $e = $cx->text_extents($_); $margin + $e->{width}} @text;
+        my $rect_ht = sum map {my $e = $cx->text_extents($_); $margin + $e->{height}} @text;
+
         $cx->move_to(@loc);
         $cx->set_source_rgba(0, 0, 1, 0.5);
-        $cx->rectangle (@loc, $extents->{width}, $extents->{height});
+        $cx->rectangle(@loc, $width, $rect_ht + $margin);
         $cx->fill;
-        $cx->move_to($loc[0], $loc[1] + $extents->{height});
-        $cx->set_source_rgba(1, 1, 1, 0.5);
-        $cx->show_text($text);
-        # $cx->stroke;
+        foreach my $t (@text) {
+            my $extents = $cx->text_extents($t);
+            my $height = $extents->{height} + $margin;
+            $cx->move_to($loc[0], $loc[1] + $height);
+            $cx->set_source_rgba(1, 1, 1, 0.5);
+            $cx->show_text($t);
+            $loc[1] += $height;
+        }
         $cx->set_matrix($old_mx);
     };
 

@@ -266,7 +266,7 @@ sub init_matrix_grid {
 
     my $hover_closure  = sub { $self->on_matrix_hover(@_); };
     my $select_closure = sub { $self->on_matrix_clicked(@_); };
-    my $grid_click_closure = sub { $self->on_matrix_grid_clicked(@_); };
+    # my $grid_click_closure = sub { $self->on_matrix_grid_clicked(@_); };
 
     my $row_labels = $self->get_sorted_labels_from_list_pane(1);
     my $col_labels = $self->get_sorted_labels_from_list_pane(2);
@@ -278,6 +278,7 @@ sub init_matrix_grid {
         # grid_click_func => $grid_click_closure, #  not used now - was zooming
         row_labels      => $row_labels,
         col_labels      => $col_labels,
+        show_legend     => 0,
     );
     $mg->set_parent_tab($self);
 
@@ -326,16 +327,16 @@ sub init_dendrogram {
     my $select_closure      = sub { $self->on_phylogeny_select(@_); };
 
     my $dendro = $self->{dendrogram} = Biodiverse::GUI::Canvas::Tree->new(
-        frame  => $frame,
-        grid        => undef,
-        list_combo  => $list_combo,
-        index_combo => $index_combo,
+        frame           => $frame,
+        grid            => undef,
+        list_combo      => $list_combo,
+        index_combo     => $index_combo,
         hover_func      => undef,
         highlight_func  => $highlight_closure,
         ctrl_click_func => $ctrl_click_closure,
         click_func      => $click_closure,
         select_func     => $select_closure,
-        # basedata_ref    => $self->{base_ref},
+        show_legend     => 0,
     );
     $dendro->set_parent_tab($self);
     #  cannot colour more than one in a phylogeny

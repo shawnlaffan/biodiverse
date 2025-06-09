@@ -18,7 +18,7 @@ use parent 'Biodiverse::GUI::Canvas';
 sub new {
     my ($class, %args) = @_;
 
-    my $self = Biodiverse::GUI::Canvas->new (%args);
+    my $self = $class->SUPER::new (%args);
 
     #  rebless
     bless $self, $class;

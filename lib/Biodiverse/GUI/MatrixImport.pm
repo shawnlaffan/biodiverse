@@ -434,7 +434,7 @@ sub run_combo_sparse_normal {
     $combo->set_active(0);
     $combo->show_all;
     $combo->set_tooltip_text(
-'Normal is an n by n symmetric matric while sparse is one row/column pair per line'
+'Normal is an n by n symmetric or triangular matrix while sparse is one row/column pair per line'
     );
 
     my $label = Gtk3::Label->new('Input file format');
@@ -454,11 +454,15 @@ sub run_combo_sparse_normal {
     $dlg->show_all;
 
     my $response = $dlg->run();
+
+    #  need to get this before the dialog is destroyed
+    my $choice = $combo->get_active_text;
+
     $dlg->destroy();
 
     return if lc($response) ne 'ok';
 
-    return $combo->get_active_text;
+    return $choice;
 }
 
 1;

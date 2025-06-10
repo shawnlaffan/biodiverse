@@ -229,33 +229,23 @@ my $handler_entered = 0;
 sub set_keyboard_handler {
     my $self = shift;
 
-    # Make CTRL-G activate the "go!" button (on_run)
-    if ($snooper_id) {
-        ##print "[Tab] Removing keyboard snooper $snooper_id\n";
-        Gtk3->key_snooper_remove($snooper_id);
-        $snooper_id = undef;
-    }
+    my $page = $self->{page};
 
-#  FIXME FIXME - we should handle key events in the tab
-    #  poss also useful:
-    #  ee https://mail.gnome.org/archives/gtk-perl-list/2015-March/msg00001.html
-    # $snooper_id = Gtk3->key_snooper_install(\&hotkey_handler, $self);
-    ##print "[Tab] Installed keyboard snooper $snooper_id\n";
-    return $snooper_id;
+    $page->add_events([ qw/key-press-event/ ]);  #  needed?
+    $page->signal_connect (key_press_event => sub {
+        $self->hotkey_handler (@_);
+    });
+
 }
 
+#  a no-op now
 sub remove_keyboard_handler {
-    my $self = shift;
-    if ($snooper_id) {
-        ##print "[Tab] Removing keyboard snooper $snooper_id\n";
-        Gtk3->key_snooper_remove($snooper_id);
-        $snooper_id = undef;
-    }
+    return;
 }
     
 # Processes keyboard shortcuts like CTRL-G = Go!
 sub hotkey_handler {
-    my ($widget, $event, $self) = @_;
+    my ($self, $widget, $event) = @_;
     my $retval;
 
     # stop recursion into on_run if shortcut triggered during processing
@@ -265,46 +255,49 @@ sub hotkey_handler {
 
     $handler_entered = 1;
 
-    if ($event->type eq 'key-press' && Biodiverse::GUI::GUIManager::keyboard_snooper_active) {
+    if ($event->type eq 'key-press') {
+        my $keyval = $event->keyval;
+        my $key_name = Gtk3::Gdk::keyval_name($keyval);
+
+        say "Key press $keyval $key_name";
+        say $event->state;
+
         # if CTL- key is pressed
         if ($event->state >= ['control-mask']) {
-            my $keyval = $event->keyval;
-            #print $keyval . "\n";
-            
+            $key_name = Gtk3::Gdk::keyval_name($keyval);
+
             # Go!
-            if ((uc chr $keyval) eq 'G') {
+            if ((uc $key_name) eq 'G') {
                 $self->on_run();
                 $retval = 1; # stop processing
             }
-
             # Close tab (CTRL-W)
-            elsif ((uc chr $keyval) eq 'W') {
+            elsif ((uc $key_name) eq 'W') {
                 if ($self->get_removable) {
                     $self->{gui}->remove_tab($self);
                     $retval = 1; # stop processing
                 }
             }
-
-            # Change to next tab
-            elsif ($keyval eq Gtk3::Gdk->keyval_from_name ('Tab')) {
+            # Change to next tab - tab keys not functional yet so use L and R
+            elsif ((uc $key_name) eq 'R' || $key_name eq 'Tab') {
                 #  switch tabs
                 #print "keyval is $keyval (tab), state is " . $event->state . "\n";
                 my $page_index = $self->get_page_index;
                 $self->{gui}->switch_tab (undef, $page_index + 1); #  go right
             }
-            elsif ($keyval eq Gtk3::Gdk->keyval_from_name ('ISO_Left_Tab')) {
+            elsif ((uc $key_name) eq 'L' || $key_name eq 'ISO_Left_Tab') {
                 #  switch tabs
                 #print "keyval is $keyval (left tab), state is " . $event->state . "\n";
                 my $page_index = $self->get_page_index;
                 $self->{gui}->switch_tab (undef, $page_index - 1); #  go left
             }
         }
-        elsif ($event->state == []) {
+        else {
+            say 'on_bare_key';
             # Catch alphabetic keys only for now.
-            my $keyval = $event->keyval;
-            if (($keyval >= ord('a') && $keyval <= ord('z')) or (
-                    $keyval >= ord('A') && $keyval <= ord('Z'))) {
-                $self->on_bare_key(uc chr $event->keyval);
+            if (($keyval >= Gtk3::Gdk::KEY_a && $keyval <= Gtk3::Gdk::KEY_z)
+                or ($keyval >= Gtk3::Gdk::KEY_A && $keyval <= Gtk3::Gdk::KEY_Z)) {
+                $self->on_bare_key(uc $key_name);
             }
         }
     }
@@ -345,16 +338,16 @@ sub on_bare_key {
     my $tool = $key_tool_map{$keyval};
 
     return if not defined $tool;
-
+say $self->{active_pane} // 'no pane';
     my $active_pane = $self->{active_pane};
 
     return if !defined $active_pane;
 
-    if ($tool eq 'ZoomOut' and $active_pane ne '') {
+    if (0 && $tool eq 'ZoomOut' and $active_pane ne '') {
         # Do an instant zoom out and keep the current tool.
         $self->{$self->{active_pane}}->zoom_out();
     }
-    elsif ($tool eq 'ZoomFit' and $active_pane ne '') {
+    elsif (0 && $tool eq 'ZoomFit' and $active_pane ne '') {
         $self->{$self->{active_pane}}->zoom_fit();
     }
     elsif ($active_pane) {

@@ -46,6 +46,7 @@ say STDERR "SETTING EVENTS on $drawable";
         [ qw/
             exposure-mask
             leave-notify-mask
+            enter-notify-mask
             button-press-mask
             button-release-mask
             pointer-motion-mask
@@ -57,12 +58,12 @@ say STDERR "SETTING EVENTS on $drawable";
     $drawable->signal_connect(motion_notify_event => sub {$self->on_motion (@_)});
     $drawable->signal_connect(button_press_event => sub {$self->on_button_press (@_)});
     $drawable->signal_connect(button_release_event => sub {$self->on_button_release (@_)});
-    # $drawable->signal_connect(key_press_event => sub {$self->on_key_press (@_)});
-    # $drawable->signal_connect(
-    #     event => sub {
-    #         my ($widget, $event) = @_; say "Got event " . $event; return FALSE
-    #     }
-    # );
+    $drawable->signal_connect(
+        leave_notify_event => sub {$self->get_parent_tab->set_active_pane('')}
+    );
+    $drawable->signal_connect(
+        enter_notify_event => sub {$self->get_parent_tab->set_active_pane($self)}
+    );
 
     $self->{callbacks} = {};
 
@@ -459,6 +460,41 @@ sub pan {
     }
 
     return;
+}
+
+sub do_zoom_fit {
+    my ($self) = @_;
+    $self->reset_disp;
+    $self->{matrix} = $self->get_tfm_mx;
+    $self->queue_draw;
+    return FALSE;
+}
+
+#  direct call to point zoom in and out
+sub do_zoom_in_point {
+    my ($self, $xcen, $ycen) = @_;
+    $self->_do_zoom ($xcen, $ycen, 1.5);
+}
+
+sub do_zoom_out_point {
+    my ($self, $xcen, $ycen) = @_;
+    $self->_do_zoom ($xcen, $ycen, 1 / 1.5);
+}
+
+sub _do_zoom {
+    my ($self, $x, $y, $multiplier) = @_;
+warn 'does not work yet';
+    #  need to work out the offsets
+    my ($xcen, $ycen) = $self->get_event_xy_from_mx([$x,$y]);
+say "$xcen, $ycen, $x, $y";
+    #  point-based zoom, zoom-out is from centre of box or mouse-click
+    $self->{disp}{scale} //= 1;
+    $self->{disp}{scale} *= $multiplier;
+    $self->{disp}{xcen} = $xcen;
+    $self->{disp}{ycen} = $ycen;
+
+    $self->{matrix} = $self->get_tfm_mx;
+    $self->queue_draw;
 }
 
 sub on_key_press {

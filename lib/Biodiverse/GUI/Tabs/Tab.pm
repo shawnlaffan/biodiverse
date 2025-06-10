@@ -293,11 +293,10 @@ sub hotkey_handler {
             }
         }
         else {
-            say 'on_bare_key';
             # Catch alphabetic keys only for now.
             if (($keyval >= Gtk3::Gdk::KEY_a && $keyval <= Gtk3::Gdk::KEY_z)
                 or ($keyval >= Gtk3::Gdk::KEY_A && $keyval <= Gtk3::Gdk::KEY_Z)) {
-                $self->on_bare_key(uc $key_name);
+                $self->on_bare_key(uc $key_name, $event);
             }
         }
     }
@@ -333,26 +332,34 @@ my %key_tool_map = (
 
 # Default for tabs that don't implement on_bare_key
 sub on_bare_key {
-    my ($self, $keyval) = @_;
+    my ($self, $keyval, $event) = @_;
     # TODO: Add other tools
     my $tool = $key_tool_map{$keyval};
 
     return if not defined $tool;
-say $self->{active_pane} // 'no pane';
+
     my $active_pane = $self->{active_pane};
 
-    return if !defined $active_pane;
+    return if !$active_pane;
 
-    if (0 && $tool eq 'ZoomOut' and $active_pane ne '') {
+    my ($x, $y) = $active_pane->drawable->get_pointer;
+    # disable point events until we can get the right coords in the called subs
+    if (0 && $tool eq 'ZoomIn') {
+        # Do an instant zoom in and keep the current tool.
+        $active_pane->do_zoom_in_point($x, $y);
+    }
+    elsif (0 && $tool eq 'ZoomOut') {
         # Do an instant zoom out and keep the current tool.
-        $self->{$self->{active_pane}}->zoom_out();
+        $active_pane->do_zoom_out_point($x, $y);
     }
-    elsif (0 && $tool eq 'ZoomFit' and $active_pane ne '') {
-        $self->{$self->{active_pane}}->zoom_fit();
+    elsif ($tool eq 'ZoomFit') {
+        $active_pane->do_zoom_fit();
     }
-    elsif ($active_pane) {
+    else {
         $self->choose_tool($tool) if exists $key_tool_map{$keyval};
     }
+
+    return;
 }
 
 #  a default list

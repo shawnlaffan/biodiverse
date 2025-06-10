@@ -34,8 +34,15 @@ jobs:
           which perl
           which cpanm
 
+      #  some painful steps here that will hopefully be backed out at some point
       - name: Install GDAL and its deps
-        run: brew install --force --overwrite gdal
+        run: |
+          brew update
+          brew unlink pkg-config@0.29.2
+          brew install pkgconf
+          brew link --overwrite pkgconf
+          brew install gdal
+          # brew install --force --overwrite gdal
         
       - name: perl -V
         run: perl -V
@@ -43,7 +50,7 @@ jobs:
       - name: Prepare for cache
         run: |
           perl -V > perlversion.txt
-          echo '20220920' >> perlversion.txt
+          echo '20241125' >> perlversion.txt
           ls -l perlversion.txt
 
       - name: Cache CPAN modules

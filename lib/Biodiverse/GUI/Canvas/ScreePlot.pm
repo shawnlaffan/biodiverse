@@ -46,6 +46,10 @@ sub get_tree_canvas {
     return $self->{tree_canvas};
 }
 
+sub get_parent_tab {
+    my ($self) = @_;
+    $self->get_tree_canvas->get_parent_tab;
+}
 
 sub get_show_slider {
     my ($self) = @_;
@@ -63,7 +67,8 @@ sub on_button_release {}
 sub on_button_press {}
 sub on_motion {}
 sub on_key_press {}
-
+sub do_zoom_in_centre{}
+sub do_zoom_out_centre{}
 
 sub draw_slider {
     my ($self, $cx) = @_;

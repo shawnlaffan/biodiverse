@@ -470,28 +470,21 @@ sub do_zoom_fit {
     return FALSE;
 }
 
-#  direct call to point zoom in and out
-sub do_zoom_in_point {
-    my ($self, $xcen, $ycen) = @_;
-    $self->_do_zoom ($xcen, $ycen, 1.5);
+# zoom in and out on centre of current display
+sub do_zoom_in_centre {
+    my ($self, $mag) = @_;
+    $self->_do_zoom_centre($mag // 1.5);
 }
 
-sub do_zoom_out_point {
-    my ($self, $xcen, $ycen) = @_;
-    $self->_do_zoom ($xcen, $ycen, 1 / 1.5);
+sub do_zoom_out_centre {
+    my ($self, $mag) = @_;
+    $self->_do_zoom_centre($mag // 1 / 1.5);
 }
 
-sub _do_zoom {
-    my ($self, $x, $y, $multiplier) = @_;
-warn 'does not work yet';
-    #  need to work out the offsets
-    my ($xcen, $ycen) = $self->get_event_xy_from_mx([$x,$y]);
-say "$xcen, $ycen, $x, $y";
-    #  point-based zoom, zoom-out is from centre of box or mouse-click
-    $self->{disp}{scale} //= 1;
+sub _do_zoom_centre {
+    my ($self, $multiplier) = @_;
+
     $self->{disp}{scale} *= $multiplier;
-    $self->{disp}{xcen} = $xcen;
-    $self->{disp}{ycen} = $ycen;
 
     $self->{matrix} = $self->get_tfm_mx;
     $self->queue_draw;

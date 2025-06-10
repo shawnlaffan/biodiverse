@@ -259,8 +259,8 @@ sub hotkey_handler {
         my $keyval = $event->keyval;
         my $key_name = Gtk3::Gdk::keyval_name($keyval);
 
-        say "Key press $keyval $key_name";
-        say $event->state;
+        # say "Key press $keyval $key_name";
+        # say $event->state;
 
         # if CTL- key is pressed
         if ($event->state >= ['control-mask']) {
@@ -296,7 +296,7 @@ sub hotkey_handler {
             # Catch alphabetic keys only for now.
             if (($keyval >= Gtk3::Gdk::KEY_a && $keyval <= Gtk3::Gdk::KEY_z)
                 or ($keyval >= Gtk3::Gdk::KEY_A && $keyval <= Gtk3::Gdk::KEY_Z)) {
-                $self->on_bare_key(uc $key_name, $event);
+                $self->on_bare_key($key_name, $event);
             }
         }
     }
@@ -332,31 +332,28 @@ my %key_tool_map = (
 
 # Default for tabs that don't implement on_bare_key
 sub on_bare_key {
-    my ($self, $keyval, $event) = @_;
-    # TODO: Add other tools
-    my $tool = $key_tool_map{$keyval};
-
-    return if not defined $tool;
+    my ($self, $key, $event) = @_;
 
     my $active_pane = $self->{active_pane};
 
     return if !$active_pane;
 
-    my ($x, $y) = $active_pane->drawable->get_pointer;
-    # disable point events until we can get the right coords in the called subs
-    if (0 && $tool eq 'ZoomIn') {
-        # Do an instant zoom in and keep the current tool.
-        $active_pane->do_zoom_in_point($x, $y);
-    }
-    elsif (0 && $tool eq 'ZoomOut') {
-        # Do an instant zoom out and keep the current tool.
-        $active_pane->do_zoom_out_point($x, $y);
-    }
-    elsif ($tool eq 'ZoomFit') {
-        $active_pane->do_zoom_fit();
+    # Immediate zoom without changing the current tool.
+    # A zoom_fit variant is probably not useful
+    state %instant_methods = (
+        i => 'do_zoom_in_centre',
+        o => 'do_zoom_out_centre',
+    );
+
+    my $inst_meth = $instant_methods{$key};
+
+    if ($self->{tool} =~ /Zoom/ && $inst_meth) {
+        $active_pane->$inst_meth;
     }
     else {
-        $self->choose_tool($tool) if exists $key_tool_map{$keyval};
+        # TODO: Add other tools and stop requiring upper case
+        my $tool = $key_tool_map{uc $key};
+        $self->choose_tool($tool) if defined $tool;
     }
 
     return;

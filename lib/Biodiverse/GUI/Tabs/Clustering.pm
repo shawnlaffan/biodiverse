@@ -2034,16 +2034,14 @@ my %key_tool_map = (
 sub on_bare_key {
     my ($self, $keyval) = @_;
 
-    no autovivification;
-
-    my $tool = $key_tool_map{$keyval};
+    my $tool = $key_tool_map{uc $keyval};
 
     return $self->SUPER::on_bare_key ($keyval)
       if not defined $tool;
 
     my $active_pane = $self->{active_pane};
 
-    return if !defined $active_pane;
+    return if !$active_pane;
 
     $self->$tool;
 }

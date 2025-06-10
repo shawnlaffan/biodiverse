@@ -201,7 +201,7 @@ sub run {
     $dlg = $dlgxml->get_object('dlgImportParameters');
 
     #  add file name labels to display
-    my $vbox = Gtk3::VBox->new( 0, 0 );
+    my $vbox = Gtk3::Box->new( 'GTK_ORIENTATION_VERTICAL', 0 );
     my $file_title = Gtk3::Label->new('<b>Files:</b>');
     $file_title->set_use_markup(1);
     $file_title->set_alignment( 0, 1 );

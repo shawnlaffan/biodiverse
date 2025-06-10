@@ -100,6 +100,7 @@
           <object class="GtkFrame" id="frame5">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="margin-bottom">24</property>
             <property name="label-xalign">0</property>
             <property name="shadow-type">none</property>
             <child>
@@ -120,28 +121,13 @@
                         <property name="hscroll-policy">natural</property>
                         <property name="vscroll-policy">natural</property>
                         <child>
-                          <object class="GtkTable" id="tableImportParameters">
+                          <!-- n-columns=2 n-rows=1 -->
+                          <object class="GtkGrid" id="tableImportParameters">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
                             <property name="hexpand">True</property>
                             <property name="vexpand">True</property>
-                            <property name="n-columns">2</property>
-                            <property name="column-spacing">1</property>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
+                            <property name="row-homogeneous">True</property>
                             <child>
                               <placeholder/>
                             </child>
@@ -177,5 +163,40 @@
       <action-widget response="-6">cancelbutton11</action-widget>
       <action-widget response="-5">btnNext4</action-widget>
     </action-widgets>
+  </object>
+  <object class="GtkTable" id="oldtableImportParameters">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="hexpand">True</property>
+    <property name="vexpand">True</property>
+    <property name="n-columns">2</property>
+    <property name="column-spacing">1</property>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
   </object>
 </interface>

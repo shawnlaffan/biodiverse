@@ -74,13 +74,16 @@ sub new {
 }
 
 sub fill {
-    my ($self, $params, $table, $dlgxml, $get_innards_hash) = @_;
+    my ($self, $params, $grid, $dlgxml, $get_innards_hash) = @_;
     $get_innards_hash //= {};
 
     # Ask object for parameters metadata
     my (@extract_closures, @widgets, %label_widget_pairs, $debug_hbox);
 
-    my $row = 0;
+    my $nrows = -1;
+    $grid->set_row_homogeneous(0);
+    $grid->set_row_spacing (10);
+    $grid->set_column_spacing (5);
 
   PARAM:
     foreach my $param (@$params) {
@@ -104,12 +107,10 @@ sub fill {
         my $label_text = $param->{label_text} // $param_name;
         chomp $label_text;
         my $label = Gtk3::Label->new ($label_text);
-        $label->set_line_wrap(30);
+        $label->set_line_wrap(1);
+        $label->set ('max-width-chars' => 30);
         #my $label_text = $label_wrapper->wrap($param->{label_text} || $param->{name});
         $label->set_alignment(0, 0.5);
-        #$label->set_text( $label_text );
-
-        my $fill_flags = ['expand', 'fill'];
 
         if ($param->{type} eq 'comment') {
             #  reflow the label text
@@ -120,15 +121,12 @@ sub fill {
 
         $label_widget_pairs{$param_name} = [$label, $widget];
 
-        my $rows = $table->get('n-rows');
-
+        $nrows++;
         my $box_group_name = $param->get_box_group;
         my ($hbox, $added_hbox_row);
         if (defined $box_group_name) {
             if (!$self->{box_groups}{$box_group_name}) {
-                # Add an extra row
-                $rows++;
-                $table->set('n-rows' => $rows);
+                # $table->set('n-rows' => $rows);
                 $added_hbox_row++;
                 $hbox = $self->{box_groups}{$box_group_name} = Gtk3::HBox->new;
                 if ($box_group_name eq 'Debug') {
@@ -137,8 +135,8 @@ sub fill {
                 else {
                     my $l = Gtk3::Label->new ($box_group_name);
                     $l->set_alignment(0, 0.5);
-                    $table->attach($l,  0, 1, $rows, $rows + 1, 'fill', [], 0, 0);
-                    $table->attach($hbox, 1, 2, $rows, $rows + 1, $fill_flags, [], 0, 0);
+                    $grid->attach($l,  0, $nrows, 1, 1);
+                    $grid->attach($hbox, 1, $nrows, 1, 1);
                     $l->show;
                     $self->{box_group_labels}{$box_group_name} = $l;
                 }
@@ -151,10 +149,8 @@ sub fill {
             }
         }
         else {
-            $rows++;
-            $table->set('n-rows' => $rows);
-            $table->attach($label,  0, 1, $rows, $rows + 1, $fill_flags, ['shrink'], 0, 0);
-            $table->attach($widget, 1, 2, $rows, $rows + 1, ['shrink', 'fill'], ['shrink'], 0, 0);
+            $grid->attach($label,  0, $nrows, 1, 1);
+            $grid->attach($widget, 1, $nrows, 1, 1);
         }
 
         # Add a tooltip
@@ -165,6 +161,9 @@ sub fill {
 
         # widgets are sensitive unless explicitly told otherwise
         $widget->set_sensitive ($param->get_always_sensitive ? 1 : $param->get_sensitive // 1);
+
+        #  can we shrink the widget vertically?  Seems not.
+        # $widget->set ('vexpand' => 0);
 
         $label->show;
         if ($param->{type} ne 'comment') {
@@ -179,11 +178,9 @@ sub fill {
         $label->set_line_wrap(30);
         $label->set_alignment(0, 0.5);
 
-        my $rows = $table->get('n-rows');
-        $rows++;
-        $table->set('n-rows' => $rows);
-        $table->attach($label,  0, 1, $rows, $rows + 1, 'fill', [], 0, 0);
-        $table->attach($debug_hbox, 1, 2, $rows, $rows + 1, 'fill', [], 0, 0);
+        $nrows++;
+        $grid->attach($label,  0, $nrows, 1, 1);
+        $grid->attach($debug_hbox, 1, $nrows, 1, 1);
         $label->show;
         $debug_hbox->show_all;
     }

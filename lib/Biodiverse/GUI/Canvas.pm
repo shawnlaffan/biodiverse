@@ -41,7 +41,6 @@ sub new {
     ##
     my $drawable = $self->drawable // die 'Need a GtkDrawable to attach to';
 
-say STDERR "SETTING EVENTS on $drawable";
     $drawable->add_events(
         [ qw/
             exposure-mask
@@ -354,7 +353,7 @@ sub set_mode {
     $self->{mode} = $mode;
     $self->update_cursor($cursor_names{$mode});
 
-    say "Mode is now $self->{mode}";
+    # say "Mode is now $self->{mode}";
 
     return;
 }
@@ -533,16 +532,16 @@ sub on_button_release {
     return FALSE if not defined $self->{cairo_context};
 
     my ($x, $y) = $self->get_event_xy($event);
-    say "BR: $x, $y, ", $event->x, " ", $event->y;
+    # say "BR: $x, $y, ", $event->x, " ", $event->y;
     # my $draw_size = $self->drawable->get_allocation();
     # say "    " . join ' ', @$draw_size{qw/width height x y/};
     # say "$self->{ncells_x} $self->{ncells_y}";
 
     # say $event->type;
-    say 'Selecting' if $self->selecting;
+    # say 'Selecting' if $self->selecting;
 
     if ($self->selecting) {
-        say "BUTTON RELEASE $x, $y";
+        # say "BUTTON RELEASE $x, $y";
         my @rect = ($self->{sel_start_x}, $self->{sel_start_y}, $x, $y);
 
         if ($self->in_zoom_mode) {

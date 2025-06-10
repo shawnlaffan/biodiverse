@@ -33,7 +33,7 @@ sub populate_from_tree {
     }
 
     local $| = 1;
-    say 'Sorting';
+    # say 'Sorting';
     #  add from the right - actually makes things worse
     # my @branches = sort {$a->{y} <=> $b->{y} || $a->{x_r} <=> $b->{x_r}} values %$branch_hash;
     my @branches = values %$branch_hash;
@@ -44,7 +44,7 @@ sub populate_from_tree {
     my $nboxes = 50;
     my $box_size = 1 / $nboxes;
 
-    say 'generating';
+    # say 'generating';
 
     my %boxes;
     foreach my $branch (values %$branch_hash) {
@@ -84,8 +84,8 @@ sub populate_from_tree {
     }
 
     my $elapsed = time() - $start_time;
-    say "Done in $elapsed s";
-    say scalar keys %boxes;
+    # say "Done in $elapsed s";
+    # say scalar keys %boxes;
 
     $self->{boxes} = \%boxes;
     $self->{rtree} = $rtree;

@@ -468,7 +468,7 @@ sub set_base_struct {
     $self->{ncells_x} = ($max_x - $min_x) / $cell_x;
     $self->{ncells_y} = ($max_y - $min_y) / $cell_y;
 
-    say 'Bounding box: ' . join q{ }, $min_x, $min_y // '', $max_x, $max_y // '';
+    # say 'Bounding box: ' . join q{ }, $min_x, $min_y // '', $max_x, $max_y // '';
 
     # Store info needed by load_shapefile
     $self->{dataset_info} = [$min_x, $min_y, $max_x, $max_y, $cell_x, $cell_y];

@@ -603,7 +603,12 @@ sub on_button_press {
 
     my $e_state  = $event->state;
     my $e_button = $event->button;
-    if ($self->in_zoom_fit_mode || $e_button == 3) {
+    if ($e_button == 3) {
+        if (my $f = $self->{right_click_func}) {
+            $f->($x, $y, $event);
+        }
+    }
+    elsif ($self->in_zoom_fit_mode) {
         #  reset
         $self->reset_disp;
         $self->{matrix} = $self->get_tfm_mx;

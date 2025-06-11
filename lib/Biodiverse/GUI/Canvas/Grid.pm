@@ -88,15 +88,13 @@ sub _on_motion {
 
     #  only redraw if needed
     if (!exists $self->{data}{$key}) {
-        if (defined delete $self->{highlights}) {
-            $widget->queue_draw;
-        }
         $self->{last_motion_key} = undef;
         if ($self->in_select_mode) {
             $self->reset_cursor;
         }
         if (my $g = $self->{end_hover_func}) {
             $g->($key);
+            $self->queue_draw;
         }
     }
     elsif ($last_key ne $key && $f) {

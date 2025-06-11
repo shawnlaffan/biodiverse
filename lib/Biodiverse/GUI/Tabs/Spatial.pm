@@ -570,6 +570,7 @@ sub init_dendrogram {
     my $ctrl_click_closure  = sub { $self->on_phylogeny_popup(@_); };
     my $click_closure       = sub { $self->on_phylogeny_click(@_); };
     # my $select_closure      = sub { $self->on_phylogeny_select(@_); };
+    my $right_click_closure = sub {$self->toggle_do_canvas_hover_flag (@_)};
 
     my $tree = Biodiverse::GUI::Canvas::Tree->new(
         frame                         => $frame,
@@ -578,6 +579,7 @@ sub init_dendrogram {
         highlight_func                => $highlight_closure,
         ctrl_click_func               => $ctrl_click_closure,
         click_func                    => $click_closure,
+        right_click_func              => $right_click_closure,
         # select_func     => $select_closure,  #  used to handle zooming, not needed now
         want_legend                   => 1,
         no_use_slider_to_select_nodes => 1,
@@ -848,6 +850,7 @@ sub init_grid {
     my $select_closure = sub { $self->on_grid_select(@_); };
     $select_closure = undef;  #  not sure we need this for the spatial tab
     my $end_hover_closure = sub { $self->on_end_grid_hover(@_); };
+    my $right_click_closure = sub {$self->toggle_do_canvas_hover_flag (@_)};
 
     my $drawable = Gtk3::DrawingArea->new;
     $frame->set (expand => 1);  #  otherwise we shrink to not be visible
@@ -862,6 +865,7 @@ sub init_grid {
         select_func     => $select_closure,
         grid_click_func => $grid_click_closure, # Left click
         end_hover_func  => $end_hover_closure,  #  we go from cell to background
+        right_click_func => $right_click_closure,
         drawable        => $drawable,
     );
     $grid->set_parent_tab($self);
@@ -1173,6 +1177,8 @@ sub on_phylogeny_hover {
 
     return if !$branch;
 
+    return if !$self->do_canvas_hover_flag;
+
     my ($map_text, $dendro_text) = $self->get_phylogeny_hover_text ($branch);
 
     $self->get_xmlpage_object('lblOutput')->set_markup($map_text);
@@ -1187,6 +1193,8 @@ sub on_phylogeny_highlight {
     my ($self, $node) = @_;
 
     return if !$node;
+
+    return if !$self->do_canvas_hover_flag;
 
     my $terminal_elements = $node->get_terminal_elements;
 
@@ -1610,14 +1618,29 @@ sub on_run {
 # Misc dialog operations
 ##################################################
 
+{
+    state $flagname = 'do_canvas_hover_flag';
+    sub toggle_do_canvas_hover_flag {
+        my $self = shift;
+        $self->{$flagname} //= 1;
+        $self->{$flagname} = !$self->{$flagname};
+    }
+
+    sub do_canvas_hover_flag {
+        my $self = shift;
+        $self->{$flagname} //= 1;
+    }
+}
+
 # Called by grid when user hovers over a cell
 # and when mouse leaves a cell (element undef)
 sub on_grid_hover {
-    my $self    = shift;
-    my $element = shift;
+    my ($self, $element) = @_;
 
     #  drop out if we are initialising, otherwise we trigger events on incomplete data
     return if $self->{initialising_grid};
+
+    return if !$self->do_canvas_hover_flag;
 
     my $output_ref = $self->{output_ref};
     my $text = $self->get_grid_text_pfx;
@@ -1871,6 +1894,12 @@ sub colour_branches_on_dendrogram {
 
 sub on_end_grid_hover {
     my $self = shift;
+
+    return if !$self->do_canvas_hover_flag;
+
+    $self->{grid}->mark_with_circles;
+    $self->{grid}->mark_with_dashes;
+
     my $dendrogram = $self->{dendrogram}
       // return;
 

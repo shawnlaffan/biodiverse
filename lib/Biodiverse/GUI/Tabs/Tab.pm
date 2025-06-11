@@ -394,6 +394,11 @@ sub queue_draw {
     }
 }
 
+sub toggle_update_grid_highlights {
+    my ($self) = @_;
+    $self->{grid}->toggle_update_highlights_flag;
+}
+
 sub choose_tool {
     my $self = shift;
     my ($tool, ) = @_;

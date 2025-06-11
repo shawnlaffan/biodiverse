@@ -434,7 +434,7 @@ sub do_basedata_attach_group_properties_from_rasters {
     $vbox->show_all;
     
     my $response = $dlg->run;
-    my @raster_list = $dlg->get_filenames();
+    my $raster_list = $dlg->get_filenames();
     my $return_basedatas  = $checkbox->get_active;
     my $die_if_no_overlap = $checkbox_overlap->get_active;
     $dlg->destroy();
@@ -442,7 +442,7 @@ sub do_basedata_attach_group_properties_from_rasters {
     return if $response ne 'ok';
     
     my $basedatas = $bd->assign_group_properties_from_rasters(
-        rasters          => \@raster_list,
+        rasters          => $raster_list,
         return_basedatas => $return_basedatas,
         die_if_no_overlap => $die_if_no_overlap,
         stats => [grep {$stat_checkboxes{$_}->get_active} keys %stat_checkboxes],
@@ -459,7 +459,7 @@ sub do_basedata_attach_group_properties_from_rasters {
 
     $self->set_dirty();
 
-    my $count = @raster_list;
+    my $count = @$raster_list;
     my $summary_text
       = "Assigned properties using $count rasters.\n\n"
       . "If not all properties are assigned then check "

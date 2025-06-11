@@ -2345,16 +2345,15 @@ sub show_index_dialog {
     $dlg->set_title('Set index sizes');
 
     #  add the incr/decr buttons
-    my $rows = $table->get('n-rows');
-    $rows++;
-    $table->set( 'n-rows' => $rows );
+    my $row = 0;
     my $incr_button = Gtk3::Button->new_with_label('Increment all');
-    $table->attach( $incr_button, 0, 1, $rows, $rows + 1, 'shrink', [], 0, 0 );
+    $table->attach( $incr_button, 0, $row, 1, 1 );
     $incr_button->set_tooltip_text(
         'Increase all the axes by their default increments'
     );
+    # $row++;
     my $decr_button = Gtk3::Button->new_with_label('Decrement all');
-    $table->attach( $decr_button, 1, 2, $rows, $rows + 1, 'shrink', [], 0, 0 );
+    $table->attach( $decr_button, 1, $row, 1, 1 );
     $decr_button->set_tooltip_text(
         'Decrease all the axes by their default increments'
     );
@@ -2364,6 +2363,7 @@ sub show_index_dialog {
 
   BY_AXIS:
     foreach my $cellsize (@cellsize_array) {
+        $row++;
 
         my $is_text_axis = 0;
 
@@ -2392,10 +2392,6 @@ sub show_index_dialog {
 
         my $label_text = "Axis $i";
 
-        $rows = $table->get('n-rows');
-        $rows++;
-        $table->set( 'n-rows' => $rows );
-
         # Make the label
         my $label = Gtk3::Label->new;
         $label->set_text($label_text);
@@ -2406,8 +2402,8 @@ sub show_index_dialog {
             $page_incr, 0, );
         my $widget = Gtk3::SpinButton->new( $adj, $init_value, 10, );
 
-        $table->attach( $label,  0, 1, $rows, $rows + 1, 'shrink', [], 0, 0 );
-        $table->attach( $widget, 1, 2, $rows, $rows + 1, 'shrink', [], 0, 0 );
+        $table->attach( $label,  0, $row, 1, 1);
+        $table->attach( $widget, 1, $row, 1, 1);
 
         push @resolution_widgets, $widget;
 

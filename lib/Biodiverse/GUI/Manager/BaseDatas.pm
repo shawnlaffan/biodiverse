@@ -789,7 +789,7 @@ sub get_resolution_table_widget {
     $incr_button->signal_connect(
         clicked => sub {
             foreach my $widget (@resolution_widgets) {
-                my $increment = $widget->get_adjustment->step_increment;
+                my $increment = $widget->get_adjustment->get_step_increment;
                 $widget->set_value($widget->get_value + $increment);
             }
         },
@@ -797,7 +797,7 @@ sub get_resolution_table_widget {
     $decr_button->signal_connect(
         clicked => sub {
             foreach my $widget (@resolution_widgets) {
-                my $increment = $widget->get_adjustment->step_increment;
+                my $increment = $widget->get_adjustment->get_step_increment;
                 $widget->set_value($widget->get_value - $increment);
             }
         },
@@ -941,7 +941,7 @@ sub get_origin_table_widget {
     $incr_button->signal_connect(
         clicked => sub {
             foreach my $widget (@resolution_widgets) {
-                my $increment = $widget->get_adjustment->step_increment;
+                my $increment = $widget->get_adjustment->get_step_increment;
                 $widget->set_value($widget->get_value + $increment);
             }
         },
@@ -949,7 +949,7 @@ sub get_origin_table_widget {
     $decr_button->signal_connect(
         clicked => sub {
             foreach my $widget (@resolution_widgets) {
-                my $increment = $widget->get_adjustment->step_increment;
+                my $increment = $widget->get_adjustment->get_step_increment;
                 $widget->set_value($widget->get_value - $increment);
             }
         },

@@ -2530,7 +2530,7 @@ sub on_index_dlg_change_all {
     #  and update the spinboxes
     foreach my $widget (@$widgets) {
         my $adj       = $widget->get_adjustment;
-        my $increment = $adj->step_increment;
+        my $increment = $adj->get_step_increment;
         my $value =
             $incr
           ? $widget->get_value + $increment

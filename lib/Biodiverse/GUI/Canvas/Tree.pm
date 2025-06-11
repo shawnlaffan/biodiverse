@@ -1668,6 +1668,7 @@ sub replay_multiselect_store {
     $self->{element_to_cluster_remap} = {};
 
     $self->recolour_multiselect;
+    $self->get_parent_tab->queue_draw;
 
     return;
 }

@@ -6,6 +6,7 @@ use warnings;
 no warnings 'recursion';
 #use Data::Dumper;
 use Carp;
+use experimental qw /for_list/;
 
 use Time::HiRes qw /gettimeofday time/;
 
@@ -1032,34 +1033,31 @@ sub clear_multiselect_colours_from_plot {
     return;
 }
 
-#  later we can get this from a cached value on the tree object
 sub get_multiselect_colour_store {
     my $self = shift;
     my $tree = $self->get_tree_object;
-    my $store
-      = $tree->get_cached_value_dor_set_default_aa (
-        GUI_MULTISELECT_COLOUR_STORE => [],
+
+    return $tree->get_cached_value_dor_set_default_aa (
+        'GUI_MULTISELECT_COLOUR_STORE'
     );
-    return $store;
 }
 
 sub store_multiselect_colour {
-    my $self = shift;
-    my @pairs = @_;  #  usually get only one name/colour pair
+    my ($self, @pairs) = @_;  #  usually get only one name/colour pair
 
     return if $self->{multiselect_no_store};
 
     my $store = $self->get_multiselect_colour_store;
 
   PAIR:
-    foreach my $pair (pairs @pairs) {
+    foreach my ($noderef, $colour) (@pairs) {
         #  don't store refs
-        if (blessed $pair->[0]) {
-            $pair->[0] = $pair->[0]->get_name;
+        if (blessed $noderef) {
+            $noderef = $noderef->get_name;
         }
         #  don't store Gdk objects due to serialisation issues
-        if (blessed $pair->[1]) {
-            $pair->[1] = $pair->[1]->to_string;
+        if (blessed $colour) {
+            $colour = $colour->to_string;
         }
 
         ##  Don't store duplicates.
@@ -1738,7 +1736,7 @@ sub reset_multiselect_undone_stack {
 sub get_multiselect_undone_stack {
     my $self = shift;
     my $undone_stack = $self->get_tree_object->get_cached_value_dor_set_default_aa (
-        GUI_MULTISELECT_UNDONE_STACK => [],
+        'GUI_MULTISELECT_UNDONE_STACK'
     );
     return $undone_stack;
 }
@@ -1764,7 +1762,7 @@ sub undo_multiselect_click {
 
     my $undone_stack = $self->get_multiselect_undone_stack;
     
-    #  store in reverse order
+    #  Prepend to stack.  Reverse order needed to maintain multi-undo sequence.
     unshift @$undone_stack, reverse @undone;
     
     $self->replay_multiselect_store;
@@ -1791,7 +1789,7 @@ sub redo_multiselect_click {
 
     my @undone = splice @$undone_stack, 0, min ($offset, scalar @$undone_stack);
 
-    push @$colour_store, @undone;
+    push @$colour_store, @undone;u
     
     $self->replay_multiselect_store;
     $self->get_parent_tab->set_project_dirty;

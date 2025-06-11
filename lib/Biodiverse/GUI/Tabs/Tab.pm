@@ -221,9 +221,6 @@ END_OF_GT2_AXIS_TEXT
 # Keyboard shortcuts
 ##########################################################
 
-my $snooper_id;
-my $handler_entered = 0;
-
 # Called when user switches to this tab
 #   installs keyboard-shortcut handler
 sub set_keyboard_handler {
@@ -248,10 +245,11 @@ sub hotkey_handler {
     my ($self, $widget, $event) = @_;
     my $retval;
 
+    state $handler_entered = 0;
+
     # stop recursion into on_run if shortcut triggered during processing
     #   (this happens because progress-dialogs pump events..)
-
-    return 1 if $handler_entered == 1;
+    return 1 if $handler_entered;
 
     $handler_entered = 1;
 
@@ -296,14 +294,34 @@ sub hotkey_handler {
             # Catch alphabetic keys only for now.
             if (($keyval >= Gtk3::Gdk::KEY_a && $keyval <= Gtk3::Gdk::KEY_z)
                 or ($keyval >= Gtk3::Gdk::KEY_A && $keyval <= Gtk3::Gdk::KEY_Z)) {
-                $self->on_bare_key($key_name, $event);
+                $retval = $self->on_bare_key($key_name, $event);
             }
         }
     }
 
     $handler_entered = 0;
-    $retval = 0; # continue processing
-    return $retval;
+    $retval ||= 0; # continue processing
+    return !!$retval;
+}
+
+{
+    state $bare_key_cache_key = 'last_bare_key_time';
+
+    #  we are getting double-pumps from key events
+    sub get_last_hotkey_event_time {
+        my ($self) = @_;
+        $self->get_cached_value($bare_key_cache_key) // 0;
+    }
+
+    sub set_last_hotkey_event_time {
+        my ($self) = @_;
+        $self->set_cached_value($bare_key_cache_key => Time::HiRes::time);
+    }
+
+    sub check_hot_key_double_pump {
+        my ($self) = @_;
+        (Time::HiRes::time - $self->get_last_hotkey_event_time) < 0.1;
+    }
 }
 
 ######################################
@@ -335,8 +353,12 @@ sub on_bare_key {
     my ($self, $key, $event) = @_;
 
     my $active_pane = $self->{active_pane};
-
     return if !$active_pane;
+
+    #  early return if key presses are too quick
+    return if $self->check_hot_key_double_pump;
+
+    $self->set_last_hotkey_event_time;
 
     # Immediate zoom without changing the current tool.
     # A zoom_fit variant is probably not useful

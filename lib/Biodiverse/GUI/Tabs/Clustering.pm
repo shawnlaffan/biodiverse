@@ -2026,24 +2026,30 @@ sub redo_multiselect_click {
     return $dendrogram->redo_multiselect_click;
 }
 
-my %key_tool_map = (
-    U => 'undo_multiselect_click',
-    R => 'redo_multiselect_click',
-);
-
 sub on_bare_key {
-    my ($self, $keyval) = @_;
+    my ($self, $key) = @_;
 
-    my $tool = $key_tool_map{uc $keyval};
+    state %key_tool_map = (
+        U => 'undo_multiselect_click',
+        R => 'redo_multiselect_click',
+    );
 
-    return $self->SUPER::on_bare_key ($keyval)
+    my $tool = $key_tool_map{uc $key};
+
+    return $self->SUPER::on_bare_key ($key)
       if not defined $tool;
 
     my $active_pane = $self->{active_pane};
 
     return if !$active_pane;
 
+    #  we are getting double-pumps from key events
+    return if $self->check_hot_key_double_pump;
+
     $self->$tool;
+    $self->set_last_hotkey_event_time;
+
+    return 1;
 }
 
 

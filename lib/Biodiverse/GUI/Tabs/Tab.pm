@@ -386,6 +386,14 @@ sub get_canvas_list {
     qw /grid dendrogram/;
 }
 
+#  redraw all our canvases
+sub queue_draw {
+    my ($self) = @_;
+    foreach my $canvas_name ($self->get_canvas_list) {
+        $self->{$canvas_name}->queue_draw;
+    }
+}
+
 sub choose_tool {
     my $self = shift;
     my ($tool, ) = @_;

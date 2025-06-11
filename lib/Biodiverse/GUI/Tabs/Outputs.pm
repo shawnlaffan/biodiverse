@@ -452,7 +452,7 @@ sub on_delete {
             if (defined $tab) {
                 $self->{gui}->remove_tab($tab);
             }
-            my @tabs = @{ $self->{tabs} };
+            my @tabs = @{ $self->{tabs} // [] };
             foreach my $tab (@tabs) {
                 next if ( blessed $tab) =~ /Outputs$/;
                 if ( $tab->get_base_ref eq $basedata_ref ) {

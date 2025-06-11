@@ -57,14 +57,19 @@ sub build_main_notebook {
         );
     
     my $notebook = Gtk3::Notebook->new;
+    my $label_label = Gtk3::Label->new;
+    my $group_label = Gtk3::Label->new;
+    $label_label->set_text ("Labels");
+    $group_label->set_text ("Groups");
+
     $notebook->append_page (
         $label_outer_vbox,
-        "Labels",        
+        $label_label,
     );
 
     $notebook->append_page (
         $group_outer_vbox,
-        "Groups",        
+        $group_label,
     );
 
     $self->{notebook} = $notebook;

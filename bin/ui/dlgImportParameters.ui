@@ -127,7 +127,6 @@
                             <property name="can-focus">False</property>
                             <property name="hexpand">True</property>
                             <property name="vexpand">True</property>
-                            <property name="row-homogeneous">True</property>
                             <child>
                               <placeholder/>
                             </child>
@@ -171,6 +170,12 @@
     <property name="vexpand">True</property>
     <property name="n-columns">2</property>
     <property name="column-spacing">1</property>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
     <child>
       <placeholder/>
     </child>

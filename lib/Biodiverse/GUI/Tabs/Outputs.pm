@@ -448,7 +448,7 @@ sub on_delete {
             print "[Outputs tab] Deleting basedata $name\n";
             $self->{gui}->get_project->delete_base_data($basedata_ref);
 
-            # Need to close any tabs associated with this basedata - currently am not doing that
+            # Need to close any tabs associated with this basedata
             if (defined $tab) {
                 $self->{gui}->remove_tab($tab);
             }

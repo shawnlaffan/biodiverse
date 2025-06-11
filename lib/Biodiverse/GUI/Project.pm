@@ -185,9 +185,7 @@ sub init_models {
       Biodiverse::GUI::GUIManager->instance->get_base_data_output_model;
 
     # Basedata model for combobox (based on above)
-    $self->{models}{basedata_model} =
-      Gtk3::TreeModelFilter->new( $self->{models}{basedata_output_model} );
-    $self->{models}{basedata_model}->set_visible_column(MODEL_BASEDATA_ROW);
+    $self->init_bd_filter_model;
 
     # Matrix/Phylogeny models for comboboxen
     $self->{models}{matrix_model} =
@@ -213,6 +211,19 @@ sub init_models {
     $self->matrix_model_init();
     $self->phylogeny_model_init();
     $self->update_gui_comboboxes();
+}
+
+sub init_bd_filter_model {
+    my $self = shift;
+    $self->{models}{basedata_model} =
+        Gtk3::TreeModelFilter->new( $self->{models}{basedata_output_model} );
+    $self->{models}{basedata_model}->set_visible_column(MODEL_BASEDATA_ROW);
+}
+
+sub clear_bd_filter_model {
+    my $self = shift;
+    Biodiverse::GUI::GUIManager->instance->set_basedata_model(undef);
+    $self->{models}{basedata_model} = undef;
 }
 
 sub update_gui_comboboxes {
@@ -670,13 +681,16 @@ sub select_base_data {
 
     $self->set_param( SELECTED_BASEDATA => $basedata_ref );
 
+    return if !$basedata_ref;
+    return if !$self->{models}{basedata_model};
+
     if ($basedata_ref) {
 
         my $iter = $self->{iters}{basedata_iters}{$basedata_ref};
 
         # $iter is from basedata-output model
         # Make it relative to the filtered basedata model
-        if ( defined $iter ) {
+        if ( defined $iter) {
             $iter = $self->{models}{basedata_model}
               ->convert_child_iter_to_iter($iter);
             Biodiverse::GUI::GUIManager->instance->set_basedata_iter($iter);
@@ -761,42 +775,55 @@ sub select_phylogeny_iter {
 }
 
 sub delete_base_data {
-    my $self = shift;
-    my $basedata_ref =
-         shift
-      || $self->get_selected_base_data()
-      || return 0;    #  drop out if nothing here
+    my ($self, $bd) = @_;
+    $bd ||= $self->get_selected_base_data;
 
-    $self->delete_all_basedata_outputs($basedata_ref);
+    #  drop out if nothing here
+    return 0 if !$bd;
+
+    $self->delete_all_basedata_outputs($bd);
 
     # Remove from basedata list
     my $bd_array = $self->{BASEDATA};    #  use a ref to make reading easier
+    my $found;
     foreach my $i ( 0 .. $#$bd_array ) {
-        if ( $bd_array->[$i] eq $basedata_ref ) {
+        if ( $bd_array->[$i] eq $bd ) {
             splice( @$bd_array, $i, 1 );
+            $found++;
             last;
         }
     }
+    warn 'Basedata not found' if !$found;
 
-    # Remove from model
-    if ( exists $self->{iters}{basedata_iters}{$basedata_ref} ) {
-        my $iter = $self->{iters}{basedata_iters}{$basedata_ref};
-        if ( defined $iter ) {
+    # $self->basedata_output_model_init;
 
-            #print "REMOVING BASEDATA FROM OUTPUT MODELS\n";
-            my $model = $self->{models}{basedata_output_model};
+    #  Go searching for the basedata ref.
+    #  We used to use the stored iter but it segfaults under gtk3
+    #  so work with a fresh one.
+    my $model = $self->{models}{basedata_output_model};
+
+    #  We need to clear and then rebuild the basedata model
+    #  or we get seg faults.
+    #  Possibly due to getting out of synch somewhere.
+    $self->clear_bd_filter_model;
+
+    my $iter = $model->get_iter_first;
+    while ($iter) {
+        my $ref = $model->get($iter, MODEL_OBJECT);
+        if ($ref == $bd) {
+            delete $self->{iters}{basedata_iters}{$bd};
             $model->remove($iter);
-            delete $self->{iters}{basedata_iters}{$basedata_ref};
-
-            #$self->{iters}{output_iters}
+            last;
         }
+        last if !$model->iter_next($iter);
     }
+    $self->init_bd_filter_model;
 
     $self->manage_empty_basedatas();
 
     # Clear selection
     my $selected = $self->get_selected_base_data;
-    if ( !defined $selected or $basedata_ref eq $selected ) {
+    if ( !defined $selected or $bd eq $selected ) {
         $self->set_param( SELECTED_BASEDATA => undef );
 
         #print "CLEARED SELECTED_BASEDATA\n";

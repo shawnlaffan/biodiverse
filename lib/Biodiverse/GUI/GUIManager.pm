@@ -1335,21 +1335,19 @@ sub save_object {
 # Base sets / Matrices combos
 ##########################################################
 
-#  sometime we need to force this
+#  sometime we need to force this - is this ever used now?
 sub set_active_iter {
     my $self  = shift;
     my $combo = shift;
 
-    my $iter = $combo->get_active_iter();
-
     #  drop out if it is set
-    return if $iter;
+    return if $combo->get_active >= 0;
 
     #  loop over the iters and choose the one called none
     my $i = 0;
     while (1) {
         $combo->set_active_iter($i);
-        $iter = $combo->get_active_iter();
+        my $iter = $combo->get_active_iter();
         return if $iter->get_text eq '(none)';
     }
 
@@ -1422,7 +1420,12 @@ sub set_phylogeny_iter {
 sub do_basedata_changed {
     my $self  = shift;
     my $combo = $self->get_object('comboBasedata');
-    my $iter  = $combo->get_active_iter();
+    my $active = $combo->get_active;
+
+    #  sometimes combo is not active
+    return if $active < 0;
+
+    my $iter = $combo->get_active_iter();
 
     #  sometimes $iter is not defined when this sub is called.
     return if !defined $iter;
@@ -2156,6 +2159,9 @@ sub do_tree_ladderise {
 sub do_matrix_changed {
     my $self  = shift;
     my $combo = $self->get_object('comboMatrices');
+
+    return if $combo->get_active < 0;
+
     my $iter  = $combo->get_active_iter();
 
     #print "MATRIX CHANGE ITER IS $iter";
@@ -2177,6 +2183,9 @@ sub do_matrix_changed {
 sub do_phylogeny_changed {
     my $self  = shift;
     my $combo = $self->get_object('comboPhylogenies');
+
+    return if $combo->get_active < 0;
+
     my $iter  = $combo->get_active_iter();
 
     #my ($text) = $combo->get_model->get($iter, 0);

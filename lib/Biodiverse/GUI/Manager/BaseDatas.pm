@@ -510,13 +510,11 @@ sub do_delete_basedata {
     return if lc($response) ne 'yes';
 
     my @tabs = @{ $self->{tabs} };
-    my $i    = 0;
     foreach my $tab (@tabs) {
         next if ( blessed $tab) =~ /Outputs$/;
         if ( $tab->get_base_ref eq $bd ) {
             $tab->on_close;
         }
-        $i++;
     }
 
     $self->{project}->delete_base_data();

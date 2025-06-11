@@ -230,16 +230,18 @@ sub init_grid {
     my $select_closure = sub { $self->on_grid_select(@_); };
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
     my $end_hover_closure  = sub { $self->on_end_grid_hover(@_); };
+    my $right_click_closure = sub {$self->toggle_do_canvas_hover_flag (@_)};
 
     my $grid = $self->{grid} = Biodiverse::GUI::Canvas::Grid->new(
-        frame       => $frame,
-        show_legend => 0,
-        show_value  => 0,
-        hover_func      => $hover_closure,
-        ctl_click_func  => $click_closure,
-        select_func     => $select_closure,
-        grid_click_func => $grid_click_closure,
-        end_hover_func  => $end_hover_closure,
+        frame            => $frame,
+        show_legend      => 0,
+        show_value       => 0,
+        hover_func       => $hover_closure,
+        ctl_click_func   => $click_closure,
+        select_func      => $select_closure,
+        grid_click_func  => $grid_click_closure,
+        end_hover_func   => $end_hover_closure,
+        right_click_func => $right_click_closure,
     );
     $grid->set_parent_tab($self);
 
@@ -322,9 +324,11 @@ sub init_dendrogram {
     my $index_combo = $self->get_xmlpage_object('comboPhylogenyShow');
 
     my $highlight_closure  = sub { $self->on_phylogeny_highlight(@_); };
+    my $end_hover_closure  = sub { $self->on_end_phylogeny_hover(@_); };
     my $ctrl_click_closure = sub { $self->on_phylogeny_popup(@_); };
     my $click_closure      = sub { $self->on_phylogeny_click(@_); };
     my $select_closure      = sub { $self->on_phylogeny_select(@_); };
+    my $right_click_closure = sub {$self->toggle_do_canvas_hover_flag (@_)};
 
     my $dendro = $self->{dendrogram} = Biodiverse::GUI::Canvas::Tree->new(
         frame           => $frame,
@@ -332,10 +336,12 @@ sub init_dendrogram {
         list_combo      => $list_combo,
         index_combo     => $index_combo,
         hover_func      => undef,
+        end_hover_func  => $end_hover_closure,
         highlight_func  => $highlight_closure,
         ctrl_click_func => $ctrl_click_closure,
         click_func      => $click_closure,
         select_func     => $select_closure,
+        right_click_func => $right_click_closure,
         show_legend     => 0,
     );
     $dendro->set_parent_tab($self);
@@ -1193,6 +1199,8 @@ sub some_labels_are_in_matrix {
 sub on_grid_hover {
     my ($self, $group) = @_;
 
+    return if !$self->do_canvas_hover_flag;
+
     my $pfx = $self->get_grid_text_pfx;
 
     my $text = $pfx . (defined $group ? "Group: $group" : '<b>Groups</b>');
@@ -1221,6 +1229,9 @@ sub on_grid_hover {
 
 sub on_end_grid_hover {
     my $self = shift;
+
+    return if !$self->do_canvas_hover_flag;
+
     $self->{dendrogram}->clear_highlights;
 }
 
@@ -1311,10 +1322,20 @@ sub on_phylogeny_plot_mode_changed {
     return;
 }
 
+sub on_end_phylogeny_hover {
+    my ($self) = @_;
+
+    return if !$self->do_canvas_hover_flag;
+
+    $self->{grid}->mark_with_circles;
+}
+
 # Called by dendrogram when user hovers over a node
+#  should be a hover func
 sub on_phylogeny_highlight {
-    my $self = shift;
-    my $node = shift;
+    my ($self, $node) = @_;
+
+    return if !$self->do_canvas_hover_flag;
 
     my $terminal_elements = (defined $node) ? $node->get_terminal_elements : {};
 

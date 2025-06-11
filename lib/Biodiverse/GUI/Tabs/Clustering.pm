@@ -643,7 +643,9 @@ sub init_dendrogram {
     my $index_combo =  $self->get_xmlpage_object('comboMapShow');
     my $spinbutton  =  $self->get_xmlpage_object('spinClusters');
 
+    #  should unify highlight and hover funcs
     my $hover_closure       = sub { $self->on_dendrogram_hover(@_); };
+    my $end_hover_closure   = sub { $self->on_end_dendrogram_hover(@_); };
     my $highlight_closure   = sub { $self->on_dendrogram_highlight(@_); };
     my $popup_closure       = sub { $self->on_dendrogram_popup(@_); };
     my $click_closure       = sub { $self->on_dendrogram_click(@_); };
@@ -656,6 +658,7 @@ sub init_dendrogram {
         list_combo      => $list_combo,
         index_combo     => $index_combo,
         hover_func      => $hover_closure,
+        end_hover_func  => $end_hover_closure,
         highlight_func  => $highlight_closure,
         ctrl_click_func => $popup_closure,
         click_func      => $click_closure,  # click_func
@@ -1425,6 +1428,14 @@ sub on_dendrogram_hover {
     $self->get_xmlpage_object('lblDendrogram')->set_markup($dendro_text);
 
     return;
+}
+
+sub on_end_dendrogram_hover {
+    my ($self) = @_;
+
+    return if !$self->do_canvas_hover_flag;
+
+    $self->{grid}->mark_with_circles;
 }
 
 # Circles a node's terminal elements. Clear marks if $node undef

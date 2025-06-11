@@ -318,6 +318,7 @@ sub _on_motion {
     }
     elsif (my $g = $self->{end_hover_func}) {
         $g->();
+        $self->get_parent_tab->queue_draw;
     }
 
     #  should get cursor name from mode

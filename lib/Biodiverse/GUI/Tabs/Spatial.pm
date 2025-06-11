@@ -1618,20 +1618,6 @@ sub on_run {
 # Misc dialog operations
 ##################################################
 
-{
-    state $flagname = 'do_canvas_hover_flag';
-    sub toggle_do_canvas_hover_flag {
-        my $self = shift;
-        $self->{$flagname} //= 1;
-        $self->{$flagname} = !$self->{$flagname};
-    }
-
-    sub do_canvas_hover_flag {
-        my $self = shift;
-        $self->{$flagname} //= 1;
-    }
-}
-
 # Called by grid when user hovers over a cell
 # and when mouse leaves a cell (element undef)
 sub on_grid_hover {

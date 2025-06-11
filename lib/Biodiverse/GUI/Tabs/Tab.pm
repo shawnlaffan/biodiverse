@@ -394,9 +394,18 @@ sub queue_draw {
     }
 }
 
-sub toggle_update_grid_highlights {
-    my ($self) = @_;
-    $self->{grid}->toggle_update_highlights_flag;
+{
+    state $flagname = 'do_canvas_hover_flag';
+    sub toggle_do_canvas_hover_flag {
+        my $self = shift;
+        $self->{$flagname} //= 1;
+        $self->{$flagname} = !$self->{$flagname};
+    }
+
+    sub do_canvas_hover_flag {
+        my $self = shift;
+        $self->{$flagname} //= 1;
+    }
 }
 
 sub choose_tool {

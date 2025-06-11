@@ -599,16 +599,18 @@ sub init_map {
     my $select_closure     = sub { $self->on_grid_select(@_); };
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
     my $end_hover_closure  = sub { $self->on_end_grid_hover(@_); };
+    my $right_click_closure = sub {$self->toggle_do_canvas_hover_flag (@_)};
 
     my $grid = $self->{grid} = Biodiverse::GUI::Canvas::Grid->new(
-        frame           => $frame,
-        show_legend     => 1,
-        show_value      => 0,
-        hover_func      => $hover_closure,
-        ctl_click_func  => $click_closure,
-        select_func     => $select_closure,      #  needed?
-        grid_click_func => $grid_click_closure,  #  needed?
-        end_hover_func  => $end_hover_closure,
+        frame            => $frame,
+        show_legend      => 1,
+        show_value       => 0,
+        hover_func       => $hover_closure,
+        ctl_click_func   => $click_closure,
+        select_func      => $select_closure,     #  needed?
+        grid_click_func  => $grid_click_closure, #  needed?
+        end_hover_func   => $end_hover_closure,
+        right_click_func => $right_click_closure,
     );
     $grid->set_parent_tab($self);
 
@@ -646,6 +648,7 @@ sub init_dendrogram {
     my $popup_closure       = sub { $self->on_dendrogram_popup(@_); };
     my $click_closure       = sub { $self->on_dendrogram_click(@_); };
     my $select_closure      = sub { $self->on_dendrogram_select(@_); };
+    my $right_click_closure = sub {$self->toggle_do_canvas_hover_flag (@_)};
 
     my $dendro = $self->{dendrogram} = Biodiverse::GUI::Canvas::Tree->new(
         frame           => $frame,
@@ -657,8 +660,9 @@ sub init_dendrogram {
         ctrl_click_func => $popup_closure,
         click_func      => $click_closure,  # click_func
         select_func     => $select_closure, # select_func
+        right_click_func => $right_click_closure,
         parent_tab      => $self,
-        basedata_ref    => undef, # basedata_ref
+        basedata_ref    => undef,
         num_clusters    => 6,
     );
 
@@ -1413,6 +1417,8 @@ sub on_dendrogram_hover {
 
     return if !$branch;
 
+    return if !$self->do_canvas_hover_flag;
+
     my ($map_text, $dendro_text) = $self->get_phylogeny_hover_text ($branch);
 
     $self->get_xmlpage_object('lblMap')->set_markup($map_text);
@@ -1423,14 +1429,12 @@ sub on_dendrogram_hover {
 
 # Circles a node's terminal elements. Clear marks if $node undef
 sub on_dendrogram_highlight {
-    my $self = shift;
-    my $node = shift;
+    my ($self, $node) = @_;
+
+    return if !$self->do_canvas_hover_flag;
 
     my $terminal_elements = (defined $node) ? $node->get_terminal_elements : {};
     $self->{grid}->mark_with_circles ( [keys %$terminal_elements] );
-
-    #my @elts = keys %$terminal_elements;
-    #print "marked: @elts\n";
 
     return;
 }
@@ -1454,8 +1458,9 @@ sub on_dendrogram_select {
 
 # When hovering over grid element, will highlight a path from the root to that element
 sub on_grid_hover {
-    my $self = shift;
-    my $element = shift;
+    my ($self, $element) = @_;
+
+    return if !$self->do_canvas_hover_flag;
 
     no warnings 'uninitialized';  #  saves getting sprintf warnings we don't care about
 
@@ -1501,6 +1506,12 @@ sub on_grid_hover {
 
 sub on_end_grid_hover {
     my $self = shift;
+
+    return if !$self->do_canvas_hover_flag;
+
+    #  let the tree hover run any updates
+    # $self->{grid}->mark_with_circles;
+
     $self->{dendrogram}->clear_highlights;
 }
 

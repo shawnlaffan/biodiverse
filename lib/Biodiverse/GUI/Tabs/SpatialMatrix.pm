@@ -253,16 +253,18 @@ sub init_grid {
     };
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
     my $select_closure     = sub { $self->on_grid_select(@_); };
+    my $right_click_closure = sub {$self->toggle_do_canvas_hover_flag (@_)};
 
     my $grid = $self->{grid} = Biodiverse::GUI::Canvas::Grid->new(
-        frame           => $frame,
-        show_legend     => 1,
-        show_value      => 0,
-        hover_func      => $hover_closure,
-        end_hover_func  => sub { $self->on_end_grid_hover(@_)},
-        ctl_click_func  => $click_closure, # Middle click or ctl left-click
-        select_func     => $select_closure,
-        grid_click_func => $grid_click_closure, # Left click
+        frame            => $frame,
+        show_legend      => 1,
+        show_value       => 0,
+        hover_func       => $hover_closure,
+        end_hover_func   => sub {$self->on_end_grid_hover(@_)},
+        ctl_click_func   => $click_closure, # Middle click or ctl left-click
+        select_func      => $select_closure,
+        grid_click_func  => $grid_click_closure, # Left click
+        right_click_func => $right_click_closure,
     );
     $grid->set_parent_tab($self);
 
@@ -464,6 +466,8 @@ sub on_grid_hover {
     my $element = shift;
 
     return if ! defined $element;
+
+    return if !$self->do_canvas_hover_flag;
 
     my $matrix_ref = $self->{output_ref};
     my $output_ref = $self->{groups_ref};

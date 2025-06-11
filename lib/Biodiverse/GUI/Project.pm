@@ -866,12 +866,15 @@ sub rename_base_data {
     $basedata_ref->rename( name => $name );
 
     # Rename in model
-    if ( exists $self->{iters}{basedata_iters}{$basedata_ref} ) {
-        my $iter = $self->{iters}{basedata_iters}{$basedata_ref};
-        if ( defined $iter ) {
-            my $model = $self->{models}{basedata_output_model};
-            $model->set_value( $iter, 0, $name );
+    my $model = $self->{models}{basedata_output_model};
+    my $iter = $model->get_iter_first;
+    while ($iter) {
+        my $ref = $model->get($iter, MODEL_OBJECT);
+        if ($ref == $basedata_ref) {
+            $model->set ($iter, 0, $name);
+            last;
         }
+        last if !$model->iter_next($iter);
     }
 
     $self->set_dirty();

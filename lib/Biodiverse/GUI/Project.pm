@@ -897,7 +897,7 @@ sub rename_matrix {
         my $iter = $self->{iters}{matrix_iters}{$ref};
         if ( defined $iter ) {
             my $model = $self->{models}{matrix_model};
-            $model->set_value( $iter, 0, $name );
+            $model->set ( $iter, 0, $name );
         }
     }
 
@@ -925,7 +925,7 @@ sub rename_phylogeny {
         my $iter = $self->{iters}{phylogeny_iters}{$ref};
         if ( defined $iter ) {
             my $model = $self->{models}{phylogeny_model};
-            $model->set_value( $iter, 0, $name );
+            $model->set ( $iter, 0, $name );
         }
     }
 

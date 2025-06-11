@@ -12,7 +12,6 @@ use Carp;
 use Scalar::Util qw /blessed looks_like_number weaken/;
 
 use Biodiverse::GUI::GUIManager;
-use Biodiverse::GUI::Grid;
 use Biodiverse::GUI::Overlays;
 use Biodiverse::GUI::Project;
 

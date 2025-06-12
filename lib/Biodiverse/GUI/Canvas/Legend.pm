@@ -9,7 +9,7 @@ use experimental qw/refaliasing declared_refs/;
 
 use Carp qw /croak/;
 use List::Util qw /min max/;
-use List::MoreUtils qw/minmax/;
+use List::MoreUtils qw/minmax firstidx/;
 use Scalar::Util qw/weaken blessed/;
 use POSIX qw /ceil/;
 
@@ -30,6 +30,17 @@ use constant COLOUR_BLACK        => Gtk3::Gdk::RGBA::parse('black');
 use constant COLOUR_WHITE        => Gtk3::Gdk::RGBA::parse('white');
 use constant DARKEST_GREY_FRAC   => 0.2;
 use constant LIGHTEST_GREY_FRAC  => 0.8;
+
+
+#  refactor as state var inside a sub
+#  supports state on lists (5.28)
+my %canape_colour_hash = (
+    0 => Gtk3::Gdk::RGBA::parse('lightgoldenrodyellow'),  #  non-sig, lightgoldenrodyellow
+    1 => Gtk3::Gdk::RGBA::parse('red'),                   #  red, neo
+    2 => Gtk3::Gdk::RGBA::parse('royalblue1'),            #  blue, palaeo
+    3 => Gtk3::Gdk::RGBA::parse('#CB7FFF'),               #  purple, mixed
+    4 => Gtk3::Gdk::RGBA::parse('darkorchid'),            #  deep purple, super ('#6A3d9A' is too dark)
+);
 
 
 sub new {
@@ -188,6 +199,11 @@ sub draw {
     $cx->set_matrix($orig_mx);
 
     return;
+}
+
+#  a no-op now
+sub refresh_legend {
+    1;
 }
 
 sub clone_tfm_mx {
@@ -818,6 +834,214 @@ sub get_hue {
     return $self->{hue};
 }
 
+sub set_log_mode {
+    croak "boolean arg not passed"
+        if @_ < 2;
+    my ($self, $bool) = @_;
+
+    return $self->{log_mode} = $bool ? 1 : 0;
+}
+
+sub set_log_mode_on {
+    my ($self) = @_;
+    return $self->{log_mode} = 1;
+}
+
+sub set_log_mode_off {
+    my ($self) = @_;
+    return $self->{log_mode} = 0;
+}
+
+sub get_log_mode {
+    $_[0]->{log_mode};
+}
+
+sub get_colour_categorical {
+    my ($self, $val) = @_;
+    $val //= -1;  #  avoid undef key warnings
+    my $colour_hash = $self->{categorical}{colours} //= {};
+    my $colour = $colour_hash->{$val} || COLOUR_WHITE;
+    #  should not need to do this
+    if (!blessed $colour) {
+        $colour = $colour_hash->{$val} = Gtk3::Gdk::RGBA::parse($colour);
+    }
+    return $colour;
+}
+
+sub get_colour_canape {
+    my ($self, $val) = @_;
+    $val //= -1;  #  avoid undef key warnings
+    return $canape_colour_hash{$val} || COLOUR_WHITE;
+}
+
+#  colours from https://colorbrewer2.org/#type=diverging&scheme=RdYlBu&n=7
+#  refactor as state var inside sub when we require a perl version that
+#  supports state on lists (5.28)
+my @zscore_colours
+    = map {Gtk3::Gdk::RGBA::parse($_)}
+    reverse ('#d73027', '#fc8d59', '#fee090', '#ffffbf', '#e0f3f8', '#91bfdb', '#4575b4');
+
+sub get_colour_zscore {
+    my ($self, $val) = @_;
+
+    state $default_colour = Gtk3::Gdk::RGBA::parse('black');
+
+    return $default_colour
+        if not defined $val;
+
+    #  returns -1 if not found, which will give us last item in @zscore_colours
+    my $idx
+        = firstidx {$val < 0 ? $val < $_ : $val <= $_}
+        (-2.58, -1.96, -1.65, 1.65, 1.96, 2.58);
+
+    if ($self->get_invert_colours) {
+        $idx = $idx < 0 ? 0 : ($#zscore_colours - $idx);
+    }
+
+    return $zscore_colours[$idx];
+}
+
+#  same colours as the z-scores
+sub get_colour_prank {
+    my ($self, $val) = @_;
+
+    state $default_colour = Gtk3::Gdk::RGBA::parse('black');
+
+    return $default_colour
+        if not defined $val;
+
+    #  returns -1 if not found, which will give us last item in @zscore_colours
+    my $idx
+        = firstidx {$val < 0 ? $val < $_ : $val <= $_}
+        (0.01, 0.025, 0.05, 0.95, 0.975, 0.99);
+
+    if ($self->get_invert_colours) {
+        $idx = $idx < 0 ? 0 : ($#zscore_colours - $idx);
+    }
+
+    return $zscore_colours[$idx];
+}
+
+
+sub get_colour_hue {
+    my ($self, $val, $min, $max) = @_;
+    # We use the following system:
+    #   Linear interpolation between min...max
+    #   HUE goes from 180 to 0 as val goes from min to max
+    #   Saturation, Brightness are 1
+    #
+    state $default_colour = Gtk3::Gdk::RGBA::parse('black');
+    my $hue;
+
+    return $default_colour
+        if ! defined $max || ! defined $min;
+
+    if ($max != $min) {
+        return $default_colour
+            if ! defined $val;
+        $hue = ($val - $min) / ($max - $min);
+    }
+    else {
+        $hue = 0;
+    }
+
+    if ($self->get_invert_colours) {
+        $hue = 1 - $hue;
+    }
+
+    $hue = 180 * min (1, max ($hue, 0));
+
+    $hue = int(180 - $hue); # reverse 0..180 to 180..0 (this makes high values red)
+
+    my ($r, $g, $b) = hsv_to_rgb($hue, 1, 1);
+
+    return Gtk3::Gdk::RGBA::parse("rgb($r,$g,$b)");
+}
+
+sub get_colour_saturation {
+    my ($self, $val, $min, $max) = @_;
+    #   Linear interpolation between min...max
+    #   SATURATION goes from 0 to 1 as val goes from min to max
+    #   Hue is variable, Brightness 1
+    state $default_colour = Gtk3::Gdk::RGBA::parse('black');
+
+    return $default_colour
+        if ! defined $val || ! defined $max || ! defined $min;
+
+    my $sat;
+    if ($max != $min) {
+        $sat = ($val - $min) / ($max - $min);
+    }
+    else {
+        $sat = 1;
+    }
+    $sat = min (1, max ($sat, 0));
+
+    if ($self->get_invert_colours) {
+        $sat = 1 - $sat;
+    }
+
+    my ($r, $g, $b) = hsv_to_rgb($self->{hue}, $sat, 1);
+
+    return Gtk3::Gdk::RGBA::parse("rgb($r,$g,$b)");
+}
+
+sub get_colour_grey {
+    my ($self, $val, $min, $max) = @_;
+
+    state $default_colour = Gtk3::Gdk::RGBA::parse('black');
+
+    return $default_colour
+        if ! defined $val || ! defined $max || ! defined $min;
+
+    my $sat;
+    if ($max != $min) {
+        $sat = ($val - $min) / ($max - $min);
+    }
+    else {
+        $sat = 1;
+    }
+
+    if ($self->get_invert_colours) {
+        $sat = 1 - $sat;
+    }
+
+    $sat *= 255;
+    $sat = $self->rescale_grey($sat);  #  don't use all the shades
+    # $sat *= 257;
+
+    return Gtk3::Gdk::RGBA::parse("rgb($sat,$sat,$sat)");
+}
+
+
+# FROM http://blog.webkist.com/archives/000052.html
+# by Jacob Ehnmark
+sub hsv_to_rgb {
+    my($h, $s, $v) = @_;
+
+    return if !defined $h;
+
+    $v = $v >= 1.0 ? 255 : $v * 256;
+
+    # Grey image.
+    return((int($v)) x 3) if ($s == 0);
+
+    $h /= 60;
+    my $i = int($h);
+    my $f = $h - int($i);
+    my $p = int($v * (1 - $s));
+    my $q = int($v * (1 - $s * $f));
+    my $t = int($v * (1 - $s * (1 - $f)));
+    $v = int($v);
+
+    if   ($i == 0) { return($v, $t, $p); }
+    elsif($i == 1) { return($q, $v, $p); }
+    elsif($i == 2) { return($p, $v, $t); }
+    elsif($i == 3) { return($p, $q, $v); }
+    elsif($i == 4) { return($t, $p, $v); }
+    else           { return($v, $p, $q); }
+}
+
 sub rgb_to_hsv {
     my ($self, $var_r, $var_g, $var_b) = @_;
 
@@ -843,6 +1067,91 @@ sub rgb_to_hsv {
         return(0, 0, $var_max);
     }
 }
+
+#  a few factory methods
+sub _make_nonbasic_methods {
+    my ($pkg) = shift || __PACKAGE__;
+    my @methods = _get_nonbasic_plot_modes();
+    # print "Calling _make_access_methods for $pkg";
+    no strict 'refs';
+    foreach my $key (@methods) {
+        my $method   = "get_${key}_mode";
+        my $mode_key = "${key}_mode";
+        # next if $pkg->can($method);  #  do not override
+        *{"${pkg}::${method}"} =
+            do {
+                sub {
+                    $_[0]->{$mode_key};
+                };
+            };
+        $method = "set_${key}_mode_on";
+        # say STDERR "==== Building $method in package $pkg";
+        *{"${pkg}::${method}"} =
+            do {
+                sub {
+                    my ($self) = @_;
+                    my $prev_val = $self->{$mode_key};
+                    $self->{$mode_key} = 1;
+                    if (!$prev_val) {  #  update legend colours
+                        $self->refresh_legend;
+                    }
+                    return 1;
+                };
+            };
+        $method = "set_${key}_mode_off";
+        # say STDERR "==== Building $method in package $pkg";
+        *{"${pkg}::${method}"} =
+            do {
+                sub {
+                    my ($self) = @_;
+                    my $prev_val = $self->{$mode_key};
+                    $self->{$mode_key} = 0;
+                    $self->hide_current_marks;
+                    if ($prev_val) {  #  give back our colours
+                        $self->refresh_legend;
+                    }
+                    return 0;
+                };
+            };
+        $method = "set_${key}_mode";
+        my $mode_off_method = "set_${key}_mode_off";
+        my $mode_on_method  = "set_${key}_mode_on";
+        # say STDERR "==== Building $method in package $pkg";
+        *{"${pkg}::${method}"} =
+            do {
+                sub {
+                    my ($self, $bool) = @_;
+                    my $method_name = $bool ? $mode_on_method : $mode_off_method;
+                    $self->$method_name;
+                    return $self->{$mode_key};
+                };
+            };
+    }
+
+    return;
+}
+
+_make_nonbasic_methods();
+
+
+sub get_colour_for_undef {
+    my $self = shift;
+    my $colour_none = shift;
+
+    return $self->{colour_none} // $self->set_colour_for_undef ($colour_none);
+}
+
+sub set_colour_for_undef {
+    my ($self, $colour) = @_;
+
+    $colour //= COLOUR_WHITE;
+
+    croak "Colour argument must be a Gtk3::Gdk::RGBA or Gtk3::Gdk::Color object\n"
+        if !($colour->isa('Gtk3::Gdk::Color') || $colour->isa('Gtk3::Gdk::RGBA'));
+
+    return $self->{colour_none} = $colour;
+}
+
 
 our $AUTOLOAD;
 

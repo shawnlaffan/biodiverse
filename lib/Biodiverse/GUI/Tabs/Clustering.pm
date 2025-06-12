@@ -13,9 +13,6 @@ use Ref::Util qw /is_ref is_arrayref is_hashref/;
 use Sort::Key::Natural qw /natsort/;
 
 use Biodiverse::GUI::GUIManager;
-#use Biodiverse::GUI::ProgressDialog;
-# use Biodiverse::GUI::Grid;
-# use Biodiverse::GUI::Dendrogram;
 use Biodiverse::GUI::Overlays;
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::CellPopup;

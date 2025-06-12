@@ -18,6 +18,7 @@ use Ref::Util qw /:all/;
 
 use Text::Fuzzy;
 use Scalar::Util qw /blessed/;
+use List::Util qw /max/;
 use List::MoreUtils qw /first_index/;
 
 my $i;
@@ -246,9 +247,6 @@ sub pre_remap_dlg {
     $dlg->show_all;
     my $response = $dlg->run();
 
-    $dlg->destroy();
-
-
     # The dialog has now finished, process the response and figure out
     # what to return.
     my %results;
@@ -256,12 +254,16 @@ sub pre_remap_dlg {
 
     if ( $response eq "ok" ) {
         my $iter = $controller_combo->get_active;
+        #  If no active iter then use the first
+        #  - was caused by the dialogue being already destroyed
+        #  but leaving just in case.
+        $iter = max ($iter, 0);
         my $remap_type
             = $iter == 0 ? 'manual_from_file'
             : $iter == 1 ? 'auto_from_file'
             : 'auto';
-        my $remapee = $remapee_sources[$remapee_combo->get_active];
-        my $controller = $controller_sources[$controller_combo->get_active];
+        my $remapee = $remapee_sources[max ($remapee_combo->get_active, 0)];
+        my $controller = $controller_sources[$iter];
         
         say "Going to remap $remapee using $controller";
         
@@ -276,6 +278,8 @@ sub pre_remap_dlg {
     else {
         %results = (remap_type => "none");
     }
+
+    $dlg->destroy();
 
     return wantarray ? %results : \%results;
 }
@@ -491,7 +495,7 @@ sub remap_results_dialog {
         padding => 10,
         fill => [1],
         tooltip => NOT_MATCHED_PANEL_TOOLTIP,
-        );
+    );
 
     my $punct_frame = $self->build_vertical_frame (
         label => "Punctuation Matches: $punct_match_count ".
@@ -515,12 +519,13 @@ sub remap_results_dialog {
     my $vpaned2 = Gtk3::VPaned->new();
     my $vpaned3 = Gtk3::VPaned->new();
 
-    $vpaned3->pack1($punct_frame, 1, 1);
-    $vpaned3->pack2($typo_frame, 1, 1);
-    $vpaned2->pack1($not_matched_frame, 1, 1);
-    $vpaned2->pack2($vpaned3, 1, 1);
-    $vpaned1->pack1($exact_frame, 1, 1);
-    $vpaned1->pack2($vpaned2, 1, 1);
+    #  last flag is to not shrink
+    $vpaned3->pack1($punct_frame, 1, 0);
+    $vpaned3->pack2($typo_frame, 1, 0);
+    $vpaned2->pack1($not_matched_frame, 1, 0);
+    $vpaned2->pack2($vpaned3, 1, 0);
+    $vpaned1->pack1($exact_frame, 1, 0);
+    $vpaned1->pack2($vpaned2, 1, 0);
 
     # now put all of these into a scrolled window
     my $outer_scroll = Gtk3::ScrolledWindow->new( undef, undef );
@@ -534,34 +539,25 @@ sub remap_results_dialog {
     $vbox->pack_start( $hbox,          0, 0, 0);
     #$vbox->pack_start( $accept_remap_label, 0, 1, 0 );
 
-    
     $dlg->show_all;
    
-    if (!$exact_match_count) {
-        $exact_match_scroll->hide;
-    }
-    if (!$punct_match_count) {
-        $punct_match_checkbutton->set_active(0);
-        $punct_match_scroll->hide;
-    }
-    if (!$typo_match_count) {
-        $typo_match_checkbutton->set_active(0);
-        $typo_match_scroll->hide;
-    }
-    if (!$not_matched_count) {
-        $not_matched_scroll->hide;
-    }
+    $exact_match_scroll->set_visible (!!$exact_match_count);
+    $punct_match_checkbutton->set_active(!!$punct_match_count);
+    $punct_match_scroll->set_visible(!!$punct_match_count);
+    $typo_match_checkbutton->set_active(!!$typo_match_count);
+    $typo_match_scroll->set_visible (!!$typo_match_count);
+    $not_matched_scroll->set_visible (!!$not_matched_count);
 
     my $response = $dlg->run();
 
-    $dlg->destroy();
-    
     my %results = (
         response            => $response,
         punct_match_enabled => $punct_match_checkbutton->get_active,
         typo_match_enabled  => $typo_match_checkbutton->get_active,
         exclusions          => $self->get_exclusions,
     );
+
+    $dlg->destroy();
 
     return wantarray ? %results : \%results;
 }
@@ -577,7 +573,7 @@ sub build_vertical_frame {
     my $fill = $args{fill};
     my $padding = $args{padding};
     
-    foreach my $i ( 0..scalar(@{$components})-1 ) {
+    foreach my $i ( 0 .. $#$components ) {
         $vbox->pack_start( $components->[$i], $fill->[$i], 1, $padding );
     }
 

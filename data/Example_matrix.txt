@@ -1,3 +1,4 @@
+n	Genus	spp	value
 35	Genus	sp1	-															
 36	Genus	sp2	0.05151	-														
 38	Genus	sp3	0.0395	0.04872	-													

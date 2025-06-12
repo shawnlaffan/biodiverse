@@ -14,7 +14,7 @@ use Scalar::Util qw/weaken blessed/;
 use POSIX qw /ceil/;
 
 #  we do not inherit from Biodiverse::GUI::Canvas as we are called by it
-use parent qw /Biodiverse::GUI::Legend/;
+# use parent qw /Biodiverse::GUI::Legend/;  #  should not be needed now
 use parent qw /Biodiverse::Common::Caching/;
 
 ##########################################################

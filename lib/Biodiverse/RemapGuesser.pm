@@ -13,6 +13,7 @@ use warnings;
 use Text::Fuzzy;
 use experimental qw /refaliasing/;
 use List::Util qw /min max/;
+use List::MoreUtils qw /minmax/;
 
 use Biodiverse::Progress;
 
@@ -200,12 +201,11 @@ sub guess_remap {
     my @typo_matches;
     my %ambiguous_matches;
 
-    if ($max_distance) {
+    if ($max_distance && @unprocessed_from_labels) {
         @from_labels = @unprocessed_from_labels;
         @unprocessed_from_labels = ();
 
-        my $longest_from_label  = max (map {length($_)} @from_labels);
-        my $shortest_from_label = min (map {length($_)} @from_labels);
+        my ($shortest_from_label, $longest_from_label) = minmax (map {length($_)} @from_labels);
 
         #  build an index so we can skip impossible matches
         #  each string is listed under each possible distance index based on its length

@@ -7,6 +7,7 @@ our $VERSION = '4.99_002';
 
 use experimental qw /refaliasing declared_refs for_list/;
 use Glib qw/TRUE FALSE/;
+use Gtk3;
 use Scalar::Util qw /refaddr blessed/;
 use List::Util qw /min max pairs uniq sum/;
 use List::MoreUtils qw /minmax firstidx/;

@@ -7,6 +7,7 @@ our $VERSION = '4.99_002';
 
 use experimental qw /refaliasing declared_refs for_list/;
 use Glib qw/TRUE FALSE/;
+use Gtk3;
 use List::Util qw /min max any/;
 use List::MoreUtils qw /minmax/;
 use POSIX qw /floor/;

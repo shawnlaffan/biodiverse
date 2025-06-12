@@ -8,6 +8,7 @@ our $VERSION = '4.99_002';
 
 use experimental qw /refaliasing declared_refs for_list/;
 use Glib qw/TRUE FALSE/;
+use Gtk3;
 use List::Util qw /min max/;
 use List::MoreUtils qw /minmax/;
 use Ref::Util qw /is_hashref/;

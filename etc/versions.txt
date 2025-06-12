@@ -5,4 +5,4 @@ Version numbers for Biodiverse releases.
 4.3
 
 [development]
-3.99_005
+4.99_002

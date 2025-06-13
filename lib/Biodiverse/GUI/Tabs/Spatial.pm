@@ -583,7 +583,6 @@ sub init_dendrogram {
         # select_func     => $select_closure,  #  used to handle zooming, not needed now
         want_legend                   => 1,
         no_use_slider_to_select_nodes => 1,
-        use_slider_to_select_nodes    => 0,
     );
     $self->{dendrogram} = $tree;
     $tree->set_parent_tab($self);

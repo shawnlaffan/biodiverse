@@ -344,7 +344,7 @@ sub do_slider_intersection {
 
     $self->{slider_intersection} = $nodes // [];
 
-    return if ! $self->{use_slider_to_select_nodes};
+    return if $self->{no_use_slider_to_select_nodes};
 
     # Set up colouring
     #  these methods want tree nodes, not canvas branches
@@ -448,6 +448,11 @@ sub set_show_slider {
 sub get_show_slider {
     my ($self) = @_;
     $self->{draw_slider} //= !0;
+}
+
+sub set_no_use_slider_to_select_nodes {
+    my ($self, $bool) = @_;
+    $self->{no_use_slider_to_select_nodes} = !!$bool;
 }
 
 sub get_slider_coords {

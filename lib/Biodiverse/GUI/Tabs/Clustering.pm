@@ -222,7 +222,7 @@ sub new {
     $self->{group_mode} = 'length';
 
     $self->{use_highlight_path} = 1;
-    $self->{use_slider_to_select_nodes} = 1;
+    $self->{no_use_slider_to_select_nodes} = 0;
 
     $self->queue_set_pane(0.5, 'hpaneClustering');
     $self->queue_set_pane(1  , 'vpaneDendrogram');
@@ -378,15 +378,15 @@ sub get_tree_menu_items {
         },
         {
             type     => 'Gtk3::CheckMenuItem',
-            label    => 'Use the slider bar to select branches for colouring',
+            label    => "Don't use the slider bar to select branches for colouring",
             tooltip  => "When deselected, the slider bar will not change the display colours.",
             event    => 'toggled',
             callback => sub {
                 my ($self, $menuitem) = @_;
                 my $bool = $menuitem->get_active;
-                $self->{dendrogram}->set_use_slider_to_select_nodes ($bool);
+                $self->{dendrogram}->set_no_use_slider_to_select_nodes ($bool);
             },
-            active   => 1,
+            active   => 0,
         },
         (   map {$self->get_tree_menu_item($_)}
                qw/separator set_tree_branch_line_widths
@@ -1896,12 +1896,12 @@ sub on_use_highlight_path_changed {
     return;
 }
 
-sub on_menu_use_slider_to_select_nodes {
+sub on_menu_no_use_slider_to_select_nodes {
     my $self = shift;
 
     #  set to complement - should get widget check value
     #  should also really register as a dendrogram callback
-    $self->{dendrogram}->toggle_use_slider_to_select_nodes;
+    $self->{dendrogram}->toggle_no_use_slider_to_select_nodes;
 
     return;
 }

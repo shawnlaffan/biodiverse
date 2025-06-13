@@ -675,13 +675,15 @@ sub draw {
 
     #  the root node gets a shape
     if (1) {
-        my $radius = $v_line_width * 10;
+        my $ratio = $self->get_xy_scale_ratio;
+        my $h_dist = 0.02;  #  should be user configurable
+        my $v_dist = $h_dist * $ratio / 2;
         my @root_coord = ($root->{x_r}, $root->{y});
         my @bbox = (
             $root_coord[0],
-            $root_coord[1]-$radius,
-            $root_coord[0]+$radius,
-            $root_coord[1]+$radius,
+            $root_coord[1]-$v_dist,
+            $root_coord[0]+$h_dist,
+            $root_coord[1]+$v_dist,
         );
         # @root_coord = $cx->device_to_user(@root_coord);
         # my $mx = $cx->get_matrix;

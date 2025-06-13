@@ -766,6 +766,12 @@ sub clone_tfm_mx {
     return $mx->multiply (Cairo::Matrix->init_identity);
 }
 
+sub get_xy_scale_ratio {
+    my ($self) = @_;
+    my @sf = $self->get_scale_factors;
+    return $sf[0] / $sf[1];
+}
+
 sub get_scale_factors {
     my ($self, $drawable) = @_;
 

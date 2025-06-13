@@ -168,6 +168,8 @@ sub init_plot_coords {
     my $branches = $tree_data->{by_node};
     my $nbranches = scalar keys %$branches;
 
+    return if !$nbranches;
+
     my @histogram;
 
     #  use the rtree and get the sum of tips for intersected branches

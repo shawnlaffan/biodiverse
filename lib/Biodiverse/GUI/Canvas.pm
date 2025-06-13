@@ -699,8 +699,13 @@ sub get_tfm_mx {
     my $draw_size = $drawable->get_allocation();
     my ($canvas_w, $canvas_h, $canvas_x, $canvas_y) = @$draw_size{qw/width height x y/};
 
+    my $orig_mx = $self->get_orig_tfm_matrix;
+
     my $disp_h = $self->{disp} //= {};
     my $dims_h = $self->{dims};
+
+    #  bail if no data yet
+    return $orig_mx if !defined $dims_h->{xmax};
 
     my $xcen = $disp_h->{xcen} //= $dims_h->{xcen} //= ($dims_h->{xmin} + $dims_h->{xmax}) / 2;
     my $ycen = $disp_h->{ycen} //= $dims_h->{ycen} //= ($dims_h->{ymin} + $dims_h->{ymax}) / 2;
@@ -714,7 +719,6 @@ sub get_tfm_mx {
     #  Seems to be needed to correct for offsets with mouse clicks.  These are
     #  offset as a function of the original Cairo matrix and whatever window
     #  contents are around the DrawingArea.
-    my $orig_mx = $self->get_orig_tfm_matrix;
     delete $self->{px_offsets};
     $self->{px_offsets} = [$self->get_event_xy_from_mx ([0, 0], $orig_mx), [0,0]];
 
@@ -776,8 +780,8 @@ sub get_scale_factors {
 
     my $disp_h = $self->{disp} //= $self->{dims};
     my $dims_h = $self->{dims};
-    $disp_h->{xwidth}  //= $dims_h->{xwidth}  //= ($dims_h->{xmax} - $dims_h->{xmin});
-    $disp_h->{yheight} //= $dims_h->{yheight} //= ($dims_h->{ymax} - $dims_h->{ymin});
+    $disp_h->{xwidth}  //= $dims_h->{xwidth}  //= (($dims_h->{xmax} // 1) - ($dims_h->{xmin} // 0));
+    $disp_h->{yheight} //= $dims_h->{yheight} //= (($dims_h->{ymax} // 1) - ($dims_h->{ymin} // 0));
 
     my @scale_factors = (
         $canvas_w / ($disp_h->{xwidth}  * $buffer_frac),

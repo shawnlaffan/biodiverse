@@ -340,7 +340,7 @@ sub set_mode {
         select     => 'default',
         zoom_in    => 'zoom-in',
         zoom_out   => 'zoom-out',
-        zoom_fit   => 'zoom-fit-best',
+        zoom_fit   => 'default',  #  no zoom-fit-best it would seem
         pan        => 'fleur',
     );
 

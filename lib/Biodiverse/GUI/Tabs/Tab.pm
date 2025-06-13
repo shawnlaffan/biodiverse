@@ -276,19 +276,6 @@ sub hotkey_handler {
                     $retval = 1; # stop processing
                 }
             }
-            # Change to next tab - tab keys not functional yet so use L and R
-            elsif ((uc $key_name) eq 'R' || $key_name eq 'Tab') {
-                #  switch tabs
-                #print "keyval is $keyval (tab), state is " . $event->state . "\n";
-                my $page_index = $self->get_page_index;
-                $self->{gui}->switch_tab (undef, $page_index + 1); #  go right
-            }
-            elsif ((uc $key_name) eq 'L' || $key_name eq 'ISO_Left_Tab') {
-                #  switch tabs
-                #print "keyval is $keyval (left tab), state is " . $event->state . "\n";
-                my $page_index = $self->get_page_index;
-                $self->{gui}->switch_tab (undef, $page_index - 1); #  go left
-            }
         }
         else {
             # Catch alphabetic keys only for now.

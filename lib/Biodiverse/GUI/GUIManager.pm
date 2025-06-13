@@ -360,18 +360,33 @@ END_OF_DEV_WARNING
 sub init {
     my $self = shift;
 
+    my $window = $self->get_object('wndMain');
+
     # title
-    $self->get_object('wndMain')
-      ->set_title( 'Biodiverse ' . $self->get_version );
+    $window->set_title( 'Biodiverse ' . $self->get_version );
 
     # Notebook...
-    $self->{notebook} = Gtk3::Notebook->new;
-    $self->{notebook}->set_scrollable(1);
+    my $notebook = $self->{notebook} = Gtk3::Notebook->new;
+    $notebook->set_scrollable(1);
 
-    #$self->{notebook}->popup_enable;
-    $self->{notebook}
-      ->signal_connect_swapped( 'switch-page', \&on_switch_tab, $self, );
-    $self->get_object('vbox1')->pack_start( $self->{notebook}, 1, 1, 0, );
+    $notebook->signal_connect_swapped( 'switch-page', \&on_switch_tab, $self, );
+    $self->get_object('vbox1')->pack_start( $notebook, 1, 1, 0, );
+
+    #  Keyboard tab switching.  switch_tab method handles wrapping.
+    $window->signal_connect (key_press_event => sub {
+        my ($widget, $event) = @_;
+        if ($event->state >= [ 'control-mask' ]) {
+            my $key_name = Gtk3::Gdk::keyval_name($event->keyval);
+            if ($key_name eq 'Tab') {
+                $self->switch_tab(undef, $notebook->get_current_page + 1); #  go right
+            }
+            elsif ($key_name eq 'ISO_Left_Tab' && $event->state >= [ 'shift-mask' ]) {
+                $self->switch_tab(undef, $notebook->get_current_page - 1); #  go left
+            }
+        }
+        return 0;
+    });
+
     $self->{notebook}->show();
 
     # Hook up the models
@@ -2229,7 +2244,6 @@ sub switch_tab {
     my $page = shift;
 
     if ($tab) {
-        my $index = $tab->get_page_index;
         $self->get_notebook->set_current_page( $tab->get_page_index );
     }
     else {

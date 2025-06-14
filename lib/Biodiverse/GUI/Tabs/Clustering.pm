@@ -463,7 +463,16 @@ sub setup_tie_breaker_widgets {
         my $j = 2 * $i;
         my $k = $j + 1;
         my $label = Gtk3::Label->new("  $id: ");
-        my $index_combo = Gtk3::ComboBoxText->new;
+        my $index_combo = Gtk3::ComboBoxText->new ();
+        $index_combo->set_hexpand (0);
+        $index_combo->set_wrap_width (5);
+
+        #  seems to have no effect
+        # my $renderer = ($index_combo->get_cells)[0];
+        # $renderer->set (width_chars => 5);
+        # $renderer->set (ellipsize => 'PANGO_ELLIPSIZE_MIDDLE');
+        # $renderer->set (ellipsize => 'PANGO_ELLIPSIZE_END');
+
         my $l = 0;
         my $use_iter;
         foreach my $index (qw /none random/, natsort keys %valid_indices) {
@@ -488,10 +497,10 @@ sub setup_tie_breaker_widgets {
         $combo_minmax->set_active ($use_iter_minmax || 0);
 
         my $hbox = Gtk3::HBox->new;
-        $hbox->pack_start ($label, 0, 0, 0);
-        $hbox->pack_start ($index_combo, 0, 0, 0);
-        $hbox->pack_start ($combo_minmax, 0, 0, 0);
-        $breaker_hbox->pack_start ($hbox, 0, 0, 0);
+        $hbox->pack_start ($label, 0, 0, 1);
+        $hbox->pack_start ($index_combo, 0, 0, 1);
+        $hbox->pack_start ($combo_minmax, 0, 0, 1);
+        $breaker_hbox->pack_start ($hbox, 0, 0, 1);
         push @tie_breaker_widgets, $index_combo, $combo_minmax;
     }
     $breaker_hbox->show_all();

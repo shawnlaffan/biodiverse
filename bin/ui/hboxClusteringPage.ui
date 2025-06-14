@@ -547,7 +547,7 @@ Colours are currently taken from the outer ring.</property>
                                                     <property name="can-focus">False</property>
                                                   </object>
                                                   <packing>
-                                                    <property name="expand">True</property>
+                                                    <property name="expand">False</property>
                                                     <property name="fill">True</property>
                                                     <property name="position">0</property>
                                                   </packing>
@@ -562,7 +562,7 @@ Colours are currently taken from the outer ring.</property>
                                                     <property name="xalign">1</property>
                                                   </object>
                                                   <packing>
-                                                    <property name="expand">True</property>
+                                                    <property name="expand">False</property>
                                                     <property name="fill">True</property>
                                                     <property name="position">1</property>
                                                   </packing>
@@ -758,7 +758,7 @@ set 2</property>
                                                     <property name="can-focus">False</property>
                                                   </object>
                                                   <packing>
-                                                    <property name="expand">True</property>
+                                                    <property name="expand">False</property>
                                                     <property name="fill">True</property>
                                                     <property name="position">0</property>
                                                   </packing>
@@ -775,7 +775,7 @@ than one pair of elements can be merged.   </property>
                                                     <property name="xalign">1</property>
                                                   </object>
                                                   <packing>
-                                                    <property name="expand">True</property>
+                                                    <property name="expand">False</property>
                                                     <property name="fill">True</property>
                                                     <property name="position">1</property>
                                                   </packing>
@@ -794,7 +794,7 @@ than one pair of elements can be merged.   </property>
                                                     <property name="numeric">True</property>
                                                   </object>
                                                   <packing>
-                                                    <property name="expand">True</property>
+                                                    <property name="expand">False</property>
                                                     <property name="fill">True</property>
                                                     <property name="position">2</property>
                                                   </packing>
@@ -819,6 +819,7 @@ than one pair of elements can be merged.   </property>
                                                 <property name="right-attach">3</property>
                                                 <property name="top-attach">6</property>
                                                 <property name="bottom-attach">7</property>
+                                                <property name="x-options">GTK_FILL</property>
                                               </packing>
                                             </child>
                                             <child>
@@ -1120,6 +1121,12 @@ for RegionGrower analyses.  </property>
                                   <placeholder/>
                                 </child>
                                 <child>
+                                  <placeholder/>
+                                </child>
+                                <child>
+                                  <placeholder/>
+                                </child>
+                                <child>
                                   <object class="GtkFrame" id="mapFrame">
                                     <property name="visible">True</property>
                                     <property name="can-focus">False</property>
@@ -1176,6 +1183,9 @@ for RegionGrower analyses.  </property>
                               <placeholder/>
                             </child>
                             <child>
+                              <placeholder/>
+                            </child>
+                            <child>
                               <object class="GtkVPaned" id="vpaneDendrogram">
                                 <property name="visible">True</property>
                                 <property name="can-focus">True</property>
@@ -1184,6 +1194,9 @@ for RegionGrower analyses.  </property>
                                     <property name="visible">True</property>
                                     <property name="can-focus">False</property>
                                     <property name="n-columns">2</property>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
                                     <child>
                                       <placeholder/>
                                     </child>

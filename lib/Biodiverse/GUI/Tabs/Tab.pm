@@ -1,7 +1,7 @@
 package Biodiverse::GUI::Tabs::Tab;
 use strict;
 use warnings;
-use 5.010;
+use 5.036;
 
 our $VERSION = '4.99_002';
 
@@ -278,8 +278,13 @@ sub hotkey_handler {
             }
         }
         else {
-            # Catch alphabetic keys only for now.
-            if (($keyval >= Gtk3::Gdk::KEY_a && $keyval <= Gtk3::Gdk::KEY_z)
+            state %non_alpha = (
+                equal => 1,
+                minus => 1,
+                plus  => 1,
+            );
+            # Catch alphabetic keys and some non-alpha.
+            if ($non_alpha{$key_name} || ($keyval >= Gtk3::Gdk::KEY_a && $keyval <= Gtk3::Gdk::KEY_z)
                 or ($keyval >= Gtk3::Gdk::KEY_A && $keyval <= Gtk3::Gdk::KEY_Z)) {
                 $retval = $self->on_bare_key($key_name, $event);
             }
@@ -347,16 +352,25 @@ sub on_bare_key {
 
     $self->set_last_hotkey_event_time;
 
-    # Immediate zoom without changing the current tool.
+    # Immediate actions without changing the current tool.
     # A zoom_fit variant is probably not useful
-    state %instant_methods = (
-        i => 'do_zoom_in_centre',
-        o => 'do_zoom_out_centre',
+
+    #  these only apply in zoom mode
+    state %instant_zoom_methods = (
+        i     => 'do_zoom_in_centre',
+        o     => 'do_zoom_out_centre',
+    );
+    #  these apply at any time
+    state %instant_key_methods = (
+        plus  => 'do_zoom_in_centre',
+        equal => 'do_zoom_in_centre',
+        minus => 'do_zoom_out_centre',
     );
 
-    my $inst_meth = $instant_methods{$key};
+    my $inst_meth  = $instant_key_methods{$key}
+        // ($self->{tool} =~ /Zoom/ and $instant_zoom_methods{$key});
 
-    if ($self->{tool} =~ /Zoom/ && $inst_meth) {
+    if ($inst_meth) {
         $active_pane->$inst_meth;
     }
     else {

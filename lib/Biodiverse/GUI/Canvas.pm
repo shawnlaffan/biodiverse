@@ -432,16 +432,42 @@ sub panning {
     $self->{panning};
 }
 
+sub start_panning {
+    my ($self, $x, $y) = @_;
+
+    $self->{panning} = 1;
+    say "Pan started, $x $y";
+    my $ps = $self->{pan_start} = {};
+    $ps->{x} = $x;
+    $ps->{y} = $y;
+    $ps->{xcen}   = $self->{disp}{xcen};
+    $ps->{ycen}   = $self->{disp}{ycen};
+    $ps->{matrix} = $self->{matrix};
+    return FALSE;
+}
+
+sub stop_panning {
+    my ($self) = @_;
+    $self->{panning} = 0;
+    delete $self->{pan_start};
+    say 'Pan release';
+    return FALSE;
+}
+
 sub pan {
     my ($self, $widget, $event) = @_;
 
-    return if !$self->{panning};
+    return if !$self->panning;
 
     my ($x1, $y1) = $self->get_event_xy_from_mx ($event, $self->{pan_start}{matrix});
     # say "Panning $x, $y, $x1, $y1";
 
-    my $time = $event->time;  #  milliseconds
+    #  milliseconds
+    my $time = blessed $event
+        ? $event->time
+        : int (Time::HiRes::time * 10);
     $self->{last_pan_update} //= $time;
+
     #  disable for now due to flicker - need scrollbars again as in Biodiverse?
     #  although mouse is offset so possibly it's a matrix update issue interacting with lagged events
     #  or grab mouse pos from a parent widget? - nope
@@ -579,13 +605,8 @@ sub on_button_release {
         delete $self->{sel_start_y};
     }
     elsif ($self->panning) {
-
         $self->pan ($widget, $event);  #  update final position
-
-        delete $self->{pan_start};
-
-        $self->{panning} = 0;
-        say 'Pan release';
+        $self->stop_panning;
     }
 
     return FALSE;
@@ -617,16 +638,8 @@ sub on_button_press {
         return FALSE;
     }
     elsif ($self->in_pan_mode && !$self->panning) {
+        return $self->start_panning($x, $y);
         # ($self->{sel_start_x}, $self->{sel_start_y}) = ($event->x, $event->y);
-        $self->{panning} = 1;
-        say "Pan started, $x $y";
-        my $ps = $self->{pan_start} = {};
-        $ps->{x} = $x;
-        $ps->{y} = $y;
-        $ps->{xcen}   = $self->{disp}{xcen};
-        $ps->{ycen}   = $self->{disp}{ycen};
-        $ps->{matrix} = $self->{matrix};
-        return FALSE;
     }
     elsif (not $self->selecting and $self->in_selectable_mode) {
         my $ctl_click

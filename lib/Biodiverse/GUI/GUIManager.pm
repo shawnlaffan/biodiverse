@@ -372,11 +372,18 @@ sub init {
     $notebook->signal_connect_swapped( 'switch-page', \&on_switch_tab, $self, );
     $self->get_object('vbox1')->pack_start( $notebook, 1, 1, 0, );
 
+    #  these seem not to get through to the tabs otherwise
+    state %pass_through = map {$_ => 1} (qw /Left Right Up Down/);
+
     #  Keyboard tab switching.  switch_tab method handles wrapping.
     $window->signal_connect (key_press_event => sub {
         my ($widget, $event) = @_;
+        # say $event->keyval;
+        # say $event->state;
+        # say Gtk3::Gdk::keyval_name($event->keyval);
+
+        my $key_name = Gtk3::Gdk::keyval_name($event->keyval);
         if ($event->state >= [ 'control-mask' ]) {
-            my $key_name = Gtk3::Gdk::keyval_name($event->keyval);
             if ($key_name eq 'Tab') {
                 $self->switch_tab(undef, $notebook->get_current_page + 1); #  go right
             }
@@ -384,6 +391,13 @@ sub init {
                 $self->switch_tab(undef, $notebook->get_current_page - 1); #  go left
             }
         }
+        elsif ($pass_through{$key_name}) {
+            my $tab = $self->get_active_tab;
+            if (defined $tab && $tab->can ('hotkey_handler')) {  #  paranoia
+                $tab->hotkey_handler (undef, $event);
+            }
+        }
+
         return 0;
     });
 
@@ -2284,6 +2298,16 @@ sub remove_tab {
     $tab->remove();
 
     return;
+}
+
+sub get_active_tab {
+    my $self       = shift;
+
+    my $page = $self->get_notebook->get_current_page;
+
+    return if $page < 0;
+
+    return $self->{tabs}[$page];
 }
 
 sub on_switch_tab {

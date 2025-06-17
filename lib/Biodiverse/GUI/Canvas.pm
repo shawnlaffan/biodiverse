@@ -435,14 +435,18 @@ sub panning {
 sub start_panning {
     my ($self, $x, $y) = @_;
 
+    warn 'Already in pan mode' if $self->{panning};
+    return if $self->{panning};
+
     $self->{panning} = 1;
-    say "Pan started, $x $y";
+    # say "Pan started, $x $y";
     my $ps = $self->{pan_start} = {};
     $ps->{x} = $x;
     $ps->{y} = $y;
     $ps->{xcen}   = $self->{disp}{xcen};
     $ps->{ycen}   = $self->{disp}{ycen};
     $ps->{matrix} = $self->{matrix};
+
     return FALSE;
 }
 
@@ -450,16 +454,60 @@ sub stop_panning {
     my ($self) = @_;
     $self->{panning} = 0;
     delete $self->{pan_start};
-    say 'Pan release';
+    # say 'Pan release';
     return FALSE;
 }
 
+{
+    state $def_pan_frac = 0.01;
+    sub do_pan_up {
+        my ($self) = @_;
+        $self->pan_frac(0, -$def_pan_frac);
+    }
+    sub do_pan_down {
+        my ($self) = @_;
+        $self->pan_frac(0, $def_pan_frac);
+    }
+    sub do_pan_left {
+        my ($self) = @_;
+        $self->pan_frac($def_pan_frac, 0);
+    }
+    sub do_pan_right {
+        my ($self) = @_;
+        $self->pan_frac(-$def_pan_frac, 0);
+    }
+}
+
+sub pan_frac {
+    my ($self, $xfrac, $yfrac) = @_;
+
+    return if !($xfrac || $yfrac);
+    return if $self->panning;  #  if user is mouse panning already
+
+    my $dims = $self->{disp};
+
+    my $x_off = ($xfrac // 0) * ($dims->{xwidth}  // ($dims->{xmax} - $dims->{xmin}));
+    my $y_off = ($yfrac // 0) * ($dims->{yheight} // ($dims->{ymax} - $dims->{ymin}));
+
+    my ($xcen, $ycen) = @$dims{qw /xcen ycen/};
+    my $x = $dims->{xcen} + $x_off;
+    my $y = $dims->{ycen} + $y_off;
+
+    # say "Pan frac $xfrac $yfrac, $x $y";
+
+    $self->start_panning ($xcen, $ycen);
+    $self->pan([$x, $y], 1);
+    $self->stop_panning;
+}
+
 sub pan {
-    my ($self, $event) = @_;
+    my ($self, $event, $use_map_coords) = @_;
 
     return if !$self->panning;
 
-    my ($x1, $y1) = $self->get_event_xy_from_mx ($event, $self->{pan_start}{matrix});
+    my ($x1, $y1) = $use_map_coords
+        ? @$event
+        : $self->get_event_xy_from_mx ($event, $self->{pan_start}{matrix});
     # say "Panning $x, $y, $x1, $y1";
 
     #  milliseconds

@@ -278,11 +278,7 @@ sub hotkey_handler {
             }
         }
         else {
-            state %non_alpha = (
-                equal => 1,
-                minus => 1,
-                plus  => 1,
-            );
+            state %non_alpha = map {$_ => 1} (qw /equal minus plus Left Right Up Down/);
             # Catch alphabetic keys and some non-alpha.
             if ($non_alpha{$key_name} || ($keyval >= Gtk3::Gdk::KEY_a && $keyval <= Gtk3::Gdk::KEY_z)
                 or ($keyval >= Gtk3::Gdk::KEY_A && $keyval <= Gtk3::Gdk::KEY_Z)) {
@@ -365,6 +361,10 @@ sub on_bare_key {
         plus  => 'do_zoom_in_centre',
         equal => 'do_zoom_in_centre',
         minus => 'do_zoom_out_centre',
+        Left  => 'do_pan_left',
+        Right => 'do_pan_right',
+        Up    => 'do_pan_up',
+        Down  => 'do_pan_down',
     );
 
     my $inst_meth  = $instant_key_methods{$key}

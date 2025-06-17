@@ -78,6 +78,25 @@ sub do_zoom_out_centre{
     $self->get_tree_canvas->do_zoom_out_centre;
 }
 
+sub do_pan_up {
+    my ($self) = @_;
+    $self->get_tree_canvas->do_pan_up;
+}
+sub do_pan_down {
+    my ($self) = @_;
+    $self->get_tree_canvas->do_pan_down;
+}
+sub do_pan_left {
+    my ($self) = @_;
+    $self->get_tree_canvas->do_pan_left;
+}
+sub do_pan_right {
+    my ($self) = @_;
+    $self->get_tree_canvas->do_pan_right;
+}
+
+
+
 sub draw_slider {
     my ($self, $cx) = @_;
 
@@ -212,23 +231,6 @@ sub init_plot_coords {
     $self->{plot_coords_generated} = 1;
 
     return;
-}
-
-sub do_pan_up {
-    my ($self) = @_;
-    $self->get_tree_canvas->do_pan_up;
-}
-sub do_pan_down {
-    my ($self) = @_;
-    $self->get_tree_canvas->do_pan_down;
-}
-sub do_pan_left {
-    my ($self) = @_;
-    $self->get_tree_canvas->do_pan_left;
-}
-sub do_pan_right {
-    my ($self) = @_;
-    $self->get_tree_canvas->do_pan_right;
 }
 
 

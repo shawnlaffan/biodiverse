@@ -208,4 +208,22 @@ sub init_plot_coords {
     return;
 }
 
+sub do_pan_up {
+    my ($self) = @_;
+    $self->get_tree_canvas->do_pan_up;
+}
+sub do_pan_down {
+    my ($self) = @_;
+    $self->get_tree_canvas->do_pan_down;
+}
+sub do_pan_left {
+    my ($self) = @_;
+    $self->get_tree_canvas->do_pan_left;
+}
+sub do_pan_right {
+    my ($self) = @_;
+    $self->get_tree_canvas->do_pan_right;
+}
+
+
 1;

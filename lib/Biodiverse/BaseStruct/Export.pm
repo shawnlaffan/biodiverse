@@ -1877,8 +1877,7 @@ sub write_table_geotiff {
 #  one per field based on row 0.
 #  Skip any fields that contain non-numeric values
 sub write_rgb_geotiff {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
     my $file = $args{file} || croak "file arg not specified\n";
     my ($name, $path, $suffix) = fileparse (path($file)->absolute, qr/\.tif{1,2}/);
@@ -1913,10 +1912,20 @@ sub write_rgb_geotiff {
             CELL_ORIGINS => [$self->get_cell_origins],
         );
         foreach my $elt (keys %$href) {
-            my @rgb_arr = $href->{$elt} =~ /([a-fA-F\d]{4})/g;
-            @rgb_arr = map {0 + hex "0x$_"} @rgb_arr;
+            # my @rgb_arr = $href->{$elt} =~ /([a-fA-F\d]{4})/g;
+            # @rgb_arr = map {0 + hex "0x$_"} @rgb_arr;
             my %rgb_hash;
-            @rgb_hash{qw /red green blue/} = @rgb_arr;
+            my $rgb = $href->{$elt};
+            if (is_arrayref $rgb) {
+                #  rgb vals in [0,1]
+                @rgb_hash{qw/red green blue/} = map {$_ * (2**16-1)} @$rgb;
+            }
+            elsif (!is_ref $rgb) {
+                #  rgb vals in [0,255] as, e.g., rgb(123,201,0)
+                my @arr = $rgb =~ /\d+/g;
+                $rgb = [@arr];
+                @rgb_hash{qw/red green blue/} = map {$_ * 255} @$rgb;
+            }
             $bs->add_element (element => $elt);
             $bs->add_lists (
                 element => $elt,

@@ -2293,7 +2293,7 @@ sub recolour {
             $ccache->{$elt} = $colour;
         }
         else {
-            $ccache->{$elt} = $colour->to_string;
+            $ccache->{$elt} = [map { $colour->$_ } (qw /red green blue/)];
         }
 
         return $colour;

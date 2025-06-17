@@ -79,21 +79,20 @@ sub draw_slider {
     #  might only need the x coord
     my $slider_coords = $self->get_slider_coords;
 
-    my ($x, $y0, $y1) = @{$slider_coords}{qw/x y0 y1/};
-
-    my $line_width = ($y1 - $y0) / 100;  #  need to work on this
-
     $cx->set_source_rgba(0, 0, 1, 0.5);
     my $bounds = $slider_coords->{bounds};
-    if (0 && $bounds) {  #  disabled for now
+
+    if (1 && $bounds) {  #  disabled for now
         $cx->rectangle(
             $bounds->[0],
-            $bounds->[1],
+            0,
             $bounds->[2] - $bounds->[0],
-            $bounds->[3] - $bounds->[1],
+            1,
         );
+        $cx->fill;
     }
     else {
+        my $x = $slider_coords->{x};
         $cx->move_to($x, 0);
         $cx->line_to($x, 1);
         $cx->stroke;

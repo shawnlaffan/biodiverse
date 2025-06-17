@@ -474,16 +474,21 @@ sub draw_slider {
 
     my ($x, $y0, $y1) = @{$slider_coords}{qw/x y0 y1/};
 
-    my $line_width = ($y1 - $y0) / 100;  #  need to work on this
+    my $disp = $self->{disp};
+    my $line_width = ($disp->{xwidth} // ($disp->{xmax} - $disp->{xmin})) / 100;
+    my $l2 = $line_width / 2;
 
+    $cx->save;
+    $cx->set_matrix ($self->get_tfm_mx);
     $cx->set_source_rgba(0, 0, 1, 0.5);
     $cx->move_to($x, 0);
-    $cx->line_to($x, 1);
-    $cx->stroke;
+    $cx->rectangle ($x - $l2, 0, $line_width, 1);
+    $cx->fill;
+    $cx->restore;
 
     $slider_coords->{bounds} = [
-        $x - $line_width / 2, $y0,
-        $x + $line_width / 2, $y1,
+        $x - $l2, $y0,
+        $x + $l2, $y1,
     ];
 
     if ($self->{sliding}) {

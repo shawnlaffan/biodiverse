@@ -68,8 +68,15 @@ sub on_button_release {}
 sub on_button_press {}
 sub on_motion {}
 sub on_key_press {}
-sub do_zoom_in_centre{}
-sub do_zoom_out_centre{}
+
+sub do_zoom_in_centre{
+    my ($self) = @_;
+    $self->get_tree_canvas->do_zoom_in_centre;
+}
+sub do_zoom_out_centre{
+    my ($self) = @_;
+    $self->get_tree_canvas->do_zoom_out_centre;
+}
 
 sub draw_slider {
     my ($self, $cx) = @_;

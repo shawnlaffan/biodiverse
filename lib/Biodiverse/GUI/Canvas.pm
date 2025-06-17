@@ -455,7 +455,7 @@ sub stop_panning {
 }
 
 sub pan {
-    my ($self, $widget, $event) = @_;
+    my ($self, $event) = @_;
 
     return if !$self->panning;
 
@@ -546,7 +546,7 @@ sub on_motion {
         }
     }
     elsif ($self->panning) {
-        $self->pan ($widget, $event);
+        $self->pan ($event);
         return FALSE;
     }
 
@@ -605,7 +605,7 @@ sub on_button_release {
         delete $self->{sel_start_y};
     }
     elsif ($self->panning) {
-        $self->pan ($widget, $event);  #  update final position
+        $self->pan ($event);  #  update final position
         $self->stop_panning;
     }
 

@@ -1960,6 +1960,7 @@ sub write_rgb_geotiff {
         my $y_col = -1;
         my @rgb_band_cols = (5,4,3);  #  rgb alpha sorted
         my @rgb_band_data;
+        state $max_val = 2**16 - 1;  # UInt16
         foreach my $y (reverse ($min_ids[1] .. $max_ids[1])) {
             $y_col++;
             my $x_col = -1;
@@ -1971,7 +1972,7 @@ sub write_rgb_geotiff {
                     my $value = $rgb_data_hash->{$coord_id}[$i];
                     if (defined $value) {
                         $rgb_band_data[$i][$y_col][$x_col] = 0+$value;
-                        $rgb_band_data[6][$y_col][$x_col]  //= 2**16-1;
+                        $rgb_band_data[6][$y_col][$x_col]  //= $max_val;
                     }
                     else {
                         $rgb_band_data[$i][$y_col][$x_col] = 0;
@@ -1996,6 +1997,10 @@ sub write_rgb_geotiff {
             $band_id++;
             my $out_band = $out_raster->GetBand($band_id);
             $out_band->Write($rgb_data, 0, 0, $ncols, $nrows);
+            $out_band->SetMetadata({   #  helps with some displays
+                STATISTICS_MAXIMUM => "$max_val",
+                STATISTICS_MINIMUM => '0',
+            }, '');
         }
     }
 

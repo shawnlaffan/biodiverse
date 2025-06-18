@@ -39,8 +39,8 @@ sub Run {
     my $snooper_status = $gui->keyboard_snooper_active;
     $gui->activate_keyboard_snooper (0);
 
-    # Get the Parameters metadata
-    my $metadata = $object->get_metadata (sub => 'export');
+    # Get the Parameters metadata.  No cache as we need some updates.
+    my $metadata = $object->get_metadata (sub => 'export', no_use_cache => 1);
 
     ###################
     # get the selected format

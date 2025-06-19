@@ -1618,17 +1618,6 @@ sub on_matrix_clicked {
 
     return if $self->{tool} ne 'Select';
 
-    #  We could use $rect but there were off-by-one issues,
-    #  possibly because it needs to round to the nearest mid-point.
-    #  It can be looked into if profiling flags this as a bottleneck.
-    my ($h_start, $h_end) = minmax map {$_->{coord}[0]} @$cells;
-    my ($v_start, $v_end) = minmax map {$_->{coord}[1]} @$cells;
-
-    $h_start = Gtk3::TreePath->new_from_indices($h_start);
-    $h_end   = Gtk3::TreePath->new_from_indices($h_end);
-    $v_start = Gtk3::TreePath->new_from_indices($v_start);
-    $v_end   = Gtk3::TreePath->new_from_indices($v_end);
-
     #  list1 is the y-axis
     my $vlist = $self->get_xmlpage_object('listLabels1');
     my $hlist = $self->get_xmlpage_object('listLabels2');
@@ -1642,6 +1631,20 @@ sub on_matrix_clicked {
         $hsel->unselect_all;
         $vsel->unselect_all;
     }
+
+    return if !@$cells;
+
+    #  We could use $rect but there were off-by-one issues,
+    #  possibly because it needs to round to the nearest mid-point.
+    #  It can be looked into if profiling flags this as a bottleneck.
+    my ($h_start, $h_end) = minmax map {$_->{coord}[0]} @$cells;
+    my ($v_start, $v_end) = minmax map {$_->{coord}[1]} @$cells;
+
+    $h_start = Gtk3::TreePath->new_from_indices($h_start);
+    $h_end   = Gtk3::TreePath->new_from_indices($h_end);
+    $v_start = Gtk3::TreePath->new_from_indices($v_start);
+    $v_end   = Gtk3::TreePath->new_from_indices($v_end);
+
     my $sel_method = $sel_mode eq 'remove_from' ? 'unselect_range' : 'select_range';
 
     eval {

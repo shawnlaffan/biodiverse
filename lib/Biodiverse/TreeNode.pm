@@ -2293,7 +2293,14 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
     
     # build the bootstrap block if needed
     my $bootstrap_string = '';
-    if ($args{sub_list} || $args{export_colours} || $args{include_colours}) {
+    if (my $colour_hash = $args{colour_hash}) {
+        my $bootstrap_block = $self->get_bootstrap_block();
+        my $aref = $colour_hash->{$self->get_name};
+        $bootstrap_string = $bootstrap_block->encode(
+            colour => $aref,
+        );
+    }
+    elsif ($args{sub_list} || $args{export_colours} || $args{include_colours}) {
         my $bootstrap_block = $self->get_bootstrap_block();
         $bootstrap_string = $bootstrap_block->encode (
             include_colour => $args{export_colours} || $args{include_colours},

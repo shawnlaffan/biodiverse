@@ -1107,8 +1107,7 @@ sub export_nexus {
     }
     my $comment_block_hash;
     my @booters_to_cleanse;
-    if ($export_colours || defined $sub_list_name) {
-        my %comments_block;
+    if (defined $sub_list_name) {
         my $node_refs = $self->get_node_refs;
         foreach my $node_ref (@$node_refs) {
             my $booter = $node_ref->get_bootstrap_block;
@@ -1119,14 +1118,21 @@ sub export_nexus {
                 $booter->set_value_aa ($sub_list_name => $sub_list);
                 push @booters_to_cleanse, $booter;
             }
-            #my $boot_text = $booter->encode (
-            #    include_colour => $export_colours,
-            #);
+            # if (my $colours = $colour_hash->{$node_ref->get_name}) {
+            #     my $boot_text = $booter->encode(
+            #         colour => $colours,
+            #     );
+            #     $booter->set_value_aa (colour => $boot_text);
+            # }
             #$comments_block{$node_ref->get_name} = $boot_text;
         }
         #$comment_block_hash = \%comments_block;
     }
-  
+    if ($export_colours) {
+        my $colour_hash = $self->get_most_recent_line_colours;
+        $args{colour_hash} //= $colour_hash;
+    }
+
     print {$fh} $self->to_nexus(
         tree_name => $self->get_param('NAME'),
         %args,
@@ -3807,6 +3813,25 @@ sub get_nonzero_length_count {
     $count = grep { $_->get_length } $self->get_node_refs;
     $self->set_cached_value ($cachename => $count);
     return $count;
+}
+
+#  the GUI can set a hash of array refs.
+#  hash args variant is largely for consistency
+sub set_most_recent_line_colours {
+    my ($self, %args) = @_;
+    my $href = $args{list} // {};
+
+    $self->set_cached_value (MOST_RECENT_LINE_COLOURS => $href);
+}
+
+sub set_most_recent_line_colours_aa {
+    my ($self, $href) = @_;
+    $self->set_cached_value (MOST_RECENT_LINE_COLOURS => $href);
+}
+
+sub get_most_recent_line_colours {
+    my ($self) = @_;
+    $self->get_cached_value_dor_set_default_href ('MOST_RECENT_LINE_COLOURS');
 }
 
 1;

@@ -170,7 +170,16 @@ sub encode {
             push @bootstrap_strings, ($boot_key . '=' . $value);
         }
     }
-    if ($args{include_colour}) {
+    #  messy but second condition is the old approach and we want to support old data still
+    if ($args{colour}) {
+        my $colour = $args{colour};
+        if (defined $colour) {
+            #  should test if the value looks like a valid colour value
+            my $string = '#' . join '', map {sprintf "%02X", 255 * $_} @$colour;
+            unshift @bootstrap_strings, "!color=" . $string;
+        }
+    }
+    elsif ($args{include_colour}) {
         my $colour = $self->get_colour;
         if (defined $colour) {
             #  should test if the value looks like a valid colour value

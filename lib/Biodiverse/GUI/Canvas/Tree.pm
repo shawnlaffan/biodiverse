@@ -1138,8 +1138,7 @@ sub recolour_cluster_lines {
         $self->set_multiselect_colour_hash(\%colour_hash);
     }
 
-    #  Nasty - should be a tree method
-    #  Might also be worth skipping if we know the colours have not changed
+    #  Might be worth skipping if we know the colours have not changed
     #  but that needs profiling first.
     if (keys %colour_hash) {
         my %for_cache

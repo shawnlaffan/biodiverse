@@ -1105,7 +1105,6 @@ sub export_nexus {
         $sub_list_name  = undef;
         $args{sub_list} = undef;
     }
-    my $comment_block_hash;
     my @booters_to_cleanse;
     if (defined $sub_list_name) {
         my $node_refs = $self->get_node_refs;
@@ -1118,15 +1117,7 @@ sub export_nexus {
                 $booter->set_value_aa ($sub_list_name => $sub_list);
                 push @booters_to_cleanse, $booter;
             }
-            # if (my $colours = $colour_hash->{$node_ref->get_name}) {
-            #     my $boot_text = $booter->encode(
-            #         colour => $colours,
-            #     );
-            #     $booter->set_value_aa (colour => $boot_text);
-            # }
-            #$comments_block{$node_ref->get_name} = $boot_text;
         }
-        #$comment_block_hash = \%comments_block;
     }
     if ($export_colours) {
         my $colour_hash = $self->get_most_recent_line_colours;
@@ -1136,7 +1127,6 @@ sub export_nexus {
     print {$fh} $self->to_nexus(
         tree_name => $self->get_param('NAME'),
         %args,
-        #comment_block_hash => $comment_block_hash,
     );
 
     $fh->close;

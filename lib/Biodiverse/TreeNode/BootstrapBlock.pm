@@ -170,7 +170,7 @@ sub encode {
             push @bootstrap_strings, ($boot_key . '=' . $value);
         }
     }
-    #  messy but second condition is the old approach and we want to support old data still
+    #  messy but second condition is the old approach and we want to support old data still.  Or do we?
     if ($args{colour}) {
         my $colour = $args{colour};
         if (defined $colour) {

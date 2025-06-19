@@ -327,7 +327,7 @@ sub init_dendrogram {
     my $end_hover_closure  = sub { $self->on_end_phylogeny_hover(@_); };
     my $ctrl_click_closure = sub { $self->on_phylogeny_popup(@_); };
     my $click_closure      = sub { $self->on_phylogeny_click(@_); };
-    my $select_closure      = sub { $self->on_phylogeny_select(@_); };
+    # my $select_closure      = sub { $self->on_phylogeny_select(@_); };
     my $right_click_closure = sub {$self->toggle_do_canvas_hover_flag (@_)};
 
     my $dendro = $self->{dendrogram} = Biodiverse::GUI::Canvas::Tree->new(
@@ -340,7 +340,7 @@ sub init_dendrogram {
         highlight_func  => $highlight_closure,
         ctrl_click_func => $ctrl_click_closure,
         click_func      => $click_closure,
-        select_func     => $select_closure,
+        # select_func     => $select_closure,
         right_click_func => $right_click_closure,
         show_legend     => 0,
     );
@@ -1241,50 +1241,46 @@ sub on_grid_select {
 
     #say 'Rect: ' . Dumper ($rect);
 
-    if ($self->{tool} eq 'Select') {
-        # convert groups into a hash of labels that are in them
-        my %hash;
-        my $bd = $self->{base_ref};
-        foreach my $group (@$groups) {
-            my $hashref = $bd->get_labels_in_group_as_hash_aa($group);
-            @hash{ keys %$hashref } = ();
-        }
+    return if $self->{tool} ne 'Select';
 
-        # Select all terminal labels
-        my $model  = $self->{labels_model};
-        my $hmodel = $self->get_xmlpage_object('listLabels1')->get_model();
-        my $hselection = $self->get_xmlpage_object('listLabels1')->get_selection();
-
-        my $sel_mode = $self->get_selection_mode;
-
-        if ($sel_mode eq 'new') {
-            $hselection->unselect_all();
-        }
-        my $sel_method = $sel_mode eq 'remove_from' ? 'unselect_iter' : 'select_iter';
-
-        my $iter = $hmodel->get_iter_first();
-        my $elt;
-
-        $self->{ignore_selection_change} = 'listLabels1';
-        while ($iter) {
-            my $hi = $hmodel->convert_iter_to_child_iter($iter);
-            $elt = $model->get($hi, 0);
-
-            if (exists $hash{ $elt } ) {
-                $hselection->$sel_method($iter);
-            }
-
-            last if !$hmodel->iter_next($iter);
-        }
-        if (not $ignore_change) {
-            delete $self->{ignore_selection_change};
-        }
-        on_selected_labels_changed($hselection, [$self, 'listLabels1']);
+    # convert groups into a hash of labels that are in them
+    my %hash;
+    my $bd = $self->{base_ref};
+    foreach my $group (@$groups) {
+        my $hashref = $bd->get_labels_in_group_as_hash_aa($group);
+        @hash{ keys %$hashref } = ();
     }
-    elsif ($self->{tool} eq 'ZoomIn') {
-        my $grid = $self->{grid};
-        $self->handle_grid_drag_zoom ($grid, $rect);
+
+    # Select all terminal labels
+    my $model  = $self->{labels_model};
+    my $hmodel = $self->get_xmlpage_object('listLabels1')->get_model();
+    my $hselection = $self->get_xmlpage_object('listLabels1')->get_selection();
+
+    my $sel_mode = $self->get_selection_mode;
+
+    if ($sel_mode eq 'new') {
+        $hselection->unselect_all();
     }
+    my $sel_method = $sel_mode eq 'remove_from' ? 'unselect_iter' : 'select_iter';
+
+    my $iter = $hmodel->get_iter_first();
+    my $elt;
+
+    $self->{ignore_selection_change} = 'listLabels1';
+    while ($iter) {
+        my $hi = $hmodel->convert_iter_to_child_iter($iter);
+        $elt = $model->get($hi, 0);
+
+        if (exists $hash{ $elt } ) {
+            $hselection->$sel_method($iter);
+        }
+
+        last if !$hmodel->iter_next($iter);
+    }
+    if (not $ignore_change) {
+        delete $self->{ignore_selection_change};
+    }
+    on_selected_labels_changed($hselection, [$self, 'listLabels1']);
 
     return;
 }
@@ -1369,62 +1365,45 @@ sub on_phylogeny_highlight {
 sub on_phylogeny_click {
     my $self = shift;
 
-    if ($self->{tool} eq 'Select') {
-        my $node_ref = shift;
-        $self->{dendrogram}->do_colour_nodes_below($node_ref);
-        my $terminal_elements = (defined $node_ref) ? $node_ref->get_terminal_elements : {};
+    return if $self->{tool} ne 'Select';
 
-        # Select terminal labels as per the selection mode
-        my $model      = $self->{labels_model};
-        my $hmodel     = $self->get_xmlpage_object('listLabels1')->get_model();
-        my $hselection = $self->get_xmlpage_object('listLabels1')->get_selection();
+    my $node_ref = shift;
+    $self->{dendrogram}->do_colour_nodes_below($node_ref);
+    my $terminal_elements = (defined $node_ref) ? $node_ref->get_terminal_elements : {};
 
-        my $sel_mode = $self->get_selection_mode;
+    # Select terminal labels as per the selection mode
+    my $model      = $self->{labels_model};
+    my $hmodel     = $self->get_xmlpage_object('listLabels1')->get_model();
+    my $hselection = $self->get_xmlpage_object('listLabels1')->get_selection();
 
-        if ($sel_mode eq 'new') {
-            $hselection->unselect_all();
+    my $sel_mode = $self->get_selection_mode;
+
+    if ($sel_mode eq 'new') {
+        $hselection->unselect_all();
+    }
+    my $sel_method = $sel_mode eq 'remove_from' ? 'unselect_iter' : 'select_iter';
+
+    my $iter = $hmodel->get_iter_first();
+    my $elt;
+
+    $self->{ignore_selection_change} = 'listLabels1';
+    while ($iter) {
+        my $hi = $hmodel->convert_iter_to_child_iter($iter);
+        $elt = $model->get($hi, 0);
+        #print "[onPhylogenyClick] selected: $elt\n";
+
+        if (exists $terminal_elements->{ $elt } ) {
+            $hselection->$sel_method($iter);
         }
-        my $sel_method = $sel_mode eq 'remove_from' ? 'unselect_iter' : 'select_iter';
 
-        my $iter = $hmodel->get_iter_first();
-        my $elt;
-
-        $self->{ignore_selection_change} = 'listLabels1';
-        while ($iter) {
-            my $hi = $hmodel->convert_iter_to_child_iter($iter);
-            $elt = $model->get($hi, 0);
-            #print "[onPhylogenyClick] selected: $elt\n";
-
-            if (exists $terminal_elements->{ $elt } ) {
-                $hselection->$sel_method($iter);
-            }
-
-            last if !$hmodel->iter_next($iter);
-        }
-        delete $self->{ignore_selection_change};
-        on_selected_labels_changed($hselection, [$self, 'listLabels1']);
-
-        # Remove the hover marks
-        $self->{grid}->mark_with_circles ( [] );
+        last if !$hmodel->iter_next($iter);
     }
-    elsif ($self->{tool} eq 'ZoomOut') {
-        $self->{dendrogram}->zoom_out();
-    }
-    elsif ($self->{tool} eq 'ZoomFit') {
-        $self->{dendrogram}->zoom_fit();
-    }
+    delete $self->{ignore_selection_change};
+    on_selected_labels_changed($hselection, [$self, 'listLabels1']);
 
-    return;
-}
+    # Remove the hover marks
+    $self->{grid}->mark_with_circles ( [] );
 
-sub on_phylogeny_select {
-    my $self = shift;
-    my $rect = shift; # [x1, y1, x2, y2]
-
-    if ($self->{tool} eq 'ZoomIn') {
-        my $grid = $self->{dendrogram};
-        $self->handle_grid_drag_zoom ($grid, $rect);
-    }
 
     return;
 }
@@ -1637,63 +1616,54 @@ sub on_matrix_clicked {
 
     return if !$self->{matrix_grid}->current_matrix_overlaps;
 
-    if ($self->{tool} eq 'Select') {
-        #  We could use $rect but there were off-by-one issues,
-        #  possibly because it needs to round to the nearest mid-point.
-        #  It can be looked into if profiling flags this as a bottleneck.
-        my ($h_start, $h_end) = minmax map {$_->{coord}[0]} @$cells;
-        my ($v_start, $v_end) = minmax map {$_->{coord}[1]} @$cells;
+    return if $self->{tool} ne 'Select';
 
-        $h_start = Gtk3::TreePath->new_from_indices($h_start);
-        $h_end   = Gtk3::TreePath->new_from_indices($h_end);
-        $v_start = Gtk3::TreePath->new_from_indices($v_start);
-        $v_end   = Gtk3::TreePath->new_from_indices($v_end);
+    #  We could use $rect but there were off-by-one issues,
+    #  possibly because it needs to round to the nearest mid-point.
+    #  It can be looked into if profiling flags this as a bottleneck.
+    my ($h_start, $h_end) = minmax map {$_->{coord}[0]} @$cells;
+    my ($v_start, $v_end) = minmax map {$_->{coord}[1]} @$cells;
 
-        #  list1 is the y-axis
-        my $vlist = $self->get_xmlpage_object('listLabels1');
-        my $hlist = $self->get_xmlpage_object('listLabels2');
+    $h_start = Gtk3::TreePath->new_from_indices($h_start);
+    $h_end   = Gtk3::TreePath->new_from_indices($h_end);
+    $v_start = Gtk3::TreePath->new_from_indices($v_start);
+    $v_end   = Gtk3::TreePath->new_from_indices($v_end);
 
-        my $hsel = $hlist->get_selection;
-        my $vsel = $vlist->get_selection;
+    #  list1 is the y-axis
+    my $vlist = $self->get_xmlpage_object('listLabels1');
+    my $hlist = $self->get_xmlpage_object('listLabels2');
 
-        my $sel_mode = $self->get_selection_mode;
+    my $hsel = $hlist->get_selection;
+    my $vsel = $vlist->get_selection;
 
-        if ($sel_mode eq 'new') {
-            $hsel->unselect_all;
-            $vsel->unselect_all;
-        }
-        my $sel_method = $sel_mode eq 'remove_from' ? 'unselect_range' : 'select_range';
+    my $sel_mode = $self->get_selection_mode;
 
-        eval {
-            $hsel->$sel_method($h_start, $h_end);
-        };
-        warn $EVAL_ERROR if $EVAL_ERROR;
-        eval {
-            $vsel->$sel_method($v_start, $v_end);
-        };
-        warn $EVAL_ERROR if $EVAL_ERROR;
-
-        #  scroll_to_cell now needs six params, so this needs updating.
-        #  The sticking point is that if the list is sorted by selection then
-        #  Those are already moved to the top or bottom of the list.
-        #  So disable for now.
-        # $hlist->scroll_to_cell( $h_start );
-        # $vlist->scroll_to_cell( $v_start );
+    if ($sel_mode eq 'new') {
+        $hsel->unselect_all;
+        $vsel->unselect_all;
     }
+    my $sel_method = $sel_mode eq 'remove_from' ? 'unselect_range' : 'select_range';
+
+    eval {
+        $hsel->$sel_method($h_start, $h_end);
+    };
+    warn $EVAL_ERROR if $EVAL_ERROR;
+    eval {
+        $vsel->$sel_method($v_start, $v_end);
+    };
+    warn $EVAL_ERROR if $EVAL_ERROR;
+
+    #  scroll_to_cell now needs six params, so this needs updating.
+    #  The sticking point is that if the list is sorted by selection then
+    #  Those are already moved to the top or bottom of the list.
+    #  So disable for now.
+    # $hlist->scroll_to_cell( $h_start );
+    # $vlist->scroll_to_cell( $v_start );
 
     return;
 }
 
-sub on_matrix_grid_clicked {
-    my $self = shift;
-
-    if ($self->{tool} eq 'ZoomOut') {
-        $self->{matrix_grid}->zoom_out();
-    }
-    elsif ($self->{tool} eq 'ZoomFit') {
-        $self->{matrix_grid}->zoom_fit();
-    }
-}
+sub on_matrix_grid_clicked {}
 
 ##################################################
 # Misc

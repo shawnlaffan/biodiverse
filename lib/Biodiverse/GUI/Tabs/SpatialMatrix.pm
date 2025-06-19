@@ -252,7 +252,7 @@ sub init_grid {
         );
     };
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
-    my $select_closure     = sub { $self->on_grid_select(@_); };
+    # my $select_closure     = sub { $self->on_grid_select(@_); };
     my $right_click_closure = sub {$self->toggle_do_canvas_hover_flag (@_)};
 
     my $grid = $self->{grid} = Biodiverse::GUI::Canvas::Grid->new(
@@ -262,7 +262,7 @@ sub init_grid {
         hover_func       => $hover_closure,
         end_hover_func   => sub {$self->on_end_grid_hover(@_)},
         ctl_click_func   => $click_closure, # Middle click or ctl left-click
-        select_func      => $select_closure,
+        # select_func      => $select_closure,
         grid_click_func  => $grid_click_closure, # Left click
         right_click_func => $right_click_closure,
     );
@@ -636,18 +636,6 @@ sub on_neighbours_changed {
     return;
 }
 
-# Override to add on_cell_selected
-sub on_grid_select {
-    my ($self, $groups, $ignore_change, $rect) = @_;
-    if ($self->{tool} eq 'Select') {
-        shift;
-        $self->on_cell_selected(@_);
-    }
-    elsif ($self->{tool} eq 'ZoomIn') {
-        my $grid = $self->{grid};
-        $self->handle_grid_drag_zoom($grid, $rect);
-    }
-}
 
 #  methods aren't inherited when called as GTK callbacks
 #  so we have to manually inherit them using SUPER::

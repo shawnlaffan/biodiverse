@@ -846,8 +846,8 @@ sub init_grid {
         );
     };
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
-    my $select_closure = sub { $self->on_grid_select(@_); };
-    $select_closure = undef;  #  not sure we need this for the spatial tab
+    # my $select_closure = sub { $self->on_grid_select(@_); };
+    # $select_closure = undef;  #  not sure we need this for the spatial tab
     my $end_hover_closure = sub { $self->on_end_grid_hover(@_); };
     my $right_click_closure = sub {$self->toggle_do_canvas_hover_flag (@_)};
 
@@ -861,7 +861,7 @@ sub init_grid {
         show_value      => 0,  #  still used?
         hover_func      => $hover_closure,
         ctl_click_func  => $click_closure, # Middle click or ctl left-click
-        select_func     => $select_closure,
+        # select_func     => $select_closure,
         grid_click_func => $grid_click_closure, # Left click
         end_hover_func  => $end_hover_closure,  #  we go from cell to background
         right_click_func => $right_click_closure,
@@ -1218,26 +1218,13 @@ sub on_phylogeny_highlight {
 sub on_phylogeny_click {
     my ($self, $node) = @_;
 
-    if ($self->{tool} eq 'Select') {
-        $self->{dendrogram}->do_colour_nodes_below($node);
-        if (!$node) {  #  clear the highlights.  Maybe should copy Clustering.pm and add a leave event
-            $self->{grid}->clear_marks;
-        }
+    return if $self->{tool} ne 'Select';
+
+    $self->{dendrogram}->do_colour_nodes_below($node);
+    if (!$node) {  #  clear the highlights.  Maybe should copy Clustering.pm and add a leave event
+        $self->{grid}->clear_marks;
     }
 
-    return;
-}
-
-#  a no-op now the canvas handles zooming
-sub on_phylogeny_select {
-    # my $self = shift;
-    # my $rect = shift; # [x1, y1, x2, y2]
-    #
-    # if ($self->{tool} eq 'ZoomIn') {
-    #     my $grid = $self->{dendrogram};
-    #     $self->handle_grid_drag_zoom ($grid, $rect);
-    # }
-    #
     return;
 }
 

@@ -18,6 +18,8 @@ use Carp qw /croak confess/;
 
 use Time::HiRes qw/time/;
 
+use Biodiverse::GUI::Canvas::Dims;
+
 use constant COLOUR_WHITE => Gtk3::Gdk::RGBA::parse('white');
 
 use parent qw /Biodiverse::Common::Caching/;
@@ -882,6 +884,10 @@ sub reset_disp {
     $self->{disp} = { %{$self->{dims}} };
 }
 
+sub init_dims {
+    my ($self, %args) = @_;
+    $self->{dims} = Biodiverse::GUI::Canvas::Dims->new(%args);
+}
 
 sub get_displayed_extent {
     my ($self) = @_;

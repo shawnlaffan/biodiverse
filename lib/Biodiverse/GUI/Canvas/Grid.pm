@@ -26,6 +26,7 @@ use constant COLOUR_FAILED_DEF_QUERY => Gtk3::Gdk::RGBA::parse('white');
 use constant CELL_OUTLINE_COLOUR => Gtk3::Gdk::RGBA::parse('black');
 
 use parent 'Biodiverse::GUI::Canvas';
+use Biodiverse::GUI::Canvas::Dims;
 
 sub new {
     my ($class, %args) = @_;
@@ -450,7 +451,7 @@ sub set_base_struct {
 
     my ($min_x, $max_x, $min_y, $max_y) = $self->get_data_extents();
 
-    $self->{dims} = {
+    $self->init_dims (
         xmin    => $min_x,
         xmax    => $max_x,
         ymin    => $min_y,
@@ -460,7 +461,7 @@ sub set_base_struct {
         xcen    => ($max_x + $min_x) / 2,
         ycen    => ($max_y + $min_y) / 2,
         scale   => 1,
-    };
+    );
     $self->reset_disp;  #  ensures this exists
 
     $self->{cellsizes} = [$cell_x, $cell_y];

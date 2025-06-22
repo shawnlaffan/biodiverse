@@ -220,12 +220,12 @@ sub init_plot_coords {
 
     push @histogram, ([$xdims[1], $prev_frac], [$xdims[1], 1]);
 
-    $self->{dims} = {
+    $self->init_dims (
         xmin => $xdims[0],
         xmax => $xdims[1],
         ymin => 0,
         ymax => 1,
-    };
+    );
     $self->{data} = \@histogram;
 
     $self->{plot_coords_generated} = 1;

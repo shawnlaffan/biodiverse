@@ -32,7 +32,7 @@ sub new {
     my $dim_min = -0.5;
     my $dim_span = $size + 1;
 
-    $self->{dims} = {
+    $self->init_dims (
         xmin    => $dim_min,
         ymin    => $dim_min,
         xmax    => $dim_max,
@@ -41,7 +41,7 @@ sub new {
         yheight => $dim_span,
         xcen    => $dim_cen,
         ycen    => $dim_cen,
-    };
+    );
     $self->{cellsizes} = [1, 1];
     $self->{ncells_x} = $size;
     $self->{ncells_y} = $size;

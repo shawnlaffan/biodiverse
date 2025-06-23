@@ -457,13 +457,7 @@ sub set_base_struct {
         xmax    => $max_x,
         ymin    => $min_y,
         ymax    => $max_y,
-        xwidth  => ($max_x - $min_x),
-        yheight => ($max_y - $min_y),
-        xcen    => ($max_x + $min_x) / 2,
-        ycen    => ($max_y + $min_y) / 2,
-        scale   => 1,
     );
-    $self->reset_disp;  #  ensures this exists
 
     $self->{cellsizes} = [$cell_x, $cell_y];
     $self->{ncells_x} = ($max_x - $min_x) / $cell_x;

@@ -27,20 +27,14 @@ sub new {
     my $size = @$row_labels;
 
     #  This aligns cell labels on the coords
-    my $dim_cen = ($size + 1) / 2;
     my $dim_max = $size + 0.5;
     my $dim_min = -0.5;
-    my $dim_span = $size + 1;
 
     $self->init_dims (
         xmin    => $dim_min,
         ymin    => $dim_min,
         xmax    => $dim_max,
         ymax    => $dim_max,
-        xwidth  => $dim_span,
-        yheight => $dim_span,
-        xcen    => $dim_cen,
-        ycen    => $dim_cen,
     );
     $self->{cellsizes} = [1, 1];
     $self->{ncells_x} = $size;

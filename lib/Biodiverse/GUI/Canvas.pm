@@ -15,6 +15,7 @@ use Scalar::Util qw/weaken blessed/;
 use Ref::Util qw /is_arrayref/;
 use POSIX qw /floor/;
 use Carp qw /croak confess/;
+use Clone qw /clone/;
 
 use Time::HiRes qw/time/;
 
@@ -445,8 +446,8 @@ sub start_panning {
     my $ps = $self->{pan_start} = {};
     $ps->{x} = $x;
     $ps->{y} = $y;
-    $ps->{xcen}   = $self->{disp}{xcen};
-    $ps->{ycen}   = $self->{disp}{ycen};
+    $ps->{xcen}   = $self->{disp}->xcen;
+    $ps->{ycen}   = $self->{disp}->ycen;
     $ps->{matrix} = $self->{matrix};
 
     return FALSE;
@@ -488,12 +489,12 @@ sub pan_frac {
 
     my $dims = $self->{disp};
 
-    my $x_off = ($xfrac // 0) * ($dims->{xwidth}  // ($dims->{xmax} - $dims->{xmin}));
-    my $y_off = ($yfrac // 0) * ($dims->{yheight} // ($dims->{ymax} - $dims->{ymin}));
+    my $x_off = ($xfrac // 0) * $dims->width;
+    my $y_off = ($yfrac // 0) * $dims->height;
 
-    my ($xcen, $ycen) = @$dims{qw /xcen ycen/};
-    my $x = $dims->{xcen} + $x_off;
-    my $y = $dims->{ycen} + $y_off;
+    my ($xcen, $ycen) = ($dims->xcen, $dims->ycen);
+    my $x = $xcen + $x_off;
+    my $y = $ycen + $y_off;
 
     # say "Pan frac $xfrac $yfrac, $x $y";
 
@@ -560,7 +561,8 @@ sub do_zoom_out_centre {
 sub _do_zoom_centre {
     my ($self, $multiplier) = @_;
 
-    $self->{disp}{scale} *= $multiplier;
+    my $s = $self->{disp}->scale;
+    $self->{disp}->scale ($s * $multiplier);
 
     $self->{matrix} = $self->get_tfm_mx;
     $self->queue_draw;
@@ -630,20 +632,18 @@ sub on_button_release {
             #  avoid divide by zero
             if ($xwidth && $yheight && $self->in_zoom_in_mode) {
                 #  update display, clear non-specified fields
-                $self->{disp} = {
-                    xwidth  => $xwidth,
-                    yheight => $yheight,
-                    xcen    => $xcen,
-                    ycen    => $ycen,
-                    scale   => 1,
-                };
+                my $d = $self->clear_disp;
+                $d->width ($xwidth);
+                $d->height ($yheight);
+                $d->xcen ($xcen);
+                $d->ycen ($ycen);
             }
             else {
                 #  point-based zoom, zoom-out is from centre of box or mouse-click
-                $self->{disp}{scale} //= 1;
-                $self->{disp}{scale} *= $self->in_zoom_in_mode ? 1.5 : 1 / 1.5;
-                $self->{disp}{xcen} = $xcen;
-                $self->{disp}{ycen} = $ycen;
+                my $d = $self->{disp};
+                $d->multiply_scale ($self->in_zoom_in_mode ? 1.5 : 1 / 1.5);
+                $d->xcen ($xcen);
+                $d->ycen ($ycen);
             }
             $self->{matrix} = $self->get_tfm_mx;
             $self->queue_draw;
@@ -764,14 +764,14 @@ sub get_tfm_mx {
 
     my $orig_mx = $self->get_orig_tfm_matrix;
 
-    my $disp_h = $self->{disp} //= {};
+    my $disp_h = $self->{disp};
     my $dims_h = $self->{dims};
 
     #  bail if no data yet
     return $orig_mx if !defined $dims_h->xmax;
 
-    my $xcen = $disp_h->{xcen} //= $dims_h->xcen;
-    my $ycen = $disp_h->{ycen} //= $dims_h->ycen;
+    my $xcen = $disp_h->xcen // $dims_h->xcen;
+    my $ycen = $disp_h->ycen // $dims_h->ycen;
 
     if ($noisy) {
         my $fmt = "%9.2f %9.2f %9.2f %9.2f";
@@ -849,12 +849,12 @@ sub get_scale_factors {
 
     my $disp_h = $self->{disp} //= $self->{dims};
     my $dims_h = $self->{dims};
-    $disp_h->{xwidth}  //= $dims_h->xwidth;
-    $disp_h->{yheight} //= $dims_h->yheight;
+    my $width  = $disp_h->width // $dims_h->width;
+    my $height = $disp_h->height // $dims_h->height;
 
     my @scale_factors = (
-        $canvas_w / ($disp_h->{xwidth}  * $buffer_frac),
-        $canvas_h / ($disp_h->{yheight} * $buffer_frac)
+        $canvas_w / ($width  * $buffer_frac),
+        $canvas_h / ($height * $buffer_frac)
     );
     if ($self->maintain_aspect_ratio) {
         my $sc = min (@scale_factors);
@@ -865,7 +865,7 @@ sub get_scale_factors {
     }
 
     #  rescale
-    my $zoom_factor = $disp_h->{scale} //= 1;
+    my $zoom_factor = $disp_h->scale;
     if ($zoom_factor) {
         @scale_factors = map {$zoom_factor * $_ } @scale_factors;
     }
@@ -881,12 +881,19 @@ sub plot_bottom_up {!!0};
 
 sub reset_disp {
     my $self = shift;
-    $self->{disp} = { %{$self->{dims}} };
+    $self->{disp} = clone $self->{dims};
+}
+
+sub clear_disp {
+    my $self = shift;
+    $self->{disp}->clear;
+    return $self->{disp};
 }
 
 sub init_dims {
     my ($self, %args) = @_;
     $self->{dims} = Biodiverse::GUI::Canvas::Dims->new(%args);
+    $self->{disp} = clone $self->{dims};
 }
 
 sub get_displayed_extent {

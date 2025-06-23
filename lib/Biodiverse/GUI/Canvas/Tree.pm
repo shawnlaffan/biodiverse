@@ -62,10 +62,6 @@ sub new {
         ymin    => 0,
         xmax    => $size,
         ymax    => $size,
-        xwidth  => $size,
-        yheight => $size,
-        xcen    => $size / 2,
-        ycen    => $size / 2,
     );
 
     # starting off with the "clustering" view, not a spatial analysis
@@ -474,7 +470,7 @@ sub draw_slider {
     my ($x, $y0, $y1) = @{$slider_coords}{qw/x y0 y1/};
 
     my $disp = $self->{disp};
-    my $line_width = ($disp->{xwidth} // ($disp->{xmax} - $disp->{xmin})) / 100;
+    my $line_width = $disp->width / 100;
     my $l2 = $line_width / 2;
 
     $cx->save;

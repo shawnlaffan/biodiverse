@@ -280,8 +280,14 @@ sub hotkey_handler {
         else {
             state %non_alpha = map {$_ => 1} (qw /equal minus plus Left Right Up Down/);
             # Catch alphabetic keys and some non-alpha.
-            if ($non_alpha{$key_name} || ($keyval >= Gtk3::Gdk::KEY_a && $keyval <= Gtk3::Gdk::KEY_z)
-                or ($keyval >= Gtk3::Gdk::KEY_A && $keyval <= Gtk3::Gdk::KEY_Z)) {
+            state %valid_keys
+                = map {$_ => 1} (
+                    'a'..'z',
+                    'A'..'Z',
+                    qw /equal minus plus Left Right Up Down/
+                );
+
+            if ($valid_keys{$key_name}) {
                 $retval = $self->on_bare_key($key_name, $event);
             }
         }

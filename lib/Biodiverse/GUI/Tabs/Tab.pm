@@ -278,7 +278,6 @@ sub hotkey_handler {
             }
         }
         else {
-            state %non_alpha = map {$_ => 1} (qw /equal minus plus Left Right Up Down/);
             # Catch alphabetic keys and some non-alpha.
             state %valid_keys
                 = map {$_ => 1} (

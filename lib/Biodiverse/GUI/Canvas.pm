@@ -36,7 +36,7 @@ sub new {
     }
 
     $self->{mode} = 'select';
-    $self->{dims}{scale} //= 1;
+    # $self->{dims}{scale} //= 1;
 
     #############################
     ##
@@ -117,16 +117,16 @@ sub dump_self {
 }
 
 sub xmax {
-    $_[0]->{dims}{xmax};
+    $_[0]->{dims}->xmax;
 }
 sub ymax {
-    $_[0]->{dims}{ymax};
+    $_[0]->{dims}->ymax;
 }
 sub xmin {
-    $_[0]->{dims}{xmin};
+    $_[0]->{dims}->xmin;
 }
 sub ymin {
-    $_[0]->{dims}{ymin};
+    $_[0]->{dims}->ymin;
 }
 
 sub drawable {
@@ -525,8 +525,8 @@ sub pan {
     if (1 || ($time - $self->{last_pan_update}) > 3) {
         #  need to update the display relative to start
         #  calc offset from mouse click, then adjust the display centre accordingly
-        $self->{pan_start}{xcen} //= $self->{dims}{xcen};
-        $self->{pan_start}{ycen} //= $self->{dims}{ycen};
+        $self->{pan_start}{xcen} //= $self->{dims}->xcen;
+        $self->{pan_start}{ycen} //= $self->{dims}->ycen;
         $self->{disp}{xcen} = $self->{pan_start}{xcen} + $self->{pan_start}{x} - $x1;
         $self->{disp}{ycen} = $self->{pan_start}{ycen} + $self->{pan_start}{y} - $y1;
         $self->{last_pan_update} = $time;
@@ -768,14 +768,14 @@ sub get_tfm_mx {
     my $dims_h = $self->{dims};
 
     #  bail if no data yet
-    return $orig_mx if !defined $dims_h->{xmax};
+    return $orig_mx if !defined $dims_h->xmax;
 
-    my $xcen = $disp_h->{xcen} //= $dims_h->{xcen} //= ($dims_h->{xmin} + $dims_h->{xmax}) / 2;
-    my $ycen = $disp_h->{ycen} //= $dims_h->{ycen} //= ($dims_h->{ymin} + $dims_h->{ymax}) / 2;
+    my $xcen = $disp_h->{xcen} //= $dims_h->xcen;
+    my $ycen = $disp_h->{ycen} //= $dims_h->ycen;
 
     if ($noisy) {
         my $fmt = "%9.2f %9.2f %9.2f %9.2f";
-        say sprintf $fmt, $xcen, $ycen, $dims_h->{xcen}, $dims_h->{ycen};
+        say sprintf $fmt, $xcen, $ycen, $dims_h->xcen, $dims_h->ycen;
     }
 
     #  Always override in case the matrix has changed from when this was last set
@@ -849,8 +849,8 @@ sub get_scale_factors {
 
     my $disp_h = $self->{disp} //= $self->{dims};
     my $dims_h = $self->{dims};
-    $disp_h->{xwidth}  //= $dims_h->{xwidth}  //= (($dims_h->{xmax} // 1) - ($dims_h->{xmin} // 0));
-    $disp_h->{yheight} //= $dims_h->{yheight} //= (($dims_h->{ymax} // 1) - ($dims_h->{ymin} // 0));
+    $disp_h->{xwidth}  //= $dims_h->xwidth;
+    $disp_h->{yheight} //= $dims_h->yheight;
 
     my @scale_factors = (
         $canvas_w / ($disp_h->{xwidth}  * $buffer_frac),

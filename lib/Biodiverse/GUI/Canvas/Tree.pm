@@ -52,8 +52,12 @@ sub new {
         $args{use_highlight_func} = defined $args{highlight_func};
     }
 
+    my $self = Biodiverse::GUI::Canvas->new (%args);
+    #  rebless
+    bless $self, $class;
+
     my $size = 1;
-    $args{dims} = {
+    $self->init_dims (
         xmin    => 0,
         ymin    => 0,
         xmax    => $size,
@@ -62,12 +66,7 @@ sub new {
         yheight => $size,
         xcen    => $size / 2,
         ycen    => $size / 2,
-    };
-
-    my $self = Biodiverse::GUI::Canvas->new (%args);
-
-    #  rebless
-    bless $self, $class;
+    );
 
     # starting off with the "clustering" view, not a spatial analysis
     $self->{sp_list}  = undef;
@@ -549,10 +548,8 @@ sub get_horizontal_line_width {
     my $ntips  = $self->{data}{ntips};
     my $dims_h = $self->{dims};  #  full plot
     my $disp_h = $self->{disp};  #  current zoom
-    my $dims_ymin = $dims_h->{ymin};
-    my $dims_ymax = $dims_h->{ymax};
-    my $disp_ymin = $disp_h->{ymin} // $dims_ymin;
-    my $disp_ymax = $disp_h->{ymax} // $dims_ymax;
+    my $disp_ymin = $disp_h->{ymin} // $dims_h->ymin;
+    my $disp_ymax = $disp_h->{ymax} // $dims_h->ymax;
 
     my $line_width = $self->get_branch_line_width;
     if (!$ntips) {
@@ -560,7 +557,7 @@ sub get_horizontal_line_width {
     }
     elsif (!$line_width) {
         #  calculate it as a function of the plot height
-        my $frac_displayed = ($disp_ymax - $disp_ymin) / ($dims_ymax - $dims_ymin);
+        my $frac_displayed = ($disp_ymax - $disp_ymin) / $dims_h->height;
         $frac_displayed = min(1, $frac_displayed); #  use dims if zoomed out
         $line_width = ($disp_ymax - $disp_ymin) / ($ntips * 3 * $frac_displayed);
     }

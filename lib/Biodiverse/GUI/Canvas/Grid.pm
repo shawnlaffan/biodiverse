@@ -166,7 +166,8 @@ sub _on_selection_release {
 sub _get_data {
     my $self = shift;
     my $dims = $self->{dims};
-    my ($xmin, $xmax, $ymin, $ymax, $cellsizes) = (@$dims{qw/xmin xmax ymin ymax/}, $self->{cellsizes});
+    my ($xmin, $xmax, $ymin, $ymax) = map {$dims->$_} (qw/xmin xmax ymin ymax/);
+    my $cellsizes = $self->{cellsizes};
 
     # say join ' ', ($xmin, $xmax, $ymin, $ymax, $cellsizes);
 
@@ -700,7 +701,7 @@ sub load_shapefile {
         if $shape_cache->{$fname};
 
     my $dims = $self->{dims};
-    my ($min_x, $min_y, $max_x, $max_y) = @$dims{qw/xmin ymin xmax ymax/};
+    my ($min_x, $min_y, $max_x, $max_y) = map {$dims->$_} (qw/xmin ymin xmax ymax/);
     my ($cell_x, $cell_y) = @{$self->{cellsizes}};
 
     my @rect = (

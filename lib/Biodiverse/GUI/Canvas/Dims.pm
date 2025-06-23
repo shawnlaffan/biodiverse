@@ -2,6 +2,8 @@ package Biodiverse::GUI::Canvas::Dims;
 use strict;
 use warnings;
 
+our $VERSION = '4.99_002';
+
 sub new {
     my ($class, %args) = @_;
     # $args{scale} //= 1;

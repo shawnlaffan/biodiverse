@@ -564,7 +564,10 @@ sub get_horizontal_line_width {
         $line_width /= $canvas_height;
     }
 
-    return $line_width;
+    # say "LW: $line_width";
+
+    #  Arbitrary but we can also be too small.
+    return max (0.002, $line_width);
 }
 
 #  ensure the vertical lines are the same as the horizontal ones

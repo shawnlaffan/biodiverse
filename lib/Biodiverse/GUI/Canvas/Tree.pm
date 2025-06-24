@@ -271,7 +271,7 @@ sub _on_motion {
             my @bres = $self->get_index->intersects_slider(@sb);
             $self->do_slider_intersection(\@bres);
 
-            $self->queue_draw;
+            $self->get_parent_tab->queue_draw;
             return FALSE;
         }
         else {

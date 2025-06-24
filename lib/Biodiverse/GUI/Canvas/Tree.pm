@@ -628,26 +628,29 @@ sub draw {
     my @v_colour = $self->rgb_to_array(DEFAULT_LINE_COLOUR_VERT);
     my $h_col_ref = \@h_colour;
 
+    #   First the verticals.  Separated for speed as we avoid some repeated cairo calls.
+    #   Plotted first so they go under the branches and don't overplot any colouring.
+    \my @verticals = $self->{vertical_connectors};
+    my @def_h_col = map {$default_highlight_colour->$_} qw /red green blue/;
+    $cx->set_line_cap ('round');
+    $cx->set_line_width($v_line_width);
+    $cx->set_source_rgb ($have_highlights ? @def_h_col : @v_colour);
+    foreach my $vert (@verticals) {
+        $cx->move_to($vert->[0], $vert->[1]);  #  first child
+        $cx->line_to($vert->[0], $vert->[2]);  #  last child
+        $cx->stroke;
+    }
+
     $cx->set_line_cap ('butt');
     $cx->set_line_width($h_line_width);
+    $cx->set_source_rgb(@h_colour);
 
     my $last_colour = $h_col_ref;
-    my @verticals;
     my @highlights;
     BRANCH:
     foreach my $branch (values %$node_hash) {
 
         my ($x_l, $x_r, $y) = @{$branch}{qw/x_l x_r y/};
-
-        #  vertical connectors for anything with two or more tips
-        #  we plot them later
-        if ($branch->{ntips} > 1) {
-            push @verticals, {
-                upper => $node_hash->{$branch->{children}[0]}{y},  #  first child
-                lower => $node_hash->{$branch->{children}[-1]}{y}, #  last child
-                x     => $x_l,
-            };
-        }
 
         my $name = $branch->{name};
 
@@ -687,19 +690,6 @@ sub draw {
         $cx->stroke;
 
     }
-
-    #   Now the verticals.  Separated for speed as we avoid some repeated cairo calls.
-    my @def_h_col = map {$default_highlight_colour->$_} qw /red green blue/;
-    $cx->set_line_cap ('round');
-    $cx->set_line_width($v_line_width);
-    $cx->set_source_rgb ($have_highlights ? @def_h_col : @v_colour);
-    foreach my $vert (@verticals) {
-        $cx->move_to($vert->{x}, $vert->{upper});  #  first child
-        $cx->line_to($vert->{x}, $vert->{lower});  #  last child
-        $cx->stroke;
-    }
-    $cx->set_line_cap ('butt');
-
 
     #  highlights above all others
     foreach my $aref (@highlights) {
@@ -808,6 +798,19 @@ sub init_plot_coords {
         }
         push @branches, @children;
     }
+
+    #  now the verticals
+    my @verticals;
+    @branches = ($root);
+    while (my $branch = shift @branches) {
+        my @ch = map {$node_hash->{$_}} @{$branch->{children}};
+        if (@ch) {
+            my $x_r = $branch->{x_l};
+            push @verticals, [$x_r, $ch[0]{y}, $ch[-1]{y}];
+        }
+        push @branches, @ch;
+    }
+    $self->{vertical_connectors} = \@verticals;
 
     $self->{plot_coords_generated} = 1;
 

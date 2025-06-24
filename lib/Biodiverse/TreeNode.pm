@@ -1124,12 +1124,12 @@ sub get_all_descendants {
     while (my $node = shift @ch_list) {
         my $name = $node->get_name;
         $list{$name} = $node;
-        weaken $list{$name} if !isweak $list{$name};
         push @ch_list, $node->get_children;
     }
 
     if ($args{cache}) {
         $self->set_cached_value($cache_key => \%list);
+        weaken $list{$_} foreach keys %list;  #  could do values directly?
     }
 
     #  make sure we return copies to avoid pollution by other subs

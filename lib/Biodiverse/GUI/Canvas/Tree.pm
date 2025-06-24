@@ -623,10 +623,12 @@ sub draw {
 
     my @h_colour = $self->rgb_to_array($default_branch_colour);
     my @v_colour = $self->rgb_to_array(DEFAULT_LINE_COLOUR_VERT);
+    my $h_col_ref = \@h_colour;
 
     $cx->set_line_cap ('butt');
 
     #  FIXME: should plot highlights over the top of the rest, i.e. in a second pass
+    my $last_colour = $h_col_ref;
     my @verticals;
     foreach my $branch (values %$node_hash) {
 
@@ -653,13 +655,17 @@ sub draw {
         else {
             $colour = $colour_hash{$name};
         }
-        #  should handle other ref types?
-        my @col_array
-            = is_blessed_ref ($colour) ? ($colour->red, $colour->green, $colour->blue)
-            : is_arrayref ($colour)    ? @$colour
-            : @h_colour;
+        $colour //= $h_col_ref;
+        if ($colour ne $last_colour) {
+            $last_colour = $colour;
+            #  should handle other ref types?
+            my @col_array
+                = is_blessed_ref($colour) ? ($colour->red, $colour->green, $colour->blue)
+                : is_arrayref($colour) ? @$colour
+                : @h_colour;
+            $cx->set_source_rgb(@col_array);
+        }
 
-        $cx->set_source_rgb(@col_array);
         $cx->move_to($x_r, $y);
         $cx->line_to($x_l, $y);
         $cx->stroke;

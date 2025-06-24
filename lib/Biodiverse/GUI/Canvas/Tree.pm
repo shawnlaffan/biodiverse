@@ -636,7 +636,16 @@ sub draw {
     my @verticals;
     foreach my $branch (values %$node_hash) {
 
-        my ($x_r, $x_l, $y) = @{$branch}{qw/x_r x_l y/};
+        my $x_l = $branch->{x_l};
+        #  vertical connectors for anything with two or more tips
+        #  we plot them later
+        if ($branch->{ntips} > 1) {
+            push @verticals, {
+                upper => $node_hash->{$branch->{children}[0]}{y},  #  first child
+                lower => $node_hash->{$branch->{children}[-1]}{y}, #  last child
+                x     => $x_l,
+            };
+        }
 
         my $name = $branch->{name};
 
@@ -668,18 +677,11 @@ sub draw {
             $cx->set_source_rgb(@col_array);
         }
 
+        my ($x_r, $y) = @{$branch}{qw/x_r y/};
         $cx->move_to($x_r, $y);
         $cx->line_to($x_l, $y);
         $cx->stroke;
 
-        #  vertical connectors for anything with two or more tips
-        if ($branch->{ntips} > 1) {
-            push @verticals, {
-                upper => $node_hash->{$branch->{children}[0]}{y},  #  first child
-                lower => $node_hash->{$branch->{children}[-1]}{y}, #  last child
-                x     => $x_l,
-            };
-        }
     }
 
     #   Now the verticals.  Separated for speed as we avoid some repeated cairo calls.

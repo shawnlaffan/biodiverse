@@ -217,7 +217,7 @@ sub get_iconfile {
             require Archive::Zip;
 
             # my $folder = $icon->parent;
-            my $fname  = $icon->basename;
+            my $fname  = $icon->basename->stringify;
             my $zip = Archive::Zip->new($ENV{PAR_PROGNAME})
               or die "Unable to open $ENV{PAR_PROGNAME}";
 

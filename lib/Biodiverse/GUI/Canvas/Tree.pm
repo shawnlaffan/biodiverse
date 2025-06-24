@@ -672,8 +672,9 @@ sub draw {
         $cx->line_to($x_l, $y);
         $cx->stroke;
 
-        #  vertical connectors
-        if (my @children = @$node_hash{@{$branch->{children}}}) {
+        #  vertical connectors for anything with two or more tips
+        if ($branch->{ntips} > 1) {
+            my @children = @$node_hash{@{$branch->{children}}};
             push @verticals, {
                 upper => $children[0],
                 lower => $children[-1],

@@ -219,13 +219,13 @@ sub draw_cells_cb {
     my $draw_borders = $self->get_cell_show_outline;
     my @outline_colour = $self->rgba_to_cairo ($self->get_cell_outline_colour);
 
-    foreach my $key (keys %$data) {
-        \my @rect = $data->{$key}{rect};
-        if (my $rgba = $data->{$key}{rgba}) {
+    foreach my $href (values %$data) {
+        \my @rect = $href->{rect};
+        if (my $rgba = $href->{rgba}) {
             $context->set_source_rgba(@$rgba);
         }
         else {
-            my $rgb = $data->{$key}{rgb} // [1,1,1];  #  should use a default
+            my $rgb = $href->{rgb} // [1,1,1];  #  should use a default
             $context->set_source_rgb(@$rgb);
         }
         $context->rectangle(@rect);

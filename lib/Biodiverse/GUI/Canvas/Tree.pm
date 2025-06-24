@@ -631,12 +631,14 @@ sub draw {
     $cx->set_line_cap ('butt');
     $cx->set_line_width($h_line_width);
 
-    #  FIXME: should plot highlights over the top of the rest, i.e. in a second pass
     my $last_colour = $h_col_ref;
     my @verticals;
+    my @highlights;
+    BRANCH:
     foreach my $branch (values %$node_hash) {
 
-        my $x_l = $branch->{x_l};
+        my ($x_l, $x_r, $y) = @{$branch}{qw/x_l x_r y/};
+
         #  vertical connectors for anything with two or more tips
         #  we plot them later
         if ($branch->{ntips} > 1) {
@@ -654,14 +656,17 @@ sub draw {
         #  but not a colour or array ref.
         my $colour;
         if ($have_highlights) {
-            $colour = exists $highlight_hash{$name}
-                ? ($highlight_hash{$name} // $default_branch_colour)
-                : $default_highlight_colour;
-            #  Highlight using original colour if we are
-            #  not some sort of reference.
-            if (!is_ref($colour)) {
-                $colour = $colour_hash{$name};
+            if (exists $highlight_hash{$name}) {
+                $colour = $highlight_hash{$name} // $default_branch_colour;
+                #  Highlight using original colour if we are
+                #  not some sort of reference.
+                if (!is_ref($colour)) {
+                    $colour = $colour_hash{$name};
+                }
+                push @highlights, [$x_l, $x_r, $y, $colour];
+                next BRANCH;
             }
+            $colour = $default_highlight_colour;
         }
         else {
             $colour = $colour_hash{$name};
@@ -677,7 +682,6 @@ sub draw {
             $cx->set_source_rgb(@col_array);
         }
 
-        my ($x_r, $y) = @{$branch}{qw/x_r y/};
         $cx->move_to($x_r, $y);
         $cx->line_to($x_l, $y);
         $cx->stroke;
@@ -685,15 +689,34 @@ sub draw {
     }
 
     #   Now the verticals.  Separated for speed as we avoid some repeated cairo calls.
+    my @def_h_col = map {$default_highlight_colour->$_} qw /red green blue/;
     $cx->set_line_cap ('round');
     $cx->set_line_width($v_line_width);
-    $cx->set_source_rgb (@v_colour);
+    $cx->set_source_rgb ($have_highlights ? @def_h_col : @v_colour);
     foreach my $vert (@verticals) {
         $cx->move_to($vert->{x}, $vert->{upper});  #  first child
         $cx->line_to($vert->{x}, $vert->{lower});  #  last child
         $cx->stroke;
     }
     $cx->set_line_cap ('butt');
+
+
+    #  highlights above all others
+    foreach my $aref (@highlights) {
+        my ($x_l, $x_r, $y, $colour) = @$aref;
+        $colour //= $h_col_ref;
+        if ($colour ne $last_colour) {
+            my @col_array
+                = is_blessed_ref($colour) ? ($colour->red, $colour->green, $colour->blue)
+                : is_arrayref($colour) ? @$colour
+                : @h_colour;
+            $cx->set_source_rgb(@col_array);
+            $last_colour = \@col_array;
+        }
+        $cx->move_to($x_r, $y);
+        $cx->line_to($x_l, $y);
+        $cx->stroke;
+    }
 
 
     #  the root node gets a shape

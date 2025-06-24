@@ -82,12 +82,16 @@ BEGIN {
     eval 'use Alien::GtkStack::Windows';
     if (!$EVAL_ERROR) {
         say "Added Alien::GtkStack::Windows bin dir to path";
+        say "GI_TYPELIB_PATH is now $ENV{GI_TYPELIB_PATH}"
+            if $ENV{GI_TYPELIB_PATH};
+        say "XDG_DATA_DIRS is now $ENV{XDG_DATA_DIRS}"
+            if $ENV{XDG_DATA_DIRS};
     }
     if ($ENV{PAR_0}) {
         use Path::Tiny qw /path/;
         my $base = path ($ENV{PAR_TEMP}, "inc/lib/auto");
         #say "Looking for Gtk3 stuff under $base";
-        my @path_args;
+        # my @path_args;
         foreach my $name (qw /Glib Pango Cairo Gtk3/) {
             my $dir = $base->child($name);
             next if !$dir->exists;

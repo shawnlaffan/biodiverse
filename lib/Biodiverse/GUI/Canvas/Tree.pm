@@ -629,6 +629,7 @@ sub draw {
     my $h_col_ref = \@h_colour;
 
     $cx->set_line_cap ('butt');
+    $cx->set_line_width($h_line_width);
 
     #  FIXME: should plot highlights over the top of the rest, i.e. in a second pass
     my $last_colour = $h_col_ref;
@@ -636,8 +637,6 @@ sub draw {
     foreach my $branch (values %$node_hash) {
 
         my ($x_r, $x_l, $y) = @{$branch}{qw/x_r x_l y/};
-
-        $cx->set_line_width($h_line_width);
 
         my $name = $branch->{name};
 

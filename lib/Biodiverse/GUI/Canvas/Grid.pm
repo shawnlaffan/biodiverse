@@ -307,7 +307,8 @@ sub overlay_cb {
 
 sub underlay_cb {
     my ($self, $context) = @_;
-
+return;
+    
     state @vertices = (
         [ $self->cell_to_map_coord(-0.2, -0.2) ],
         [ $self->cell_to_map_coord($self->{ncells_x} + 0.2, -0.2) ],

@@ -100,19 +100,32 @@ sub Run {
         selected_format => $selected_format,
     );
 
+    my $parameters_table = $results->{param_table};
+    my $extractors = $results->{extractors};
+    my $dlg = $results->{dlg};
+    my $chooser = $results->{chooser};
+    my $filename = $chooser->get_filename;
+
+    #  a defer block would be nice here
     if (!$results->{success}) {
         $gui->activate_keyboard_snooper($snooper_status);
         return;
     }
+    elsif (-d $filename || !length $filename) {
+        $gui->activate_keyboard_snooper($snooper_status);
+        $dlg->destroy;
 
-    my $chooser = $results->{chooser};
-    my $parameters_table = $results->{param_table};
-    my $extractors = $results->{extractors};
-    my $dlg = $results->{dlg};
-    
+        Biodiverse::GUI::YesNoCancel->run({
+            header      => "No filename specified",
+            hide_cancel => 1,
+            hide_no     => 1,
+            yes_is_ok   => 1,
+        });
+        return;
+    }
+
     # Export!
     my $extracted_params = $parameters_table->extract($extractors);
-    my $filename = $chooser->get_filename;
     #  normalise the file name
     $filename = path($filename)->stringify;
 

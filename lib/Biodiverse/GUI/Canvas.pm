@@ -671,7 +671,7 @@ sub on_button_press {
     return 1 if $self->{selecting};
 
     my ($x, $y) = $self->get_event_xy($event);
-    say "BP: $x, $y, ", $event->x, " ", $event->y;
+    # say "BP: $x, $y, ", $event->x, " ", $event->y;
 
     my $e_state  = $event->state;
     my $e_button = $event->button;
@@ -703,7 +703,7 @@ sub on_button_press {
         }
         ($self->{sel_start_x}, $self->{sel_start_y}) = ($event->x, $event->y);
         $self->{selecting} = 1;
-        say "selection started, $x $y";
+        # say "selection started, $x $y";
         $self->{sel_start_x} = $x;
         $self->{sel_start_y} = $y;
 

@@ -627,6 +627,7 @@ sub draw {
     $cx->set_line_cap ('butt');
 
     #  FIXME: should plot highlights over the top of the rest, i.e. in a second pass
+    my @verticals;
     foreach my $branch (values %$node_hash) {
 
         my ($x_r, $x_l, $y) = @{$branch}{qw/x_r x_l y/};
@@ -664,17 +665,26 @@ sub draw {
         $cx->stroke;
 
         #  vertical connectors
-        my @children = map {$node_hash->{$_}} @{$branch->{children}};
-        if (@children) {
-            $cx->set_line_cap ('round');
-            $cx->set_line_width($v_line_width);
-            $cx->set_source_rgb (@v_colour);
-            $cx->move_to($x_l, $children[0]{y});  #  first child
-            $cx->line_to($x_l, $children[-1]{y});  #  last child
-            $cx->stroke;
-            $cx->set_line_cap ('butt');
+        if (my @children = @$node_hash{@{$branch->{children}}}) {
+            push @verticals, {
+                upper => $children[0],
+                lower => $children[-1],
+                x     => $x_l,
+            };
         }
     }
+
+    #   Now the verticals.  Separated for speed as we avoid some repeated cairo calls.
+    $cx->set_line_cap ('round');
+    $cx->set_line_width($v_line_width);
+    $cx->set_source_rgb (@v_colour);
+    foreach my $vert (@verticals) {
+        $cx->move_to($vert->{x}, $vert->{upper}{y});  #  first child
+        $cx->line_to($vert->{x}, $vert->{lower}{y});  #  last child
+        $cx->stroke;
+    }
+    $cx->set_line_cap ('butt');
+
 
     #  the root node gets a shape
     if (1) {

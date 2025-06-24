@@ -654,7 +654,7 @@ sub draw {
         }
         #  should handle other ref types?
         my @col_array
-            = is_blessed_ref ($colour) ? $self->rgb_to_array($colour)
+            = is_blessed_ref ($colour) ? ($colour->red, $colour->green, $colour->blue)
             : is_arrayref ($colour)    ? @$colour
             : @h_colour;
 

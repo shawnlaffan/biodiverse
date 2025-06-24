@@ -674,10 +674,9 @@ sub draw {
 
         #  vertical connectors for anything with two or more tips
         if ($branch->{ntips} > 1) {
-            my @children = @$node_hash{@{$branch->{children}}};
             push @verticals, {
-                upper => $children[0],
-                lower => $children[-1],
+                upper => $node_hash->{$branch->{children}[0]}{y},  #  first child
+                lower => $node_hash->{$branch->{children}[-1]}{y}, #  last child
                 x     => $x_l,
             };
         }
@@ -688,8 +687,8 @@ sub draw {
     $cx->set_line_width($v_line_width);
     $cx->set_source_rgb (@v_colour);
     foreach my $vert (@verticals) {
-        $cx->move_to($vert->{x}, $vert->{upper}{y});  #  first child
-        $cx->line_to($vert->{x}, $vert->{lower}{y});  #  last child
+        $cx->move_to($vert->{x}, $vert->{upper});  #  first child
+        $cx->line_to($vert->{x}, $vert->{lower});  #  last child
         $cx->stroke;
     }
     $cx->set_line_cap ('butt');

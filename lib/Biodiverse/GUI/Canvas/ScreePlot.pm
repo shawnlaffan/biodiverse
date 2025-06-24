@@ -207,10 +207,15 @@ sub init_plot_coords {
 
     my $x = $xdims[0];
     my $prev_frac = 0;
+    my %collated_branches;
     while ($x < $xdims[1]) {
-        my @branches = $index->intersects_slider($x, $ydims[0], $x+$increment, $ydims[1]);
+        \my %branches = $index->intersects_slider_as_hash_unfiltered(
+            $x,            $ydims[0],
+            $x+$increment, $ydims[1],
+        );
+        @collated_branches{keys %branches} = ();  #  only need the keys
 
-        my $branch_count_below = sum (map {($_->{node_ref}->get_descendent_count)} @branches);
+        my $branch_count_below = keys %collated_branches;
         my $frac = $branch_count_below / $nbranches;
         #  this produces a stepped plot
         push @histogram, ([$x, $prev_frac], [$x, $frac]);

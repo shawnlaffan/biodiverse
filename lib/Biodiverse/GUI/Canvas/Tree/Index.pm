@@ -117,6 +117,29 @@ sub intersects_slider {
     return wantarray ? @bres2 : \@bres2;
 }
 
+#  same as intersects_slide but we don't filter to parents
+#  and we return a hash
+sub intersects_slider_as_hash_unfiltered {
+    my ($self, @b) = @_;
+
+    my @results;
+    $self->{rtree}->query_partly_within_rect(@b, \@results);
+
+    my %bres_hash;
+    foreach my $box (@results) {
+        foreach my $branch (@$box) {
+            next if $bres_hash{$branch->{name}};
+            my ($x_l, $x_r) = minmax (@$branch{qw /x_l x_r/});  #  allow for negative branches
+            if (max ($b[0], $x_l) <= min ($b[2], $x_r)) {
+                # branch intersects slider
+                $bres_hash{$branch->{name}} //= $branch;
+            }
+        }
+    }
+
+    return wantarray ? %bres_hash : \%bres_hash;
+}
+
 sub query_point {
     my ($self, $x, $y) = @_;
 

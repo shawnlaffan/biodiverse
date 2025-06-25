@@ -554,12 +554,12 @@ sub get_dynamic_labels {
     #  e.g. tree lists might only have min and max.
     if (keys %$stats) {
         if ($max < ($stats->{MAX} // $max)) {
-            # $labels[0] = ">=$labels[0]";
-            $labels[0] = "\x{2A7E}$labels[0]";
+            my $sym = $^O eq 'MSWin32' ? '>=' : "\x{2A7E}";
+            $labels[0] = "${sym}$labels[0]";
         }
         if ($min > ($stats->{MIN} // $min)) {
-            # $labels[-1] = "<=$labels[-1]";
-            $labels[-1] = "\x{2A7D}$labels[-1]";
+            my $sym = $^O eq 'MSWin32' ? '<=' : "\x{2A7D}";
+            $labels[-1] = "${sym}$labels[-1]";
         }
     }
 

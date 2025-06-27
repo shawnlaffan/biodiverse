@@ -282,24 +282,29 @@ sub get_event_xy_from_mx {
 }
 
 #  from a cairo context
+# (not any more - caused crashes on macs when resizing due 
+#  to the context already being freed)
 sub get_event_xy {
     my ($self, $event, $cx) = @_;
-    $cx //= $self->{cairo_context};
+    return $self->get_event_xy_from_mx($event);
 
-    my $draw_size = $self->{drawable}->get_allocation();
-
-    $cx->set_matrix($self->{matrix});
-
-    #  This will have been set when get_tfm_mx was called.
-    #  See get_tfm_mx for why it is sometimes needed.
-    my ($off_x, $off_y) = @{$self->{px_offsets} // [0,0]};
-
-    my ($x, $y) = $cx->device_to_user(
-        $event->x + $draw_size->{x} - $off_x, #  account for window margins
-        $event->y + $draw_size->{y} - $off_y,
-    );
-
-    return ($x, $y);
+    #
+    # $cx //= $self->{cairo_context};
+    #
+    # my $draw_size = $self->{drawable}->get_allocation();
+    #
+    # $cx->set_matrix($self->{matrix});
+    #
+    # #  This will have been set when get_tfm_mx was called.
+    # #  See get_tfm_mx for why it is sometimes needed.
+    # my ($off_x, $off_y) = @{$self->{px_offsets} // [0,0]};
+    #
+    # my ($x, $y) = $cx->device_to_user(
+    #     $event->x + $draw_size->{x} - $off_x, #  account for window margins
+    #     $event->y + $draw_size->{y} - $off_y,
+    # );
+    #
+    # return ($x, $y);
 }
 
 sub set_cursor_from_name {
@@ -723,8 +728,10 @@ sub on_button_press {
 sub cairo_draw {
     my ($self, $widget, $context) = @_;
 
-    #  we often need this in deeper methods and it changes each redraw
-    $self->{cairo_context} = $context;
+    #  We often need this in deeper methods and it changes each redraw.
+    #  No longer storing due to crashes on macos but we check it as a boolean elsewhere.
+    #  That might be removable but booleanise for now.
+    $self->{cairo_context} = !!$context;
     $self->{orig_tfm_mx}   = $context->get_matrix;
 
     # $context->set_source_rgb(0.9, 0.9, 0.7);

@@ -692,12 +692,12 @@ sub draw {
         my ($x_l, $x_r, $y, $colour) = @$aref;
         $colour //= $h_col_ref;
         if ($colour ne $last_colour) {
+            $last_colour = $colour;
             my @col_array
                 = is_blessed_ref($colour) ? ($colour->red, $colour->green, $colour->blue)
                 : is_arrayref($colour) ? @$colour
                 : @h_colour;
             $cx->set_source_rgb(@col_array);
-            $last_colour = \@col_array;
         }
         $cx->move_to($x_r, $y);
         $cx->line_to($x_l, $y);

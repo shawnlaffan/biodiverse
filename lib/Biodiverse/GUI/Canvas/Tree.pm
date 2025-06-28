@@ -160,7 +160,6 @@ sub set_current_tree {
     my $terminals = $tree->get_terminal_node_refs;
     my @tips = ikeysort {$_->get_terminal_node_first_number} @$terminals;
 
-    #  this could probably be optimised but we'll need to profile first
     my $longest_path = 0;
     my $widest_path  = 0;  #  handle negative branch lengths as these can go past the root
     my %branch_hash;
@@ -174,24 +173,23 @@ sub set_current_tree {
             length   => $len,
             parent   => $node->get_parent_name,
         };
-        my $width = $len;
-        my $path = $bref->{path_to_root} = [$len];  #  still needed?
+        my $path = $bref->{path_to_root} = [$len];
         my $parent = $node;
         while ($parent = $parent->get_parent) {
-            my $this_len = $parent->$len_method;
-            $len += $this_len;
-            $width = max ($width, $len);
-            push @$path, $this_len;
-            my $parent_name = $parent->get_name;
-            my $pref = $branch_hash{$parent_name} //= {
+            my $parent_name = $bref->{parent} // $parent->get_name;
+            $bref = $branch_hash{$parent_name} //= {
                 node_ref => $parent,
-                length   => $this_len,
+                length   => $parent->$len_method,
                 name     => $parent_name,
                 parent   => $parent->get_parent_name,
             };
-            $pref->{ntips}++;
+            my $this_len = $bref->{length};
+            $len += $this_len;
+            push @$path, $this_len;
+            $bref->{ntips}++;
         }
         $longest_path = $len if $len > $longest_path;
+        my $width = max @$path;
         $widest_path  = $width if $width > $widest_path;
     }
 

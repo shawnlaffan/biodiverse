@@ -646,11 +646,9 @@ sub draw {
     my $last_colour = $h_col_ref;
     my @highlights;
     BRANCH:
-    foreach my $branch (values %$node_hash) {
+    foreach my ($name, $branch) (%$node_hash) {
 
         my ($x_l, $x_r, $y) = @{$branch}{qw/x_l x_r y/};
-
-        my $name = $branch->{name};
 
         #  Use colours from highlights if set.
         #  Highlights fall back to colour hash if true

@@ -217,7 +217,7 @@ sub draw_cells_cb {
 
     my $data = $self->{data};
     my $draw_borders = $self->get_cell_show_outline;
-    my @outline_colour = $self->rgba_to_cairo ($self->get_cell_outline_colour);
+    my @borders;
 
     foreach my $href (values %$data) {
         \my @rect = $href->{rect};
@@ -230,11 +230,15 @@ sub draw_cells_cb {
         }
         $context->rectangle(@rect);
         $context->fill;
-        if ($draw_borders) {
-            $context->set_source_rgb(@outline_colour);
-            $context->rectangle(@rect);
-            $context->stroke;
-        }
+        push @borders, $href->{rect}
+          if $draw_borders;
+    }
+
+    if ($draw_borders) {
+        my @outline_colour = $self->rgba_to_cairo ($self->get_cell_outline_colour);
+        $context->set_source_rgb(@outline_colour);
+        $context->rectangle(@$_) foreach @borders;
+        $context->stroke;
     }
 
     return;

@@ -636,8 +636,8 @@ sub draw {
     foreach my $vert (@verticals) {
         $cx->move_to($vert->[0], $vert->[1]);  #  first child
         $cx->line_to($vert->[0], $vert->[2]);  #  last child
-        $cx->stroke;
     }
+    $cx->stroke;
 
     $cx->set_line_cap ('butt');
     $cx->set_line_width($h_line_width);
@@ -672,6 +672,7 @@ sub draw {
         }
         $colour //= $h_col_ref;
         if ($colour ne $last_colour) {
+            $cx->stroke;  #  paint the queue for the old colour
             $last_colour = $colour;
             #  should handle other ref types?
             my @col_array
@@ -683,15 +684,16 @@ sub draw {
 
         $cx->move_to($x_r, $y);
         $cx->line_to($x_l, $y);
-        $cx->stroke;
 
     }
+    $cx->stroke;  #  paint the queued colours
 
     #  highlights above all others
     foreach my $aref (@highlights) {
         my ($x_l, $x_r, $y, $colour) = @$aref;
         $colour //= $h_col_ref;
         if ($colour ne $last_colour) {
+            $cx->stroke;  #  paint the queued colours
             $last_colour = $colour;
             my @col_array
                 = is_blessed_ref($colour) ? ($colour->red, $colour->green, $colour->blue)
@@ -701,8 +703,8 @@ sub draw {
         }
         $cx->move_to($x_r, $y);
         $cx->line_to($x_l, $y);
-        $cx->stroke;
     }
+    $cx->stroke;  #  paint
 
 
     #  the root node gets a shape

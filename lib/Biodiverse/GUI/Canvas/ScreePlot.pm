@@ -200,30 +200,29 @@ sub init_plot_coords {
     #  use the rtree and get the sum of tips for intersected branches
     my $dims  = $tree_canvas->{dims};
     my @xdims = ($dims->{xmin}, $dims->{xmax});
-    my @ydims = ($dims->{ymin}, $dims->{ymax});
 
     my $increment = ($xdims[1] - $xdims[0]) / $npoints;
-    my $index = $tree_canvas->get_index;
 
-    my $x = $xdims[0];
-    my $prev_frac = 0;
-    my %collated_branches;
-    while ($x < $xdims[1]) {
-        \my %branches = $index->intersects_slider_as_hash_unfiltered(
-            $x,            $ydims[0],
-            $x+$increment, $ydims[1],
-        );
-        @collated_branches{keys %branches} = ();  #  only need the keys
-
-        my $branch_count_below = keys %collated_branches;
-        my $frac = $branch_count_below / $nbranches;
-        #  this produces a stepped plot
-        push @histogram, ([$x, $prev_frac], [$x, $frac]);
-        $x += $increment;
-        $prev_frac = $frac;
+    my @histo;
+    my $branch_hash = $tree_canvas->{data}{by_node};
+    foreach my ($name, $branch) (%$branch_hash) {
+        my ($x_l, $x_r) = minmax @$branch{qw/x_l x_r/};  #  handle negative lengths
+        my $left  = floor (($x_l - $xdims[0]) / $increment);
+        my $right = floor (($x_r - $xdims[0]) / $increment);
+        $histo[$_]{$name}++ for ($left .. $right);
     }
-
-    push @histogram, ([$xdims[1], $prev_frac], [$xdims[1], 1]);
+    my (@histo2, %collated);
+    my $prev_frac = 0;
+    my $x = 0;
+    foreach my ($i) (0 .. $#histo) {
+        my $href = $histo[$i];
+        @collated{keys %$href} = ();
+        my $frac = (scalar keys %collated) / $nbranches;
+        push @histo2, ([$x, $prev_frac], [$x, $frac]);
+        $prev_frac = $frac;
+        $x += $increment;
+    }
+    push @histo2, ([$xdims[1], $prev_frac], [$xdims[1], 1]);
 
     $self->init_dims (
         xmin => $xdims[0],
@@ -231,7 +230,7 @@ sub init_plot_coords {
         ymin => 0,
         ymax => 1,
     );
-    $self->{data} = \@histogram;
+    $self->{data} = \@histo2;
 
     $self->{plot_coords_generated} = 1;
 

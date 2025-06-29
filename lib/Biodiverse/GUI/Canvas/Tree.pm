@@ -630,7 +630,7 @@ sub draw {
 
     #   First the verticals.  Separated for speed as we avoid some repeated cairo calls.
     #   Plotted first so they go under the branches and don't overplot any colouring.
-    \my @verticals = $self->{vertical_connectors};
+    \my @verticals = $data->{vertical_connectors};
     my @def_h_col = map {$default_highlight_colour->$_} qw /red green blue/;
     $cx->set_line_cap ('round');
     $cx->set_line_width($v_line_width);
@@ -810,7 +810,7 @@ sub init_plot_coords {
         }
         push @branches, @ch;
     }
-    $self->{vertical_connectors} = \@verticals;
+    $self->{data}{vertical_connectors} = \@verticals;
 
     $self->{plot_coords_generated} = 1;
 

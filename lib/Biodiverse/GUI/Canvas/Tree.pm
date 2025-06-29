@@ -174,6 +174,7 @@ sub set_current_tree {
             parent   => $node->get_parent_name,
         };
         my $path = $bref->{path_to_root} = [$len];
+        my $width = $len;
         my $parent = $node;
         while ($parent = $parent->get_parent) {
             my $parent_name = $bref->{parent} // $parent->get_name;
@@ -185,11 +186,12 @@ sub set_current_tree {
             };
             my $this_len = $bref->{length};
             $len += $this_len;
+            $width = $len if $len > $width;
             push @$path, $this_len;
             $bref->{ntips}++;
         }
         $longest_path = $len if $len > $longest_path;
-        my $width = max @$path;
+        #  "width" allows for negative branch lengths which can send the root towards the centre
         $widest_path  = $width if $width > $widest_path;
     }
 

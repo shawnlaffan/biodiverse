@@ -1,4 +1,4 @@
-## Packing Gtk2 libs ##
+## Packing Gtk3 libs ##
 
 Prior to PAR::Packer version 1.036, the Heavy.pm.patch needs to be applied to PAR\Heavy.pm
 

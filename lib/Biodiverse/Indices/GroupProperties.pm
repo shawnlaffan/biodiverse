@@ -121,14 +121,16 @@ sub _get_gpprop_names {
 sub _get_gpprop_stats_hash_keynames {
     my $self = shift;
 
-    my $bd = $self->get_basedata_ref;
-    my $gp = $bd->get_groups_ref;
-
     my %keys;
-    #  what stats object names will we have?
-    foreach my $prop ($gp->get_element_property_keys) {
-        my $key = $self->_get_gpprop_stats_hash_key(property => $prop);
-        $keys{$prop} = $key;
+
+    if (my $bd = $self->get_basedata_ref) {
+        my $gp = $bd->get_groups_ref;
+
+        #  what stats object names will we have?
+        foreach my $prop ($gp->get_element_property_keys) {
+            my $key = $self->_get_gpprop_stats_hash_key(property => $prop);
+            $keys{$prop} = $key;
+        }
     }
 
     return wantarray ? %keys : \%keys;

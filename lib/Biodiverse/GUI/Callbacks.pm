@@ -12,7 +12,7 @@ our $VERSION = '4.99_002';
 use constant FALSE => 0;
 use constant TRUE  => 1;
 
-use Gtk2;
+use Gtk3;
 #use Data::Dumper;
 require Biodiverse::GUI::GUIManager;
 require Biodiverse::GUI::Help;
@@ -30,7 +30,7 @@ require Biodiverse::GUI::Tabs::SpatialMatrix;
 ##########################################################
 sub on_wnd_main_delete_event {
     if ( Biodiverse::GUI::GUIManager->instance->close_project() ) {
-        Gtk2->main_quit();
+        Gtk3->main_quit();
         return FALSE;
     }
     else {
@@ -110,7 +110,7 @@ my %help_funcs = (
 __PACKAGE__->_make_callbacks(%help_funcs);
 
 sub on_about_activate {
-    my $dlg = Gtk2::AboutDialog->new();
+    my $dlg = Gtk3::AboutDialog->new();
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
     my $url = 'http://www.purl.org/biodiverse';

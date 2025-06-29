@@ -103,11 +103,13 @@ jobs:
           
       - name: Gtk stuff
         run: |
-          sudo apt-get install libpango1.0-dev libgtk2.0-dev
+          sudo apt-get install libpango1.0-dev libgtk2.0-dev \
+            libgtk-3-dev libgirepository1.0-dev libgoocanvas-2.0-dev
           echo $(perl -Mlocal::lib=${HOME}/perl5)
           eval "$(perl -Mlocal::lib=${HOME}/perl5)"
           cpanm --notest Pango
-          cpanm --notest Gtk2
+          cpanm --notest Gtk3
+          cpanm --notest GooCanvas2
       
       - name: Run matrix tests
         run: |

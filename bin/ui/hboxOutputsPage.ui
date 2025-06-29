@@ -1,18 +1,24 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.40.0 -->
 <interface>
-  <object class="GtkHBox" id="hboxOutputsPage">
+  <requires lib="gtk+" version="3.0"/>
+  <object class="GtkBox" id="hboxOutputsPage">
     <property name="visible">True</property>
-    <property name="can_focus">False</property>
+    <property name="can-focus">False</property>
     <child>
       <object class="GtkScrolledWindow" id="scrolledwindow6">
         <property name="visible">True</property>
-        <property name="can_focus">True</property>
-        <property name="shadow_type">in</property>
+        <property name="can-focus">True</property>
+        <property name="shadow-type">in</property>
         <child>
           <object class="GtkTreeView" id="outputsTree">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="enable_search">False</property>
+            <property name="can-focus">True</property>
+            <property name="margin-right">26</property>
+            <property name="enable-search">False</property>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection"/>
+            </child>
           </object>
         </child>
       </object>
@@ -23,123 +29,163 @@
       </packing>
     </child>
     <child>
-      <object class="GtkVSeparator" id="vseparator3">
+      <object class="GtkSeparator">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
       </object>
       <packing>
         <property name="expand">False</property>
         <property name="fill">True</property>
-        <property name="padding">4</property>
         <property name="position">1</property>
       </packing>
     </child>
     <child>
       <object class="GtkAlignment" id="alignment7">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="yscale">0.92000001668930054</property>
-        <property name="top_padding">1</property>
+        <property name="can-focus">False</property>
+        <property name="yscale">0.9200000166893005</property>
+        <property name="top-padding">1</property>
         <child>
-          <object class="GtkVButtonBox" id="vbuttonbox2">
+          <object class="GtkToolbar">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="border_width">3</property>
-            <property name="spacing">7</property>
-            <property name="layout_style">start</property>
+            <property name="can-focus">False</property>
+            <property name="margin-left">2</property>
+            <property name="orientation">vertical</property>
             <child>
-              <object class="GtkButton" id="btnOutputsShow">
-                <property name="label" translatable="yes">Show</property>
+              <object class="GtkToolItem">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="receives_default">False</property>
-                <property name="tooltip-text" translatable="yes">Display selected item</property>
-                <property name="use_underline">True</property>
+                <property name="can-focus">False</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Select (S or B)</property>
+                <child>
+                  <object class="GtkButton" id="btnOutputsShow">
+                    <property name="label" translatable="yes">Show</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="can-default">True</property>
+                    <property name="receives-default">False</property>
+                    <property name="tooltip-text" translatable="yes">Display selected item</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
+                <property name="homogeneous">False</property>
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="btnOutputsExport">
-                <property name="label" translatable="yes">Export...</property>
+              <object class="GtkToolItem">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="receives_default">False</property>
-                <property name="tooltip-text" translatable="yes">Export to other format</property>
-                <property name="use_underline">True</property>
+                <property name="can-focus">False</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Select (S or B)</property>
+                <child>
+                  <object class="GtkButton" id="btnOutputsExport">
+                    <property name="label" translatable="yes">Export...</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="can-default">True</property>
+                    <property name="receives-default">False</property>
+                    <property name="tooltip-text" translatable="yes">Export to other format</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
+                <property name="homogeneous">False</property>
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="btnOutputsRename">
-                <property name="label" translatable="yes">Rename</property>
+              <object class="GtkToolItem">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip-text" translatable="yes">Rename selected item
+                <property name="can-focus">False</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Select (S or B)</property>
+                <child>
+                  <object class="GtkButton" id="btnOutputsRename">
+                    <property name="label" translatable="yes">Rename</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="can-default">True</property>
+                    <property name="receives-default">True</property>
+                    <property name="has-tooltip">True</property>
+                    <property name="tooltip-text" translatable="yes">Rename selected item
                 (not yet implemented for for randomisations)</property>
-                <property name="use_underline">True</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">2</property>
+                <property name="homogeneous">False</property>
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="btnOutputsDescribe">
-                <property name="label" translatable="yes">Describe</property>
+              <object class="GtkToolItem">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip-text" translatable="yes">Describe the selected basedata object
+                <property name="can-focus">False</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Select (S or B)</property>
+                <child>
+                  <object class="GtkButton" id="btnOutputsDescribe">
+                    <property name="label" translatable="yes">Describe</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="can-default">True</property>
+                    <property name="receives-default">True</property>
+                    <property name="has-tooltip">True</property>
+                    <property name="tooltip-text" translatable="yes">Describe the selected basedata object
                 (Outputs cannot yet be described)</property>
-                <property name="use_underline">True</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">3</property>
+                <property name="homogeneous">False</property>
               </packing>
             </child>
             <child>
-              <object class="GtkHSeparator" id="hseparator1">
+              <object class="GtkToolItem">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Select (S or B)</property>
+                <child>
+                  <object class="GtkHSeparator" id="hseparator1">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                  </object>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">4</property>
+                <property name="homogeneous">False</property>
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="btnOutputsDelete">
-                <property name="label" translatable="yes">Delete...</property>
+              <object class="GtkToolItem">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="receives_default">False</property>
-                <property name="tooltip-text" translatable="yes">Delete item</property>
-                <property name="use_underline">True</property>
+                <property name="can-focus">False</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Select (S or B)</property>
+                <child>
+                  <object class="GtkButton" id="btnOutputsDelete">
+                    <property name="label" translatable="yes">Delete...</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="can-default">True</property>
+                    <property name="receives-default">False</property>
+                    <property name="tooltip-text" translatable="yes">Delete item</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">5</property>
+                <property name="homogeneous">False</property>
               </packing>
             </child>
           </object>

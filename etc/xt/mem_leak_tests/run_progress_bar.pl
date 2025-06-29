@@ -15,16 +15,16 @@ local $| = 1;
 use Biodiverse::Config;
 
 #  load Gtk
-use Gtk2 qw/-init/;
+use Gtk3 qw/-init/;
 
-use Gtk2::GladeXML;
+use Gtk3::GladeXML;
 
 use Biodiverse::GUI::ProgressDialog;
 
 do {
     my $gladefile = get_gladefile();
     my $gladexml = eval {
-        Gtk2::GladeXML->new( $gladefile, 'wndMain' );
+        Gtk3::GladeXML->new( $gladefile, 'wndMain' );
     };
     croak $EVAL_ERROR if $EVAL_ERROR;
     $gladexml->signal_autoconnect_from_package('Biodiverse::GUI::Callbacks');
@@ -35,7 +35,7 @@ do {
     $gui->set_glade_file($gladefile);
     
     # Go!
-    #Gtk2->main;
+    #Gtk3->main;
     
     my $max_iters = 10**7;
     $max_iters = 10;

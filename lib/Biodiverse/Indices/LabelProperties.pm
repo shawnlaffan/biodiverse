@@ -110,14 +110,16 @@ sub _get_lbprop_stats_hash_key {
 sub _get_lbprop_stats_hash_keynames {
     my $self = shift;
 
-    my $bd = $self->get_basedata_ref;
-    my $lb = $bd->get_labels_ref;
-
     my %keys;
-    #  what stats object names will we have?
-    foreach my $prop ($lb->get_element_property_keys) {
-        my $key = $self->_get_lbprop_stats_hash_key(property => $prop);
-        $keys{$prop} = $key;
+
+    if (my $bd = $self->get_basedata_ref) {
+        my $lb = $bd->get_labels_ref;
+
+        #  what stats object names will we have?
+        foreach my $prop ($lb->get_element_property_keys) {
+            my $key = $self->_get_lbprop_stats_hash_key(property => $prop);
+            $keys{$prop} = $key;
+        }
     }
 
     return wantarray ? %keys : \%keys;

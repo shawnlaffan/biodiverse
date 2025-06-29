@@ -191,7 +191,7 @@ sub init_progress_window {
     };
 
     # create window
-    my $window = Gtk2::Window->new;
+    my $window = Gtk3::Window->new;
     $window->set_transient_for( $self->get_object('wndMain') );
     $window->set_title('Progress');
     $window->set_default_size( 300, -1 );
@@ -202,7 +202,7 @@ sub init_progress_window {
         $self
     );
 
-    my $entry_box = Gtk2::VBox->new( 0, 5 );    # homogeneous, spacing
+    my $entry_box = Gtk3::VBox->new( 0, 5 );    # homogeneous, spacing
     $window->add($entry_box);
 
     $self->{progress_bars}->{window}    = $window;
@@ -219,7 +219,7 @@ sub add_progress_entry {
     $self->init_progress_window if !$self->{progress_bars};
 
     # create new entry frame and widgets
-    my $frame = Gtk2::Frame->new($title);
+    my $frame = Gtk3::Frame->new($title);
     $self->{progress_bars}->{entry_box}->pack_start( $frame, 0, 1, 0 );
 
     my $id = $dialog_obj->get_id;    # unique number for each, allows hashing
@@ -228,16 +228,16 @@ sub add_progress_entry {
 
     #say "values " . Dumper($self->{progress_bars});
 
-    my $frame_vbox = Gtk2::VBox->new;
+    my $frame_vbox = Gtk3::VBox->new;
     $frame->add($frame_vbox);
     $frame_vbox->set_border_width(3);
 
-    my $label_widget = Gtk2::Label->new;
+    my $label_widget = Gtk3::Label->new;
     $label_widget->set_line_wrap(1);
     $label_widget->set_markup($text);
     $frame_vbox->pack_start( $label_widget, 0, 0, 0 );
 
-    my $progress_widget = Gtk2::ProgressBar->new;
+    my $progress_widget = Gtk3::ProgressBar->new;
     $frame_vbox->pack_start( $progress_widget, 0, 0, 0 );
 
 # show the progress window
@@ -360,18 +360,47 @@ END_OF_DEV_WARNING
 sub init {
     my $self = shift;
 
+    my $window = $self->get_object('wndMain');
+
     # title
-    $self->get_object('wndMain')
-      ->set_title( 'Biodiverse ' . $self->get_version );
+    $window->set_title( 'Biodiverse ' . $self->get_version );
 
     # Notebook...
-    $self->{notebook} = Gtk2::Notebook->new;
-    $self->{notebook}->set_scrollable(1);
+    my $notebook = $self->{notebook} = Gtk3::Notebook->new;
+    $notebook->set_scrollable(1);
 
-    #$self->{notebook}->popup_enable;
-    $self->{notebook}
-      ->signal_connect_swapped( 'switch-page', \&on_switch_tab, $self, );
-    $self->get_object('vbox1')->pack_start( $self->{notebook}, 1, 1, 0, );
+    $notebook->signal_connect_swapped( 'switch-page', \&on_switch_tab, $self, );
+    $self->get_object('vbox1')->pack_start( $notebook, 1, 1, 0, );
+
+    #  these seem not to get through to the tabs otherwise
+    state %pass_through = map {$_ => 1} (qw /Left Right Up Down/);
+
+    #  Keyboard tab switching.  switch_tab method handles wrapping.
+    $window->signal_connect (key_press_event => sub {
+        my ($widget, $event) = @_;
+        # say $event->keyval;
+        # say $event->state;
+        # say Gtk3::Gdk::keyval_name($event->keyval);
+
+        my $key_name = Gtk3::Gdk::keyval_name($event->keyval);
+        if ($event->state >= [ 'control-mask' ]) {
+            if ($key_name eq 'Tab') {
+                $self->switch_tab(undef, $notebook->get_current_page + 1); #  go right
+            }
+            elsif ($key_name eq 'ISO_Left_Tab' && $event->state >= [ 'shift-mask' ]) {
+                $self->switch_tab(undef, $notebook->get_current_page - 1); #  go left
+            }
+        }
+        elsif ($pass_through{$key_name}) {
+            my $tab = $self->get_active_tab;
+            if (defined $tab && $tab->can ('hotkey_handler')) {  #  paranoia
+                $tab->hotkey_handler (undef, $event);
+            }
+        }
+
+        return 0;
+    });
+
     $self->{notebook}->show();
 
     # Hook up the models
@@ -384,7 +413,7 @@ sub init {
     # The output tab then automatically updates
     # whenever projects are reloaded)
     # see Project.pm
-    $self->{basedata_output_model} = Gtk2::TreeStore->new(
+    $self->{basedata_output_model} = Gtk3::TreeStore->new(
         'Glib::String', 'Glib::String',  'Glib::String', 'Glib::Scalar',
         'Glib::Scalar', 'Glib::Boolean', 'Glib::String',
     );
@@ -406,7 +435,8 @@ sub init {
 
     #  warn if we are a dev version
     if ( $VERSION =~ /_/ && !$ENV{BD_NO_GUI_DEV_WARN} ) {
-        my $dlg = Gtk2::MessageDialog->new( undef, 'modal', 'error', 'ok',
+        say $dev_version_warning;
+        my $dlg = Gtk3::MessageDialog->new( undef, 'modal', 'error', 'ok',
             $dev_version_warning, );
 
         $dlg->run;
@@ -426,18 +456,18 @@ sub init {
 #    #$dlg->update("0.5", 0.6);
 #    #sleep(1);
 #    $dlg->pulsate("pulsing first time", 0.7);
-#    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
-#    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
-#    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
+#    sleep(1); while (Gtk3->events_pending) { Gtk3->main_iteration(); }
+#    sleep(1); while (Gtk3->events_pending) { Gtk3->main_iteration(); }
+#    sleep(1); while (Gtk3->events_pending) { Gtk3->main_iteration(); }
 #
 #    sleep(1); $dlg->update("1/3", 0.1);
 #    sleep(1); $dlg->update("2/3", 0.4);
 #    sleep(1); $dlg->update("3/3", 0.7);
 #
 #    $dlg->pulsate("pulsing second time", 0.7);
-#    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
-#    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
-#    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
+#    sleep(1); while (Gtk3->events_pending) { Gtk3->main_iteration(); }
+#    sleep(1); while (Gtk3->events_pending) { Gtk3->main_iteration(); }
+#    sleep(1); while (Gtk3->events_pending) { Gtk3->main_iteration(); }
 #
 #    sleep(1); $dlg->update("1/3", 0.1);
 #    sleep(1); $dlg->update("2/3", 0.4);
@@ -452,7 +482,7 @@ sub init_combobox {
     my ( $self, $id ) = @_;
 
     my $combo    = $self->get_object($id);
-    my $renderer = Gtk2::CellRendererText->new();
+    my $renderer = Gtk3::CellRendererText->new();
     $combo->pack_start( $renderer, 1 );
     $combo->add_attribute( $renderer, text => 0 );
 
@@ -470,7 +500,7 @@ sub close_project {
     if ( $self->{project}->is_dirty() ) {
 
         # Show "Save changes?" dialog
-        my $dlgxml = Gtk2::Builder->new();
+        my $dlgxml = Gtk3::Builder->new();
         $dlgxml->add_from_file( $self->get_gtk_ui_file('dlgClose.ui') );
         my $dlg = $dlgxml->get_object('dlgClose');
         $dlg->set_transient_for( $self->get_object('wndMain') );
@@ -517,7 +547,7 @@ sub do_open {
     # Show the file selection dialogbox
     my $self = shift;
     my $dlg =
-      Gtk2::FileChooserDialog->new( 'Open Project', undef, 'open', 'gtk-cancel',
+      Gtk3::FileChooserDialog->new( 'Open Project', undef, 'open', 'gtk-cancel',
         'cancel', 'gtk-ok', 'ok', );
     my $filter;
 
@@ -538,7 +568,7 @@ sub do_open {
         my $pattern = $patterns[$i];
         my $text    = $text_vals[$i];
 
-        $filter = Gtk2::FileFilter->new();
+        $filter = Gtk3::FileFilter->new();
         $filter->set_name($text);
         $filter->add_pattern($pattern);
         $dlg->add_filter($filter);
@@ -767,7 +797,7 @@ sub do_open_basedata {
 
 sub get_dlg_duplicate {
     my $self   = shift;
-    my $dlgxml = Gtk2::Builder->new();
+    my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file( $self->get_gtk_ui_file('dlgDuplicate.ui') );
     return ( $dlgxml, $dlgxml->get_object('dlgDuplicate') );
 }
@@ -1103,13 +1133,13 @@ sub show_describe_dialog {
     my $table_widget;
     if (is_ref($description)) {
         my $row_count = scalar @$description;
-        my $table = Gtk2::Table->new( $row_count, 2 );
+        my $table = Gtk3::Table->new( $row_count, 2, 0);
 
         my $i = 0;
         foreach my $row (@$description) {
             my $j = 0;
             foreach my $col (@$row) {
-                my $label = Gtk2::Label->new;
+                my $label = Gtk3::Label->new;
                 $label->set_text($col);
                 $label->set_selectable(1);
                 $label->set_padding( 10, 10 );
@@ -1120,13 +1150,13 @@ sub show_describe_dialog {
         }
         $table_widget = $table;
 
-        my $window = Gtk2::Window->new('toplevel');
+        my $window = Gtk3::Window->new('toplevel');
         $window->set_title('Description');
         $window->add($table_widget);
         $window->show_all;
     }
     else {
-        my $dlg = Gtk2::MessageDialog->new(
+        my $dlg = Gtk3::MessageDialog->new(
             $self->{gui},
             'destroy-with-parent',
             'info',    # message type
@@ -1334,21 +1364,19 @@ sub save_object {
 # Base sets / Matrices combos
 ##########################################################
 
-#  sometime we need to force this
+#  sometime we need to force this - is this ever used now?
 sub set_active_iter {
     my $self  = shift;
     my $combo = shift;
 
-    my $iter = $combo->get_active_iter();
-
     #  drop out if it is set
-    return if $iter;
+    return if $combo->get_active >= 0;
 
     #  loop over the iters and choose the one called none
     my $i = 0;
     while (1) {
         $combo->set_active_iter($i);
-        $iter = $combo->get_active_iter();
+        my $iter = $combo->get_active_iter();
         return if $iter->get_text eq '(none)';
     }
 
@@ -1421,13 +1449,20 @@ sub set_phylogeny_iter {
 sub do_basedata_changed {
     my $self  = shift;
     my $combo = $self->get_object('comboBasedata');
-    my $iter  = $combo->get_active_iter();
+    my $active = $combo->get_active;
 
-    return
-      if !
-      defined $iter;  #  sometimes $iter is not defined when this sub is called.
+    #  sometimes combo is not active
+    return if $active < 0;
 
-    my $text = $combo->get_model->get( $iter, 0 );
+    my $iter = $combo->get_active_iter();
+
+    #  sometimes $iter is not defined when this sub is called.
+    return if !defined $iter;
+
+    my $model = $combo->get_model;
+    return if !$model;
+
+    my $text = eval {$model->get( $iter, 0 )} // '(none)';
 
   # FIXME: not sure how $self->{project} can be undefined - but it appears to be
     if (    defined $self->{project}
@@ -1768,17 +1803,17 @@ sub do_trim_tree_to_basedata {
     $dlg->set_transient_for( $self->get_object('wndMain') );
     
     my $vbox = $dlg->get_content_area;
-    my $checkbox  = Gtk2::CheckButton->new;
-    my $chk_label = Gtk2::Label->new ('Trim to last common ancestor');
-    my $hbox = Gtk2::HBox->new;
+    my $checkbox  = Gtk3::CheckButton->new;
+    my $chk_label = Gtk3::Label->new ('Trim to last common ancestor');
+    my $hbox = Gtk3::HBox->new;
     $hbox->pack_start ($chk_label, 1, 1, 0);
     $hbox->pack_start ($checkbox, 1, 1, 0);
     $vbox->pack_start ($hbox, 1, 1, 0);
     $hbox->show_all;
     
-    my $knuckle_checkbox  = Gtk2::CheckButton->new;
-    my $knuckle_label = Gtk2::Label->new ('Merge single child nodes');
-    my $khbox = Gtk2::HBox->new;
+    my $knuckle_checkbox  = Gtk3::CheckButton->new;
+    my $knuckle_label = Gtk3::Label->new ('Merge single child nodes');
+    my $khbox = Gtk3::HBox->new;
     $khbox->pack_start ($knuckle_label, 1, 1, 0);
     $khbox->pack_start ($knuckle_checkbox, 1, 1, 0);
     $vbox->pack_start ($khbox, 1, 1, 0);
@@ -2083,7 +2118,7 @@ sub do_tree_rescale_branch_lengths {
     };
     bless $param, 'Biodiverse::Metadata::Parameter';
 
-    $dlgxml = Gtk2::Builder->new();
+    $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file( $self->get_gtk_ui_file('dlgImportParameters.ui') );
     my $param_dlg = $dlgxml->get_object('dlgImportParameters');
 
@@ -2153,6 +2188,9 @@ sub do_tree_ladderise {
 sub do_matrix_changed {
     my $self  = shift;
     my $combo = $self->get_object('comboMatrices');
+
+    return if $combo->get_active < 0;
+
     my $iter  = $combo->get_active_iter();
 
     #print "MATRIX CHANGE ITER IS $iter";
@@ -2174,6 +2212,9 @@ sub do_matrix_changed {
 sub do_phylogeny_changed {
     my $self  = shift;
     my $combo = $self->get_object('comboPhylogenies');
+
+    return if $combo->get_active < 0;
+
     my $iter  = $combo->get_active_iter();
 
     #my ($text) = $combo->get_model->get($iter, 0);
@@ -2217,7 +2258,6 @@ sub switch_tab {
     my $page = shift;
 
     if ($tab) {
-        my $index = $tab->get_page_index;
         $self->get_notebook->set_current_page( $tab->get_page_index );
     }
     else {
@@ -2258,6 +2298,16 @@ sub remove_tab {
     $tab->remove();
 
     return;
+}
+
+sub get_active_tab {
+    my $self       = shift;
+
+    my $page = $self->get_notebook->get_current_page;
+
+    return if $page < 0;
+
+    return $self->{tabs}[$page];
 }
 
 sub on_switch_tab {
@@ -2323,34 +2373,35 @@ sub show_index_dialog {
     #  create the table and window
     #  we really should generate one from scratch...
 
-    my $dlgxml = Gtk2::Builder->new();
+    my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file( $self->get_gtk_ui_file('dlgImportParameters.ui') );
 
-    my $tooltip_group = Gtk2::Tooltips->new;
-    my $table         = $dlgxml->get_object('tableImportParameters');
+    my $table = $dlgxml->get_object('tableImportParameters');
 
     my $dlg = $dlgxml->get_object('dlgImportParameters');
     $dlg->set_transient_for( $self->get_object('wndMain') );
     $dlg->set_title('Set index sizes');
 
     #  add the incr/decr buttons
-    my $rows = $table->get('n-rows');
-    $rows++;
-    $table->set( 'n-rows' => $rows );
-    my $incr_button = Gtk2::Button->new_with_label('Increment all');
-    $table->attach( $incr_button, 0, 1, $rows, $rows + 1, 'shrink', [], 0, 0 );
-    $tooltip_group->set_tip( $incr_button,
-        'Increase all the axes by their default increments', undef, );
-    my $decr_button = Gtk2::Button->new_with_label('Decrement all');
-    $table->attach( $decr_button, 1, 2, $rows, $rows + 1, 'shrink', [], 0, 0 );
-    $tooltip_group->set_tip( $decr_button,
-        'Decrease all the axes by their default increments', undef, );
+    my $row = 0;
+    my $incr_button = Gtk3::Button->new_with_label('Increment all');
+    $table->attach( $incr_button, 0, $row, 1, 1 );
+    $incr_button->set_tooltip_text(
+        'Increase all the axes by their default increments'
+    );
+    # $row++;
+    my $decr_button = Gtk3::Button->new_with_label('Decrement all');
+    $table->attach( $decr_button, 1, $row, 1, 1 );
+    $decr_button->set_tooltip_text(
+        'Decrease all the axes by their default increments'
+    );
 
     my $i = 0;
     my @resolution_widgets;
 
   BY_AXIS:
     foreach my $cellsize (@cellsize_array) {
+        $row++;
 
         my $is_text_axis = 0;
 
@@ -2379,22 +2430,18 @@ sub show_index_dialog {
 
         my $label_text = "Axis $i";
 
-        $rows = $table->get('n-rows');
-        $rows++;
-        $table->set( 'n-rows' => $rows );
-
         # Make the label
-        my $label = Gtk2::Label->new;
+        my $label = Gtk3::Label->new;
         $label->set_text($label_text);
 
         #  make the widget
         my $adj =
-          Gtk2::Adjustment->new( $init_value, $min_val, $max_val, $step_incr,
+          Gtk3::Adjustment->new( $init_value, $min_val, $max_val, $step_incr,
             $page_incr, 0, );
-        my $widget = Gtk2::SpinButton->new( $adj, $init_value, 10, );
+        my $widget = Gtk3::SpinButton->new( $adj, $init_value, 10, );
 
-        $table->attach( $label,  0, 1, $rows, $rows + 1, 'shrink', [], 0, 0 );
-        $table->attach( $widget, 1, 2, $rows, $rows + 1, 'shrink', [], 0, 0 );
+        $table->attach( $label,  0, $row, 1, 1);
+        $table->attach( $widget, 1, $row, 1, 1);
 
         push @resolution_widgets, $widget;
 
@@ -2416,8 +2463,8 @@ sub show_index_dialog {
             }
         }
 
-        $tooltip_group->set_tip( $widget, $tip_text, undef );
-        $tooltip_group->set_tip( $label,  $tip_text, undef );
+        $widget->set_tooltip_text($tip_text);
+        $label->set_tooltip_text($tip_text);
 
         if ($is_text_axis) {
             $widget->set_sensitive(0);
@@ -2517,7 +2564,7 @@ sub on_index_dlg_change_all {
     #  and update the spinboxes
     foreach my $widget (@$widgets) {
         my $adj       = $widget->get_adjustment;
-        my $increment = $adj->step_increment;
+        my $increment = $adj->get_step_increment;
         my $value =
             $incr
           ? $widget->get_value + $increment
@@ -2531,7 +2578,7 @@ sub on_index_dlg_change_all {
 sub show_index_dialog_orig {
     my $self = shift;
 
-    my $dlgxml = Gtk2::Builder->new();
+    my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file( $self->get_gtk_ui_file('dlgIndex.ui') );
     my $dlg = $dlgxml->get_object('dlgIndex');
     $dlg->set_transient_for( $self->get_object('wndMain') );
@@ -2622,16 +2669,16 @@ sub do_run_exclusions {
             $self->report_error($EVAL_ERROR);
             return;
         }
-        my $dlg = Gtk2::Dialog->new(
+        my $dlg = Gtk3::Dialog->new(
             'Exclusion results',
             $self->get_object('wndMain'),
             'modal', 'gtk-ok' => 'ok',
         );
-        my $text_widget = Gtk2::Label->new();
+        my $text_widget = Gtk3::Label->new();
         $text_widget->set_alignment( 0, 1 );
         $text_widget->set_text($feedback);
         $text_widget->set_selectable(1);
-        $dlg->vbox->pack_start( $text_widget, 0, 0, 0 );
+        $dlg->get_content_area->pack_start( $text_widget, 0, 0, 0 );
 
         $dlg->show_all;
         $dlg->run;
@@ -2648,7 +2695,7 @@ sub show_save_dialog {
     my @suffixes = @$suffixes;
     my @explanations = @{ $explanations // [] };
 
-    my $dlg = Gtk2::FileChooserDialog->new(
+    my $dlg = Gtk3::FileChooserDialog->new(
         $title,
         undef,
         'save',
@@ -2659,7 +2706,7 @@ sub show_save_dialog {
     foreach my $i ( 0 .. $#suffixes ) {
         my $suffix = $suffixes[$i];
         my $expl   = $explanations[$i] // "$suffix files";
-        my $filter = Gtk2::FileFilter->new();
+        my $filter = Gtk3::FileFilter->new();
         $filter->add_pattern("*.$suffix");
         $filter->set_name($expl);
         $dlg->add_filter($filter);
@@ -2688,7 +2735,7 @@ sub show_open_dialog {
     my $suffix      = $args{suffix};
     my $initial_dir = $args{initial_dir};
 
-    my $dlg = Gtk2::FileChooserDialog->new(
+    my $dlg = Gtk3::FileChooserDialog->new(
         $title,
         undef,
         'open',
@@ -2701,7 +2748,7 @@ sub show_open_dialog {
     }
     $dlg->set_current_folder($initial_dir);
 
-    my $filter = Gtk2::FileFilter->new();
+    my $filter = Gtk3::FileFilter->new();
 
     $filter->add_pattern("*.$suffix");
     $filter->set_name(".$suffix files");
@@ -2722,7 +2769,7 @@ sub do_set_working_directory {
     my $title       = shift || "Select working directory";
     my $initial_dir = shift;
 
-    my $dlg = Gtk2::FileChooserDialog->new(
+    my $dlg = Gtk3::FileChooserDialog->new(
         $title, undef, "open",
         "gtk-cancel",  "cancel",
         "gtk-ok",      'ok'
@@ -2789,15 +2836,15 @@ sub report_error {
 
     my $show_details_value = -10;
 
-    my $dlg = Gtk2::Dialog->new(
+    my $dlg = Gtk3::Dialog->new(
         $title,
         $self->get_object('wndMain'),
         'modal',
         'show details' => $show_details_value,
         'gtk-ok'       => 'ok',
     );
-    my $text_widget       = Gtk2::Label->new();
-    my $extra_text_widget = Gtk2::Label->new();
+    my $text_widget       = Gtk3::Label->new();
+    my $extra_text_widget = Gtk3::Label->new();
 
     foreach my $w ( $text_widget, $extra_text_widget ) {
 
@@ -2813,22 +2860,22 @@ sub report_error {
     $extra_text_widget->set_text( $error_array[1]
           // 'There are no additional details' );
 
-    my $check_button = Gtk2::ToggleButton->new_with_label('show details');
+    my $check_button = Gtk3::ToggleButton->new_with_label('show details');
     $check_button->signal_connect_swapped(
         clicked => \&on_report_error_show_hide,
         $extra_text_widget,
     );
     $check_button->set_active(0);
 
-    my $details_box = Gtk2::VBox->new( 1, 6 );
+    my $details_box = Gtk3::VBox->new( 1, 6 );
     $details_box->set_homogeneous(0);
-    $details_box->pack_start( Gtk2::HSeparator->new(), 0, 0, 0 );
+    $details_box->pack_start( Gtk3::HSeparator->new(), 0, 0, 0 );
 
     #$details_box->pack_start($check_button, 0, 0, 0);
     $details_box->pack_start( $extra_text_widget, 0, 0, 0 );
 
-    $dlg->vbox->pack_start( $text_widget, 0, 0, 0 );
-    $dlg->vbox->pack_start( $details_box, 0, 0, 0 );
+    $dlg->get_content_area->pack_start( $text_widget, 0, 0, 0 );
+    $dlg->get_content_area->pack_start( $details_box, 0, 0, 0 );
 
     $dlg->show_all;
     my $details_visible = 0;

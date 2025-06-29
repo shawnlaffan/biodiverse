@@ -11,7 +11,7 @@
          ($filename) = $filename =~ /^([\x20-\xff]+)$/;
  
 +### START HACK
-+if (-e $filename && not $filename =~ /Glib|Gtk2|Gnome|Pango|Cairo/) {
++if (-e $filename && not $filename =~ /Glib|Gtk3|Gnome|Pango|Cairo/) {
 +    $filename .= $member->crc32String; #  kludge workaround
 +}
 +### END HACK

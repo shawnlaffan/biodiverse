@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.40.0 -->
 <interface>
-  <requires lib="gtk+" version="2.16"/>
-  <!-- interface-naming-policy toplevel-contextual -->
+  <requires lib="gtk+" version="3.16"/>
   <object class="GtkIconFactory" id="iconfactory1"/>
   <object class="GtkAdjustment" id="adjustment1">
     <property name="upper">10000000000</property>
-    <property name="step_increment">1</property>
+    <property name="step-increment">1</property>
   </object>
   <object class="GtkAdjustment" id="adjustment2"/>
   <object class="GtkAdjustment" id="adjustment3"/>
@@ -15,36 +15,35 @@
     <property name="lower">1</property>
     <property name="upper">13</property>
     <property name="value">6</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">1</property>
+    <property name="step-increment">1</property>
+    <property name="page-increment">1</property>
   </object>
-  <object class="GtkHBox" id="hboxClusteringPage">
+  <object class="GtkBox" id="hboxClusteringPage">
     <property name="visible">True</property>
-    <property name="can_focus">False</property>
+    <property name="can-focus">False</property>
     <child>
       <object class="GtkToolbar" id="toolbarClustering">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <property name="orientation">vertical</property>
-        <property name="toolbar_style">icons</property>
-        <property name="tooltips">False</property>
+        <property name="toolbar-style">icons</property>
         <child>
           <object class="GtkToolItem" id="toolitemClusteringSelect">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="has_tooltip">True</property>
-            <property name="tooltip_text" translatable="yes">Select (S or B)</property>
+            <property name="can-focus">False</property>
+            <property name="has-tooltip">True</property>
+            <property name="tooltip-text" translatable="yes">Select (S or B)</property>
             <child>
               <object class="GtkToggleButton" id="btnSelectToolCL">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Select (S or B)</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Select (S or B)</property>
                 <child>
                   <object class="GtkImage" id="imageSelectTool2">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="pixbuf">selector.png</property>
                   </object>
                 </child>
@@ -53,25 +52,26 @@
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="homogeneous">False</property>
           </packing>
         </child>
         <child>
           <object class="GtkToolItem" id="toolitemClusteringPan">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="has_tooltip">True</property>
-            <property name="tooltip_text" translatable="yes">Pan (C)</property>
+            <property name="can-focus">False</property>
+            <property name="has-tooltip">True</property>
+            <property name="tooltip-text" translatable="yes">Pan (C)</property>
             <child>
               <object class="GtkToggleButton" id="btnPanToolCL">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Pan (C)</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Pan (C)</property>
                 <child>
                   <object class="GtkImage" id="imagePanTool2">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="pixbuf">drag-resize.png</property>
                   </object>
                 </child>
@@ -80,24 +80,25 @@
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="homogeneous">False</property>
           </packing>
         </child>
         <child>
           <object class="GtkToolItem" id="toolitemClusteringZoom">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="tooltip_text" translatable="yes">Zoom In (Z)</property>
+            <property name="can-focus">False</property>
+            <property name="tooltip-text" translatable="yes">Zoom In (Z)</property>
             <child>
               <object class="GtkToggleButton" id="btnZoomInToolCL">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Zoom In (Z)</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Zoom In (Z)</property>
                 <child>
                   <object class="GtkImage" id="imageZoomTool2">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="stock">gtk-zoom-in</property>
                   </object>
                 </child>
@@ -106,24 +107,25 @@
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="homogeneous">False</property>
           </packing>
         </child>
         <child>
           <object class="GtkToolItem" id="toolitemClusteringZoomOut">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="tooltip_text" translatable="yes">Zoom Out (X)</property>
+            <property name="can-focus">False</property>
+            <property name="tooltip-text" translatable="yes">Zoom Out (X)</property>
             <child>
               <object class="GtkToggleButton" id="btnZoomOutToolCL">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Zoom Out (X)</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Zoom Out (X)</property>
                 <child>
                   <object class="GtkImage" id="imageZoomOutTool2">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="stock">gtk-zoom-out</property>
                   </object>
                 </child>
@@ -132,24 +134,25 @@
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="homogeneous">False</property>
           </packing>
         </child>
         <child>
           <object class="GtkToolItem" id="toolitemClusteringZoomFit">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="tooltip_text" translatable="yes">Zoom to Fit (V)</property>
+            <property name="can-focus">False</property>
+            <property name="tooltip-text" translatable="yes">Zoom to Fit (V)</property>
             <child>
               <object class="GtkToggleButton" id="btnZoomFitToolCL">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Zoom to Fit (V)</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Zoom to Fit (V)</property>
                 <child>
                   <object class="GtkImage" id="imageZoomFitTool2">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="stock">gtk-zoom-fit</property>
                   </object>
                 </child>
@@ -158,156 +161,158 @@
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="homogeneous">False</property>
           </packing>
         </child>
         <child>
           <object class="GtkSeparatorToolItem" id="toolitem_clustering_sep1">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="homogeneous">False</property>
           </packing>
         </child>
         <child>
           <object class="GtkToolItem" id="toolitem_clustering">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <child>
               <object class="GtkMenuBar" id="menubar_clustering">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="pack_direction">ttb</property>
+                <property name="can-focus">False</property>
+                <property name="pack-direction">ttb</property>
                 <child>
                   <object class="GtkMenuItem" id="menuitem_clustering_display">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="label" translatable="yes">Map</property>
-                    <property name="use_underline">True</property>
+                    <property name="use-underline">True</property>
                     <child type="submenu">
                       <object class="GtkMenu" id="menu_clustering_display">
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                         <child>
                           <object class="GtkMenuItem" id="menuitem_cluster_overlays">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Overlays...</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkSeparatorMenuItem" id="menuitem_cluster_display_sep1">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkCheckMenuItem" id="menuitem_cluster_show_legend">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Show or hide the legend
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Show or hide the legend
                             (continous values only)</property>
                             <property name="label" translatable="yes">Show legend</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                             <property name="active">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkCheckMenuItem" id="menu_dendro_colour_stretch_log_mode">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Log scale the colours.
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Log scale the colours.
 Uses the min and max determined by the Colour stretch choice.</property>
                             <property name="label" translatable="yes">Log scale</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkCheckMenuItem" id="menu_dendro_colour_stretch_flip_mode">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Invert (flip) the colour range. Has no effect on categorical colouring.</property>
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Invert (flip) the colour range. Has no effect on categorical colouring.</property>
                             <property name="label" translatable="yes">Invert colour stretch</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkMenuItem" id="menu_item_dendro_colour_stretch">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Sets the colour stretch for analysis results.</property>
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Sets the colour stretch for analysis results.</property>
                             <property name="label" translatable="yes">Colour stretch</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                             <child type="submenu">
                               <object class="GtkMenu" id="menu_dendro_colour_stretch">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="radio_dendro_colour_stretch0">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">min-max</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                     <property name="active">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="draw-as-radio">True</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="radio_dendro_colour_stretch1">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">5-95</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="use-underline">True</property>
+                                    <property name="draw-as-radio">True</property>
                                     <property name="group">radio_dendro_colour_stretch0</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="radio_dendro_colour_stretch2">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">2.5-97.5</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                     <property name="group">radio_dendro_colour_stretch0</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="radio_dendro_colour_stretch3">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">min-95</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="use-underline">True</property>
+                                    <property name="draw-as-radio">True</property>
                                     <property name="group">radio_dendro_colour_stretch0</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="radio_dendro_colour_stretch4">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">min-97.5</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="use-underline">True</property>
+                                    <property name="draw-as-radio">True</property>
                                     <property name="group">radio_dendro_colour_stretch0</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="radio_dendro_colour_stretch5">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">5-max</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="use-underline">True</property>
+                                    <property name="draw-as-radio">True</property>
                                     <property name="group">radio_dendro_colour_stretch0</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="radio_dendro_colour_stretch6">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">2.5-max</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="use-underline">True</property>
+                                    <property name="draw-as-radio">True</property>
                                     <property name="group">radio_dendro_colour_stretch0</property>
                                   </object>
                                 </child>
@@ -318,46 +323,46 @@ Uses the min and max determined by the Colour stretch choice.</property>
                         <child>
                           <object class="GtkMenuItem" id="menuitem_cluster_colour_mode">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">This is only settable when the plot has continuous values (i.e. not the cluster option)</property>
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">This is only settable when the plot has continuous values (i.e. not the cluster option)</property>
                             <property name="label" translatable="yes">Colour mode</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                             <child type="submenu">
                               <object class="GtkMenu" id="menu2">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="menuitem_cluster_colour_mode_hue">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="tooltip_text" translatable="yes">Display all hues (colours) from blue to red
+                                    <property name="can-focus">False</property>
+                                    <property name="tooltip-text" translatable="yes">Display all hues (colours) from blue to red
 
 Colours are scaled relative to all index values across all nodes in the dendrogram.</property>
                                     <property name="label" translatable="yes">Hue</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="use-underline">True</property>
+                                    <property name="draw-as-radio">True</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="menuitem_cluster_colour_mode_sat">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="tooltip_text" translatable="yes">Display a single colour with saturation varying from white to a selected maximum.
+                                    <property name="can-focus">False</property>
+                                    <property name="tooltip-text" translatable="yes">Display a single colour with saturation varying from white to a selected maximum.
 
 Colours are currently taken from the outer ring.</property>
                                     <property name="label" translatable="yes">Sat...</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="use-underline">True</property>
+                                    <property name="draw-as-radio">True</property>
                                     <property name="group">menuitem_cluster_colour_mode_hue</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="menuitem_cluster_colour_mode_grey">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Grey</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="use-underline">True</property>
+                                    <property name="draw-as-radio">True</property>
                                     <property name="group">menuitem_cluster_colour_mode_hue</property>
                                   </object>
                                 </child>
@@ -368,43 +373,43 @@ Colours are currently taken from the outer ring.</property>
                         <child>
                           <object class="GtkSeparatorMenuItem" id="menuitem_cluster_display_sep2">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkMenuItem" id="menuitem_cluster_excluded_cell_colour">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Set the colour for cells that were excluded from the analysis, typically using a definition query.</property>
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Set the colour for cells that were excluded from the analysis, typically using a definition query.</property>
                             <property name="label" translatable="yes">Set excluded cell colour</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkMenuItem" id="menuitem_cluster_undef_cell_colour">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Set the colour of cells when the index value is undefined.</property>
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Set the colour of cells when the index value is undefined.</property>
                             <property name="label" translatable="yes">Set undefined value colour</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkMenuItem" id="menu_cluster_cell_outline_colour">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Set the outline colour of the grid cells.</property>
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Set the outline colour of the grid cells.</property>
                             <property name="label" translatable="yes">Set cell outline colour</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkCheckMenuItem" id="menu_cluster_cell_show_outline">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Show or hide cell outlines.</property>
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Show or hide cell outlines.</property>
                             <property name="label" translatable="yes">Show cell outlines</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                             <property name="active">True</property>
                           </object>
                         </child>
@@ -417,6 +422,7 @@ Colours are currently taken from the outer ring.</property>
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="homogeneous">False</property>
           </packing>
         </child>
       </object>
@@ -429,50 +435,51 @@ Colours are currently taken from the outer ring.</property>
     <child>
       <object class="GtkVBox" id="vbox2">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <child>
           <object class="GtkVPaned" id="vpaneClustering">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="can-focus">True</property>
             <child>
               <object class="GtkVBox" id="vbox22">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <child>
                   <object class="GtkScrolledWindow" id="scrolledwindow20">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="hscrollbar_policy">automatic</property>
+                    <property name="can-focus">True</property>
                     <child>
                       <object class="GtkViewport" id="viewport4">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                         <child>
                           <object class="GtkVBox" id="vbox23">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <child>
                               <object class="GtkTable" id="table14">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="n_rows">2</property>
+                                <property name="can-focus">False</property>
+                                <property name="n-rows">2</property>
                                 <child>
                                   <object class="GtkFrame" id="frame22">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="border_width">5</property>
-                                    <property name="label_xalign">0</property>
+                                    <property name="can-focus">False</property>
+                                    <property name="border-width">5</property>
+                                    <property name="label-xalign">0</property>
                                     <child>
                                       <object class="GtkScrolledWindow" id="scrolledwindow22">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">True</property>
-                                        <property name="border_width">5</property>
-                                        <property name="hscrollbar_policy">never</property>
-                                        <property name="vscrollbar_policy">automatic</property>
+                                        <property name="can-focus">True</property>
+                                        <property name="border-width">5</property>
+                                        <property name="hscrollbar-policy">never</property>
                                         <child>
                                           <object class="GtkTreeView" id="treeSpatialCalculations">
                                             <property name="visible">True</property>
-                                            <property name="can_focus">True</property>
+                                            <property name="can-focus">True</property>
+                                            <child internal-child="selection">
+                                              <object class="GtkTreeSelection"/>
+                                            </child>
                                           </object>
                                         </child>
                                       </object>
@@ -480,37 +487,37 @@ Colours are currently taken from the outer ring.</property>
                                     <child type="label">
                                       <object class="GtkLabel" id="label119">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="label" translatable="yes">Calculations to run for each cluster node (optional)</property>
-                                        <property name="use_markup">True</property>
+                                        <property name="use-markup">True</property>
                                       </object>
                                     </child>
                                   </object>
                                   <packing>
-                                    <property name="top_attach">1</property>
-                                    <property name="bottom_attach">2</property>
-                                    <property name="x_options">GTK_FILL</property>
+                                    <property name="top-attach">1</property>
+                                    <property name="bottom-attach">2</property>
+                                    <property name="x-options">GTK_FILL</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <object class="GtkExpander" id="expander4">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
+                                    <property name="can-focus">True</property>
                                     <property name="expanded">True</property>
                                     <child>
                                       <object class="GtkAlignment" id="alignment36">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="left_padding">12</property>
+                                        <property name="can-focus">False</property>
+                                        <property name="left-padding">12</property>
                                         <child>
                                           <object class="GtkTable" id="tbl_cluster_parameters">
                                             <property name="visible">True</property>
-                                            <property name="can_focus">False</property>
-                                            <property name="border_width">7</property>
-                                            <property name="n_rows">8</property>
-                                            <property name="n_columns">3</property>
-                                            <property name="column_spacing">2</property>
-                                            <property name="row_spacing">4</property>
+                                            <property name="can-focus">False</property>
+                                            <property name="border-width">7</property>
+                                            <property name="n-rows">8</property>
+                                            <property name="n-columns">3</property>
+                                            <property name="column-spacing">2</property>
+                                            <property name="row-spacing">4</property>
                                             <child>
                                               <placeholder/>
                                             </child>
@@ -532,15 +539,15 @@ Colours are currently taken from the outer ring.</property>
                                             <child>
                                               <object class="GtkHBox" id="hbox_cluster_metric">
                                                 <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
+                                                <property name="can-focus">False</property>
                                                 <child>
                                                   <object class="GtkComboBox" id="comboMetric">
-                                                    <property name="width_request">30</property>
+                                                    <property name="width-request">30</property>
                                                     <property name="visible">True</property>
-                                                    <property name="can_focus">False</property>
+                                                    <property name="can-focus">False</property>
                                                   </object>
                                                   <packing>
-                                                    <property name="expand">True</property>
+                                                    <property name="expand">False</property>
                                                     <property name="fill">True</property>
                                                     <property name="position">0</property>
                                                   </packing>
@@ -548,212 +555,210 @@ Colours are currently taken from the outer ring.</property>
                                                 <child>
                                                   <object class="GtkLabel" id="label_explain_metric">
                                                     <property name="visible">True</property>
-                                                    <property name="can_focus">False</property>
-                                                    <property name="xalign">1</property>
+                                                    <property name="can-focus">False</property>
                                                     <property name="label" translatable="yes">explanation</property>
                                                     <property name="wrap">True</property>
                                                     <property name="selectable">True</property>
+                                                    <property name="xalign">1</property>
                                                   </object>
                                                   <packing>
-                                                    <property name="expand">True</property>
+                                                    <property name="expand">False</property>
                                                     <property name="fill">True</property>
                                                     <property name="position">1</property>
                                                   </packing>
                                                 </child>
                                               </object>
                                               <packing>
-                                                <property name="left_attach">2</property>
-                                                <property name="right_attach">3</property>
-                                                <property name="top_attach">1</property>
-                                                <property name="bottom_attach">2</property>
+                                                <property name="left-attach">2</property>
+                                                <property name="right-attach">3</property>
+                                                <property name="top-attach">1</property>
+                                                <property name="bottom-attach">2</property>
                                               </packing>
                                             </child>
                                             <child>
                                               <object class="GtkFrame" id="frameClusterDefinitionQuery1">
                                                 <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="label_xalign">0</property>
-                                                <property name="shadow_type">none</property>
+                                                <property name="can-focus">False</property>
+                                                <property name="label-xalign">0</property>
+                                                <property name="shadow-type">none</property>
                                               </object>
                                               <packing>
-                                                <property name="left_attach">2</property>
-                                                <property name="right_attach">3</property>
-                                                <property name="top_attach">5</property>
-                                                <property name="bottom_attach">6</property>
-                                                <property name="x_options">GTK_FILL</property>
-                                                <property name="y_options">GTK_FILL</property>
+                                                <property name="left-attach">2</property>
+                                                <property name="right-attach">3</property>
+                                                <property name="top-attach">5</property>
+                                                <property name="bottom-attach">6</property>
+                                                <property name="x-options">GTK_FILL</property>
+                                                <property name="y-options">GTK_FILL</property>
                                               </packing>
                                             </child>
                                             <child>
                                               <object class="GtkLabel" id="label7">
                                                 <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="has_tooltip">True</property>
-                                                <property name="tooltip_text" translatable="yes">Use this to run the analysis for only a subset of the groups.
+                                                <property name="can-focus">False</property>
+                                                <property name="has-tooltip">True</property>
+                                                <property name="tooltip-text" translatable="yes">Use this to run the analysis for only a subset of the groups.
 It will ignore groups that do not satisfy the query and they
 will not be part of the results
 
 Use the checkbox to show/hide the edit box to free up screen real estate.</property>
-                                                <property name="xalign">0</property>
                                                 <property name="label" translatable="yes">Definition query</property>
+                                                <property name="xalign">0</property>
                                               </object>
                                               <packing>
-                                                <property name="top_attach">5</property>
-                                                <property name="bottom_attach">6</property>
-                                                <property name="x_options">GTK_FILL</property>
-                                                <property name="y_options"/>
+                                                <property name="top-attach">5</property>
+                                                <property name="bottom-attach">6</property>
+                                                <property name="x-options">GTK_FILL</property>
+                                                <property name="y-options"/>
                                               </packing>
                                             </child>
                                             <child>
                                               <object class="GtkLabel" id="label104">
                                                 <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="tooltip_text" translatable="yes">Specify the set of neighbours that will be used when constructing the matrix.
+                                                <property name="can-focus">False</property>
+                                                <property name="tooltip-text" translatable="yes">Specify the set of neighbours that will be used when constructing the matrix.
 
 Use the checkbox to show/hide the edit box to free up screen real estate.</property>
-                                                <property name="xalign">0</property>
                                                 <property name="label" translatable="yes">Spatial conditions
 set 1</property>
+                                                <property name="xalign">0</property>
                                               </object>
                                               <packing>
-                                                <property name="top_attach">3</property>
-                                                <property name="bottom_attach">4</property>
-                                                <property name="x_options">GTK_FILL</property>
-                                                <property name="y_options"/>
+                                                <property name="top-attach">3</property>
+                                                <property name="bottom-attach">4</property>
+                                                <property name="x-options">GTK_FILL</property>
+                                                <property name="y-options"/>
                                               </packing>
                                             </child>
                                             <child>
                                               <object class="GtkLabel" id="lbl_parameter_clustering_name">
                                                 <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="xalign">0</property>
+                                                <property name="can-focus">False</property>
                                                 <property name="label" translatable="yes">&lt;b&gt;Name&lt;/b&gt;</property>
-                                                <property name="use_markup">True</property>
+                                                <property name="use-markup">True</property>
                                                 <property name="justify">right</property>
+                                                <property name="xalign">0</property>
                                               </object>
                                               <packing>
-                                                <property name="x_options">GTK_FILL</property>
-                                                <property name="y_options"/>
+                                                <property name="x-options">GTK_FILL</property>
+                                                <property name="y-options"/>
                                               </packing>
                                             </child>
                                             <child>
                                               <object class="GtkEntry" id="txtClusterName">
                                                 <property name="visible">True</property>
-                                                <property name="can_focus">True</property>
-                                                <property name="activates_default">True</property>
+                                                <property name="can-focus">True</property>
+                                                <property name="activates-default">True</property>
                                                 <property name="text" translatable="yes">Spatial1</property>
-                                                <property name="primary_icon_activatable">False</property>
-                                                <property name="secondary_icon_activatable">False</property>
-                                                <property name="primary_icon_sensitive">True</property>
-                                                <property name="secondary_icon_sensitive">True</property>
+                                                <property name="primary-icon-activatable">False</property>
+                                                <property name="secondary-icon-activatable">False</property>
                                               </object>
                                               <packing>
-                                                <property name="left_attach">2</property>
-                                                <property name="right_attach">3</property>
-                                                <property name="y_options"/>
+                                                <property name="left-attach">2</property>
+                                                <property name="right-attach">3</property>
+                                                <property name="y-options"/>
                                               </packing>
                                             </child>
                                             <child>
                                               <object class="GtkFrame" id="frameClusterSpatialParams1">
                                                 <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="label_xalign">0</property>
-                                                <property name="shadow_type">none</property>
+                                                <property name="can-focus">False</property>
+                                                <property name="label-xalign">0</property>
+                                                <property name="shadow-type">none</property>
                                               </object>
                                               <packing>
-                                                <property name="left_attach">2</property>
-                                                <property name="right_attach">3</property>
-                                                <property name="top_attach">3</property>
-                                                <property name="bottom_attach">4</property>
-                                                <property name="x_options">GTK_FILL</property>
-                                                <property name="y_options">GTK_FILL</property>
+                                                <property name="left-attach">2</property>
+                                                <property name="right-attach">3</property>
+                                                <property name="top-attach">3</property>
+                                                <property name="bottom-attach">4</property>
+                                                <property name="x-options">GTK_FILL</property>
+                                                <property name="y-options">GTK_FILL</property>
                                               </packing>
                                             </child>
                                             <child>
                                               <object class="GtkLabel" id="label144">
                                                 <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="has_tooltip">True</property>
-                                                <property name="tooltip_text" translatable="yes">What dissimilarity metric to use?</property>
-                                                <property name="xalign">0</property>
+                                                <property name="can-focus">False</property>
+                                                <property name="has-tooltip">True</property>
+                                                <property name="tooltip-text" translatable="yes">What dissimilarity metric to use?</property>
                                                 <property name="label" translatable="yes">Metric</property>
                                                 <property name="justify">right</property>
+                                                <property name="xalign">0</property>
                                               </object>
                                               <packing>
-                                                <property name="top_attach">1</property>
-                                                <property name="bottom_attach">2</property>
-                                                <property name="x_options">GTK_FILL</property>
-                                                <property name="y_options"/>
+                                                <property name="top-attach">1</property>
+                                                <property name="bottom-attach">2</property>
+                                                <property name="x-options">GTK_FILL</property>
+                                                <property name="y-options"/>
                                               </packing>
                                             </child>
                                             <child>
                                               <object class="GtkLabel" id="label118">
                                                 <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="has_tooltip">True</property>
-                                                <property name="tooltip_text" translatable="yes">How should similarities between newly merged groups
+                                                <property name="can-focus">False</property>
+                                                <property name="has-tooltip">True</property>
+                                                <property name="tooltip-text" translatable="yes">How should similarities between newly merged groups
 and all other groups be calculated?</property>
-                                                <property name="xalign">0</property>
                                                 <property name="label" translatable="yes">Linkage</property>
                                                 <property name="justify">right</property>
+                                                <property name="xalign">0</property>
                                               </object>
                                               <packing>
-                                                <property name="top_attach">2</property>
-                                                <property name="bottom_attach">3</property>
-                                                <property name="x_options">GTK_FILL</property>
-                                                <property name="y_options"/>
+                                                <property name="top-attach">2</property>
+                                                <property name="bottom-attach">3</property>
+                                                <property name="x-options">GTK_FILL</property>
+                                                <property name="y-options"/>
                                               </packing>
                                             </child>
                                             <child>
                                               <object class="GtkLabel" id="label145">
                                                 <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="tooltip_text" translatable="yes">Specify a second set of neighbours to use in the analysis.
+                                                <property name="can-focus">False</property>
+                                                <property name="tooltip-text" translatable="yes">Specify a second set of neighbours to use in the analysis.
 Builds a second matrix that will be used when the first one is fully clustered.
 It is a good idea to set this to include all neighbours to ensure clustering will complete properly.
 In this way each group has the full set of neighbours so therefore there is a balanced matrix for clustering.
 An unbalanced set of matrices is not guaranteed to complete clustering due to missing dissimilarities.
 
 Use the checkbox to show/hide the edit box to free up screen real estate.</property>
-                                                <property name="xalign">0</property>
                                                 <property name="label" translatable="yes">Spatial conditions
 set 2</property>
+                                                <property name="xalign">0</property>
                                               </object>
                                               <packing>
-                                                <property name="top_attach">4</property>
-                                                <property name="bottom_attach">5</property>
-                                                <property name="x_options">GTK_FILL</property>
-                                                <property name="y_options"/>
+                                                <property name="top-attach">4</property>
+                                                <property name="bottom-attach">5</property>
+                                                <property name="x-options">GTK_FILL</property>
+                                                <property name="y-options"/>
                                               </packing>
                                             </child>
                                             <child>
                                               <object class="GtkFrame" id="frameClusterSpatialParams2">
                                                 <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="label_xalign">0</property>
-                                                <property name="shadow_type">none</property>
+                                                <property name="can-focus">False</property>
+                                                <property name="label-xalign">0</property>
+                                                <property name="shadow-type">none</property>
                                               </object>
                                               <packing>
-                                                <property name="left_attach">2</property>
-                                                <property name="right_attach">3</property>
-                                                <property name="top_attach">4</property>
-                                                <property name="bottom_attach">5</property>
-                                                <property name="x_options">GTK_FILL</property>
-                                                <property name="y_options">GTK_FILL</property>
+                                                <property name="left-attach">2</property>
+                                                <property name="right-attach">3</property>
+                                                <property name="top-attach">4</property>
+                                                <property name="bottom-attach">5</property>
+                                                <property name="x-options">GTK_FILL</property>
+                                                <property name="y-options">GTK_FILL</property>
                                               </packing>
                                             </child>
                                             <child>
                                               <object class="GtkHBox" id="hbox_cluster_linkage_and_prng">
                                                 <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
+                                                <property name="can-focus">False</property>
                                                 <child>
                                                   <object class="GtkComboBox" id="comboLinkage">
-                                                    <property name="width_request">30</property>
+                                                    <property name="width-request">30</property>
                                                     <property name="visible">True</property>
-                                                    <property name="can_focus">False</property>
+                                                    <property name="can-focus">False</property>
                                                   </object>
                                                   <packing>
-                                                    <property name="expand">True</property>
+                                                    <property name="expand">False</property>
                                                     <property name="fill">True</property>
                                                     <property name="position">0</property>
                                                   </packing>
@@ -761,16 +766,16 @@ set 2</property>
                                                 <child>
                                                   <object class="GtkLabel" id="label_cluster_prng_seed">
                                                     <property name="visible">True</property>
-                                                    <property name="can_focus">False</property>
-                                                    <property name="tooltip_text" translatable="yes">Control the random number sequence
+                                                    <property name="can-focus">False</property>
+                                                    <property name="tooltip-text" translatable="yes">Control the random number sequence
 used in the event of a tie when more
 than one pair of elements can be merged.   </property>
-                                                    <property name="xalign">1</property>
                                                     <property name="label" translatable="yes">PRNG seed:  </property>
-                                                    <property name="single_line_mode">True</property>
+                                                    <property name="single-line-mode">True</property>
+                                                    <property name="xalign">1</property>
                                                   </object>
                                                   <packing>
-                                                    <property name="expand">True</property>
+                                                    <property name="expand">False</property>
                                                     <property name="fill">True</property>
                                                     <property name="position">1</property>
                                                   </packing>
@@ -778,83 +783,82 @@ than one pair of elements can be merged.   </property>
                                                 <child>
                                                   <object class="GtkSpinButton" id="spinbutton_cluster_prng_seed">
                                                     <property name="visible">True</property>
-                                                    <property name="can_focus">True</property>
-                                                    <property name="tooltip_text" translatable="yes">The system default will be used if the value is zero.</property>
-                                                    <property name="invisible_char">●</property>
-                                                    <property name="width_chars">15</property>
-                                                    <property name="primary_icon_activatable">False</property>
-                                                    <property name="secondary_icon_activatable">False</property>
-                                                    <property name="primary_icon_sensitive">True</property>
-                                                    <property name="secondary_icon_sensitive">True</property>
+                                                    <property name="can-focus">True</property>
+                                                    <property name="tooltip-text" translatable="yes">The system default will be used if the value is zero.</property>
+                                                    <property name="invisible-char">●</property>
+                                                    <property name="width-chars">15</property>
+                                                    <property name="primary-icon-activatable">False</property>
+                                                    <property name="secondary-icon-activatable">False</property>
                                                     <property name="adjustment">adjustment1</property>
-                                                    <property name="climb_rate">1</property>
+                                                    <property name="climb-rate">1</property>
                                                     <property name="numeric">True</property>
                                                   </object>
                                                   <packing>
-                                                    <property name="expand">True</property>
+                                                    <property name="expand">False</property>
                                                     <property name="fill">True</property>
                                                     <property name="position">2</property>
                                                   </packing>
                                                 </child>
                                               </object>
                                               <packing>
-                                                <property name="left_attach">2</property>
-                                                <property name="right_attach">3</property>
-                                                <property name="top_attach">2</property>
-                                                <property name="bottom_attach">3</property>
-                                                <property name="x_options">GTK_FILL</property>
-                                                <property name="y_options">GTK_FILL</property>
+                                                <property name="left-attach">2</property>
+                                                <property name="right-attach">3</property>
+                                                <property name="top-attach">2</property>
+                                                <property name="bottom-attach">3</property>
+                                                <property name="x-options">GTK_FILL</property>
+                                                <property name="y-options">GTK_FILL</property>
                                               </packing>
                                             </child>
                                             <child>
                                               <object class="GtkHBox" id="hbox_cluster_tie_breakers">
                                                 <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
+                                                <property name="can-focus">False</property>
                                               </object>
                                               <packing>
-                                                <property name="left_attach">2</property>
-                                                <property name="right_attach">3</property>
-                                                <property name="top_attach">6</property>
-                                                <property name="bottom_attach">7</property>
+                                                <property name="left-attach">2</property>
+                                                <property name="right-attach">3</property>
+                                                <property name="top-attach">6</property>
+                                                <property name="bottom-attach">7</property>
+                                                <property name="x-options">GTK_FILL</property>
                                               </packing>
                                             </child>
                                             <child>
                                               <object class="GtkLabel" id="label8">
                                                 <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="tooltip_text" translatable="yes">(Optional)
+                                                <property name="can-focus">False</property>
+                                                <property name="tooltip-text" translatable="yes">(Optional)
 Select a set of indices to determine the ordering of clustering when there is more than one pair to choose from.  </property>
-                                                <property name="xalign">0</property>
                                                 <property name="label" translatable="yes">Tie breakers</property>
+                                                <property name="xalign">0</property>
                                               </object>
                                               <packing>
-                                                <property name="top_attach">6</property>
-                                                <property name="bottom_attach">7</property>
-                                                <property name="x_options">GTK_FILL</property>
-                                                <property name="y_options">GTK_FILL</property>
+                                                <property name="top-attach">6</property>
+                                                <property name="bottom-attach">7</property>
+                                                <property name="x-options">GTK_FILL</property>
+                                                <property name="y-options">GTK_FILL</property>
                                               </packing>
                                             </child>
                                             <child>
                                               <object class="GtkFrame" id="frame2">
                                                 <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="label_xalign">0</property>
+                                                <property name="can-focus">False</property>
+                                                <property name="label-xalign">0</property>
                                                 <child>
                                                   <object class="GtkHBox" id="hbox_cluster_options">
                                                     <property name="visible">True</property>
-                                                    <property name="can_focus">False</property>
+                                                    <property name="can-focus">False</property>
                                                     <child>
                                                       <object class="GtkCheckButton" id="chk_no_cache_abc">
                                                         <property name="label" translatable="yes">Do not
 use caching </property>
                                                         <property name="visible">True</property>
-                                                        <property name="can_focus">True</property>
-                                                        <property name="receives_default">False</property>
-                                                        <property name="has_tooltip">True</property>
-                                                        <property name="tooltip_text" translatable="yes">Don't use caching when building the matrix.
+                                                        <property name="can-focus">True</property>
+                                                        <property name="receives-default">False</property>
+                                                        <property name="has-tooltip">True</property>
+                                                        <property name="tooltip-text" translatable="yes">Don't use caching when building the matrix.
 This reduces memory requirements
 but can slow down processing.</property>
-                                                        <property name="draw_indicator">True</property>
+                                                        <property name="draw-indicator">True</property>
                                                       </object>
                                                       <packing>
                                                         <property name="expand">True</property>
@@ -867,12 +871,12 @@ but can slow down processing.</property>
                                                         <property name="label" translatable="yes">Build matrices
 and then stop</property>
                                                         <property name="visible">True</property>
-                                                        <property name="can_focus">True</property>
-                                                        <property name="receives_default">False</property>
-                                                        <property name="has_tooltip">True</property>
-                                                        <property name="tooltip_text" translatable="yes">Just build the matrices
+                                                        <property name="can-focus">True</property>
+                                                        <property name="receives-default">False</property>
+                                                        <property name="has-tooltip">True</property>
+                                                        <property name="tooltip-text" translatable="yes">Just build the matrices
 and don't actually cluster.</property>
-                                                        <property name="draw_indicator">True</property>
+                                                        <property name="draw-indicator">True</property>
                                                       </object>
                                                       <packing>
                                                         <property name="expand">True</property>
@@ -885,12 +889,12 @@ and don't actually cluster.</property>
                                                         <property name="label" translatable="yes">Output matrices
 direct to text files</property>
                                                         <property name="visible">True</property>
-                                                        <property name="can_focus">True</property>
-                                                        <property name="receives_default">False</property>
-                                                        <property name="has_tooltip">True</property>
-                                                        <property name="tooltip_text" translatable="yes">Output the matrices direct to a text formatted sparse matrix file or files.
+                                                        <property name="can-focus">True</property>
+                                                        <property name="receives-default">False</property>
+                                                        <property name="has-tooltip">True</property>
+                                                        <property name="tooltip-text" translatable="yes">Output the matrices direct to a text formatted sparse matrix file or files.
 Will not cluster if set and matrices will not be displayable via the project.</property>
-                                                        <property name="draw_indicator">True</property>
+                                                        <property name="draw-indicator">True</property>
                                                       </object>
                                                       <packing>
                                                         <property name="expand">True</property>
@@ -904,13 +908,13 @@ Will not cluster if set and matrices will not be displayable via the project.</p
 direct to GDM
 compatible format</property>
                                                         <property name="visible">True</property>
-                                                        <property name="can_focus">True</property>
-                                                        <property name="receives_default">False</property>
-                                                        <property name="has_tooltip">True</property>
-                                                        <property name="tooltip_text" translatable="yes">Only if the "Output
+                                                        <property name="can-focus">True</property>
+                                                        <property name="receives-default">False</property>
+                                                        <property name="has-tooltip">True</property>
+                                                        <property name="tooltip-text" translatable="yes">Only if the "Output
 matrices to text files"
 option is checked.</property>
-                                                        <property name="draw_indicator">True</property>
+                                                        <property name="draw-indicator">True</property>
                                                       </object>
                                                       <packing>
                                                         <property name="expand">True</property>
@@ -923,14 +927,14 @@ option is checked.</property>
                                                         <property name="label" translatable="yes">Keep spatial
 neighbours output</property>
                                                         <property name="visible">True</property>
-                                                        <property name="can_focus">True</property>
-                                                        <property name="receives_default">False</property>
-                                                        <property name="has_tooltip">True</property>
-                                                        <property name="tooltip_text" translatable="yes">The spatial output is used to define the set of
+                                                        <property name="can-focus">True</property>
+                                                        <property name="receives-default">False</property>
+                                                        <property name="has-tooltip">True</property>
+                                                        <property name="tooltip-text" translatable="yes">The spatial output is used to define the set of
 neighbouring groups used for matrix building.
 Use this if you want to better understand how
 your results were generated.</property>
-                                                        <property name="draw_indicator">True</property>
+                                                        <property name="draw-indicator">True</property>
                                                       </object>
                                                       <packing>
                                                         <property name="expand">True</property>
@@ -943,15 +947,15 @@ your results were generated.</property>
                                                         <property name="label" translatable="yes">Do not clone matrices
 before clustering</property>
                                                         <property name="visible">True</property>
-                                                        <property name="can_focus">True</property>
-                                                        <property name="receives_default">False</property>
-                                                        <property name="has_tooltip">True</property>
-                                                        <property name="tooltip_text" translatable="yes">This will save memory, but you cannot then
+                                                        <property name="can-focus">True</property>
+                                                        <property name="receives-default">False</property>
+                                                        <property name="has-tooltip">True</property>
+                                                        <property name="tooltip-text" translatable="yes">This will save memory, but you cannot then
 view the matrix as it is destroyed as part
 of clustering.  It will not be added to the BaseData object.
 Matrix exporting is also slowed, as the
 system must rebuild the matrices each time you export.</property>
-                                                        <property name="draw_indicator">True</property>
+                                                        <property name="draw-indicator">True</property>
                                                       </object>
                                                       <packing>
                                                         <property name="expand">True</property>
@@ -964,14 +968,14 @@ system must rebuild the matrices each time you export.</property>
                                                         <property name="label" translatable="yes">Clear singleton
 nodes from tree</property>
                                                         <property name="visible">True</property>
-                                                        <property name="can_focus">True</property>
-                                                        <property name="receives_default">False</property>
-                                                        <property name="has_tooltip">True</property>
-                                                        <property name="tooltip_text" translatable="yes">Singletons are terminal nodes
+                                                        <property name="can-focus">True</property>
+                                                        <property name="receives-default">False</property>
+                                                        <property name="has-tooltip">True</property>
+                                                        <property name="tooltip-text" translatable="yes">Singletons are terminal nodes
 connected directly to the root.
 Clearing them is useful
 for RegionGrower analyses.  </property>
-                                                        <property name="draw_indicator">True</property>
+                                                        <property name="draw-indicator">True</property>
                                                       </object>
                                                       <packing>
                                                         <property name="expand">True</property>
@@ -983,17 +987,17 @@ for RegionGrower analyses.  </property>
                                                 </child>
                                                 <child type="label">
                                                   <object class="GtkLabel" id="label_frame2">
-                                                    <property name="can_focus">False</property>
+                                                    <property name="can-focus">False</property>
                                                     <property name="label" translatable="yes">Options</property>
-                                                    <property name="use_markup">True</property>
+                                                    <property name="use-markup">True</property>
                                                   </object>
                                                 </child>
                                               </object>
                                               <packing>
-                                                <property name="right_attach">3</property>
-                                                <property name="top_attach">7</property>
-                                                <property name="bottom_attach">8</property>
-                                                <property name="x_options">GTK_FILL</property>
+                                                <property name="right-attach">3</property>
+                                                <property name="top-attach">7</property>
+                                                <property name="bottom-attach">8</property>
+                                                <property name="x-options">GTK_FILL</property>
                                               </packing>
                                             </child>
                                             <child>
@@ -1006,14 +1010,14 @@ for RegionGrower analyses.  </property>
                                     <child type="label">
                                       <object class="GtkLabel" id="cluster_params_expander">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="tooltip_text" translatable="yes">Show/hide the parameters section</property>
+                                        <property name="can-focus">False</property>
+                                        <property name="tooltip-text" translatable="yes">Show/hide the parameters section</property>
                                         <property name="label" translatable="yes">Parameters</property>
                                       </object>
                                     </child>
                                   </object>
                                   <packing>
-                                    <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                    <property name="y-options">GTK_SHRINK | GTK_FILL</property>
                                   </packing>
                                 </child>
                               </object>
@@ -1026,18 +1030,17 @@ for RegionGrower analyses.  </property>
                             <child>
                               <object class="GtkHButtonBox" id="hbuttonbox6">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="layout_style">edge</property>
+                                <property name="can-focus">False</property>
                                 <child>
                                   <object class="GtkButton" id="btnCluster">
                                     <property name="label" translatable="yes">Go!</property>
                                     <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="can_default">True</property>
-                                    <property name="receives_default">False</property>
-                                    <property name="tooltip_text" translatable="yes">Generates a new output, or overwrites an existing one (CTRL-G)</property>
-                                    <property name="border_width">2</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="can-focus">True</property>
+                                    <property name="can-default">True</property>
+                                    <property name="receives-default">False</property>
+                                    <property name="tooltip-text" translatable="yes">Generates a new output, or overwrites an existing one (CTRL-G)</property>
+                                    <property name="border-width">2</property>
+                                    <property name="use-underline">True</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -1072,19 +1075,19 @@ for RegionGrower analyses.  </property>
             <child>
               <object class="GtkHPaned" id="hpaneClustering">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
+                <property name="can-focus">True</property>
                 <child>
                   <object class="GtkVBox" id="vbox27">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <child>
                       <object class="GtkLabel" id="lblMap">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="xalign">0.019999999552965164</property>
+                        <property name="can-focus">False</property>
                         <property name="ypad">2</property>
                         <property name="label" translatable="yes">&lt;b&gt;Map&lt;/b&gt;</property>
-                        <property name="use_markup">True</property>
+                        <property name="use-markup">True</property>
+                        <property name="xalign">0.019999999552965164</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -1093,59 +1096,50 @@ for RegionGrower analyses.  </property>
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkFrame" id="frame19">
+                      <object class="GtkFrame" id="map_outer_frame">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0.0099999997764825821</property>
-                        <property name="shadow_type">none</property>
+                        <property name="can-focus">False</property>
+                        <property name="label-xalign">0.009999999776482582</property>
+                        <property name="shadow-type">none</property>
                         <child>
                           <object class="GtkVBox" id="vbox24">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <child>
                               <object class="GtkTable" id="table16">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="n_rows">2</property>
-                                <property name="n_columns">2</property>
+                                <property name="can-focus">False</property>
+                                <property name="n-rows">2</property>
+                                <property name="n-columns">2</property>
                                 <child>
                                   <placeholder/>
                                 </child>
                                 <child>
-                                  <object class="GtkVScrollbar" id="mapVScroll">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="adjustment">adjustment2</property>
-                                  </object>
-                                  <packing>
-                                    <property name="left_attach">1</property>
-                                    <property name="right_attach">2</property>
-                                    <property name="x_options">GTK_FILL</property>
-                                  </packing>
+                                  <placeholder/>
+                                </child>
+                                <child>
+                                  <placeholder/>
+                                </child>
+                                <child>
+                                  <placeholder/>
+                                </child>
+                                <child>
+                                  <placeholder/>
                                 </child>
                                 <child>
                                   <object class="GtkFrame" id="mapFrame">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label_xalign">0</property>
-                                    <property name="shadow_type">none</property>
+                                    <property name="can-focus">False</property>
+                                    <property name="label-xalign">0</property>
+                                    <property name="shadow-type">none</property>
                                   </object>
                                   <packing>
-                                    <property name="x_options">GTK_FILL</property>
-                                    <property name="y_options">GTK_FILL</property>
+                                    <property name="x-options">GTK_FILL</property>
+                                    <property name="y-options">GTK_FILL</property>
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkHScrollbar" id="mapHScroll">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="adjustment">adjustment3</property>
-                                  </object>
-                                  <packing>
-                                    <property name="top_attach">1</property>
-                                    <property name="bottom_attach">2</property>
-                                    <property name="y_options">GTK_FILL</property>
-                                  </packing>
+                                  <placeholder/>
                                 </child>
                               </object>
                               <packing>
@@ -1165,67 +1159,54 @@ for RegionGrower analyses.  </property>
                     </child>
                   </object>
                   <packing>
-                    <property name="resize">False</property>
+                    <property name="resize">True</property>
                     <property name="shrink">True</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkFrame" id="frame21">
+                  <object class="GtkFrame" id="dendro_outer_frame">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="border_width">2</property>
-                    <property name="label_xalign">0.0099999997764825821</property>
-                    <property name="shadow_type">none</property>
+                    <property name="can-focus">False</property>
+                    <property name="border-width">2</property>
+                    <property name="label-xalign">0.009999999776482582</property>
+                    <property name="shadow-type">none</property>
                     <child>
                       <object class="GtkVBox" id="vbox25">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                         <child>
                           <object class="GtkTable" id="table17">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="n_rows">2</property>
+                            <property name="can-focus">False</property>
+                            <property name="n-rows">2</property>
                             <child>
-                              <object class="GtkHScrollbar" id="clusterHScroll">
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="adjustment">adjustment4</property>
-                              </object>
-                              <packing>
-                                <property name="top_attach">1</property>
-                                <property name="bottom_attach">2</property>
-                                <property name="y_options">GTK_FILL</property>
-                              </packing>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
                             </child>
                             <child>
                               <object class="GtkVPaned" id="vpaneDendrogram">
                                 <property name="visible">True</property>
-                                <property name="can_focus">True</property>
+                                <property name="can-focus">True</property>
                                 <child>
                                   <object class="GtkTable" id="table18">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="n_columns">2</property>
+                                    <property name="can-focus">False</property>
+                                    <property name="n-columns">2</property>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
                                     <child>
                                       <object class="GtkFrame" id="clusterFrame">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="label_xalign">0</property>
-                                        <property name="shadow_type">none</property>
+                                        <property name="can-focus">False</property>
+                                        <property name="label-xalign">0</property>
+                                        <property name="shadow-type">none</property>
                                       </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkVScrollbar" id="clusterVScroll">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="adjustment">adjustment5</property>
-                                      </object>
-                                      <packing>
-                                        <property name="left_attach">1</property>
-                                        <property name="right_attach">2</property>
-                                        <property name="x_options"/>
-                                        <property name="y_options">GTK_FILL</property>
-                                      </packing>
                                     </child>
                                   </object>
                                   <packing>
@@ -1236,9 +1217,9 @@ for RegionGrower analyses.  </property>
                                 <child>
                                   <object class="GtkFrame" id="graphFrame">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label_xalign">0</property>
-                                    <property name="shadow_type">none</property>
+                                    <property name="can-focus">False</property>
+                                    <property name="label-xalign">0</property>
+                                    <property name="shadow-type">none</property>
                                   </object>
                                   <packing>
                                     <property name="resize">False</property>
@@ -1247,7 +1228,7 @@ for RegionGrower analyses.  </property>
                                 </child>
                               </object>
                               <packing>
-                                <property name="x_options">GTK_FILL</property>
+                                <property name="x-options">GTK_FILL</property>
                               </packing>
                             </child>
                           </object>
@@ -1262,9 +1243,9 @@ for RegionGrower analyses.  </property>
                     <child type="label">
                       <object class="GtkLabel" id="lblDendrogram">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                         <property name="label" translatable="yes">&lt;b&gt;Dendrogram&lt;/b&gt;</property>
-                        <property name="use_markup">True</property>
+                        <property name="use-markup">True</property>
                       </object>
                     </child>
                   </object>
@@ -1289,116 +1270,119 @@ for RegionGrower analyses.  </property>
         <child>
           <object class="GtkToolbar" id="toolbar_clustering_bottom">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="toolbar_style">both-horiz</property>
+            <property name="can-focus">False</property>
+            <property name="toolbar-style">both-horiz</property>
             <property name="icon_size">2</property>
             <child>
               <object class="GtkToolItem" id="toolitem1">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <child>
                   <object class="GtkComboBox" id="comboMapList">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="add_tearoffs">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="add-tearoffs">True</property>
                   </object>
                 </child>
               </object>
               <packing>
                 <property name="expand">False</property>
+                <property name="homogeneous">False</property>
               </packing>
             </child>
             <child>
               <object class="GtkSeparatorToolItem" id="separatortoolitem2">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
               </object>
               <packing>
                 <property name="expand">False</property>
+                <property name="homogeneous">False</property>
               </packing>
             </child>
             <child>
               <object class="GtkToolItem" id="toolitem2">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <child>
                   <object class="GtkComboBox" id="comboMapShow">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="resize_mode">immediate</property>
-                    <property name="add_tearoffs">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="resize-mode">immediate</property>
+                    <property name="add-tearoffs">True</property>
                   </object>
                 </child>
               </object>
               <packing>
                 <property name="expand">False</property>
+                <property name="homogeneous">False</property>
               </packing>
             </child>
             <child>
               <object class="GtkSeparatorToolItem" id="separatortoolitem3">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
               </object>
               <packing>
                 <property name="expand">False</property>
+                <property name="homogeneous">False</property>
               </packing>
             </child>
             <child>
               <object class="GtkToolItem" id="toolitem3">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <child>
                   <object class="GtkLabel" id="label_cluster_spin_button">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="label" translatable="yes">Clusters to colour</property>
                   </object>
                 </child>
               </object>
               <packing>
                 <property name="expand">False</property>
+                <property name="homogeneous">False</property>
               </packing>
             </child>
             <child>
               <object class="GtkToolItem" id="toolitem_clustering_spin_clusters">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <child>
                   <object class="GtkSpinButton" id="spinClusters">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="has_tooltip">True</property>
-                    <property name="tooltip_text" translatable="yes">This value determines how many descendent nodes will be selected to be coloured when you click on a node.
+                    <property name="can-focus">True</property>
+                    <property name="has-tooltip">True</property>
+                    <property name="tooltip-text" translatable="yes">This value determines how many descendent nodes will be selected to be coloured when you click on a node.
 
 All siblings are included in the selection, so if the tree topology results in more than this number then the next lowest number will be selected.
 For example, if 7 nodes are to be coloured but the system finds a 7th and 8th node are siblings then it will select their parent instead, resulting in 6 selected nodes.
 
 This setting has no effect on the slider bar.</property>
-                    <property name="invisible_char">●</property>
-                    <property name="width_chars">2</property>
-                    <property name="invisible_char_set">True</property>
-                    <property name="primary_icon_activatable">False</property>
-                    <property name="secondary_icon_activatable">False</property>
-                    <property name="primary_icon_sensitive">True</property>
-                    <property name="secondary_icon_sensitive">True</property>
+                    <property name="invisible-char">●</property>
+                    <property name="width-chars">2</property>
+                    <property name="primary-icon-activatable">False</property>
+                    <property name="secondary-icon-activatable">False</property>
                     <property name="adjustment">adjustment6</property>
-                    <property name="climb_rate">1</property>
+                    <property name="climb-rate">1</property>
                     <property name="numeric">True</property>
                   </object>
                 </child>
               </object>
               <packing>
                 <property name="expand">False</property>
+                <property name="homogeneous">False</property>
               </packing>
             </child>
             <child>
               <object class="GtkToolItem" id="toolbutton1">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <child>
                   <object class="GtkLabel" id="label_selector_colour">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="label" translatable="yes">Next colour</property>
                   </object>
                 </child>
@@ -1411,12 +1395,12 @@ This setting has no effect on the slider bar.</property>
             <child>
               <object class="GtkToolItem" id="toolbutton2">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <child>
                   <object class="GtkColorButton" id="selector_colorbutton">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">True</property>
                     <property name="color">#000000000000</property>
                   </object>
                 </child>
@@ -1429,13 +1413,13 @@ This setting has no effect on the slider bar.</property>
             <child>
               <object class="GtkToggleToolButton" id="autoincrement_toggle">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="tooltip_text" translatable="yes">Autoincrement the colour on click.
+                <property name="can-focus">False</property>
+                <property name="tooltip-text" translatable="yes">Autoincrement the colour on click.
 Deselect to keep using the same colour
 or only change when you want to. </property>
                 <property name="label" translatable="yes">autoincrement</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-refresh</property>
+                <property name="use-underline">True</property>
+                <property name="stock-id">gtk-refresh</property>
                 <property name="active">True</property>
               </object>
               <packing>
@@ -1446,12 +1430,12 @@ or only change when you want to. </property>
             <child>
               <object class="GtkToggleToolButton" id="selector_toggle">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">When selected, clicking on 
+                <property name="can-focus">False</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">When selected, clicking on 
 a branch will reset it to uncoloured.</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-clear</property>
+                <property name="use-underline">True</property>
+                <property name="stock-id">gtk-clear</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -1471,6 +1455,9 @@ a branch will reset it to uncoloured.</property>
         <property name="fill">True</property>
         <property name="position">1</property>
       </packing>
+    </child>
+    <child>
+      <placeholder/>
     </child>
   </object>
 </interface>

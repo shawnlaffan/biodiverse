@@ -19,8 +19,8 @@ local $| = 1;
 use Biodiverse::Config;
 
 #  load Gtk
-use Gtk2 qw/-init/;
-use Gtk2::GladeXML;
+use Gtk3 qw/-init/;
+use Gtk3::GladeXML;
 
 my $max_load_count = $ARGV[0] // 10;
 
@@ -30,7 +30,7 @@ do {
     for my $i (1 .. $max_load_count) {
         
         my $gladexml = eval {
-            Gtk2::GladeXML->new( $gladefile, 'wndProgress' );
+            Gtk3::GladeXML->new( $gladefile, 'wndProgress' );
         };
         croak $EVAL_ERROR if $EVAL_ERROR;
         my $dlg = $gladexml->get_object('wndProgress');

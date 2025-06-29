@@ -7,7 +7,7 @@ use Carp;
 
 our $VERSION = '4.99_002';
 
-use Gtk2;
+use Gtk3;
 #use Biodiverse::RemapGuesser qw/guess_remap/;
 
 use Biodiverse::GUI::GUIManager;
@@ -56,15 +56,20 @@ sub build_main_notebook {
             bs_type     => 'group',
         );
     
-    my $notebook = Gtk2::Notebook->new;
+    my $notebook = Gtk3::Notebook->new;
+    my $label_label = Gtk3::Label->new;
+    my $group_label = Gtk3::Label->new;
+    $label_label->set_text ("Labels");
+    $group_label->set_text ("Groups");
+
     $notebook->append_page (
         $label_outer_vbox,
-        "Labels",        
+        $label_label,
     );
 
     $notebook->append_page (
         $group_outer_vbox,
-        "Groups",        
+        $group_label,
     );
 
     $self->{notebook} = $notebook;
@@ -79,7 +84,7 @@ sub run {
     my $bd = $args{basedata};
     $self->{bd} = $bd;
 
-    my $dlg = Gtk2::Dialog->new_with_buttons(
+    my $dlg = Gtk3::Dialog->new_with_buttons(
         'Delete Element Properties',
         undef,
         'modal',
@@ -112,7 +117,7 @@ sub build_tree_from_list {
     my ($self, %args) = @_;
     my $list = $args{list};
 
-    my $model = Gtk2::TreeStore->new('Glib::Boolean', 'Glib::String');
+    my $model = Gtk3::TreeStore->new('Glib::Boolean', 'Glib::String');
 
     my $title = $args{ title } // '';
     
@@ -123,19 +128,19 @@ sub build_tree_from_list {
     }
 
     # allow multi selections
-    my $tree = Gtk2::TreeView->new($model);
+    my $tree = Gtk3::TreeView->new($model);
     my $sel = $tree->get_selection();
     $sel->set_mode('multiple');
 
-    my $column = Gtk2::TreeViewColumn->new();
+    my $column = Gtk3::TreeViewColumn->new();
     $self->add_header_and_tooltip_to_treeview_column (
         column       => $column,
         title_text   => $title,
         tooltip_text => '',
     );
     
-    my $text_renderer  = Gtk2::CellRendererText->new();
-    my $check_renderer = Gtk2::CellRendererToggle->new();
+    my $text_renderer  = Gtk3::CellRendererText->new();
+    my $check_renderer = Gtk3::CellRendererToggle->new();
 
     $column->pack_start( $check_renderer, 0);
     $column->pack_start( $text_renderer,  1 );
@@ -200,19 +205,19 @@ sub _build_deletion_panel {
     $self->{$bs_type}{elements_tree} = $elements_tree;
     $self->{models}{$bs_type}{elements_tree} = $elements_model;
 
-    my $hbox = Gtk2::HBox->new();
+    my $hbox = Gtk3::HBox->new();
     $hbox->pack_start( $properties_tree, 1, 1, 0 );  
     $hbox->pack_start( $elements_tree, 1, 1, 0 );  
     
-    my $scroll = Gtk2::ScrolledWindow->new( undef, undef );
+    my $scroll = Gtk3::ScrolledWindow->new( undef, undef );
 
     $scroll->add_with_viewport($hbox);
 
-    my $vbox = Gtk2::VBox->new(); 
+    my $vbox = Gtk3::VBox->new();
     $vbox->pack_start( $scroll, 1, 1, 0 ); 
 
     my $schedule_deletion_button =
-        Gtk2::Button->new_with_label (
+        Gtk3::Button->new_with_label (
             "Schedule selected"
         );
     $schedule_deletion_button->set_tooltip_text (
@@ -235,7 +240,7 @@ sub _build_deletion_panel {
     );
     
     my $unschedule_deletion_button =
-        Gtk2::Button->new_with_label(
+        Gtk3::Button->new_with_label(
             "Unschedule selected"
         );
     $unschedule_deletion_button->set_tooltip_text (
@@ -257,13 +262,13 @@ sub _build_deletion_panel {
         }
     );
     
-    my $button_hbox = Gtk2::HBox->new();
+    my $button_hbox = Gtk3::HBox->new();
     $button_hbox->pack_start( $schedule_deletion_button, 1, 0, 0 );
     $button_hbox->pack_start( $unschedule_deletion_button, 1, 0, 0 );
     $vbox->pack_start( $button_hbox, 0, 0, 0 );
     
     my $clear_selections_button =
-        Gtk2::Button->new_with_label(
+        Gtk3::Button->new_with_label(
             'Clear selections'
         );
     $clear_selections_button->set_tooltip_text (
@@ -292,7 +297,7 @@ properties from individual elements.
 END_HELPER_TEXT
 ;
     $helper_text =~ s/(?:\r?\n)(?![\r\n])/ /gs;
-    my $helper_label = Gtk2::Label->new();
+    my $helper_label = Gtk3::Label->new();
     $helper_label->set_width_chars (90);
     $helper_label->set_line_wrap (1);
     $helper_label->set_selectable (1);
@@ -340,7 +345,7 @@ sub on_clicked_apply {
                     my ($text) = $model->get($iter, MODEL_TEXT_COL);
                     push (@targets, $text);
                 }
-                $iter = $model->iter_next($iter);
+                last if !$model->iter_next($iter);
             }
             my $sub_delete_count;
             foreach my $target (@targets) {
@@ -380,7 +385,7 @@ END_FMT
             ($bs_type_had_deletions{group}{properties_tree} // 0);
     }
     
-    my $dlg = Gtk2::MessageDialog->new (
+    my $dlg = Gtk3::MessageDialog->new (
         undef, 'modal',
         'info', # message type
         'ok',
@@ -427,11 +432,12 @@ sub add_header_and_tooltip_to_treeview_column {
     my ($self, %args) = @_;
     my $column = $args{column};
 
-    my $header = Gtk2::Label->new( $args{title_text} );
+    my $header = Gtk3::Label->new( $args{title_text} );
     $header->show();
 
     $column->set_widget($header);
 
-    my $tooltip = Gtk2::Tooltips->new();
-    $tooltip->set_tip( $header, $args{tooltip_text} );
+    $header->set_tooltip_text ($args{tooltip_text});
+
+    return;
 }

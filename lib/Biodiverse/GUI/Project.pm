@@ -185,15 +185,13 @@ sub init_models {
       Biodiverse::GUI::GUIManager->instance->get_base_data_output_model;
 
     # Basedata model for combobox (based on above)
-    $self->{models}{basedata_model} =
-      Gtk2::TreeModelFilter->new( $self->{models}{basedata_output_model} );
-    $self->{models}{basedata_model}->set_visible_column(MODEL_BASEDATA_ROW);
+    $self->init_bd_filter_model;
 
     # Matrix/Phylogeny models for comboboxen
     $self->{models}{matrix_model} =
-      Gtk2::ListStore->new( 'Glib::String', 'Glib::Scalar' );
+      Gtk3::ListStore->new( 'Glib::String', 'Glib::Scalar' );
     $self->{models}{phylogeny_model} =
-      Gtk2::ListStore->new( 'Glib::String', 'Glib::Scalar' );
+      Gtk3::ListStore->new( 'Glib::String', 'Glib::Scalar' );
 
 # We put all the iterator hashes separately because they must not be written out to XML
 # (they contain pointers to real memory)
@@ -215,6 +213,19 @@ sub init_models {
     $self->update_gui_comboboxes();
 }
 
+sub init_bd_filter_model {
+    my $self = shift;
+    $self->{models}{basedata_model} =
+        Gtk3::TreeModelFilter->new( $self->{models}{basedata_output_model} );
+    $self->{models}{basedata_model}->set_visible_column(MODEL_BASEDATA_ROW);
+}
+
+sub clear_bd_filter_model {
+    my $self = shift;
+    Biodiverse::GUI::GUIManager->instance->set_basedata_model(undef);
+    $self->{models}{basedata_model} = undef;
+}
+
 sub update_gui_comboboxes {
     my $self = shift;
 
@@ -225,9 +236,9 @@ sub update_gui_comboboxes {
 
     my $selected = $self->get_selected_base_data();
 
-    #if ($selected) {
-    $self->select_base_data($selected);    # this will update GUI combobox
-                                           #}
+    if ($selected) {
+        $self->select_base_data($selected); # this will update GUI combobox
+    }
 
     # Matrix
     $gui->set_matrix_model( $self->{models}{matrix_model} );
@@ -670,13 +681,16 @@ sub select_base_data {
 
     $self->set_param( SELECTED_BASEDATA => $basedata_ref );
 
+    return if !$basedata_ref;
+    return if !$self->{models}{basedata_model};
+
     if ($basedata_ref) {
 
         my $iter = $self->{iters}{basedata_iters}{$basedata_ref};
 
         # $iter is from basedata-output model
         # Make it relative to the filtered basedata model
-        if ( defined $iter ) {
+        if ( defined $iter) {
             $iter = $self->{models}{basedata_model}
               ->convert_child_iter_to_iter($iter);
             Biodiverse::GUI::GUIManager->instance->set_basedata_iter($iter);
@@ -761,42 +775,55 @@ sub select_phylogeny_iter {
 }
 
 sub delete_base_data {
-    my $self = shift;
-    my $basedata_ref =
-         shift
-      || $self->get_selected_base_data()
-      || return 0;    #  drop out if nothing here
+    my ($self, $bd) = @_;
+    $bd ||= $self->get_selected_base_data;
 
-    $self->delete_all_basedata_outputs($basedata_ref);
+    #  drop out if nothing here
+    return 0 if !$bd;
+
+    $self->delete_all_basedata_outputs($bd);
 
     # Remove from basedata list
     my $bd_array = $self->{BASEDATA};    #  use a ref to make reading easier
+    my $found;
     foreach my $i ( 0 .. $#$bd_array ) {
-        if ( $bd_array->[$i] eq $basedata_ref ) {
+        if ( $bd_array->[$i] eq $bd ) {
             splice( @$bd_array, $i, 1 );
+            $found++;
             last;
         }
     }
+    warn 'Basedata not found' if !$found;
 
-    # Remove from model
-    if ( exists $self->{iters}{basedata_iters}{$basedata_ref} ) {
-        my $iter = $self->{iters}{basedata_iters}{$basedata_ref};
-        if ( defined $iter ) {
+    # $self->basedata_output_model_init;
 
-            #print "REMOVING BASEDATA FROM OUTPUT MODELS\n";
-            my $model = $self->{models}{basedata_output_model};
+    #  Go searching for the basedata ref.
+    #  We used to use the stored iter but it segfaults under gtk3
+    #  so work with a fresh one.
+    my $model = $self->{models}{basedata_output_model};
+
+    #  We need to clear and then rebuild the basedata model
+    #  or we get seg faults.
+    #  Possibly due to getting out of synch somewhere.
+    $self->clear_bd_filter_model;
+
+    my $iter = $model->get_iter_first;
+    while ($iter) {
+        my $ref = $model->get($iter, MODEL_OBJECT);
+        if ($ref == $bd) {
+            delete $self->{iters}{basedata_iters}{$bd};
             $model->remove($iter);
-            delete $self->{iters}{basedata_iters}{$basedata_ref};
-
-            #$self->{iters}{output_iters}
+            last;
         }
+        last if !$model->iter_next($iter);
     }
+    $self->init_bd_filter_model;
 
     $self->manage_empty_basedatas();
 
     # Clear selection
     my $selected = $self->get_selected_base_data;
-    if ( !defined $selected or $basedata_ref eq $selected ) {
+    if ( !defined $selected or $bd eq $selected ) {
         $self->set_param( SELECTED_BASEDATA => undef );
 
         #print "CLEARED SELECTED_BASEDATA\n";
@@ -839,12 +866,15 @@ sub rename_base_data {
     $basedata_ref->rename( name => $name );
 
     # Rename in model
-    if ( exists $self->{iters}{basedata_iters}{$basedata_ref} ) {
-        my $iter = $self->{iters}{basedata_iters}{$basedata_ref};
-        if ( defined $iter ) {
-            my $model = $self->{models}{basedata_output_model};
-            $model->set_value( $iter, 0, $name );
+    my $model = $self->{models}{basedata_output_model};
+    my $iter = $model->get_iter_first;
+    while ($iter) {
+        my $ref = $model->get($iter, MODEL_OBJECT);
+        if ($ref == $basedata_ref) {
+            $model->set ($iter, 0, $name);
+            last;
         }
+        last if !$model->iter_next($iter);
     }
 
     $self->set_dirty();
@@ -867,7 +897,7 @@ sub rename_matrix {
         my $iter = $self->{iters}{matrix_iters}{$ref};
         if ( defined $iter ) {
             my $model = $self->{models}{matrix_model};
-            $model->set_value( $iter, 0, $name );
+            $model->set ( $iter, 0, $name );
         }
     }
 
@@ -895,7 +925,7 @@ sub rename_phylogeny {
         my $iter = $self->{iters}{phylogeny_iters}{$ref};
         if ( defined $iter ) {
             my $model = $self->{models}{phylogeny_model};
-            $model->set_value( $iter, 0, $name );
+            $model->set ( $iter, 0, $name );
         }
     }
 
@@ -1054,11 +1084,11 @@ sub register_in_outputs_model {
                   ; #FIXME: do we have to look at other iter_bases, or does this iterate over entire level?
             }
 
-            $iter_output = $model->iter_next($iter_output);
+            last if !$model->iter_next($iter_output);
         }
 
         last if $iter;    # break if found it
-        $iter_base = $model->iter_next($iter_base);
+        last if !$model->iter_next($iter_base);
     }
 
     if ($iter) {
@@ -1234,7 +1264,7 @@ sub manage_empty_model {
         # Make a dummy model with "(none)"
         say "[Project] $type Model empty";
 
-        $model = Gtk2::ListStore->new('Glib::String');
+        $model = Gtk3::ListStore->new('Glib::String');
         $iter  = $model->append;
         $model->set( $iter, 0, '(none)' );
 
@@ -1448,24 +1478,26 @@ sub member_of {
 }
 
 # Get array of output refs for this basedata
+# We could get them direct from the basedata object,
+# but this keeps things in the same order as the rest
+# of the GUI.
 sub get_basedata_outputs {
     my $self = shift;
-    my $ref  = shift;
+    my $ref = shift;
 
     return if !defined $ref;
 
-    my $iter  = $self->{iters}{basedata_iters}{$ref};
+    my $iter = $self->{iters}{basedata_iters}{$ref};
     my $model = $self->{models}{basedata_output_model};
 
-    my $child_iter = $model->iter_nth_child( $iter, 0 );
-    my @array;
-    while ($child_iter) {
-        my ($output_ref) = $model->get( $child_iter, MODEL_OBJECT );
-        push @array, $output_ref;
-        $child_iter = $model->iter_next($child_iter);
+    my $n_children = $model->iter_n_children($iter);
+    my @arr;
+    for my $i (0 .. $n_children - 1) {
+        my $child_iter = $model->iter_nth_child($iter, $i);
+        push @arr, $model->get($child_iter, MODEL_OBJECT);
     }
 
-    return wantarray ? @array : \@array;
+    return wantarray ? @arr : \@arr;
 }
 
 ####################################################
@@ -1479,6 +1511,23 @@ sub get_basedata_outputs {
 sub get_overlay_list {
     my $self = shift;
     return $self->{OVERLAYS};
+}
+
+sub overlay_is_valid {
+    my ($self, %args) = @_;
+    my $shapefile = $args{shapefile};
+
+    croak 'shapefile arg undefined'
+        if !defined $shapefile;
+
+    my $overlays = $self->get_overlay_list;
+    my @possibles
+        = grep {$shapefile->{filebase} eq ($_->{name} =~ s/.shp$//r)}
+          grep {$_->{plot_on_top} == $args{plot_on_top}}
+          grep {$_->{type} eq $args{type}}
+          @$overlays;
+
+    return !!@possibles;
 }
 
 sub get_overlay_shape_object {
@@ -1565,7 +1614,7 @@ sub init_overlay_hash {
         }
 
         my $dialog =
-          Gtk2::MessageDialog->new( undef, 'destroy-with-parent', 'warning',
+          Gtk3::MessageDialog->new( undef, 'destroy-with-parent', 'warning',
             'ok', $text, );
         my $response = $dialog->run;
         $dialog->destroy;

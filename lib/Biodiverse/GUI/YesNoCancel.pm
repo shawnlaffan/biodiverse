@@ -3,7 +3,7 @@ use 5.010;
 
 use strict;
 use warnings;
-use Gtk2;
+use Gtk3;
 
 use English ( -no_match_vars );
 
@@ -53,7 +53,7 @@ sub run {
 
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
-    my $dlgxml = Gtk2::Builder->new();
+    my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgYesNoCancel.ui'));
     my $dlg = $dlgxml->get_object(DLG_NAME);
 
@@ -97,7 +97,7 @@ sub run {
     #    return 1 if !defined $default_response;
     #    return 1 if time() - $starttime < 1;
     #    #say 'VISIBLE: ' . $dlg->is_visible;
-    #    say 'SCREEN DIMS: ' . Gtk2::Gdk->screen_width . ' ' . Gtk2::Gdk->screen_height;
+    #    say 'SCREEN DIMS: ' . Gtk3::Gdk->screen_width . ' ' . Gtk3::Gdk->screen_height;
     #    say 'MAIN WIN: ' . join ' ', $main_window->get_position ();
     #    say 'DLG  POS: ' . join ' ', $dlg->get_position ();
     #    $dlg->move ($main_window->get_position); sleep (10);

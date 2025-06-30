@@ -635,9 +635,9 @@ sub draw {
     $cx->set_line_cap ('round');
     $cx->set_line_width($v_line_width);
     $cx->set_source_rgb ($have_highlights ? @def_h_col : @v_colour);
-    foreach my $vert (@verticals) {
-        $cx->move_to($vert->[0], $vert->[1]);  #  first child
-        $cx->line_to($vert->[0], $vert->[2]);  #  last child
+    foreach my \@vert (@verticals) {
+        $cx->move_to($vert[0], $vert[1]);  #  first child
+        $cx->line_to($vert[0], $vert[2]);  #  last child
     }
     $cx->stroke;
 
@@ -691,8 +691,8 @@ sub draw {
     $cx->stroke;  #  paint the queued colours
 
     #  highlights above all others
-    foreach my $aref (@highlights) {
-        my ($x_l, $x_r, $y, $colour) = @$aref;
+    foreach my \@h_array (@highlights) {
+        my ($x_l, $x_r, $y, $colour) = @h_array;
         $colour //= $h_col_ref;
         if ($colour ne $last_colour) {
             $cx->stroke;  #  paint the queued colours

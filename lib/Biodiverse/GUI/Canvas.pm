@@ -310,9 +310,16 @@ sub get_event_xy {
 sub set_cursor_from_name {
     my ($self, $name) = @_;
     my $window = $self->get_window;
-    my $display = $window->get_display;
 
-    my $cursor = Gtk3::Gdk::Cursor->new_from_name ($display, $name // 'pointer');
+    $name //= 'pointer';
+
+    #  we need to re-use cursors or we get seg faults on exit
+    # when on homebrewed mac systems (and maybe others)
+    state %cursors;
+
+    my $cursor = $cursors{$name}
+        //= Gtk3::Gdk::Cursor->new_from_name($window->get_display, $name);
+
     return $window->set_cursor($cursor);
 }
 
@@ -732,7 +739,7 @@ sub cairo_draw {
     #  No longer storing due to crashes on macos but we check it as a boolean elsewhere.
     #  That might be removable but booleanise for now.
     $self->{cairo_context} = !!$context;
-    $self->{orig_tfm_mx}   = $context->get_matrix;
+    $self->{orig_tfm_mx}   = $self->clone_tfm_mx($context->get_matrix);
 
     # $context->set_source_rgb(0.9, 0.9, 0.7);
     # $context->paint;

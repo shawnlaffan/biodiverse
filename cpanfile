@@ -77,7 +77,6 @@ feature 'GUI', 'GUI packages' => sub {
     requires 'ExtUtils::Depends'; 
     requires 'ExtUtils::PkgConfig';
     requires 'Glib';
-    requires 'Gnome2::Canvas';
     requires 'Gtk3';
     requires 'HTTP::Tiny';
     requires 'IO::Socket::SSL';

@@ -651,17 +651,6 @@ sub set_active_pane {
     $self->{active_pane} = $active_pane;
 }
 
-sub rect_canonicalise {
-    my ($self, $rect) = @_;
-    ($rect->[0], $rect->[2]) = minmax ($rect->[2], $rect->[0]);
-    ($rect->[1], $rect->[3]) = minmax ($rect->[3], $rect->[1]);
-}
-
-sub rect_centre {
-    my ($self, $rect) = @_;
-    return (($rect->[0] + $rect->[2]) / 2, ($rect->[1] + $rect->[3]) / 2);
-}
-
 sub on_select_tool {
     my $self = shift;
     return if $self->{ignore_tool_click};
@@ -691,54 +680,6 @@ sub on_zoom_fit_tool {
     return if $self->{ignore_tool_click};
     $self->choose_tool('ZoomFit');
 }
-
-my %cursor_icons = (
-    Select  => undef,
-    ZoomIn  => 'zoom-in',
-    ZoomOut => 'zoom-out',
-    ZoomFit => 'zoom-fit-best',
-    Pan     => 'fleur',
-);
-
-sub set_display_cursors {
-    my $self = shift;
-    my $type = shift;
-
-    my $icon = $cursor_icons{$type};
-    
-    foreach my $widget (qw /grid matrix_grid dendrogram/) {
-        no autovivification;
-        my $wref = $self->{$widget};
-        next if !$wref || !$wref->{canvas};
-
-        my $window = $wref->{canvas}->window;
-        my $cursor;
-        if ($icon) {
-            #  check if it's a real cursor
-            $cursor = eval {Gtk3::Gdk::Cursor->new ($icon)};
-            if ($@) {  #  might need to come from an icon
-                my $cache_name = "ICON: $icon";
-                $cursor = $self->get_cached_value ($cache_name);
-                if (!$cursor) {
-                    my $ic = Gtk3::IconTheme->new();
-                    my $pixbuf = eval {$ic->load_icon($icon, 16, 'no-svg')};
-                    if ($@) {
-                        warn $@;
-                    }
-                    else {
-                        my $display = $window->get_display;
-                        $cursor = Gtk3::Gdk::Cursor->new_from_pixbuf($display, $pixbuf, 0, 0);
-                        $self->set_cached_value ($cache_name => $cursor);
-                    }
-                }
-            }
-        }
-        $window->set_cursor($cursor);
-        $wref->{cursor} = $cursor;
-    }
-    
-}
-
 
 sub on_set_cell_outline_colour {
     my $self = shift;

@@ -631,7 +631,10 @@ sub draw {
     #   First the verticals.  Separated for speed as we avoid some repeated cairo calls.
     #   Plotted first so they go under the branches and don't overplot any colouring.
     \my @verticals = $data->{vertical_connectors};
-    my @def_h_col = map {$default_highlight_colour->$_} qw /red green blue/;
+    my @def_h_col
+        = is_arrayref $default_highlight_colour
+        ? (@$default_highlight_colour)
+        : map {$default_highlight_colour->$_} qw /red green blue/;
     $cx->set_line_cap ('round');
     $cx->set_line_width($v_line_width);
     $cx->set_source_rgb ($have_highlights ? @def_h_col : @v_colour);

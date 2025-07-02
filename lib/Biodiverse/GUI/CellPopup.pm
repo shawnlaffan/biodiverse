@@ -356,10 +356,9 @@ sub show_output_list {
         #  sort differently if list elements are numbers or text
         my $numeric = 1;
         foreach my $key (keys %$list_ref) {
-            if (! looks_like_number ($key)) {
-                $numeric = 0;
-                last;
-            }
+            next if looks_like_number $key;
+            $numeric = 0;
+            last;
         }
         #my $sort_sub = sub {$a cmp $b};
         #if ($numeric) {
@@ -381,16 +380,10 @@ sub show_output_list {
     elsif (is_arrayref($list_ref)) {
         my $numeric = 1;
         foreach my $key (@$list_ref) {
-            if (! looks_like_number ($key)) {
-                $numeric = 0;
-                last;
-            }
+            next if looks_like_number $key;
+            $numeric = 0;
+            last;
         }
-        #my $sort_sub = sub {$a cmp $b};
-        #if ($numeric) {
-        #    $sort_sub = sub {$a <=> $b};
-        #}
-        #my @keys = sort $sort_sub @$list_ref;
         
         my @keys = $numeric
             ? sort {$a <=> $b} @$list_ref

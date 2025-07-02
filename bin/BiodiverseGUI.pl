@@ -7,7 +7,7 @@ use 5.036;
 #use File::Basename;
 use Cwd;
 use FindBin qw ( $Bin );
-use Path::Class ();
+use Path::Tiny qw/path/;
 
 BEGIN {
     #  make sure menubars are visible when running under Ubuntu Unity
@@ -18,11 +18,11 @@ BEGIN {
         say '++++';
         my $gdk_base = ("$ENV{PAR_TEMP}/inc/gdk-pixbuf-2.0/2.10.0");
         $ENV{GDK_PIXBUF_MODULEDIR}
-          = Path::Class::file ($gdk_base, 'loaders');
+          = path ($gdk_base, 'loaders');
         say "Setting GDK_PIXBUF_MODULEDIR to $ENV{GDK_PIXBUF_MODULEDIR}";
         say "BUT IT DOES NOT EXIST" if !-d $ENV{GDK_PIXBUF_MODULEDIR};
         my $gdk_cache_file
-          = Path::Class::file ($gdk_base, 'loaders.cache');
+          = path ($gdk_base, 'loaders.cache');
         say "Setting GDK_PIXBUF_MODULE_FILE to $gdk_cache_file";
         $ENV{GDK_PIXBUF_MODULE_FILE} = $gdk_cache_file;
         $ENV{PATH} = "$ENV{PAR_TEMP}/inc:" . $ENV{PATH};
@@ -56,21 +56,21 @@ say '@INC: ', join q{ }, @INC;
 
 #  load up the user defined libs and settings
 use Biodiverse::Config;
-use Biodiverse::GUI::GUIManager;
 
 say "\n\nUsing Biodiverse engine version $Biodiverse::Config::VERSION";
 
 #  load Gtk
-use Gtk2;
-Gtk2->disable_setlocale; # leave LC_NUMERIC alone
+use Gtk3;
+Gtk3::disable_setlocale(); # leave LC_NUMERIC alone
 
-# my $icontheme = Gtk2::IconTheme->new;
+# my $icontheme = Gtk3::IconTheme->new;
 # use List::Util qw /uniq/;
 # say join "\n", 'Icon themes: ', uniq $icontheme->get_search_path;
-# say join "\n", 'Gtk2 RC files: ', Gtk2::Rc->get_default_files;
+# say join "\n", 'Gtk3 RC files: ', Gtk3::Rc->get_default_files;
 
-Gtk2->init;
+Gtk3->init;
 
+use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Callbacks;
 
 # Load filename specified in the arguments
@@ -113,7 +113,7 @@ elsif ( $numargs > 1 ) {
 
 my $icon = get_iconfile();
 my $eval_result = eval {
-    Gtk2::Window->set_default_icon_from_file($icon)
+    Gtk3::Window::set_default_icon_from_file($icon)
 };
 #croak $EVAL_ERROR if $EVAL_ERROR;
 
@@ -138,14 +138,14 @@ $gui->set_glade_xml($builder);
 $gui->init();
 
 if ( defined $filename ) {
-    $filename = Path::Class::file($filename)->absolute->stringify;
+    $filename = path ($filename)->absolute->stringify;
     $gui->open($filename);
 }
 
 #  hack for exe building under github actions
 if (!($^O eq 'darwin' && $ENV{BDV_PP_BUILDING})) {
     # Go!
-    Gtk2->main;
+    Gtk3->main;
 }
 
 #  go back home (unless it has been deleted while we were away)
@@ -158,7 +158,7 @@ exit;
 
 sub get_main_window {
     my $gui = shift;
-    my $dlgxml = Gtk2::Builder->new();
+    my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file($gui->get_gtk_ui_file('wndMain.ui'));
     return $dlgxml;
 }
@@ -181,16 +181,16 @@ sub get_ui_path {
 
     #  get the one we're compiled with (if we're a PAR exe file)
     if ($ENV{PAR_0}) {  #  we are running under PAR
-        $ui_path = Path::Class::file ($ENV{PAR_TEMP}, 'inc', 'ui');
+        $ui_path = path ($ENV{PAR_TEMP}, 'inc', 'ui');
         my $ui_path_str = $ui_path->stringify;
         say "Using PAR ui path: $ui_path";
         return $ui_path_str;
     }
 
     #  get the ui path relative to $Bin
-    $ui_path = Path::Class::file( $Bin, 'ui' )->stringify;
+    $ui_path = path ( $Bin, 'ui' )->stringify;
     if (! -e $ui_path) {
-        $ui_path = Path::Class::file( $Bin, 'bin', 'ui', )->stringify;
+        $ui_path = path ( $Bin, 'bin', 'ui', )->stringify;
     }
 
     die 'Cannot find glade the ui directory' if ! -d $ui_path;
@@ -206,7 +206,7 @@ sub get_iconfile {
     my $icon;
 
     if ($ENV{PAR_0}) {  #  we are running under PAR
-        $icon = Path::Class::file ($ENV{PAR_TEMP}, 'inc', 'Biodiverse_icon.ico');
+        $icon = path ($ENV{PAR_TEMP}, 'inc', 'Biodiverse_icon.ico');
         my $icon_str = $icon->stringify;
         if (-e $icon_str) {
             say "Using PAR icon file $icon";
@@ -216,8 +216,8 @@ sub get_iconfile {
             #  manually unpack the icon file
             require Archive::Zip;
 
-            my $folder = $icon->dir;
-            my $fname  = $icon->basename;
+            # my $folder = $icon->parent;
+            my $fname  = $icon->basename->stringify;
             my $zip = Archive::Zip->new($ENV{PAR_PROGNAME})
               or die "Unable to open $ENV{PAR_PROGNAME}";
 
@@ -233,9 +233,9 @@ sub get_iconfile {
         }
     }
 
-    $icon = Path::Class::file( $Bin, 'Biodiverse_icon.ico' )->stringify;
+    $icon = path ( $Bin, 'Biodiverse_icon.ico' )->stringify;
     if (! -e $icon) {
-        $icon = Path::Class::file( $Bin, 'bin', 'Biodiverse_icon.ico' )->stringify;
+        $icon = path ( $Bin, 'bin', 'Biodiverse_icon.ico' )->stringify;
     }
     if ( ! -e $icon) {
         $icon = undef;

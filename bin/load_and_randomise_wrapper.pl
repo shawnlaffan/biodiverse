@@ -8,7 +8,7 @@ use warnings;
 use FindBin qw { $Bin };
 use English qw { -no_match_vars };
 use Carp;
-Path::Tiny qw /path/;
+use Path::Tiny qw /path/;
 
 use rlib;
 

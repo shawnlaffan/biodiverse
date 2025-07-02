@@ -816,7 +816,7 @@ sub _test_export_nexus {
         foreach my $node (@tree_nodes) {
             my $booter = $node->get_bootstrap_block;
             $booter->set_value_aa(bootkey => "bootvalue");
-            $booter->set_colour_aa("red");
+            # $booter->set_colour_aa("red");
             my $some_list = {a => 1, b => 2, c => 3};
             $node->add_to_list (
                 BOOTER_TEST_LIST => $some_list,
@@ -925,10 +925,10 @@ sub _test_export_nexus {
                            "Exported and then imported correct bootstrap value for $key in $node_name."
                         );
                     }
-                    is ($booter->get_colour,
-                       "red",
-                       "Exported and then imported correct colour for $node_name."
-                    );
+                    # is ($booter->get_colour,
+                    #    "red",
+                    #    "Exported and then imported correct colour for $node_name."
+                    # );
                 }
             };
         #}

@@ -1877,8 +1877,7 @@ sub write_table_geotiff {
 #  one per field based on row 0.
 #  Skip any fields that contain non-numeric values
 sub write_rgb_geotiff {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
     my $file = $args{file} || croak "file arg not specified\n";
     my ($name, $path, $suffix) = fileparse (path($file)->absolute, qr/\.tif{1,2}/);
@@ -1913,10 +1912,20 @@ sub write_rgb_geotiff {
             CELL_ORIGINS => [$self->get_cell_origins],
         );
         foreach my $elt (keys %$href) {
-            my @rgb_arr = $href->{$elt} =~ /([a-fA-F\d]{4})/g;
-            @rgb_arr = map {0 + hex "0x$_"} @rgb_arr;
+            # my @rgb_arr = $href->{$elt} =~ /([a-fA-F\d]{4})/g;
+            # @rgb_arr = map {0 + hex "0x$_"} @rgb_arr;
             my %rgb_hash;
-            @rgb_hash{qw /red green blue/} = @rgb_arr;
+            my $rgb = $href->{$elt};
+            if (is_arrayref $rgb) {
+                #  rgb vals in [0,1]
+                @rgb_hash{qw/red green blue/} = map {$_ * (2**16-1)} @$rgb;
+            }
+            elsif (!is_ref $rgb) {
+                #  rgb vals in [0,255] as, e.g., rgb(123,201,0)
+                my @arr = $rgb =~ /\d+/g;
+                $rgb = [@arr];
+                @rgb_hash{qw/red green blue/} = map {$_ * 255} @$rgb;
+            }
             $bs->add_element (element => $elt);
             $bs->add_lists (
                 element => $elt,
@@ -1951,6 +1960,7 @@ sub write_rgb_geotiff {
         my $y_col = -1;
         my @rgb_band_cols = (5,4,3);  #  rgb alpha sorted
         my @rgb_band_data;
+        state $max_val = 2**16 - 1;  # UInt16
         foreach my $y (reverse ($min_ids[1] .. $max_ids[1])) {
             $y_col++;
             my $x_col = -1;
@@ -1962,7 +1972,7 @@ sub write_rgb_geotiff {
                     my $value = $rgb_data_hash->{$coord_id}[$i];
                     if (defined $value) {
                         $rgb_band_data[$i][$y_col][$x_col] = 0+$value;
-                        $rgb_band_data[6][$y_col][$x_col]  //= 2**16-1;
+                        $rgb_band_data[6][$y_col][$x_col]  //= $max_val;
                     }
                     else {
                         $rgb_band_data[$i][$y_col][$x_col] = 0;
@@ -1987,6 +1997,10 @@ sub write_rgb_geotiff {
             $band_id++;
             my $out_band = $out_raster->GetBand($band_id);
             $out_band->Write($rgb_data, 0, 0, $ncols, $nrows);
+            $out_band->SetMetadata({   #  helps with some displays
+                STATISTICS_MAXIMUM => "$max_val",
+                STATISTICS_MINIMUM => '0',
+            }, '');
         }
     }
 

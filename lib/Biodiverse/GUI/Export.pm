@@ -10,7 +10,7 @@ use warnings;
 use English ( -no_match_vars );
 
 use Glib;
-use Gtk2;
+use Gtk3;
 use Cwd;
 
 use List::MoreUtils qw /any none/;
@@ -39,8 +39,8 @@ sub Run {
     my $snooper_status = $gui->keyboard_snooper_active;
     $gui->activate_keyboard_snooper (0);
 
-    # Get the Parameters metadata
-    my $metadata = $object->get_metadata (sub => 'export');
+    # Get the Parameters metadata.  No cache as we need some updates.
+    my $metadata = $object->get_metadata (sub => 'export', no_use_cache => 1);
 
     ###################
     # get the selected format
@@ -51,7 +51,7 @@ sub Run {
     if (none {$_ eq $selected_format} @$format_choice_array) {
         #  get user preference if none passed as an arg
         
-        my $dlgxml = Gtk2::Builder->new();
+        my $dlgxml = Gtk3::Builder->new();
         $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgImportParameters.ui'));
         my $format_dlg = $dlgxml->get_object('dlgImportParameters');
 
@@ -100,19 +100,32 @@ sub Run {
         selected_format => $selected_format,
     );
 
+    my $parameters_table = $results->{param_table};
+    my $extractors = $results->{extractors};
+    my $dlg = $results->{dlg};
+    my $chooser = $results->{chooser};
+    my $filename = $chooser->get_filename;
+
+    #  a defer block would be nice here
     if (!$results->{success}) {
         $gui->activate_keyboard_snooper($snooper_status);
         return;
     }
+    elsif (-d $filename || !length $filename) {
+        $gui->activate_keyboard_snooper($snooper_status);
+        $dlg->destroy;
 
-    my $chooser = $results->{chooser};
-    my $parameters_table = $results->{param_table};
-    my $extractors = $results->{extractors};
-    my $dlg = $results->{dlg};
-    
+        Biodiverse::GUI::YesNoCancel->run({
+            header      => "No filename specified",
+            hide_cancel => 1,
+            hide_no     => 1,
+            yes_is_ok   => 1,
+        });
+        return;
+    }
+
     # Export!
     my $extracted_params = $parameters_table->extract($extractors);
-    my $filename = $chooser->get_filename;
     #  normalise the file name
     $filename = path($filename)->stringify;
 
@@ -159,7 +172,7 @@ sub choose_file_location_dialog {
     
     #####################
     #  get the params for the selected format
-    my $dlgxml = Gtk2::Builder->new();
+    my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgExport.ui'));
 
     my $dlg = $dlgxml->get_object('dlgExport');

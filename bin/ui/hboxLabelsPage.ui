@@ -1,40 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.40.0 -->
 <interface>
-  <requires lib="gtk+" version="2.18"/>
-  <!-- interface-naming-policy toplevel-contextual -->
+  <requires lib="gtk+" version="3.0"/>
   <object class="GtkAdjustment" id="adjustment1"/>
   <object class="GtkAdjustment" id="adjustment2"/>
   <object class="GtkAdjustment" id="adjustment3"/>
   <object class="GtkAdjustment" id="adjustment4"/>
   <object class="GtkAdjustment" id="adjustment5"/>
   <object class="GtkAdjustment" id="adjustment6"/>
-  <object class="GtkHBox" id="hboxLabelsPage">
+  <object class="GtkBox" id="hboxLabelsPage">
     <property name="visible">True</property>
-    <property name="can_focus">False</property>
+    <property name="can-focus">False</property>
     <child>
       <object class="GtkToolbar" id="toolbarLabels">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <property name="orientation">vertical</property>
-        <property name="toolbar_style">icons</property>
-        <property name="tooltips">False</property>
+        <property name="toolbar-style">icons</property>
         <child>
           <object class="GtkToolItem" id="toolitemLabelsSelect">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="has_tooltip">True</property>
-            <property name="tooltip_text" translatable="yes">Select (S or B)</property>
+            <property name="can-focus">False</property>
+            <property name="has-tooltip">True</property>
+            <property name="tooltip-text" translatable="yes">Select (S or B)</property>
             <child>
               <object class="GtkToggleButton" id="btnSelectToolVL">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Select (S or B)</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Select (S or B)</property>
                 <child>
                   <object class="GtkImage" id="imageSelectTool1">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="pixbuf">selector.png</property>
                   </object>
                 </child>
@@ -43,25 +42,26 @@
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="homogeneous">False</property>
           </packing>
         </child>
         <child>
           <object class="GtkToolItem" id="toolitemLabelsPan">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="has_tooltip">True</property>
-            <property name="tooltip_text" translatable="yes">Pan (C)</property>
+            <property name="can-focus">False</property>
+            <property name="has-tooltip">True</property>
+            <property name="tooltip-text" translatable="yes">Pan (C)</property>
             <child>
               <object class="GtkToggleButton" id="btnPanToolVL">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Pan (C)</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Pan (C)</property>
                 <child>
                   <object class="GtkImage" id="imagePanTool1">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="pixbuf">drag-resize.png</property>
                   </object>
                 </child>
@@ -70,24 +70,25 @@
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="homogeneous">False</property>
           </packing>
         </child>
         <child>
           <object class="GtkToolItem" id="toolitemLabelsZoom">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="tooltip_text" translatable="yes">Zoom In (Z)</property>
+            <property name="can-focus">False</property>
+            <property name="tooltip-text" translatable="yes">Zoom In (Z)</property>
             <child>
               <object class="GtkToggleButton" id="btnZoomInToolVL">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Zoom In (Z)</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Zoom In (Z)</property>
                 <child>
                   <object class="GtkImage" id="imageZoomTool1">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="stock">gtk-zoom-in</property>
                   </object>
                 </child>
@@ -96,24 +97,25 @@
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="homogeneous">False</property>
           </packing>
         </child>
         <child>
           <object class="GtkToolItem" id="toolitemLabelsZoomOut">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="tooltip_text" translatable="yes">Zoom Out (X)</property>
+            <property name="can-focus">False</property>
+            <property name="tooltip-text" translatable="yes">Zoom Out (X)</property>
             <child>
               <object class="GtkToggleButton" id="btnZoomOutToolVL">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Zoom Out (X)</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Zoom Out (X)</property>
                 <child>
                   <object class="GtkImage" id="imageZoomOutTool1">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="stock">gtk-zoom-out</property>
                   </object>
                 </child>
@@ -122,24 +124,25 @@
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="homogeneous">False</property>
           </packing>
         </child>
         <child>
           <object class="GtkToolItem" id="toolitemLabelsZoomFit">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="tooltip_text" translatable="yes">Zoom to Fit (V)</property>
+            <property name="can-focus">False</property>
+            <property name="tooltip-text" translatable="yes">Zoom to Fit (V)</property>
             <child>
               <object class="GtkToggleButton" id="btnZoomFitToolVL">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Zoom to Fit (V)</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Zoom to Fit (V)</property>
                 <child>
                   <object class="GtkImage" id="imageZoomFitTool1">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="stock">gtk-zoom-fit</property>
                   </object>
                 </child>
@@ -148,83 +151,85 @@
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="homogeneous">False</property>
           </packing>
         </child>
         <child>
           <object class="GtkSeparatorToolItem" id="toolitem_label_sep1x">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="homogeneous">False</property>
           </packing>
         </child>
         <child>
           <object class="GtkToolItem" id="toolitemLabelsOptions">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <child>
               <object class="GtkMenuBar" id="menubarLabelsOptions">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="pack_direction">ttb</property>
+                <property name="can-focus">False</property>
+                <property name="pack-direction">ttb</property>
                 <child>
                   <object class="GtkMenuItem" id="menuitem9x">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="label" translatable="yes">Map</property>
-                    <property name="use_underline">True</property>
+                    <property name="use-underline">True</property>
                     <child type="submenu">
                       <object class="GtkMenu" id="menu1">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                         <child>
                           <object class="GtkMenuItem" id="menuitem_labels_grid">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Display options:</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkMenuItem" id="menuitem_label_grid_colour_scale">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Control the colour scaling on the grid</property>
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Control the colour scaling on the grid</property>
                             <property name="label" translatable="yes">Colour scaling</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                             <child type="submenu">
                               <object class="GtkMenu" id="menu2">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="radiomenuitem_grid_colouring_auto">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="tooltip_text" translatable="yes">Switches to log scaling when max richness is &gt;20 or ratio of max richness to number of selected labels is 80% </property>
+                                    <property name="can-focus">False</property>
+                                    <property name="tooltip-text" translatable="yes">Switches to log scaling when max richness is &gt;20 or ratio of max richness to number of selected labels is 80% </property>
                                     <property name="label" translatable="yes">auto</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                     <property name="active">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="draw-as-radio">True</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="radiomenuitem_grid_colouring_linear">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">linear</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="use-underline">True</property>
+                                    <property name="draw-as-radio">True</property>
                                     <property name="group">radiomenuitem_grid_colouring_auto</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="radiomenuitem_grid_colouring_log">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">natural log</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="use-underline">True</property>
+                                    <property name="draw-as-radio">True</property>
                                     <property name="group">radiomenuitem_grid_colouring_auto</property>
                                   </object>
                                 </child>
@@ -235,19 +240,19 @@
                         <child>
                           <object class="GtkCheckMenuItem" id="menuitem_labels_show_legend">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Show or hide the legend</property>
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Show or hide the legend</property>
                             <property name="label" translatable="yes">Show legend</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                             <property name="active">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkMenuItem" id="menuitem_labels_overlays">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Overlays...</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                       </object>
@@ -259,6 +264,7 @@
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="homogeneous">False</property>
           </packing>
         </child>
       </object>
@@ -271,28 +277,31 @@
     <child>
       <object class="GtkVPaned" id="vpaneLabels">
         <property name="visible">True</property>
-        <property name="can_focus">True</property>
+        <property name="can-focus">True</property>
         <child>
           <object class="GtkHPaned" id="hpaneLabelsTop">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="can-focus">True</property>
             <child>
               <object class="GtkVPaned" id="vpaneLists">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
+                <property name="can-focus">True</property>
                 <property name="position">83</property>
                 <child>
                   <object class="GtkScrolledWindow" id="scrolledwindow_labels1">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="tooltip_text" translatable="yes">Sorting this list also sorts the rows of the matrix (if one is displayed).</property>
-                    <property name="shadow_type">in</property>
+                    <property name="can-focus">True</property>
+                    <property name="tooltip-text" translatable="yes">Sorting this list also sorts the rows of the matrix (if one is displayed).</property>
+                    <property name="shadow-type">in</property>
                     <child>
                       <object class="GtkTreeView" id="listLabels1">
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="search_column">0</property>
-                        <property name="show_expanders">False</property>
+                        <property name="can-focus">True</property>
+                        <property name="search-column">0</property>
+                        <property name="show-expanders">False</property>
+                        <child internal-child="selection">
+                          <object class="GtkTreeSelection"/>
+                        </child>
                       </object>
                     </child>
                   </object>
@@ -304,13 +313,16 @@
                 <child>
                   <object class="GtkScrolledWindow" id="scrolledwindow_labels2">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="shadow_type">in</property>
+                    <property name="can-focus">True</property>
+                    <property name="shadow-type">in</property>
                     <child>
                       <object class="GtkTreeView" id="listLabels2">
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="tooltip_text" translatable="yes">Sorting this list also sorts the columns of the matrix.</property>
+                        <property name="can-focus">True</property>
+                        <property name="tooltip-text" translatable="yes">Sorting this list also sorts the columns of the matrix.</property>
+                        <child internal-child="selection">
+                          <object class="GtkTreeSelection"/>
+                        </child>
                       </object>
                     </child>
                   </object>
@@ -328,59 +340,41 @@
             <child>
               <object class="GtkVBox" id="vbox30">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <child>
                   <object class="GtkTable" id="table20">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="n_rows">2</property>
-                    <property name="n_columns">2</property>
+                    <property name="can-focus">False</property>
+                    <property name="n-rows">2</property>
+                    <property name="n-columns">2</property>
                     <child>
                       <placeholder/>
                     </child>
                     <child>
-                      <object class="GtkVScrollbar" id="matrixVScroll">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="adjustment">adjustment1</property>
-                      </object>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="right_attach">2</property>
-                        <property name="x_options">GTK_FILL</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkHScrollbar" id="matrixHScroll">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="adjustment">adjustment2</property>
-                      </object>
-                      <packing>
-                        <property name="top_attach">1</property>
-                        <property name="bottom_attach">2</property>
-                        <property name="y_options">GTK_FILL</property>
-                      </packing>
-                    </child>
-                    <child>
                       <object class="GtkFrame" id="matrixFrame">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
+                        <property name="can-focus">False</property>
+                        <property name="label-xalign">0</property>
+                        <property name="shadow-type">none</property>
                         <child type="label">
                           <object class="GtkLabel" id="lblMatrix">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">&lt;b&gt;Matrix&lt;/b&gt;</property>
-                            <property name="use_markup">True</property>
+                            <property name="use-markup">True</property>
                           </object>
                         </child>
                       </object>
                       <packing>
-                        <property name="x_options">GTK_FILL</property>
-                        <property name="y_options">GTK_FILL</property>
+                        <property name="x-options">GTK_FILL</property>
+                        <property name="y-options">GTK_FILL</property>
                       </packing>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
                     </child>
                   </object>
                   <packing>
@@ -404,61 +398,43 @@
         <child>
           <object class="GtkHPaned" id="hpaneLabelsBottom">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="can-focus">True</property>
             <child>
               <object class="GtkFrame" id="frame1">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label_xalign">0</property>
-                <property name="shadow_type">none</property>
+                <property name="can-focus">False</property>
+                <property name="label-xalign">0</property>
+                <property name="shadow-type">none</property>
                 <child>
                   <object class="GtkVBox" id="vbox17">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <child>
                       <object class="GtkTable" id="table13">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="n_rows">2</property>
-                        <property name="n_columns">2</property>
+                        <property name="can-focus">False</property>
+                        <property name="n-rows">2</property>
+                        <property name="n-columns">2</property>
                         <child>
                           <placeholder/>
                         </child>
                         <child>
                           <object class="GtkFrame" id="gridFrameViewLabels">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="label_xalign">0</property>
-                            <property name="shadow_type">none</property>
+                            <property name="can-focus">False</property>
+                            <property name="label-xalign">0</property>
+                            <property name="shadow-type">none</property>
                           </object>
                           <packing>
-                            <property name="x_options">GTK_FILL</property>
-                            <property name="y_options">GTK_FILL</property>
+                            <property name="x-options">GTK_FILL</property>
+                            <property name="y-options">GTK_FILL</property>
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkVScrollbar" id="gridVScrollViewLabels">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="adjustment">adjustment3</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">1</property>
-                            <property name="right_attach">2</property>
-                            <property name="x_options">GTK_FILL</property>
-                          </packing>
+                          <placeholder/>
                         </child>
                         <child>
-                          <object class="GtkHScrollbar" id="gridHScrollViewLabels">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="adjustment">adjustment4</property>
-                          </object>
-                          <packing>
-                            <property name="top_attach">1</property>
-                            <property name="bottom_attach">2</property>
-                            <property name="y_options">GTK_FILL</property>
-                          </packing>
+                          <placeholder/>
                         </child>
                       </object>
                       <packing>
@@ -472,9 +448,9 @@
                 <child type="label">
                   <object class="GtkLabel" id="label_VL_grid">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="label" translatable="yes">&lt;b&gt;Grid&lt;/b&gt;</property>
-                    <property name="use_markup">True</property>
+                    <property name="use-markup">True</property>
                   </object>
                 </child>
               </object>
@@ -486,60 +462,38 @@
             <child>
               <object class="GtkFrame" id="frame27">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="border_width">2</property>
-                <property name="label_xalign">0.0099999997764825821</property>
-                <property name="shadow_type">none</property>
+                <property name="can-focus">False</property>
+                <property name="border-width">2</property>
+                <property name="label-xalign">0.009999999776482582</property>
+                <property name="shadow-type">none</property>
                 <child>
                   <object class="GtkVBox" id="vbox31">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <child>
                       <object class="GtkTable" id="table21">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="n_rows">2</property>
-                        <child>
-                          <object class="GtkHScrollbar" id="phylogenyHScroll">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="adjustment">adjustment5</property>
-                          </object>
-                          <packing>
-                            <property name="top_attach">1</property>
-                            <property name="bottom_attach">2</property>
-                            <property name="y_options">GTK_FILL</property>
-                          </packing>
-                        </child>
+                        <property name="can-focus">False</property>
+                        <property name="n-rows">2</property>
                         <child>
                           <object class="GtkVPaned" id="vpanePhylogeny">
                             <property name="visible">True</property>
-                            <property name="can_focus">True</property>
+                            <property name="can-focus">True</property>
                             <child>
                               <object class="GtkTable" id="table22">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="n_columns">2</property>
-                                <child>
-                                  <object class="GtkVScrollbar" id="phylogenyVScroll">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="adjustment">adjustment6</property>
-                                  </object>
-                                  <packing>
-                                    <property name="left_attach">1</property>
-                                    <property name="right_attach">2</property>
-                                    <property name="x_options"/>
-                                    <property name="y_options">GTK_FILL</property>
-                                  </packing>
-                                </child>
+                                <property name="can-focus">False</property>
+                                <property name="n-columns">2</property>
                                 <child>
                                   <object class="GtkFrame" id="phylogenyFrame">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label_xalign">0</property>
-                                    <property name="shadow_type">none</property>
+                                    <property name="can-focus">False</property>
+                                    <property name="label-xalign">0</property>
+                                    <property name="shadow-type">none</property>
                                   </object>
+                                </child>
+                                <child>
+                                  <placeholder/>
                                 </child>
                               </object>
                               <packing>
@@ -550,10 +504,10 @@
                             <child>
                               <object class="GtkFrame" id="phylogenyGraphFrame">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="resize_mode">queue</property>
-                                <property name="label_xalign">0</property>
-                                <property name="shadow_type">none</property>
+                                <property name="can-focus">False</property>
+                                <property name="resize-mode">queue</property>
+                                <property name="label-xalign">0</property>
+                                <property name="shadow-type">none</property>
                               </object>
                               <packing>
                                 <property name="resize">False</property>
@@ -562,8 +516,11 @@
                             </child>
                           </object>
                           <packing>
-                            <property name="x_options">GTK_FILL</property>
+                            <property name="x-options">GTK_FILL</property>
                           </packing>
+                        </child>
+                        <child>
+                          <placeholder/>
                         </child>
                       </object>
                       <packing>
@@ -577,9 +534,9 @@
                 <child type="label">
                   <object class="GtkLabel" id="label_VL_tree">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="label" translatable="yes">&lt;b&gt;Tree&lt;/b&gt;</property>
-                    <property name="use_markup">True</property>
+                    <property name="use-markup">True</property>
                   </object>
                 </child>
               </object>

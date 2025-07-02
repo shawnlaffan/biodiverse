@@ -1124,12 +1124,12 @@ sub get_all_descendants {
     while (my $node = shift @ch_list) {
         my $name = $node->get_name;
         $list{$name} = $node;
-        weaken $list{$name} if !isweak $list{$name};
         push @ch_list, $node->get_children;
     }
 
     if ($args{cache}) {
         $self->set_cached_value($cache_key => \%list);
+        weaken $list{$_} foreach keys %list;  #  could do values directly?
     }
 
     #  make sure we return copies to avoid pollution by other subs
@@ -1679,6 +1679,11 @@ sub set_parents_below {  #  sometimes the parents aren't set properly by extensi
 sub weaken_parent_ref {
     return if !$_[0]->{_PARENT} or isweak ($_[0]->{_PARENT});
     return weaken ($_[0]->{_PARENT});
+}
+
+sub get_parent_name {
+    my $self = shift;
+    $self->is_root_node ? '' : $self->get_parent->get_name;
 }
 
 sub is_root_node {
@@ -2288,7 +2293,14 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
     
     # build the bootstrap block if needed
     my $bootstrap_string = '';
-    if ($args{sub_list} || $args{export_colours} || $args{include_colours}) {
+    if (my $colour_hash = $args{colour_hash}) {
+        my $bootstrap_block = $self->get_bootstrap_block();
+        my $aref = $colour_hash->{$self->get_name};
+        $bootstrap_string = $bootstrap_block->encode(
+            colour => $aref,
+        );
+    }
+    elsif ($args{sub_list} || $args{export_colours} || $args{include_colours}) {
         my $bootstrap_block = $self->get_bootstrap_block();
         $bootstrap_string = $bootstrap_block->encode (
             include_colour => $args{export_colours} || $args{include_colours},

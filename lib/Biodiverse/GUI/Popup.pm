@@ -7,7 +7,7 @@ use warnings;
 use Carp;
 use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
 
-use Gtk2;
+use Gtk3;
 
 our $VERSION = '4.99_002';
 
@@ -113,28 +113,28 @@ sub show_popup {
 sub make_dialog {
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
-    my $dlgxml = Gtk2::Builder->new();
+    my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file($gui->get_gtk_ui_file('wndCellPopup.ui'));
 
     # Put it on top of main window
     $dlgxml->get_object(DLG_NAME)->set_transient_for($gui->get_object('wndMain'));
 
     # Set height to be 1/3 of screen
-    #$dlgxml->get_object(DLG_NAME)->resize(1, Gtk2::Gdk->screen_height() / 3);
+    #$dlgxml->get_object(DLG_NAME)->resize(1, Gtk3::Gdk->screen_height() / 3);
 
     # Set up the combobox
     my $combo = $dlgxml->get_object('comboSources');
-    my $renderer = Gtk2::CellRendererText->new();
+    my $renderer = Gtk3::CellRendererText->new();
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, text => SOURCES_MODEL_NAME);
 
     # Set up the list
     my $list = $dlgxml->get_object('lstData');
 
-    my $name_renderer = Gtk2::CellRendererText->new();
-    my $value_renderer = Gtk2::CellRendererText->new();
-    my $col_name = Gtk2::TreeViewColumn->new();
-    my $col_value = Gtk2::TreeViewColumn->new();
+    my $name_renderer = Gtk3::CellRendererText->new();
+    my $value_renderer = Gtk3::CellRendererText->new();
+    my $col_name = Gtk3::TreeViewColumn->new();
+    my $col_value = Gtk3::TreeViewColumn->new();
 
     $col_name->pack_start($name_renderer, 1);
     $col_value->pack_start($value_renderer, 1);
@@ -219,7 +219,7 @@ sub load_dialog {
 sub make_sources_model {
     my $sources_ref = shift;
 
-    my $sources_model = Gtk2::ListStore->new(
+    my $sources_model = Gtk3::ListStore->new(
         'Glib::String',
         'Glib::Scalar',
         'Glib::Scalar',
@@ -248,7 +248,7 @@ sub find_selected_source {
         my $name = $sources_model->get($iter, SOURCES_MODEL_NAME);
         last if ($name eq $search_name);
 
-        $iter = $sources_model->iter_next($iter);
+        last if !$sources_model->iter_next($iter);
     }
 
     return $iter;
@@ -259,8 +259,10 @@ sub on_source_changed {
     my $combo = shift;
     my $popup = shift;
 
+    if ($combo->get_active < 0) {
+        $combo->set_active(0);
+    }
     my $iter = $combo->get_active_iter;
-
     my ($name, $callback)
         = $combo->get_model->get(
             $iter,
@@ -350,69 +352,30 @@ sub on_reuse_toggled {
 sub on_copy {
     my $popup = shift;
 
-    my $clipboard = Gtk2::Clipboard->get(Gtk2::Gdk->SELECTION_CLIPBOARD);
+    my $clipboard = Gtk3::Clipboard::get(
+        Gtk3::Gdk::Atom::intern('CLIPBOARD', Glib::FALSE)
+    );
 
-    # Add text and HTML (spreadsheet programs can read it) data to clipboard
-    # We'll be called back when someone pastes
-    eval {
-        $clipboard->set_with_data (
-            \&clipboard_get_func,
-            \&clipboard_clear_func,
-            $popup,
-            {target=>'STRING',        info => TYPE_TEXT},
-            {target=>'TEXT',          info => TYPE_TEXT},
-            {target=>'COMPOUND_TEXT', info => TYPE_TEXT},
-            {target=>'UTF8_STRING',   info => TYPE_TEXT},
-            {target=>'text/plain',    info => TYPE_TEXT},
-            {target=>'text/html',     info => TYPE_HTML},
-        );
-    };
-    warn $EVAL_ERROR if $EVAL_ERROR;
+    my $text = get_text_for_clipboard ($popup);
+    $clipboard->set_text($text);
 
     return;
 }
 
-sub clipboard_get_func {
-    my $clipboard = shift;
-    my $selection = shift;
-    my $datatype  = shift;
-    my $popup     = shift;
+sub get_text_for_clipboard {
+    my $popup = shift;
 
-    #print "[Popup] Clipboard data request (type $datatype)\n";
-
-    my $element  = $popup->{element};
-    my $list     = $popup->{list};
+    my $element = $popup->{element};
+    my $list = $popup->{list};
     my $listname = $popup->{listname};
-    my $model    = $list->get_model();
-    my $text;
+    my $model = $list->get_model();
 
-    if (! $model) {
+    #   should not happen now as we copy to clipboard immediately
+    if (!$model) {
         my $gui = Biodiverse::GUI::GUIManager->instance;
         my $e = "Unable to paste data.\nPopup has been closed so link with source data is lost\n";
         $gui->report_error($e);
         return;
-    }
-
-    # Start off with the "element" (ie: cell coordinates)
-    if ($datatype == TYPE_HTML) {
-        $text =<<'END_HTML_HEADER'
-        <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-        <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-
-        <head>
-            <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        </head>
-
-        <body>
-
-        <table>
-END_HTML_HEADER
-;
-        $text .= "<tr><td>$listname</td><td>$element</td></tr>";
-    }
-    else {
-        $text = "$listname\t$element\n";
     }
 
     # Generate the text
@@ -426,46 +389,25 @@ END_HTML_HEADER
         return;
     }
 
+    my $value_column = $popup->{value_column};
+
+    my $text = defined $value_column ? "$listname\t$element\n" : "$listname\n";
+
     while ($iter) {
         my $name = $model->get($iter, 0);
-        my $value = '';
-
-        if ($popup->{value_column}) {
-            $value = $model->get($iter, $popup->{value_column});
-        }
-
-        if ($datatype == TYPE_TEXT) {
+        if (defined $value_column) {
+            my $value = $model->get($iter, $value_column);
             $text .= "$name\t$value\n";
         }
-        elsif ($datatype == TYPE_HTML) {
-            $text .= "<tr><td>$name</td><td>$value</td></tr>\n";
+        else {
+            $text .= "$name\n";
         }
-        $iter = $model->iter_next($iter);
+        last if !$model->iter_next($iter);
     }
 
-    if ($datatype == TYPE_HTML) {
-        $text .= "</table></body></html>\n";
-    }
-
-    # Give the data..
-    print "[Popup] Sending data for $element to clipboard\n";
-
-    if ($datatype == TYPE_HTML) {
-        my $atom = Gtk2::Gdk::Atom->intern('text/html');
-        $selection->set($atom, 8, $text);
-    }
-    elsif ($datatype == TYPE_TEXT) {
-        $selection->set_text($text);
-    }
-
-    return;
+    return $text;
 }
 
-sub clipboard_clear_func {
-    print "[Popup] Clipboard cleared\n";
-
-    return;
-}
 
 
 1;

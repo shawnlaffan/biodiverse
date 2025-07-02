@@ -17,8 +17,8 @@ use List::MoreUtils qw /minmax firstidx/;
 
 use experimental qw /refaliasing declared_refs/;
 
-use Gtk2;
-use Gnome2::Canvas;
+use Gtk3;
+use GooCanvas2;
 use Tree::R;
 
 #use Geo::ShapeFile;
@@ -43,8 +43,8 @@ use constant MARK_Y_LEGEND_OFFSET  => 8;
 use constant LEGEND_HEIGHT  => 380;
 use constant INDEX_RECT         => 2;  # Canvas (square) rectangle for the cell
 
-use constant COLOUR_BLACK        => Gtk2::Gdk::Color->new(0, 0, 0);
-use constant COLOUR_WHITE        => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
+use constant COLOUR_BLACK        => Gtk3::Gdk::RGBA::parse('black');
+use constant COLOUR_WHITE        => Gtk3::Gdk::RGBA::parse('white');
 use constant DARKEST_GREY_FRAC   => 0.2;
 use constant LIGHTEST_GREY_FRAC  => 0.8;
 
@@ -52,11 +52,11 @@ use constant LIGHTEST_GREY_FRAC  => 0.8;
 #  refactor as state var inside sub when we require a perl version that
 #  supports state on lists (5.28)
 my %canape_colour_hash = (
-    0 => Gtk2::Gdk::Color->parse('lightgoldenrodyellow'),  #  non-sig, lightgoldenrodyellow
-    1 => Gtk2::Gdk::Color->parse('red'),                   #  red, neo
-    2 => Gtk2::Gdk::Color->parse('royalblue1'),            #  blue, palaeo
-    3 => Gtk2::Gdk::Color->parse('#CB7FFF'),               #  purple, mixed
-    4 => Gtk2::Gdk::Color->parse('darkorchid'),            #  deep purple, super ('#6A3d9A' is too dark)
+    0 => Gtk3::Gdk::RGBA::parse('lightgoldenrodyellow'),  #  non-sig, lightgoldenrodyellow
+    1 => Gtk3::Gdk::RGBA::parse('red'),                   #  red, neo
+    2 => Gtk3::Gdk::RGBA::parse('royalblue1'),            #  blue, palaeo
+    3 => Gtk3::Gdk::RGBA::parse('#CB7FFF'),               #  purple, mixed
+    4 => Gtk3::Gdk::RGBA::parse('darkorchid'),            #  deep purple, super ('#6A3d9A' is too dark)
 );
 
 ##########################################################
@@ -96,9 +96,9 @@ sub new {
 
     # Make group so we can pack the coloured
     # rectangles into it.
-    $self->{legend_group} = Gnome2::Canvas::Item->new (
-        $self->{canvas}->root,
-        'Gnome2::Canvas::Group',
+    $self->{legend_group} = GooCanvas2::CanvasItem->new (
+        $self->{canvas}->get_root_item,
+        'GooCanvas2::CanvasGroup',
         x => $width - $self->get_width,
         y => 0,
     );
@@ -170,6 +170,10 @@ sub set_visible {
 # mode.
 sub make_rect {
     my $self = shift;
+
+    warn 'make_rect called';
+    return;
+
     my ($width, $height);
 
     # If legend_colours_group already exists then destroy it.
@@ -181,9 +185,9 @@ sub make_rect {
 
     # Make a group so we can pack the coloured
     # rectangles into it to create the legend.
-    $self->{legend_colours_group} = Gnome2::Canvas::Item->new (
+    $self->{legend_colours_group} = GooCanvas2::Canvas::Item->new (
         $self->{legend_group},
-        'Gnome2::Canvas::Group',
+        'GooCanvas2::CanvasGroup',
         x => 0, 
         y => 0, 
     );   
@@ -343,13 +347,13 @@ sub add_row {
 
     my $width = $self->get_width;
     
-    my $colour = blessed ($r) && $r->isa('Gtk2::Gdk::Color')
+    my $colour = blessed ($r) && ($r->isa('Gtk3::Gdk::RGBA') || $r->isa('Gtk3::Gdk::Color'))
       ? $r
-      : Gtk2::Gdk::Color->new($r,$g,$b);
+      : Gtk3::Gdk::RGBA::parse("rgb($r,$g,$b)");
 
-    my $legend_colour_row = Gnome2::Canvas::Item->new (
+    my $legend_colour_row = GooCanvas2::CanvasItem->new (
         $group,
-        'Gnome2::Canvas::Rect',
+        'GooCanvas2::CanvasRect',
         x1 => 0,
         x2 => $width,
         y1 => $row,
@@ -365,9 +369,9 @@ sub add_row {
 sub make_mark {
     my $self   = shift;
     my $anchor = shift // 'w';
-    my $mark = Gnome2::Canvas::Item->new (
+    my $mark = GooCanvas2::CanvasItem->new (
         $self->{legend_group}, 
-        'Gnome2::Canvas::Text',
+        'GooCanvas2::CanvasText',
         text            => q{0},
         anchor          => $anchor,
         fill_color_gdk  => COLOUR_BLACK,
@@ -428,9 +432,9 @@ sub get_height {
 
 sub refresh_legend {
     my $self = shift;
-    $self->make_rect;
+    # $self->make_rect;
     #  trigger a redisplay of the legend
-    $self->reposition($self->{width_px}, $self->{height_px});
+    # $self->reposition($self->{width_px}, $self->{height_px});
     1;
 }
 
@@ -602,10 +606,10 @@ sub set_colour_for_undef {
 
     $colour //= COLOUR_WHITE;
 
-    croak "Colour argument must be a Gtk2::Gdk::Color object\n"
-      if not blessed ($colour) eq 'Gtk2::Gdk::Color';
+    croak "Colour argument must be a Gtk3::Gdk::RGBA or Gtk3::Gdk::Color object\n"
+      if !($colour->isa('Gtk3::Gdk::Color') || $colour->isa('Gtk3::Gdk::RGBA'));
 
-    $self->{colour_none} = $colour;
+    return $self->{colour_none} = $colour;
 }
 
 my %colour_methods = (
@@ -653,7 +657,7 @@ sub get_colour_categorical {
     my $colour = $colour_hash->{$val} || COLOUR_WHITE;
     #  should not need to do this
     if (!blessed $colour) {
-        $colour = $colour_hash->{$val} = Gtk2::Gdk::Color->parse($colour);
+        $colour = $colour_hash->{$val} = Gtk3::Gdk::RGBA::parse($colour);
     }
     return $colour;
 }
@@ -668,13 +672,13 @@ sub get_colour_canape {
 #  refactor as state var inside sub when we require a perl version that
 #  supports state on lists (5.28)
 my @zscore_colours
-    = map {Gtk2::Gdk::Color->parse($_)}
+    = map {Gtk3::Gdk::RGBA::parse($_)}
     reverse ('#d73027', '#fc8d59', '#fee090', '#ffffbf', '#e0f3f8', '#91bfdb', '#4575b4');
 
 sub get_colour_zscore {
     my ($self, $val) = @_;
 
-    state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
+    state $default_colour = Gtk3::Gdk::RGBA::parse('black');
 
     return $default_colour
         if not defined $val;
@@ -695,7 +699,7 @@ sub get_colour_zscore {
 sub get_colour_prank {
     my ($self, $val) = @_;
 
-    state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
+    state $default_colour = Gtk3::Gdk::RGBA::parse('black');
 
     return $default_colour
         if not defined $val;
@@ -715,12 +719,12 @@ sub get_colour_prank {
 sub get_colour_divergent {
     my ($self, $val, $min, $max) = @_;
 
-    state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
+    state $default_colour = Gtk3::Gdk::RGBA::parse('black');
 
     return $default_colour
         if ! (defined $max && defined $min);
 
-    state $centre_colour = Gtk2::Gdk::Color->parse('#ffffbf');
+    state $centre_colour = Gtk3::Gdk::RGBA::parse('#ffffbf');
 
     my $centre = 0;
     my $max_dist = max (abs($min), abs($max));
@@ -756,19 +760,19 @@ sub get_colour_divergent {
             * (($val < $centre ? $arr_hi[$_] : $arr_lo[$_]) - $arr_cen[$_])
         ) * 256} (0..2);
 
-    $colour = Gtk2::Gdk::Color->new(@rgb);
+    $colour = Gtk3::Gdk::RGBA::parse(sprintf ('rgb(%d,%d,%d)', @rgb));
     return $colour;
 }
 
 sub get_colour_ratio {
     my ($self, $val, $min, $max) = @_;
 
-    state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
+    state $default_colour = Gtk3::Gdk::RGBA::parse('black');
 
     return $default_colour
         if ! (defined $min && defined $max);
 
-    state $centre_colour = Gtk2::Gdk::Color->parse('#ffffbf');
+    state $centre_colour = Gtk3::Gdk::RGBA::parse('#ffffbf');
 
     #  Perhaps should handle cases where min or max are zero,
     #  but those should not be passed anyway so an error is
@@ -812,8 +816,8 @@ sub get_colour_ratio {
             + $pct
             * (($val < 1 ? $arr_hi[$_] : $arr_lo[$_]) - $arr_cen[$_])
         ) * 256} (0..2);
-# say "$val, $extreme, $scaled";
-    return Gtk2::Gdk::Color->new(@rgb);
+
+    return Gtk3::Gdk::RGBA::parse(sprintf ('rgb(%d,%d,%d)', @rgb));
 }
 
 sub get_colour_hue {
@@ -823,7 +827,7 @@ sub get_colour_hue {
     #   HUE goes from 180 to 0 as val goes from min to max
     #   Saturation, Brightness are 1
     #
-    state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
+    state $default_colour = Gtk3::Gdk::RGBA::parse('black');
     my $hue;
 
     return $default_colour
@@ -848,7 +852,7 @@ sub get_colour_hue {
 
     my ($r, $g, $b) = hsv_to_rgb($hue, 1, 1);
 
-    return Gtk2::Gdk::Color->new($r*257, $g*257, $b*257);
+    return Gtk3::Gdk::RGBA::parse("rgb($r,$g,$b)");
 }
 
 sub get_colour_saturation {
@@ -856,7 +860,7 @@ sub get_colour_saturation {
     #   Linear interpolation between min...max
     #   SATURATION goes from 0 to 1 as val goes from min to max
     #   Hue is variable, Brightness 1
-    state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
+    state $default_colour = Gtk3::Gdk::RGBA::parse('black');
 
     return $default_colour
       if ! defined $val || ! defined $max || ! defined $min;
@@ -876,13 +880,13 @@ sub get_colour_saturation {
 
     my ($r, $g, $b) = hsv_to_rgb($self->{hue}, $sat, 1);
 
-    return Gtk2::Gdk::Color->new($r*257, $g*257, $b*257);
+    return Gtk3::Gdk::RGBA::parse("rgb($r,$g,$b)");
 }
 
 sub get_colour_grey {
     my ($self, $val, $min, $max) = @_;
 
-    state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
+    state $default_colour = Gtk3::Gdk::RGBA::parse('black');
 
     return $default_colour
       if ! defined $val || ! defined $max || ! defined $min;
@@ -901,9 +905,9 @@ sub get_colour_grey {
 
     $sat *= 255;
     $sat = $self->rescale_grey($sat);  #  don't use all the shades
-    $sat *= 257;
+    # $sat *= 257;
 
-    return Gtk2::Gdk::Color->new($sat, $sat, $sat);
+    return Gtk3::Gdk::RGBA::parse("rgb($sat,$sat,$sat)");
 }
 
 
@@ -1267,7 +1271,7 @@ sub set_colour_mode_from_list_and_index {
         foreach my $key (keys %$colours) {
             my $colour = $colours->{$key};
             next if blessed $colour;  #  sometimes they are already colour objects
-            $self->{categorical}{colours}{$key} = Gtk2::Gdk::Color->parse($colour);
+            $self->{categorical}{colours}{$key} = Gtk3::Gdk::RGBA::parse($colour);
         }
     }
     elsif (!$mode && $list =~ />>CANAPE>>/) {

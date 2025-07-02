@@ -8,7 +8,7 @@
 #  It is simplest to run it under sudo, but you will be prompted for the 
 #    password by the first command anyway.  
 
-sudo port install p5-gtk2-gladexml
+sudo port install p5-Gtk3-gladexml
 sudo port install p5-gnome2-canvas
 sudo port install gdal
 

@@ -189,9 +189,9 @@ sub export_nexus {
 
     #  black is the default "out of tree" colour in Dendrogram.pm
     #  for branches, but grey is used for the cells
-    my $black_hex = '#000000';
-    my $grey_hex  = '#E6E6E6';
-    my $white_hex = '#FFFFFF';
+    # my $black_hex = '#000000';
+    # my $grey_hex  = '#E6E6E6';
+    # my $white_hex = '#FFFFFF';
     my %colour_table = (
         #  don't set these
         #  - we want to separate deliberate choices from defaults
@@ -200,7 +200,8 @@ sub export_nexus {
         #$grey_hex  => {arr => [230, 230, 230], num => 0},
     );
     my %class_table  = (0 => [230, 230, 230]);
-    my $max_num = 0;
+
+    my $colour_hash = $self->get_most_recent_line_colours;
 
     #  sort for consistency of class nums across runs
     my %nc;  #  name cache
@@ -210,16 +211,13 @@ sub export_nexus {
             ) {
         my $element = $node_ref->get_name;
         next if !$gp->exists_element_aa ($element);
-        my $colour_hex = $node_ref->get_bootstrap_colour_8bit_rgb // $black_hex;
+        my @rgb_arr = map {int ($_ * 255)} @{$colour_hash->{$element} // [ 0, 0, 0 ]};
+        my $colour_hex = sprintf "#%02X%02X%02X", @rgb_arr;
 
         if (!exists $colour_table{$colour_hex}) {
-            #  still need to sanity check that we have hex rgb...
-            #  should use Convert::Color rgb8 type
-            my @rgb_arr = $colour_hex =~ /([a-fA-F\d]{2})/g;
-            @rgb_arr = map {0 + hex "0x$_"} @rgb_arr; 
-            $max_num ++;
-            $colour_table{$colour_hex} = $max_num;
-            $class_table{$max_num}     = \@rgb_arr;
+            my $n = scalar keys %colour_table;  #  this will start at 0
+            $colour_table{$colour_hex} = $n;
+            $class_table{$n}     = \@rgb_arr;
         }
 
         my $colour_num = $colour_table{$colour_hex};

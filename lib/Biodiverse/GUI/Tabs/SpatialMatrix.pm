@@ -7,12 +7,11 @@ use English ( -no_match_vars );
 
 our $VERSION = '4.99_002';
 
-use Gtk2;
+use Gtk3;
 use Carp;
 use Scalar::Util qw /blessed looks_like_number weaken/;
 
 use Biodiverse::GUI::GUIManager;
-use Biodiverse::GUI::Grid;
 use Biodiverse::GUI::Overlays;
 use Biodiverse::GUI::Project;
 
@@ -57,15 +56,15 @@ sub new {
     }
 
     # (we can have many Analysis tabs open, for example. These have a different object/widgets)
-    $self->{xmlPage} = Gtk2::Builder->new();
+    $self->{xmlPage} = Gtk3::Builder->new();
     $self->{xmlPage}->add_from_file($self->{gui}->get_gtk_ui_file('hboxSpatialPage.ui'));
-    $self->{xmlLabel} = Gtk2::Builder->new();
+    $self->{xmlLabel} = Gtk3::Builder->new();
     $self->{xmlLabel}->add_from_file($self->{gui}->get_gtk_ui_file('hboxSpatialLabel.ui'));
 
     my $page  = $self->get_xmlpage_object('hboxSpatialPage');
     my $label = $self->{xmlLabel}->get_object('hboxSpatialLabel');
     my $label_text   = $self->{xmlLabel}->get_object('lblSpatialName')->get_text;
-    my $label_widget = Gtk2::Label->new ($label_text);
+    my $label_widget = Gtk3::Label->new ($label_text);
     $self->{tab_menu_label} = $label_widget;
 
     # Set up options menu
@@ -243,12 +242,8 @@ sub get_tree_menu_items {
 sub init_grid {
     my $self = shift;
     my $frame   = $self->get_xmlpage_object('gridFrame');
-    my $hscroll = $self->get_xmlpage_object('gridHScroll');
-    my $vscroll = $self->get_xmlpage_object('gridVScroll');
 
-#print "Initialising grid\n";
-
-# Use closure to automatically pass $self (which grid doesn't know)
+    # Use closure to automatically pass $self (which grid doesn't know)
     my $hover_closure = sub { $self->on_grid_hover(@_); };
     my $click_closure = sub {
         Biodiverse::GUI::CellPopup::cell_clicked(
@@ -257,30 +252,29 @@ sub init_grid {
         );
     };
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
-    my $select_closure     = sub { $self->on_grid_select(@_); };
+    # my $select_closure     = sub { $self->on_grid_select(@_); };
+    my $right_click_closure = sub {$self->toggle_do_canvas_hover_flag (@_)};
 
-    $self->{grid} = Biodiverse::GUI::Grid->new(
-        frame   => $frame,
-        hscroll => $hscroll,
-        vscroll => $vscroll,
-        show_legend => 1,
-        show_value  => 0,
-        hover_func      => $hover_closure,
-        click_func      => $click_closure, # Middle click
-        select_func     => $select_closure,
-        grid_click_func => $grid_click_closure, # Left click
+    my $grid = $self->{grid} = Biodiverse::GUI::Canvas::Grid->new(
+        frame            => $frame,
+        show_legend      => 1,
+        show_value       => 0,
+        hover_func       => $hover_closure,
+        end_hover_func   => sub {$self->on_end_grid_hover(@_)},
+        ctl_click_func   => $click_closure, # Middle click or ctl left-click
+        # select_func      => $select_closure,
+        grid_click_func  => $grid_click_closure, # Left click
+        right_click_func => $right_click_closure,
     );
+    $grid->set_parent_tab($self);
 
     my $data = $self->{groups_ref};  #  should be the groups?
     my $elt_count = $data->get_element_count;
     my $completed = $data->get_param ('COMPLETED') // 1; #  old versions did not have this flag
 
     if (defined $data and $elt_count and $completed) {
-        $self->{grid}->set_base_struct ($data);
+        $grid->set_base_struct ($data);
     }
-
-    $self->{grid}{page} = $self; # Hacky
-    weaken $self->{grid}{page};
 
     my $menu_log_checkbox = $self->get_xmlpage_object('menu_colour_stretch_log_mode');
     $menu_log_checkbox->signal_connect_swapped(
@@ -294,6 +288,8 @@ sub init_grid {
     );
 
     $self->warn_if_basedata_has_gt2_axes;
+
+    $grid->show_all;
 
     return;
 }
@@ -319,14 +315,16 @@ sub make_output_indices_array {
     my $groups_ref = $self->{groups_ref};
 
 # Make array
-    my @array = ();
-    foreach my $x (reverse $groups_ref->get_element_list_sorted(list => $element_array)) {
-#print ($model->get($iter, 0), "\n") if defined $model->get($iter, 0);    #debug
-        push(@array, $x);
-#print ($model->get($iter, 0), "\n") if defined $model->get($iter, 0);      #debug
-    }
+#     my @array = ();
+#     foreach my $x (reverse $groups_ref->get_element_list_sorted(list => $element_array)) {
+# #print ($model->get($iter, 0), "\n") if defined $model->get($iter, 0);    #debug
+#         push(@array, $x);
+# #print ($model->get($iter, 0), "\n") if defined $model->get($iter, 0);      #debug
+#     }
 
-    return [@array];
+    my $array = reverse $groups_ref->get_element_list_sorted(list => $element_array);
+
+    return $array;
 }
 
 # Generates ComboBox model with analyses
@@ -339,7 +337,7 @@ sub make_output_indices_model {
     my $groups_ref = $self->{groups_ref};
 
     # Make model for combobox
-    my $model = Gtk2::ListStore->new('Glib::String');
+    my $model = Gtk3::ListStore->new('Glib::String');
 
     #  get the list
     my $list = $self->get_cached_value ('ELEMENT_LIST_SORTED');
@@ -367,7 +365,7 @@ sub make_lists_model {
     my $lists = ('$elements_list_name');
 
 # Make model for combobox
-    my $model = Gtk2::ListStore->new('Glib::String');
+    my $model = Gtk3::ListStore->new('Glib::String');
     foreach my $x (sort @$lists) {
         my $iter = $model->append;
         $model->set($iter, 0, $x);
@@ -410,26 +408,25 @@ sub on_cell_selected {
     if (scalar @$data == 1) {
         $element = $data->[0];
     }
-    elsif (@$data) {  #  get the first sorted element that is in the matrix
-        my @sorted = $self->{groups_ref}->get_element_list_sorted (list => $data);
+    elsif (@$data) {  #  User drew a box - get the first sorted element that is in the matrix
+        my $sorted = $self->{groups_ref}->get_element_list_sorted (list => $data);
       CHECK_SORTED:
-        while (defined ($element = shift @sorted)) {
+        while (defined ($element = shift @$sorted)) {
             last CHECK_SORTED
-              if $self->{output_ref}->element_is_in_matrix (element => $element);
+              if $self->{output_ref}->element_is_in_matrix_aa ($element);
         }
     }
 
     #  clicked on the background area
     if (!defined $element) {
         #  clear any highlights
-        $self->{grid}->mark_if_exists( {}, 'circle' );
-        $self->{grid}->mark_if_exists( {}, 'minus' );  #  clear any nbr_set2 highlights
+        $self->{grid}->clear_marks;
         $self->{dendrogram}->clear_highlights;
         return;
     }
 
     return if $element eq $self->{selected_element};
-    return if ! $self->{output_ref}->element_is_in_matrix (element => $element);
+    return if ! $self->{output_ref}->element_is_in_matrix_aa ($element);
 
     #print "Element selected: $element\n";
 
@@ -445,11 +442,11 @@ sub on_cell_selected {
   BY_ITER:
     while ($iter) {
         my ($analysis) = $self->{output_indices_model}->get($iter, 0);
-        if ($self->{selected_element} && ($analysis eq $self->{selected_element}) ) {
+        if ($analysis eq ($self->{selected_element} // '')) {
             $selected = $iter;
             last BY_ITER; # break loop
         }
-        $iter = $self->{output_indices_model}->iter_next($iter);
+        last if !$self->{output_indices_model}->iter_next($iter);
     }
 
     if ($selected) {
@@ -469,6 +466,8 @@ sub on_grid_hover {
     my $element = shift;
 
     return if ! defined $element;
+
+    return if !$self->do_canvas_hover_flag;
 
     my $matrix_ref = $self->{output_ref};
     my $output_ref = $self->{groups_ref};
@@ -492,7 +491,6 @@ sub on_grid_hover {
             : "<b>Selected element: $selected_el</b>";
         $self->get_xmlpage_object('lblOutput')->set_markup($text);
 
-        # dendrogram highlighting from labels.pm
         $self->{dendrogram}->clear_highlights();
 
         my $group = $element; # is this the same?
@@ -572,17 +570,10 @@ sub set_plot_min_max_values {
 
     my $matrix_ref = $self->{output_ref};
 
-    my $stats = $self->{stats};
-
-    if (not $stats) {
-        $stats = $matrix_ref->get_summary_stats;
-        $self->{stats} = $stats;  #  store it
-    }
+    my $stats = $self->{stats} //= $matrix_ref->get_summary_stats;
 
     $self->{plot_max_value} = $stats->{$self->{PLOT_STAT_MAX} || 'MAX'};
     $self->{plot_min_value} = $stats->{$self->{PLOT_STAT_MIN} || 'MIN'};
-
-    $self->set_legend_ltgt_flags ($stats);
 
     return;
 }
@@ -596,8 +587,7 @@ sub get_index_cell_colour {
 sub set_index_cell_colour {
     my ($self, $colour) = @_;
 
-    my $default = 150 * 257;
-    $colour //= Gtk2::Gdk::Color->new($default, $default, $default);
+    $colour //= Gtk3::Gdk::RGBA::parse('rgb(150,150,150)');
     $self->{index_cell_colour} = $colour;
 
     return $colour;
@@ -614,6 +604,8 @@ sub recolour {
     my $matrix_ref  = $self->{output_ref};
     my $sel_element = $self->{selected_element};
 
+    $grid->get_legend->set_stats ($self->{stats});
+
     my $legend = $grid->get_legend;
 
     my $colour_func = sub {
@@ -623,7 +615,7 @@ sub recolour {
           if $elt eq $sel_element; #  mid grey by default
 
         return $self->get_excluded_cell_colour
-          if !$matrix_ref->element_is_in_matrix (element => $elt);
+          if !$matrix_ref->element_is_in_matrix_aa ($elt);
 
         my $val = $matrix_ref->get_defined_value_aa ($elt, $sel_element);
 
@@ -634,7 +626,6 @@ sub recolour {
 
     $grid->colour($colour_func);
     $grid->set_legend_min_max($min, $max);
-    $grid->update_legend;
 
     return;
 }
@@ -645,18 +636,6 @@ sub on_neighbours_changed {
     return;
 }
 
-# Override to add on_cell_selected
-sub on_grid_select {
-    my ($self, $groups, $ignore_change, $rect) = @_;
-    if ($self->{tool} eq 'Select') {
-        shift;
-        $self->on_cell_selected(@_);
-    }
-    elsif ($self->{tool} eq 'ZoomIn') {
-        my $grid = $self->{grid};
-        $self->handle_grid_drag_zoom($grid, $rect);
-    }
-}
 
 #  methods aren't inherited when called as GTK callbacks
 #  so we have to manually inherit them using SUPER::

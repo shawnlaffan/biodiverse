@@ -1003,7 +1003,7 @@ Problem originates from gnome-canvas-shape.c:772
 For some reason it needs to call a conversion function which involves
 creating GDI objects.
 
-This looks suspicious. gdkgc-win32.c:323 (in gtk2)
+This looks suspicious. gdkgc-win32.c:323 (in Gtk3)
 
   if (mask & GDK_GC_CLIP_MASK)
     {

@@ -7,12 +7,11 @@ use warnings;
 #  avoid redefined warnings due to
 #  https://github.com/rurban/Cpanel-JSON-XS/issues/65
 use JSON::PP();
-
 use Carp;
-
 #use Data::Dumper;
 use Ref::Util qw { :all };
 
+use Biodiverse::RemapGuesser;
 
 our $VERSION = '4.99_002';
 

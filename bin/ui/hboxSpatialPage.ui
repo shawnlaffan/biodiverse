@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.40.0 -->
 <interface>
-  <requires lib="gtk+" version="2.16"/>
-  <!-- interface-naming-policy toplevel-contextual -->
+  <requires lib="gtk+" version="3.16"/>
   <object class="GtkAdjustment" id="adjustment1"/>
   <object class="GtkAdjustment" id="adjustment2"/>
   <object class="GtkAdjustment" id="adjustment3"/>
@@ -12,33 +12,32 @@
       <column type="gchararray"/>
     </columns>
   </object>
-  <object class="GtkHBox" id="hboxSpatialPage">
+  <object class="GtkBox" id="hboxSpatialPage">
     <property name="visible">True</property>
-    <property name="can_focus">False</property>
+    <property name="can-focus">False</property>
     <child>
       <object class="GtkToolbar" id="toolbarSpatial">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <property name="orientation">vertical</property>
-        <property name="toolbar_style">icons</property>
-        <property name="tooltips">False</property>
+        <property name="toolbar-style">icons</property>
         <child>
           <object class="GtkToolItem" id="toolitemSpatialSelect">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="has_tooltip">True</property>
-            <property name="tooltip_text" translatable="yes">Select (S or B)</property>
+            <property name="can-focus">False</property>
+            <property name="has-tooltip">True</property>
+            <property name="tooltip-text" translatable="yes">Select (S or B)</property>
             <child>
               <object class="GtkToggleButton" id="btnSelectToolSP">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Select (S or B)</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Select (S or B)</property>
                 <child>
                   <object class="GtkImage" id="imageSelectTool">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="pixbuf">selector.png</property>
                   </object>
                 </child>
@@ -47,25 +46,26 @@
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="homogeneous">False</property>
           </packing>
         </child>
         <child>
           <object class="GtkToolItem" id="toolitemSpatialPanSP">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="has_tooltip">True</property>
-            <property name="tooltip_text" translatable="yes">Pan (C)</property>
+            <property name="can-focus">False</property>
+            <property name="has-tooltip">True</property>
+            <property name="tooltip-text" translatable="yes">Pan (C)</property>
             <child>
               <object class="GtkToggleButton" id="btnPanToolSP">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Pan (C)</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Pan (C)</property>
                 <child>
                   <object class="GtkImage" id="imagePanTool">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="pixbuf">drag-resize.png</property>
                   </object>
                 </child>
@@ -74,24 +74,25 @@
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="homogeneous">False</property>
           </packing>
         </child>
         <child>
           <object class="GtkToolItem" id="toolitemSpatialZoomSP">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="tooltip_text" translatable="yes">Zoom In (Z)</property>
+            <property name="can-focus">False</property>
+            <property name="tooltip-text" translatable="yes">Zoom In (Z)</property>
             <child>
               <object class="GtkToggleButton" id="btnZoomInToolSP">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Zoom In (Z)</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Zoom In (Z)</property>
                 <child>
                   <object class="GtkImage" id="imageZoomTool">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="stock">gtk-zoom-in</property>
                   </object>
                 </child>
@@ -100,24 +101,25 @@
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="homogeneous">False</property>
           </packing>
         </child>
         <child>
           <object class="GtkToolItem" id="toolitemSpatialZoomOutSP">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="tooltip_text" translatable="yes">Zoom Out (X)</property>
+            <property name="can-focus">False</property>
+            <property name="tooltip-text" translatable="yes">Zoom Out (X)</property>
             <child>
               <object class="GtkToggleButton" id="btnZoomOutToolSP">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Zoom Out (X)</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Zoom Out (X)</property>
                 <child>
                   <object class="GtkImage" id="imageZoomOutTool">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="stock">gtk-zoom-out</property>
                   </object>
                 </child>
@@ -126,24 +128,25 @@
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="homogeneous">False</property>
           </packing>
         </child>
         <child>
           <object class="GtkToolItem" id="toolitemSpatialZoomFitSP">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="tooltip_text" translatable="yes">Zoom to Fit (V)</property>
+            <property name="can-focus">False</property>
+            <property name="tooltip-text" translatable="yes">Zoom to Fit (V)</property>
             <child>
               <object class="GtkToggleButton" id="btnZoomFitToolSP">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Zoom to Fit (V)</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Zoom to Fit (V)</property>
                 <child>
                   <object class="GtkImage" id="imageZoomFitTool">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="stock">gtk-zoom-fit</property>
                   </object>
                 </child>
@@ -152,164 +155,166 @@
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="homogeneous">False</property>
           </packing>
         </child>
         <child>
           <object class="GtkSeparatorToolItem" id="toolitem_spatial_sep1">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="homogeneous">False</property>
           </packing>
         </child>
         <child>
           <object class="GtkToolItem" id="toolitem_spatial">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <child>
               <object class="GtkMenuBar" id="menubar_spatial">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="pack_direction">ttb</property>
+                <property name="can-focus">False</property>
+                <property name="pack-direction">ttb</property>
                 <child>
                   <object class="GtkMenuItem" id="menuitem_spatial_display">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="label" translatable="yes">Map</property>
-                    <property name="use_underline">True</property>
+                    <property name="use-underline">True</property>
                     <child type="submenu">
                       <object class="GtkMenu" id="menu_spatial_display">
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                         <child>
                           <object class="GtkMenuItem" id="menuitem1">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Map plot controls</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkMenuItem" id="menuitem_spatial_overlays">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Overlays...</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkSeparatorMenuItem" id="separatormenuitem4">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkCheckMenuItem" id="menuitem_spatial_show_legend">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Show or hide the legend</property>
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Show or hide the legend</property>
                             <property name="label" translatable="yes">Show legend</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                             <property name="active">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkCheckMenuItem" id="menu_colour_stretch_log_mode">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Log scale the displayed colour range</property>
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Log scale the displayed colour range</property>
                             <property name="label" translatable="yes">Log scale</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkCheckMenuItem" id="menu_colour_stretch_flip_mode">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Invert (flip) the colour range. Has no effect on categorical colouring.</property>
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Invert (flip) the colour range. Has no effect on categorical colouring.</property>
                             <property name="label" translatable="yes">Invert colour stretch</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkMenuItem" id="menu_item_colour_stretch">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Set the display stretch.
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Set the display stretch.
 Uses minimum to maximum by default
 but you can also set percentile ranges.</property>
                             <property name="label" translatable="yes">Colour stretch</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                             <child type="submenu">
                               <object class="GtkMenu" id="menu_colour_stretch">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="radio_colour_stretch0">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">min-max</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                     <property name="active">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="draw-as-radio">True</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="radio_colour_stretch1">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">5-95</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="use-underline">True</property>
+                                    <property name="draw-as-radio">True</property>
                                     <property name="group">radio_colour_stretch0</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="radio_colour_stretch2">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">2.5-97.5</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                     <property name="group">radio_colour_stretch0</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="radio_colour_stretch3">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">min-95</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="use-underline">True</property>
+                                    <property name="draw-as-radio">True</property>
                                     <property name="group">radio_colour_stretch0</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="radio_colour_stretch4">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">min-97.5</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="use-underline">True</property>
+                                    <property name="draw-as-radio">True</property>
                                     <property name="group">radio_colour_stretch0</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="radio_colour_stretch5">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">5-max</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="use-underline">True</property>
+                                    <property name="draw-as-radio">True</property>
                                     <property name="group">radio_colour_stretch0</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="radio_colour_stretch6">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">2.5-max</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="use-underline">True</property>
+                                    <property name="draw-as-radio">True</property>
                                     <property name="group">radio_colour_stretch0</property>
                                   </object>
                                 </child>
@@ -320,8 +325,8 @@ but you can also set percentile ranges.</property>
                         <child>
                           <object class="GtkMenuItem" id="menuitem_spatial_colour_mode">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Hue will display all hues (colours) from blue to red.
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Hue will display all hues (colours) from blue to red.
 
 Sat will display a single colour with saturation varying from
 white to a maximum saturation at the selected colour.
@@ -330,40 +335,41 @@ Grey will use grey scale.
 
 Colours are scaled using percentiles defined in the colour stretch menu. </property>
                             <property name="label" translatable="yes">Colour mode</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                             <child type="submenu">
                               <object class="GtkMenu" id="menu1">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="menuitem_spatial_colour_mode_hue">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="tooltip_text" translatable="yes">Display all hues (colours) from blue to red.</property>
+                                    <property name="can-focus">False</property>
+                                    <property name="tooltip-text" translatable="yes">Display all hues (colours) from blue to red.</property>
                                     <property name="label" translatable="yes">Hue</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="use-underline">True</property>
+                                    <property name="active">True</property>
+                                    <property name="draw-as-radio">True</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="menuitem_spatial_colour_mode_sat">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="tooltip_text" translatable="yes">Display a single colour with saturation varying from white to a selected maximum.</property>
+                                    <property name="can-focus">False</property>
+                                    <property name="tooltip-text" translatable="yes">Display a single colour with saturation varying from white to a selected maximum.</property>
                                     <property name="label" translatable="yes">Sat...</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="use-underline">True</property>
+                                    <property name="draw-as-radio">True</property>
                                     <property name="group">menuitem_spatial_colour_mode_hue</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="menuitem_spatial_colour_mode_grey">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="tooltip_text" translatable="yes">Display as grey scale.</property>
+                                    <property name="can-focus">False</property>
+                                    <property name="tooltip-text" translatable="yes">Display as grey scale.</property>
                                     <property name="label" translatable="yes">Grey</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="use-underline">True</property>
+                                    <property name="draw-as-radio">True</property>
                                     <property name="group">menuitem_spatial_colour_mode_hue</property>
                                   </object>
                                 </child>
@@ -374,51 +380,51 @@ Colours are scaled using percentiles defined in the colour stretch menu. </prope
                         <child>
                           <object class="GtkMenuItem" id="menuitem_spatial_nbr_highlighting">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Control the highlighting of neighbours on the grid.</property>
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Control the highlighting of neighbours on the grid.</property>
                             <property name="label" translatable="yes">Nbr highlighting</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                             <child type="submenu">
                               <object class="GtkMenu" id="menu_spatial_nbr_highlighting">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="menuitem_nbr_highlight_all">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Both</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                     <property name="active">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="draw-as-radio">True</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="menuitem_nbr_highlight_set1">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Set1</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="use-underline">True</property>
+                                    <property name="draw-as-radio">True</property>
                                     <property name="group">menuitem_nbr_highlight_all</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="menuitem_nbr_highlight_set2">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Set2</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="use-underline">True</property>
+                                    <property name="draw-as-radio">True</property>
                                     <property name="group">menuitem_nbr_highlight_all</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="menuitem_nbr_highlight_off">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Off</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="draw_as_radio">True</property>
+                                    <property name="use-underline">True</property>
+                                    <property name="draw-as-radio">True</property>
                                     <property name="group">menuitem_nbr_highlight_all</property>
                                   </object>
                                 </child>
@@ -429,43 +435,43 @@ Colours are scaled using percentiles defined in the colour stretch menu. </prope
                         <child>
                           <object class="GtkSeparatorMenuItem" id="separatormenuitem3">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkMenuItem" id="menuitem_spatial_excluded_cell_colour">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Set the colour for cells that were excluded from the analysis, typically using a definition query.</property>
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Set the colour for cells that were excluded from the analysis, typically using a definition query.</property>
                             <property name="label" translatable="yes">Set excluded cell colour</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkMenuItem" id="menuitem_spatial_undef_cell_colour">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Set the colour of cells when the index value is undefined.</property>
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Set the colour of cells when the index value is undefined.</property>
                             <property name="label" translatable="yes">Set undefined value colour</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkMenuItem" id="menuitem_spatial_cell_outline_colour">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Choose the colour used for the cell outlines</property>
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Choose the colour used for the cell outlines</property>
                             <property name="label" translatable="yes">Set cell outline colour</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkCheckMenuItem" id="menuitem_spatial_cell_show_outline">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Show or hide the cell outlines</property>
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Show or hide the cell outlines</property>
                             <property name="label" translatable="yes">Show cell outlines</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                             <property name="active">True</property>
                           </object>
                         </child>
@@ -478,6 +484,7 @@ Colours are scaled using percentiles defined in the colour stretch menu. </prope
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="homogeneous">False</property>
           </packing>
         </child>
       </object>
@@ -490,51 +497,52 @@ Colours are scaled using percentiles defined in the colour stretch menu. </prope
     <child>
       <object class="GtkVBox" id="vbox3">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <child>
           <object class="GtkVPaned" id="vpaneSpatial">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="can-focus">True</property>
             <property name="position">181</property>
             <child>
               <object class="GtkVBox" id="vbox8">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <child>
                   <object class="GtkScrolledWindow" id="scrolledwindow7">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="hscrollbar_policy">automatic</property>
+                    <property name="can-focus">True</property>
                     <child>
                       <object class="GtkViewport" id="viewport3">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                         <child>
                           <object class="GtkVBox" id="vbox9">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <child>
                               <object class="GtkTable" id="table6">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="n_rows">2</property>
+                                <property name="can-focus">False</property>
+                                <property name="n-rows">2</property>
                                 <child>
                                   <object class="GtkFrame" id="frame_spatial_analysis_tree">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="border_width">5</property>
-                                    <property name="label_xalign">0</property>
+                                    <property name="can-focus">False</property>
+                                    <property name="border-width">5</property>
+                                    <property name="label-xalign">0</property>
                                     <child>
                                       <object class="GtkScrolledWindow" id="scrolledwindow10">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">True</property>
-                                        <property name="border_width">5</property>
-                                        <property name="hscrollbar_policy">never</property>
-                                        <property name="vscrollbar_policy">automatic</property>
+                                        <property name="can-focus">True</property>
+                                        <property name="border-width">5</property>
+                                        <property name="hscrollbar-policy">never</property>
                                         <child>
                                           <object class="GtkTreeView" id="treeCalculations">
                                             <property name="visible">True</property>
-                                            <property name="can_focus">True</property>
+                                            <property name="can-focus">True</property>
+                                            <child internal-child="selection">
+                                              <object class="GtkTreeSelection"/>
+                                            </child>
                                           </object>
                                         </child>
                                       </object>
@@ -542,176 +550,174 @@ Colours are scaled using percentiles defined in the colour stretch menu. </prope
                                     <child type="label">
                                       <object class="GtkLabel" id="label52">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="label" translatable="yes">Calculations to run for each neighbourhood</property>
-                                        <property name="use_markup">True</property>
+                                        <property name="use-markup">True</property>
                                       </object>
                                     </child>
                                   </object>
                                   <packing>
-                                    <property name="top_attach">1</property>
-                                    <property name="bottom_attach">2</property>
-                                    <property name="x_options">GTK_FILL</property>
+                                    <property name="top-attach">1</property>
+                                    <property name="bottom-attach">2</property>
+                                    <property name="x-options">GTK_FILL</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <object class="GtkExpander" id="expander3">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
+                                    <property name="can-focus">True</property>
                                     <property name="expanded">True</property>
                                     <child>
                                       <object class="GtkAlignment" id="alignment9">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="left_padding">12</property>
+                                        <property name="can-focus">False</property>
+                                        <property name="left-padding">12</property>
                                         <child>
                                           <object class="GtkTable" id="tbl_spatial_parameters">
                                             <property name="visible">True</property>
-                                            <property name="can_focus">False</property>
-                                            <property name="border_width">4</property>
-                                            <property name="n_rows">4</property>
-                                            <property name="n_columns">3</property>
-                                            <property name="column_spacing">2</property>
-                                            <property name="row_spacing">4</property>
+                                            <property name="can-focus">False</property>
+                                            <property name="border-width">4</property>
+                                            <property name="n-rows">4</property>
+                                            <property name="n-columns">3</property>
+                                            <property name="column-spacing">2</property>
+                                            <property name="row-spacing">4</property>
                                             <child>
                                               <object class="GtkLabel" id="labelNbrSet2">
                                                 <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="has_tooltip">True</property>
-                                                <property name="tooltip_text" translatable="yes">Define a second set of neighbours for use in the analyses.
+                                                <property name="can-focus">False</property>
+                                                <property name="has-tooltip">True</property>
+                                                <property name="tooltip-text" translatable="yes">Define a second set of neighbours for use in the analyses.
 A typical use is for comparative analyses like species turnover.
 
 Use the checkbox to show/hide the edit box to free up screen real estate.</property>
-                                                <property name="xalign">0</property>
-                                                <property name="yalign">1</property>
                                                 <property name="label" translatable="yes">Neighbour set 2</property>
                                                 <property name="justify">right</property>
+                                                <property name="xalign">0</property>
+                                                <property name="yalign">1</property>
                                               </object>
                                               <packing>
-                                                <property name="top_attach">2</property>
-                                                <property name="bottom_attach">3</property>
-                                                <property name="x_options">GTK_FILL</property>
-                                                <property name="y_options"/>
+                                                <property name="top-attach">2</property>
+                                                <property name="bottom-attach">3</property>
+                                                <property name="x-options">GTK_FILL</property>
+                                                <property name="y-options"/>
                                               </packing>
                                             </child>
                                             <child>
                                               <object class="GtkLabel" id="lbl_parameter_spatial_name">
                                                 <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="xalign">0</property>
+                                                <property name="can-focus">False</property>
                                                 <property name="label" translatable="yes">&lt;b&gt;Name&lt;/b&gt;</property>
-                                                <property name="use_markup">True</property>
+                                                <property name="use-markup">True</property>
                                                 <property name="justify">right</property>
+                                                <property name="xalign">0</property>
                                               </object>
                                               <packing>
-                                                <property name="x_options">GTK_FILL</property>
-                                                <property name="y_options"/>
+                                                <property name="x-options">GTK_FILL</property>
+                                                <property name="y-options"/>
                                               </packing>
                                             </child>
                                             <child>
                                               <object class="GtkFrame" id="frameSpatialParams2">
                                                 <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="label_xalign">0</property>
-                                                <property name="shadow_type">none</property>
+                                                <property name="can-focus">False</property>
+                                                <property name="label-xalign">0</property>
+                                                <property name="shadow-type">none</property>
                                               </object>
                                               <packing>
-                                                <property name="left_attach">1</property>
-                                                <property name="right_attach">3</property>
-                                                <property name="top_attach">2</property>
-                                                <property name="bottom_attach">3</property>
-                                                <property name="x_options">GTK_FILL</property>
-                                                <property name="y_options">GTK_FILL</property>
+                                                <property name="left-attach">1</property>
+                                                <property name="right-attach">3</property>
+                                                <property name="top-attach">2</property>
+                                                <property name="bottom-attach">3</property>
+                                                <property name="x-options">GTK_FILL</property>
+                                                <property name="y-options">GTK_FILL</property>
                                               </packing>
                                             </child>
                                             <child>
                                               <object class="GtkFrame" id="frameSpatialParams1">
                                                 <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="label_xalign">0</property>
-                                                <property name="shadow_type">none</property>
+                                                <property name="can-focus">False</property>
+                                                <property name="label-xalign">0</property>
+                                                <property name="shadow-type">none</property>
                                               </object>
                                               <packing>
-                                                <property name="left_attach">1</property>
-                                                <property name="right_attach">3</property>
-                                                <property name="top_attach">1</property>
-                                                <property name="bottom_attach">2</property>
-                                                <property name="x_options">GTK_FILL</property>
-                                                <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                                <property name="left-attach">1</property>
+                                                <property name="right-attach">3</property>
+                                                <property name="top-attach">1</property>
+                                                <property name="bottom-attach">2</property>
+                                                <property name="x-options">GTK_FILL</property>
+                                                <property name="y-options">GTK_SHRINK | GTK_FILL</property>
                                               </packing>
                                             </child>
                                             <child>
                                               <object class="GtkLabel" id="labelDefQuery1">
                                                 <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="has_tooltip">True</property>
-                                                <property name="tooltip_text" translatable="yes">Use this to run the analysis for only a subset of the groups.
+                                                <property name="can-focus">False</property>
+                                                <property name="has-tooltip">True</property>
+                                                <property name="tooltip-text" translatable="yes">Use this to run the analysis for only a subset of the groups.
 Note that it will still search the full data set for neighbours.
 
 Use the checkbox to show/hide the edit box to free up screen real estate.</property>
-                                                <property name="xalign">0</property>
-                                                <property name="yalign">1</property>
                                                 <property name="label" translatable="yes">Definition query</property>
                                                 <property name="justify">right</property>
+                                                <property name="xalign">0</property>
+                                                <property name="yalign">1</property>
                                               </object>
                                               <packing>
-                                                <property name="top_attach">3</property>
-                                                <property name="bottom_attach">4</property>
-                                                <property name="x_options">GTK_FILL</property>
-                                                <property name="y_options"/>
+                                                <property name="top-attach">3</property>
+                                                <property name="bottom-attach">4</property>
+                                                <property name="x-options">GTK_FILL</property>
+                                                <property name="y-options"/>
                                               </packing>
                                             </child>
                                             <child>
                                               <object class="GtkFrame" id="frameDefinitionQuery1">
                                                 <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="label_xalign">0</property>
-                                                <property name="shadow_type">none</property>
+                                                <property name="can-focus">False</property>
+                                                <property name="label-xalign">0</property>
+                                                <property name="shadow-type">none</property>
                                               </object>
                                               <packing>
-                                                <property name="left_attach">1</property>
-                                                <property name="right_attach">3</property>
-                                                <property name="top_attach">3</property>
-                                                <property name="bottom_attach">4</property>
-                                                <property name="x_options">GTK_FILL</property>
-                                                <property name="y_options">GTK_FILL</property>
+                                                <property name="left-attach">1</property>
+                                                <property name="right-attach">3</property>
+                                                <property name="top-attach">3</property>
+                                                <property name="bottom-attach">4</property>
+                                                <property name="x-options">GTK_FILL</property>
+                                                <property name="y-options">GTK_FILL</property>
                                               </packing>
                                             </child>
                                             <child>
                                               <object class="GtkLabel" id="labelNbrSet1">
                                                 <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="has_tooltip">True</property>
-                                                <property name="tooltip_text" translatable="yes">Specify the first set of neighbours to use in the analysis.
+                                                <property name="can-focus">False</property>
+                                                <property name="has-tooltip">True</property>
+                                                <property name="tooltip-text" translatable="yes">Specify the first set of neighbours to use in the analysis.
 
 Use the checkbox to show/hide the edit box to free up screen real estate.</property>
-                                                <property name="xalign">0</property>
-                                                <property name="yalign">1</property>
                                                 <property name="label" translatable="yes">Neighbour set 1</property>
                                                 <property name="justify">right</property>
+                                                <property name="xalign">0</property>
+                                                <property name="yalign">1</property>
                                               </object>
                                               <packing>
-                                                <property name="top_attach">1</property>
-                                                <property name="bottom_attach">2</property>
-                                                <property name="x_options">GTK_FILL</property>
-                                                <property name="y_options"/>
+                                                <property name="top-attach">1</property>
+                                                <property name="bottom-attach">2</property>
+                                                <property name="x-options">GTK_FILL</property>
+                                                <property name="y-options"/>
                                               </packing>
                                             </child>
                                             <child>
                                               <object class="GtkHBox" id="hbox1">
                                                 <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
+                                                <property name="can-focus">False</property>
                                                 <child>
                                                   <object class="GtkEntry" id="txtSpatialName">
                                                     <property name="visible">True</property>
-                                                    <property name="can_focus">True</property>
-                                                    <property name="invisible_char">●</property>
-                                                    <property name="activates_default">True</property>
+                                                    <property name="can-focus">True</property>
+                                                    <property name="invisible-char">●</property>
+                                                    <property name="activates-default">True</property>
                                                     <property name="text" translatable="yes">Spatial1</property>
-                                                    <property name="primary_icon_activatable">False</property>
-                                                    <property name="secondary_icon_activatable">False</property>
-                                                    <property name="primary_icon_sensitive">True</property>
-                                                    <property name="secondary_icon_sensitive">True</property>
+                                                    <property name="primary-icon-activatable">False</property>
+                                                    <property name="secondary-icon-activatable">False</property>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">True</property>
@@ -722,15 +728,15 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                                                 <child>
                                                   <object class="GtkButton" id="button_spatial_options">
                                                     <property name="visible">True</property>
-                                                    <property name="can_focus">True</property>
-                                                    <property name="receives_default">True</property>
-                                                    <property name="has_tooltip">True</property>
-                                                    <property name="tooltip_text" translatable="yes">Set analysis options</property>
-                                                    <property name="image_position">right</property>
+                                                    <property name="can-focus">True</property>
+                                                    <property name="receives-default">True</property>
+                                                    <property name="has-tooltip">True</property>
+                                                    <property name="tooltip-text" translatable="yes">Set analysis options</property>
+                                                    <property name="image-position">right</property>
                                                     <child>
                                                       <object class="GtkImage" id="image2">
                                                         <property name="visible">True</property>
-                                                        <property name="can_focus">False</property>
+                                                        <property name="can-focus">False</property>
                                                         <property name="stock">gtk-properties</property>
                                                       </object>
                                                     </child>
@@ -743,9 +749,9 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                                                 </child>
                                               </object>
                                               <packing>
-                                                <property name="left_attach">1</property>
-                                                <property name="right_attach">3</property>
-                                                <property name="y_options"/>
+                                                <property name="left-attach">1</property>
+                                                <property name="right-attach">3</property>
+                                                <property name="y-options"/>
                                               </packing>
                                             </child>
                                           </object>
@@ -755,14 +761,14 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                                     <child type="label">
                                       <object class="GtkLabel" id="label6">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="tooltip_text" translatable="yes">show/hide the parameters section</property>
+                                        <property name="can-focus">False</property>
+                                        <property name="tooltip-text" translatable="yes">show/hide the parameters section</property>
                                         <property name="label" translatable="yes">Parameters</property>
                                       </object>
                                     </child>
                                   </object>
                                   <packing>
-                                    <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                    <property name="y-options">GTK_SHRINK | GTK_FILL</property>
                                   </packing>
                                 </child>
                               </object>
@@ -775,18 +781,17 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                             <child>
                               <object class="GtkHButtonBox" id="hbuttonbox2">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="layout_style">edge</property>
+                                <property name="can-focus">False</property>
                                 <child>
                                   <object class="GtkButton" id="btnSpatialRun">
                                     <property name="label" translatable="yes">Go!</property>
                                     <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="can_default">True</property>
-                                    <property name="receives_default">False</property>
-                                    <property name="tooltip_text" translatable="yes">Generates a new output, or overwrites an existing one (CTRL-G)</property>
-                                    <property name="border_width">2</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="can-focus">True</property>
+                                    <property name="can-default">True</property>
+                                    <property name="receives-default">False</property>
+                                    <property name="tooltip-text" translatable="yes">Generates a new output, or overwrites an existing one (CTRL-G)</property>
+                                    <property name="border-width">2</property>
+                                    <property name="use-underline">True</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -821,67 +826,64 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
             <child>
               <object class="GtkHPaned" id="spatial_hpaned">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
+                <property name="can-focus">True</property>
                 <child>
                   <object class="GtkFrame" id="frame10">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="border_width">2</property>
-                    <property name="label_xalign">0.0099999997764825821</property>
-                    <property name="shadow_type">none</property>
+                    <property name="can-focus">False</property>
+                    <property name="border-width">2</property>
+                    <property name="label-xalign">0.009999999776482582</property>
+                    <property name="shadow-type">none</property>
                     <child>
                       <object class="GtkTable" id="table10">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="n_rows">2</property>
-                        <property name="n_columns">2</property>
+                        <property name="can-focus">False</property>
+                        <property name="n-rows">2</property>
+                        <property name="n-columns">2</property>
                         <child>
                           <placeholder/>
                         </child>
                         <child>
-                          <object class="GtkVScrollbar" id="gridVScroll">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="adjustment">adjustment1</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">1</property>
-                            <property name="right_attach">2</property>
-                            <property name="x_options">GTK_FILL</property>
-                          </packing>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
                         </child>
                         <child>
                           <object class="GtkFrame" id="gridFrame">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="label_xalign">0</property>
-                            <property name="shadow_type">none</property>
+                            <property name="can-focus">False</property>
+                            <property name="label-xalign">0</property>
+                            <property name="shadow-type">none</property>
                           </object>
                           <packing>
-                            <property name="x_options">GTK_FILL</property>
-                            <property name="y_options">GTK_FILL</property>
+                            <property name="x-options">GTK_FILL</property>
+                            <property name="y-options">GTK_FILL</property>
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkHScrollbar" id="gridHScroll">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="adjustment">adjustment2</property>
-                          </object>
-                          <packing>
-                            <property name="top_attach">1</property>
-                            <property name="bottom_attach">2</property>
-                            <property name="y_options">GTK_FILL</property>
-                          </packing>
+                          <placeholder/>
                         </child>
                       </object>
                     </child>
                     <child type="label">
                       <object class="GtkLabel" id="lblOutput">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                         <property name="label" translatable="yes">&lt;b&gt;Output&lt;/b&gt;</property>
-                        <property name="use_markup">True</property>
+                        <property name="use-markup">True</property>
                       </object>
                     </child>
                   </object>
@@ -893,60 +895,38 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                 <child>
                   <object class="GtkFrame" id="frame_spatial_tree_plot">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="border_width">2</property>
-                    <property name="label_xalign">0.0099999997764825821</property>
-                    <property name="shadow_type">none</property>
+                    <property name="can-focus">False</property>
+                    <property name="border-width">2</property>
+                    <property name="label-xalign">0.009999999776482582</property>
+                    <property name="shadow-type">none</property>
                     <child>
                       <object class="GtkVBox" id="vbox1">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                         <child>
                           <object class="GtkTable" id="table1">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="n_rows">2</property>
-                            <child>
-                              <object class="GtkHScrollbar" id="spatialPhylogenyHScroll">
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="adjustment">adjustment3</property>
-                              </object>
-                              <packing>
-                                <property name="top_attach">1</property>
-                                <property name="bottom_attach">2</property>
-                                <property name="y_options">GTK_FILL</property>
-                              </packing>
-                            </child>
+                            <property name="can-focus">False</property>
+                            <property name="n-rows">2</property>
                             <child>
                               <object class="GtkVPaned" id="spatial_vpanePhylogeny">
                                 <property name="visible">True</property>
-                                <property name="can_focus">True</property>
+                                <property name="can-focus">True</property>
                                 <child>
                                   <object class="GtkTable" id="table2">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="n_columns">2</property>
-                                    <child>
-                                      <object class="GtkVScrollbar" id="spatialPhylogenyVScroll">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="adjustment">adjustment4</property>
-                                      </object>
-                                      <packing>
-                                        <property name="left_attach">1</property>
-                                        <property name="right_attach">2</property>
-                                        <property name="x_options"/>
-                                        <property name="y_options">GTK_FILL</property>
-                                      </packing>
-                                    </child>
+                                    <property name="can-focus">False</property>
+                                    <property name="n-columns">2</property>
                                     <child>
                                       <object class="GtkFrame" id="spatialPhylogenyFrame">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="label_xalign">0</property>
-                                        <property name="shadow_type">none</property>
+                                        <property name="can-focus">False</property>
+                                        <property name="label-xalign">0</property>
+                                        <property name="shadow-type">none</property>
                                       </object>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
                                     </child>
                                   </object>
                                   <packing>
@@ -957,9 +937,9 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                                 <child>
                                   <object class="GtkFrame" id="spatialPhylogenyGraphFrame">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label_xalign">0</property>
-                                    <property name="shadow_type">none</property>
+                                    <property name="can-focus">False</property>
+                                    <property name="label-xalign">0</property>
+                                    <property name="shadow-type">none</property>
                                   </object>
                                   <packing>
                                     <property name="resize">False</property>
@@ -967,6 +947,9 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                                   </packing>
                                 </child>
                               </object>
+                            </child>
+                            <child>
+                              <placeholder/>
                             </child>
                           </object>
                           <packing>
@@ -980,9 +963,9 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                     <child type="label">
                       <object class="GtkLabel" id="spatial_label_VL_tree">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                         <property name="label" translatable="yes">&lt;b&gt;Tree&lt;/b&gt;</property>
-                        <property name="use_markup">True</property>
+                        <property name="use-markup">True</property>
                       </object>
                     </child>
                   </object>
@@ -1007,11 +990,11 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
         <child>
           <object class="GtkHBox" id="hbox_spatial_tab_bottom">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <child>
               <object class="GtkLabel" id="label_spatial_combos">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">Lists and indices:  </property>
               </object>
               <packing>
@@ -1023,8 +1006,8 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
             <child>
               <object class="GtkComboBox" id="comboLists">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="add_tearoffs">True</property>
+                <property name="can-focus">False</property>
+                <property name="add-tearoffs">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -1035,8 +1018,8 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
             <child>
               <object class="GtkComboBox" id="comboIndices">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="add_tearoffs">True</property>
+                <property name="can-focus">False</property>
+                <property name="add-tearoffs">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -1047,7 +1030,7 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
             <child>
               <object class="GtkSeparatorToolItem" id="separatortoolitem4k">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -1058,7 +1041,7 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
             <child>
               <object class="GtkLabel" id="label3">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">Tree plot:  </property>
               </object>
               <packing>
@@ -1070,12 +1053,12 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
             <child>
               <object class="GtkComboBox" id="comboTreeSelect">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Select tree to display</property>
+                <property name="can-focus">False</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Select tree to display</property>
                 <property name="model">liststore1</property>
                 <property name="active">0</property>
-                <property name="add_tearoffs">True</property>
+                <property name="add-tearoffs">True</property>
                 <child>
                   <object class="GtkCellRendererText" id="cellrenderertext1"/>
                   <attributes>

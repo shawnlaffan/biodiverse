@@ -1,14 +1,14 @@
 package Biodiverse::GUI::Tabs::Tab;
 use strict;
 use warnings;
-use 5.010;
+use 5.036;
 
 our $VERSION = '4.99_002';
 
 use List::Util qw/min max/;
 use Scalar::Util qw /blessed/;
 use List::MoreUtils qw /minmax/;
-use Gtk2;
+use Gtk3;
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
 use Carp;
@@ -162,11 +162,11 @@ sub register_in_outputs_model {
                 last; #FIXME: do we have to look at other iter_bases, or does this iterate over entire level?
             }
             
-            $iter_output = $model->iter_next($iter_output);
+            last if !$model->iter_next($iter_output);
         }
         
         last if $iter; # break if found it
-        $iter_base = $model->iter_next($iter_base);
+        last if !$model->iter_next($iter_base);
     }
 
     if ($iter) {
@@ -203,7 +203,7 @@ Only the first two axes are used for plotting.
 END_OF_GT2_AXIS_TEXT
   ;
 
-    my $dialog = Gtk2::MessageDialog->new (
+    my $dialog = Gtk3::MessageDialog->new (
         undef,
         'destroy-with-parent',
         'warning',
@@ -221,93 +221,100 @@ END_OF_GT2_AXIS_TEXT
 # Keyboard shortcuts
 ##########################################################
 
-my $snooper_id;
-my $handler_entered = 0;
-
 # Called when user switches to this tab
 #   installs keyboard-shortcut handler
 sub set_keyboard_handler {
     my $self = shift;
-    # Make CTRL-G activate the "go!" button (on_run)
-    if ($snooper_id) {
-        ##print "[Tab] Removing keyboard snooper $snooper_id\n";
-        Gtk2->key_snooper_remove($snooper_id);
-        $snooper_id = undef;
-    }
 
+    my $page = $self->{page};
 
-    $snooper_id = Gtk2->key_snooper_install(\&hotkey_handler, $self);
-    ##print "[Tab] Installed keyboard snooper $snooper_id\n";
+    $page->add_events([ qw/key-press-event/ ]);  #  needed?
+    $page->signal_connect (key_press_event => sub {
+        $self->hotkey_handler (@_);
+    });
+
 }
 
+#  a no-op now
 sub remove_keyboard_handler {
-    my $self = shift;
-    if ($snooper_id) {
-        ##print "[Tab] Removing keyboard snooper $snooper_id\n";
-        Gtk2->key_snooper_remove($snooper_id);
-        $snooper_id = undef;
-    }
+    return;
 }
     
 # Processes keyboard shortcuts like CTRL-G = Go!
 sub hotkey_handler {
-    my ($widget, $event, $self) = @_;
+    my ($self, $widget, $event) = @_;
     my $retval;
+
+    state $handler_entered = 0;
 
     # stop recursion into on_run if shortcut triggered during processing
     #   (this happens because progress-dialogs pump events..)
-
-    return 1 if $handler_entered == 1;
+    return 1 if $handler_entered;
 
     $handler_entered = 1;
 
-    if ($event->type eq 'key-press' && Biodiverse::GUI::GUIManager::keyboard_snooper_active) {
+    if ($event->type eq 'key-press') {
+        my $keyval = $event->keyval;
+        my $key_name = Gtk3::Gdk::keyval_name($keyval);
+
+        # say "Key press $keyval $key_name";
+        # say $event->state;
+
         # if CTL- key is pressed
         if ($event->state >= ['control-mask']) {
-            my $keyval = $event->keyval;
-            #print $keyval . "\n";
-            
+            $key_name = Gtk3::Gdk::keyval_name($keyval);
+
             # Go!
-            if ((uc chr $keyval) eq 'G') {
+            if ((uc $key_name) eq 'G') {
                 $self->on_run();
                 $retval = 1; # stop processing
             }
-
             # Close tab (CTRL-W)
-            elsif ((uc chr $keyval) eq 'W') {
+            elsif ((uc $key_name) eq 'W') {
                 if ($self->get_removable) {
                     $self->{gui}->remove_tab($self);
                     $retval = 1; # stop processing
                 }
             }
-
-            # Change to next tab
-            elsif ($keyval eq Gtk2::Gdk->keyval_from_name ('Tab')) {
-                #  switch tabs
-                #print "keyval is $keyval (tab), state is " . $event->state . "\n";
-                my $page_index = $self->get_page_index;
-                $self->{gui}->switch_tab (undef, $page_index + 1); #  go right
-            }
-            elsif ($keyval eq Gtk2::Gdk->keyval_from_name ('ISO_Left_Tab')) {
-                #  switch tabs
-                #print "keyval is $keyval (left tab), state is " . $event->state . "\n";
-                my $page_index = $self->get_page_index;
-                $self->{gui}->switch_tab (undef, $page_index - 1); #  go left
-            }
         }
-        elsif ($event->state == []) {
-            # Catch alphabetic keys only for now.
-            my $keyval = $event->keyval;
-            if (($keyval >= ord('a') && $keyval <= ord('z')) or (
-                    $keyval >= ord('A') && $keyval <= ord('Z'))) {
-                $self->on_bare_key(uc chr $event->keyval);
+        else {
+            # Catch alphabetic keys and some non-alpha.
+            state %valid_keys
+                = map {$_ => 1} (
+                    'a'..'z',
+                    'A'..'Z',
+                    qw /equal minus plus Left Right Up Down/
+                );
+
+            if ($valid_keys{$key_name}) {
+                $retval = $self->on_bare_key($key_name, $event);
             }
         }
     }
 
     $handler_entered = 0;
-    $retval = 0; # continue processing
-    return $retval;
+    $retval ||= 0; # continue processing
+    return !!$retval;
+}
+
+{
+    state $bare_key_cache_key = 'last_bare_key_time';
+
+    #  we are getting double-pumps from key events
+    sub get_last_hotkey_event_time {
+        my ($self) = @_;
+        $self->get_cached_value($bare_key_cache_key) // 0;
+    }
+
+    sub set_last_hotkey_event_time {
+        my ($self) = @_;
+        $self->set_cached_value($bare_key_cache_key => Time::HiRes::time);
+    }
+
+    sub check_hot_key_double_pump {
+        my ($self) = @_;
+        (Time::HiRes::time - $self->get_last_hotkey_event_time) < 0.1;
+    }
 }
 
 ######################################
@@ -315,6 +322,15 @@ sub hotkey_handler {
 
 
 sub on_run {} # default for tabs that don't implement on_run
+
+sub on_overlays {
+    my $self = shift;
+    my $button = shift;
+
+    Biodiverse::GUI::Overlays::show_dialog( $self->{grid} );
+
+    return;
+}
 
 my %key_tool_map = (
     Z => 'ZoomIn',
@@ -327,29 +343,107 @@ my %key_tool_map = (
 
 # Default for tabs that don't implement on_bare_key
 sub on_bare_key {
-    my ($self, $keyval) = @_;
-    # TODO: Add other tools
-    my $tool = $key_tool_map{$keyval};
-
-    return if not defined $tool;
+    my ($self, $key, $event) = @_;
 
     my $active_pane = $self->{active_pane};
+    return if !$active_pane;
 
-    return if !defined $active_pane;
+    #  early return if key presses are too quick
+    return if $self->check_hot_key_double_pump;
 
-    if ($tool eq 'ZoomOut' and $active_pane ne '') {
-        # Do an instant zoom out and keep the current tool.
-        $self->{$self->{active_pane}}->zoom_out();
+    $self->set_last_hotkey_event_time;
+
+    # Immediate actions without changing the current tool.
+    # A zoom_fit variant is probably not useful
+
+    #  these only apply in zoom mode
+    state %instant_zoom_methods = (
+        i     => 'do_zoom_in_centre',
+        o     => 'do_zoom_out_centre',
+    );
+    #  these apply at any time
+    state %instant_key_methods = (
+        plus  => 'do_zoom_in_centre',
+        equal => 'do_zoom_in_centre',
+        minus => 'do_zoom_out_centre',
+        Left  => 'do_pan_left',
+        Right => 'do_pan_right',
+        Up    => 'do_pan_up',
+        Down  => 'do_pan_down',
+    );
+
+    my $inst_meth  = $instant_key_methods{$key}
+        // ($self->{tool} =~ /Zoom/ and $instant_zoom_methods{$key});
+
+    if ($inst_meth) {
+        $active_pane->$inst_meth;
     }
-    elsif ($tool eq 'ZoomFit' and $active_pane ne '') {
-        $self->{$self->{active_pane}}->zoom_fit();
+    else {
+        # TODO: Add other tools and stop requiring upper case
+        my $tool = $key_tool_map{uc $key};
+        $self->choose_tool($tool) if defined $tool;
     }
-    elsif ($active_pane) {
-        $self->choose_tool($tool) if exists $key_tool_map{$keyval};
+
+    return;
+}
+
+#  a default list
+sub get_canvas_list {
+    qw /grid dendrogram/;
+}
+
+#  redraw all our canvases
+sub queue_draw {
+    my ($self) = @_;
+    foreach my $canvas_name ($self->get_canvas_list) {
+        $self->{$canvas_name}->queue_draw;
     }
 }
 
-sub choose_tool {}
+{
+    state $flagname = 'do_canvas_hover_flag';
+    sub toggle_do_canvas_hover_flag {
+        my $self = shift;
+        $self->{$flagname} //= 1;
+        $self->{$flagname} = !$self->{$flagname};
+    }
+
+    sub do_canvas_hover_flag {
+        my $self = shift;
+        $self->{$flagname} //= 1;
+    }
+}
+
+sub choose_tool {
+    my $self = shift;
+    my ($tool, ) = @_;
+
+    my $old_tool = $self->{tool};
+
+    if ($old_tool) {
+        #  should really edit the ui files so they use the same names
+        my $class = blessed $self;
+        my $suffix
+            = $class =~ /Labels/  ? 'VL'
+            : $class =~ /Spatial/ ? 'SP'
+            : $class =~ /Cluster/ ? 'CL'
+            : die 'Unknown tab class';
+
+        $self->{ignore_tool_click} = 1;
+        my $widget = $self->get_xmlpage_object("btn${old_tool}Tool${suffix}");
+        $widget->set_active(0);
+        my $new_widget = $self->get_xmlpage_object("btn${tool}Tool${suffix}");
+        $new_widget->set_active(1);
+        $self->{ignore_tool_click} = 0;
+    }
+
+    $self->{tool} = $tool;
+
+    foreach my $canvas ($self->get_canvas_list) {
+        next if ! blessed ($self->{$canvas} // '');  # might not be initialised yet
+        $self->{$canvas}->set_mode ($tool);
+    }
+}
 
 sub get_removable { return 1; } # default - tabs removable
 
@@ -390,6 +484,7 @@ sub format_number_for_display {
     return $text;
 }
 
+#  this should be auto-detected by the legend given min-max vals and stats
 sub set_legend_ltgt_flags {
     my $self = shift;
     my $stats = shift;
@@ -418,22 +513,20 @@ sub set_legend_ltgt_flags {
 }
 
 sub on_show_hide_legend {
-    my $self = shift;
-    my $menu_item = shift;
+    my ($self, $menu_item) = @_;
 
     my $grid = $self->{grid};
 
     return if !$grid;
 
-    my $active = $menu_item->get_active;
+    my $legend = $grid->get_legend;
+    return if !$legend;
 
-    if ($active) {
-        $grid->show_legend;
-        $grid->set_legend_min_max;
-        $grid->update_legend;
-    }
-    else {
-        $grid->hide_legend;
+    my $active = $menu_item->get_active;
+    my $current_status= $legend->is_visible;
+    if (!!$active != !!$current_status) {
+        $legend->set_visible ($active);
+        $grid->queue_draw;
     }
 
 }
@@ -500,84 +593,6 @@ sub get_legend_log_mode {
     $self->{legend_log_mode} //= 'off';
 }
 
-sub index_is_zscore {
-    my $self = shift;
-    my %args = @_;
-
-    #  check list and then check index
-
-    my $list = $args{list} // '';
-
-    return 1
-        if $list =~ />>z_scores>>/;
-
-    state $bd_obj = Biodiverse::BaseData->new (
-        NAME         => 'zscorage',
-        CELL_SIZES   => [1],
-        CELL_ORIGINS => [0]
-    );
-    state $indices_object = Biodiverse::Indices->new (
-        BASEDATA_REF => $bd_obj,
-    );
-
-    my $index = $args{index} // '';
-
-    return 1
-        if $indices_object->index_is_list (index => $list)
-            && $indices_object->index_is_zscore (index => $list);
-
-    return $indices_object->index_is_scalar (index => $index)
-        && $indices_object->index_is_zscore (index => $index);
-}
-
-sub index_is_ratio {
-    my $self = shift;
-    my %args = @_;
-
-    #  check list and then check index
-    my $list  = $args{list} // '';
-    my $index = $args{index} // '';
-
-    state $bd_obj = Biodiverse::BaseData->new (
-        NAME         => 'rationing',
-        CELL_SIZES   => [1],
-        CELL_ORIGINS => [0]
-    );
-    state $indices_object = Biodiverse::Indices->new (
-        BASEDATA_REF => $bd_obj,
-    );
-
-    return 1
-        if $indices_object->index_is_list (index => $list)
-            && $indices_object->index_is_ratio (index => $list);
-
-    return $indices_object->index_is_ratio (index => $index);
-}
-
-sub index_is_divergent {
-    my $self = shift;
-    my %args = @_;
-
-    #  check list and then check index
-    my $list  = $args{list} // '';
-    my $index = $args{index} // '';
-
-    state $bd_obj = Biodiverse::BaseData->new (
-        NAME         => 'divergency',
-        CELL_SIZES   => [1],
-        CELL_ORIGINS => [0]
-    );
-    state $indices_object = Biodiverse::Indices->new (
-        BASEDATA_REF => $bd_obj,
-    );
-
-    return 1
-        if $indices_object->index_is_list (index => $list)
-            && $indices_object->index_is_divergent (index => $list);
-
-    return $indices_object->index_is_divergent (index => $index);
-}
-
 sub on_colour_mode_changed {
     my ($self, $menu_item) = @_;
 
@@ -592,16 +607,16 @@ sub on_colour_mode_changed {
             $mode = 'Sat';
 
             # Pop up dialog for choosing the hue to use in saturation mode
-            my $colour_dialog = Gtk2::ColorSelectionDialog->new('Pick Hue');
+            my $colour_dialog = Gtk3::ColorSelectionDialog->new('Pick Hue');
             my $colour_select = $colour_dialog->get_color_selection();
             if (my $col = $self->{hue}) {
-                $colour_select->set_previous_color($col);
-                $colour_select->set_current_color($col);
+                $colour_select->set_previous_rgba($col);
+                $colour_select->set_current_rgba($col);
             }
             $colour_dialog->show_all();
             my $response = $colour_dialog->run;
             if ($response eq 'ok') {
-                $self->{hue} = $colour_select->get_current_color();
+                $self->{hue} = $colour_select->get_current_rgba();
                 $self->{grid}->set_legend_hue($self->{hue});
                 eval {$self->{dendrogram}->recolour(all_elements => 1)};  #  only clusters have dendrograms - needed here?  recolour below does this
             }
@@ -612,8 +627,9 @@ sub on_colour_mode_changed {
     }
 
     $self->{grid}->set_legend_mode($self->get_colour_mode);
-    $self->recolour(all_elements => 1);
-    $self->{grid}->update_legend;
+    # $self->recolour(all_elements => 1);
+    # $self->recolour();
+    # $self->{grid}->update_legend;
 
     return;
 }
@@ -633,17 +649,6 @@ sub get_colour_mode {
 sub set_active_pane {
     my ($self, $active_pane) = @_;
     $self->{active_pane} = $active_pane;
-}
-
-sub rect_canonicalise {
-    my ($self, $rect) = @_;
-    ($rect->[0], $rect->[2]) = minmax ($rect->[2], $rect->[0]);
-    ($rect->[1], $rect->[3]) = minmax ($rect->[3], $rect->[1]);
-}
-
-sub rect_centre {
-    my ($self, $rect) = @_;
-    return (($rect->[0] + $rect->[2]) / 2, ($rect->[1] + $rect->[3]) / 2);
 }
 
 sub on_select_tool {
@@ -675,201 +680,6 @@ sub on_zoom_fit_tool {
     return if $self->{ignore_tool_click};
     $self->choose_tool('ZoomFit');
 }
-
-my %cursor_icons = (
-    Select  => undef,
-    ZoomIn  => 'zoom-in',
-    ZoomOut => 'zoom-out',
-    ZoomFit => 'zoom-fit-best',
-    Pan     => 'fleur',
-);
-
-sub set_display_cursors {
-    my $self = shift;
-    my $type = shift;
-
-    my $icon = $cursor_icons{$type};
-    
-    foreach my $widget (qw /grid matrix_grid dendrogram/) {
-        no autovivification;
-        my $wref = $self->{$widget};
-        next if !$wref || !$wref->{canvas};
-
-        my $window = $wref->{canvas}->window;
-        my $cursor;
-        if ($icon) {
-            #  check if it's a real cursor
-            $cursor = eval {Gtk2::Gdk::Cursor->new ($icon)};
-            if ($@) {  #  might need to come from an icon
-                my $cache_name = "ICON: $icon";
-                $cursor = $self->get_cached_value ($cache_name);
-                if (!$cursor) {
-                    my $ic = Gtk2::IconTheme->new();
-                    my $pixbuf = eval {$ic->load_icon($icon, 16, 'no-svg')};
-                    if ($@) {
-                        warn $@;
-                    }
-                    else {
-                        my $display = $window->get_display;
-                        $cursor = Gtk2::Gdk::Cursor->new_from_pixbuf($display, $pixbuf, 0, 0);
-                        $self->set_cached_value ($cache_name => $cursor);
-                    }
-                }
-            }
-        }
-        $window->set_cursor($cursor);
-        $wref->{cursor} = $cursor;
-    }
-    
-}
-
-
-sub on_grid_select {
-    my ($self, $groups, $ignore_change, $rect) = @_;
-    if ($self->{tool} eq 'ZoomIn') {
-        my $grid = $self->{grid};
-        $self->handle_grid_drag_zoom($grid, $rect);
-    }
-}
-
-sub on_grid_click {
-    my $self = shift;
-    if ($self->{tool} eq 'ZoomOut') {
-        $self->{grid}->zoom_out();
-    }
-    elsif ($self->{tool} eq 'ZoomFit') {
-        $self->{grid}->zoom_fit();
-    }
-}
-
-
-sub handle_grid_drag_zoom {
-    my ($self, $grid, $rect) = @_;
-    my $canvas = $grid->{canvas};
-
-    $self->rect_canonicalise ($rect);
-
-    # Scale
-    my $width_px  = $grid->{width_px}; # Viewport/window size
-    my $height_px = $grid->{height_px};
-    my ($xc, $yc) = $canvas->world_to_window($self->rect_centre ($rect));
-    #print "Centre: $xc $yc\n";
-    my ($x1, $y1) = $canvas->world_to_window($rect->[0], $rect->[1]);
-    my ($x2, $y2) = $canvas->world_to_window($rect->[2], $rect->[3]);
-    #say "Window Rect: $x1 $x2 $y1 $y2";
-    my $width_s   = max ($x2 - $x1, 1); # Selected box width
-    my $height_s  = max ($y2 - $y1, 1); # Avoid div by 0
-
-    # Special case: If the rect is tiny, the user probably just clicked
-    # and released. Do something sensible, like just double the zoom level.
-    if ($width_s <= 2 || $height_s <= 2) {
-        $width_s  = $width_px  / 2;
-        $height_s = $height_px / 2;
-        ($rect->[0], $rect->[1])
-            = $canvas->window_to_world ($xc - $width_s / 2, $yc - $height_s / 2);
-        ($rect->[2], $rect->[3])
-            = $canvas->window_to_world ($xc + $width_s / 2, $yc + $height_s / 2);
-    }
-
-    my $ratio = min ($width_px / $width_s, $height_px / $height_s);
-
-    if (exists $grid->{render_width}) {  #  should shift this into a method in Dendrogram.pm
-
-        my @plot_centre = ($width_px  / 2, $height_px  / 2);
-        my @rect_centre = $self->rect_centre ($rect);
-
-        my ($dx, $dy) = ($plot_centre[0] - $rect_centre[0], $plot_centre[1] - $rect_centre[1]);
-
-        # Convert into scaled coords
-        $grid->{centre_x} *= $grid->{length_scale};
-        $grid->{centre_y} *= $grid->{height_scale};
-        
-        # Pan across
-        $grid->{centre_x} = $grid->clamp (
-            $grid->{centre_x} - $dx,
-            0,
-            $grid->{render_width},
-        ) ;
-        $grid->{centre_y} = $grid->clamp (
-            $grid->{centre_y} - $dy,
-            0,
-            $grid->{render_height},
-        );
-
-        # Convert into world coords
-        $grid->{centre_x} /= $grid->{length_scale};
-        $grid->{centre_y} /= $grid->{height_scale};
-
-        #  now adjust the zoom level
-        $grid->{render_width}  *= $ratio;
-        $grid->{render_height} *= $ratio;
-
-        $grid->set_zoom_fit_flag(0);  #  don't zoom to all when the window gets resized
-        $grid->post_zoom;
-        return;
-    }
-
-
-    my $oppu = $canvas->get_pixels_per_unit;
-    #say "Old PPU: $oppu";
-    my $ppu = $oppu * $ratio;
-    #say "New PPU: $ppu";
-    $canvas->set_pixels_per_unit($ppu);
-
-    # Now pan so that the selection is centered. There are two cases.
-    # +------------------------------------------+
-    # |                +-----+                   |
-    # |                |     |                   |
-    # |                |     |                   |
-    # |                +-----+                   |
-    # +------------------------------------------+
-    # or
-    # +------------------------------------------+
-    # |                                          |
-    # |                                          |
-    # |+----------------------------------------+|
-    # ||                                        ||
-    # |+----------------------------------------+|
-    # |                                          |
-    # |                                          |
-    # +------------------------------------------+
-    # We can cover both if we expand rect along both axes until it is
-    # the same aspect ratio as the window. (One axis will not change).
-    my $window_aspect =  $width_px / $height_px;
-    my $rect_aspect   = ($rect->[2] - $rect->[0]) / ($rect->[3] - $rect->[1]);
-    #say "WA: $window_aspect, RA: $rect_aspect";
-    #say "R: " . join ' ', @$rect;
-    if ($rect_aspect > $window_aspect) {
-        # 2nd case illustrated above. We need to change the height.
-        my $mid    = ($rect->[1] + $rect->[3]) / 2;
-        my $width  =  $rect->[2] - $rect->[0];
-        $rect->[1] = $mid - 0.5 * $width / $window_aspect;
-        $rect->[3] = $mid + 0.5 * $width / $window_aspect;
-    }
-    else {
-        # 1st case illustrated above. We need to change the width.
-        my $mid    = ($rect->[0] + $rect->[2]) / 2;
-        my $height =  $rect->[3] - $rect->[1];
-        $rect->[0] = $mid - 0.5 * $height * $window_aspect;
-        $rect->[2] = $mid + 0.5 * $height * $window_aspect;
-    }
-
-    my $midx = ($rect->[0] + $rect->[2]) / 2;
-    my $midy = ($rect->[1] + $rect->[3]) / 2;
-    #$midx = $rect->[0];
-    #$midy = $rect->[1];
-
-    # Apply and pan
-    $grid->set_zoom_fit_flag(0);  #  don't zoom to all when the window gets resized - poss should set some params to maintain the extent
-    $grid->post_zoom;
-    my @target = $canvas->w2c($rect->[0], $rect->[1]);
-    #say "Scrolling to " . join ' ', @target;
-    $canvas->scroll_to(@target);
-    $grid->update_scrollbars ($midx, $midy);
-
-}
-
-
 
 sub on_set_cell_outline_colour {
     my $self = shift;
@@ -933,10 +743,10 @@ sub set_excluded_cell_colour {
     my ($self, $colour) = @_;
     
     my $g = my $grey = 0.9 * 255 * 257;;
-    $colour //= Gtk2::Gdk::Color->new($g, $g, $g);
+    $colour //= Gtk3::Gdk::RGBA::parse("rgb($g,$g,$g)");
 
-    croak "Colour argument must be a Gtk2::Gdk::Color object\n"
-      if not blessed ($colour) eq 'Gtk2::Gdk::Color';
+    croak "Colour argument must be a Gtk3::Gdk::RGBA object\n"
+      if not $colour->isa('Gtk3::Gdk::RGBA');
 
     $self->{colour_excluded_cell} = $colour;
 }
@@ -961,15 +771,20 @@ sub on_set_excluded_cell_colour {
 sub get_colour_from_chooser {
     my ($self, $colour) = @_;
 
-    my $dialog = Gtk2::ColorSelectionDialog->new ('Select a colour');
-    my $selector = $dialog->colorsel;  #  get_color_selection?
+    my $dialog = Gtk3::ColorSelectionDialog->new ('Select a colour');
+    my $selector = $dialog->get_color_selection;
 
     if ($colour) {
-        $selector->set_current_color ($colour);
+        if ($colour->isa('Gtk3::Gdk::Color')) {
+            $selector->set_current_color($colour);
+        }
+        else {
+            $selector->set_current_rgba($colour);
+        }
     }
 
     if ($dialog->run eq 'ok') {
-        $colour = $selector->get_current_color;
+        $colour = $selector->get_current_rgba;
     }
     $dialog->destroy;
 
@@ -1015,8 +830,7 @@ sub on_set_tree_line_widths {
         default    => $self->{dendrogram}->{branch_line_width} // 0,
         min        => 0,
         max        => 15,
-        label_text => "Branch line thickness in pixels\n"
-                    . 'Does not affect the vertical connectors',
+        label_text => "Branch line thickness in pixels",
         tooltip    => 'Set to zero to let the system calculate a default',
     };
     bless $props, $parameter_metadata_class;
@@ -1024,7 +838,7 @@ sub on_set_tree_line_widths {
     my $parameters_table = Biodiverse::GUI::ParametersTable->new;
     my ($spinner, $extractor) = $parameters_table->generate_integer ($props);
 
-    my $dlg = Gtk2::Dialog->new_with_buttons (
+    my $dlg = Gtk3::Dialog->new_with_buttons (
         'Set branch width',
         undef,
         'destroy-with-parent',
@@ -1032,8 +846,8 @@ sub on_set_tree_line_widths {
         'gtk-cancel' => 'cancel',
     );
 
-    my $hbox  = Gtk2::HBox->new;
-    my $label = Gtk2::Label->new($props->{label_text});
+    my $hbox  = Gtk3::HBox->new;
+    my $label = Gtk3::Label->new($props->{label_text});
     $hbox->pack_start($label,   0, 0, 1);
     $hbox->pack_start($spinner, 0, 0, 1);
     $spinner->set_tooltip_text ($props->get_tooltip);
@@ -1120,7 +934,7 @@ sub update_export_menu {
     my $export_menu = $self->{export_menu};
 
     if (!$export_menu) {
-        $export_menu  = Gtk2::MenuItem->new_with_label('Export');
+        $export_menu  = Gtk3::MenuItem->new_with_label('Export');
         $menubar->append($export_menu);
         $self->{export_menu} = $export_menu;
     }
@@ -1130,13 +944,13 @@ sub update_export_menu {
         $export_menu->set_sensitive(0);
     }
     else {
-        my $submenu = Gtk2::Menu->new;
+        my $submenu = Gtk3::Menu->new;
         # Get the Parameters metadata
         my $metadata = $output_ref->get_metadata (sub => 'export');
         my $format_labels = $metadata->get_format_labels;
         foreach my $label (sort keys %$format_labels) {
             next if !$label;
-            my $menu_item = Gtk2::MenuItem->new($label);
+            my $menu_item = Gtk3::MenuItem->new($label);
             $submenu->append($menu_item);
             $menu_item->signal_connect_swapped(
                 activate => \&do_export, [$self, $label],
@@ -1194,9 +1008,9 @@ sub update_tree_menu {
     my $tree_menu = $self->{tree_menu};
 
     if (!$tree_menu) {
-        my $sep = Gtk2::SeparatorMenuItem->new;
+        my $sep = Gtk3::SeparatorMenuItem->new;
         $menubar->append($sep);
-        $tree_menu = Gtk2::MenuItem->new_with_label('Tree');
+        $tree_menu = Gtk3::MenuItem->new_with_label('Tree');
         $menubar->append($tree_menu);
         $self->{tree_menu} = $tree_menu;
     }
@@ -1206,7 +1020,7 @@ sub update_tree_menu {
         $tree_menu->set_sensitive(0);
     }
     else {
-        my $submenu = Gtk2::Menu->new;
+        my $submenu = Gtk3::Menu->new;
 
         $self->_add_items_to_menu (
             menu  => $submenu,
@@ -1228,17 +1042,17 @@ sub _add_items_to_menu {
 
     ITEM:
     foreach my $item (@menu_items) {
-        my $type = $item->{type} // 'Gtk2::MenuItem';
+        my $type = $item->{type} // 'Gtk3::MenuItem';
 
         if ($type eq 'submenu_radio_group') {
             #  a bit messy
-            my $menu_item = Gtk2::MenuItem->new($item->{label} // ());
+            my $menu_item = Gtk3::MenuItem->new($item->{label} // ());
             if (my $tooltip = $item->{tooltip}) {
                 $menu_item->set_has_tooltip(1);
                 $menu_item->set_tooltip_text($tooltip);
             }
             $menu->append($menu_item);
-            my $radio_submenu = Gtk2::Menu->new;
+            my $radio_submenu = Gtk3::Menu->new;
             $self->_add_items_to_menu(
                 items       => $item->{items},
                 menu        => $radio_submenu, #  temp
@@ -1250,7 +1064,8 @@ sub _add_items_to_menu {
 
         my $menu_item;
         if ($type =~ /Radio/) {
-            $menu_item = $type->new($radio_group, $item->{label} // ());
+            # warn 'FIXME RADIO STUFF';
+            $menu_item = $type->new_with_label($radio_group, $item->{label} // '');
             push @$radio_group, $menu_item;
         }
         else {
@@ -1306,7 +1121,7 @@ EOT
             label => 'Plot branches by',
             items => [
                 {
-                    type     => 'Gtk2::RadioMenuItem',
+                    type     => 'Gtk3::RadioMenuItem',
                     label    => 'Length',
                     event    => 'activate',
                     callback => sub {
@@ -1315,7 +1130,7 @@ EOT
                     },
                 },
                 {
-                    type     => 'Gtk2::RadioMenuItem',
+                    type     => 'Gtk3::RadioMenuItem',
                     label    => 'Depth',
                     event    => 'activate',
                     callback => sub {
@@ -1326,7 +1141,7 @@ EOT
                               . 'This includes those with zero length.'
                 },
                 {
-                    type     => 'Gtk2::RadioMenuItem',
+                    type     => 'Gtk3::RadioMenuItem',
                     label    => 'Equal branch lengths',
                     event    => 'activate',
                     callback => sub {
@@ -1341,7 +1156,7 @@ EOT
                         . 'calculations.'
                 },
                 {
-                    type     => 'Gtk2::RadioMenuItem',
+                    type     => 'Gtk3::RadioMenuItem',
                     label    => 'Range weighted branch lengths',
                     event    => 'activate',
                     callback => sub {
@@ -1356,7 +1171,7 @@ EOT
                         . "calculations."
                 },
                 {
-                    type     => 'Gtk2::RadioMenuItem',
+                    type     => 'Gtk3::RadioMenuItem',
                     label    => 'Range weighted equal branch lengths',
                     event    => 'activate',
                     callback => sub {
@@ -1379,7 +1194,7 @@ EOT
             tooltip => $tooltip_select_by,
             items   => [
                 {
-                    type     => 'Gtk2::RadioMenuItem',
+                    type     => 'Gtk3::RadioMenuItem',
                     label    => 'Length',
                     event    => 'activate',
                     callback => sub {
@@ -1388,7 +1203,7 @@ EOT
                     },
                 },
                 {
-                    type     => 'Gtk2::RadioMenuItem',
+                    type     => 'Gtk3::RadioMenuItem',
                     label    => 'Depth',
                     event    => 'activate',
                     callback => sub {
@@ -1399,15 +1214,14 @@ EOT
             ],
         },
         set_tree_branch_line_widths => {
-            type     => 'Gtk2::MenuItem',
+            type     => 'Gtk3::MenuItem',
             label    => 'Set tree branch line widths',
-            tooltip  => "Set the width of the tree branches.\n"
-                . "Does not affect the vertical connectors.",
+            tooltip  => "Set the width of the tree branches in pixels.",
             event    => 'activate',
             callback => \&on_set_tree_line_widths,
         },
         highlight_groups_on_map => {
-            type     => 'Gtk2::CheckMenuItem',
+            type     => 'Gtk3::CheckMenuItem',
             label    => 'Highlight groups on map',
             tooltip  => 'When hovering the mouse over a tree branch, '
                 . 'highlight the groups on the map in which it is found.',
@@ -1420,7 +1234,7 @@ EOT
             self_key => 'checkbox_show_tree_legend',
         },
         highlight_paths_on_tree => {
-            type     => 'Gtk2::CheckMenuItem',
+            type     => 'Gtk3::CheckMenuItem',
             label    => 'Highlight paths on tree',
             tooltip  => "When hovering over a group on the map, highlight the paths "
                 . "connecting the tips of the tree (that match labels in the group) "
@@ -1433,7 +1247,7 @@ EOT
             active   => 1,
         },
         export_tree => {
-            type     => 'Gtk2::MenuItem',
+            type     => 'Gtk3::MenuItem',
             label    => 'Export tree',
             tooltip  => 'Export the currently displayed tree',
             event    => 'activate',
@@ -1445,7 +1259,7 @@ EOT
             },
         },
         separator => {
-            type  => 'Gtk2::SeparatorMenuItem',
+            type  => 'Gtk3::SeparatorMenuItem',
         },
     };
 
@@ -1454,6 +1268,20 @@ EOT
       if !$item;
 
     return $item;
+}
+
+sub get_phylogeny_hover_text {
+    my ($self, $branch) = @_;
+
+    my $map_text = '<b>Node: </b> ' . $branch->get_name;
+    my $dendro_text = sprintf (
+        '<b>Length: </b>%.4f<b> Elt number range: </b>%d<b> - </b>%d',
+        $branch->get_length, # round to 4 d.p.
+        $branch->get_terminal_node_first_number // '',
+        $branch->get_terminal_node_last_number // '',
+    );
+
+    return ($map_text, $dendro_text);
 }
 
 

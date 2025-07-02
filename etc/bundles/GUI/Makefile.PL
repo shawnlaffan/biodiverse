@@ -36,7 +36,7 @@ WriteMakefile(
         "ExtUtils::Depends" => "0",
         "ExtUtils::PkgConfig" => "0",
         "Glib" => "0",
-        "Gtk2" => "0",
+        "Gtk3" => "0",
         "Pango" => "0",
     },
     TEST_REQUIRES => {

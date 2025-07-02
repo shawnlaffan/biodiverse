@@ -364,9 +364,12 @@ sub metadata_for_calc_endemism_hier_part {
         if $endemism_type ne 'central' && $endemism_type ne 'whole';
     
     #  how many levels in the hierarchy?
-    my $bd         = $self->get_basedata_ref;
-    my $labels_ref = $bd->get_labels_ref;
-    my $axes       = $labels_ref->get_cell_sizes;
+    #  sometimes we don't have a basedata
+    my $axes = [1];
+    if (my $bd = $self->get_basedata_ref) {
+        my $labels_ref = $bd->get_labels_ref;
+        $axes = $labels_ref->get_cell_sizes;
+    }
     my $hier_max   = scalar @$axes - 1;
     
     my $indices = {};

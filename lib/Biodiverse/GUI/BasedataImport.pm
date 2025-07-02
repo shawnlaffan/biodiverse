@@ -8,7 +8,7 @@ use experimental qw /declared_refs refaliasing/;
 
 use Carp;
 
-our $VERSION = '4.99_002';
+our $VERSION = '4.99_003';
 
 use File::Basename;
 use Gtk3;

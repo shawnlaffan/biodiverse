@@ -9,7 +9,7 @@ use 5.016;
 
 use parent qw /Biodiverse::Metadata/;
 
-our $VERSION = '4.99_002';
+our $VERSION = '4.99_003';
 
 
 #  Poss too many, but we are a catch-all class.

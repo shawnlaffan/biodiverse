@@ -17,7 +17,7 @@ use List::MoreUtils qw /minmax/;
 
 use Biodiverse::Progress;
 
-our $VERSION = '4.99_002';
+our $VERSION = '4.99_003';
 
 sub new {
     my $class = shift;

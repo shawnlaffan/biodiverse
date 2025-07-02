@@ -8,7 +8,7 @@ use Ref::Util qw /is_hashref/;
 
 use parent qw /Biodiverse::Metadata/;
 
-our $VERSION = '4.99_002';
+our $VERSION = '4.99_003';
 
 Readonly my %methods_and_defaults => (
     name           => 'no_name',

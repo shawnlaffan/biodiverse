@@ -9,7 +9,7 @@ use Carp;
 
 use parent qw /Biodiverse::SpatialParams Biodiverse::Common/;
 
-our $VERSION = '4.99_002';
+our $VERSION = '4.99_003';
 
 sub get_type {return 'definition query'};
 

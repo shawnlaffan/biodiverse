@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.016;
 
-our $VERSION = '4.99_002';
+our $VERSION = '4.99_003';
 
 use parent qw /Biodiverse::Metadata/;
 

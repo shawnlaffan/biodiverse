@@ -477,19 +477,21 @@ sub stop_panning {
     state $def_pan_frac = 0.01;
     sub do_pan_up {
         my ($self) = @_;
-        $self->pan_frac(0, -$def_pan_frac);
+        my $mult = $self->plot_bottom_up ? 1 : -1;
+        $self->pan_frac(0, $mult * $def_pan_frac);
     }
     sub do_pan_down {
         my ($self) = @_;
-        $self->pan_frac(0, $def_pan_frac);
+        my $mult = $self->plot_bottom_up ? -1 : 1;
+        $self->pan_frac(0, $mult * $def_pan_frac);
     }
     sub do_pan_left {
         my ($self) = @_;
-        $self->pan_frac($def_pan_frac, 0);
+        $self->pan_frac(-$def_pan_frac, 0);
     }
     sub do_pan_right {
         my ($self) = @_;
-        $self->pan_frac(-$def_pan_frac, 0);
+        $self->pan_frac($def_pan_frac, 0);
     }
 }
 

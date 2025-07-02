@@ -287,8 +287,27 @@ sub get_element_list_sorted {
     my $self = shift;
     my %args = @_;
 
-    my @list = $args{list} ? @{$args{list}} : $self->get_element_list;
-    my @array = sort {$self->sort_by_axes ($a, $b)} @list;
+    my @list = exists $args{list} ? @{$args{list} // []} : $self->get_element_list;
+
+    my $axes = $self->get_cell_sizes;
+    my $sort_sub = sub {
+        my ($a, $b) = @_;
+        my $res;
+        foreach my $i (0 .. $#$axes) {
+            $res = $axes->[$i] < 0
+                ? $a->[$i] cmp $b->[$i]
+                : $a->[$i] <=> $b->[$i];
+
+            return $res if $res;
+        }
+        return 0;
+    };
+
+    my @array
+        = map {$_->[-1]}
+        sort {$sort_sub->($a, $b)}
+            map {[$self->get_element_name_as_array_aa($_), $_]}
+                @list;
 
     return wantarray ? @array : \@array;
 }

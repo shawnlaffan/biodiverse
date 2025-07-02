@@ -1,10 +1,12 @@
 package Biodiverse::GUI::Tabs::Randomise;
 
-use 5.020;
+use 5.036;
 use strict;
 use warnings;
 use Carp;
 use English ( -no_match_vars );
+
+use experimental qw /for_list/;
 
 use Gtk3;
 use Biodiverse::Randomise;

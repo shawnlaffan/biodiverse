@@ -461,9 +461,10 @@ sub find_neighbours {
         element_list1 => $nbr_list[0],
         element_list2 => $nbr_list[1],
     );
-    $ABC{element_list1} = $nbr_list[0];
-    $ABC{element_list2} = $nbr_list[1];
-    
+    my $gp = $basedata_ref->get_groups_ref;
+    $ABC{element_list1} = $gp->get_element_list_sorted (list => $nbr_list[0]);
+    $ABC{element_list2} = defined $nbr_list[1] ? $gp->get_element_list_sorted (list => $nbr_list[1]) : $nbr_list[1];
+
     return \%ABC;
 }
 

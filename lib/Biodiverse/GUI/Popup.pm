@@ -243,15 +243,19 @@ sub find_selected_source {
     my $search_name = shift || return;
     my $iter = $sources_model->get_iter_first;
 
+    my $found;
     while ($iter) {
 
         my $name = $sources_model->get($iter, SOURCES_MODEL_NAME);
-        last if ($name eq $search_name);
+        if ($name eq $search_name) {
+            $found++;
+            last;
+        };
 
         last if !$sources_model->iter_next($iter);
     }
 
-    return $iter;
+    return $found ? $iter : undef;
 }
 
 

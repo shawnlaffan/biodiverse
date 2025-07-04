@@ -4,16 +4,17 @@ branches:
 skip_tags: true
 
 cache:
-  - C:\Strawberry538
+  - C:\Strawberry540
   #- C:\Strawberry -> appveyor.yml
 
 environment:
   PERL_CPANM_HOME: c:\cpanm
 
 install:
-  - set ST=C:\Strawberry538
+  - set ST=C:\Strawberry540
   - if exist %ST% del /Q %ST%
-  - if not exist %ST% appveyor-retry choco install strawberryperl --version 5.38.0 --install-arguments="INSTALLDIR=""C:\Strawberry538"""
+#  - if not exist %ST% appveyor-retry choco install strawberryperl --version 5.40.2 --install-arguments="INSTALLDIR=""C:\Strawberry540"""
+  - if not exist %ST% appveyor-retry choco install strawberryperl --install-arguments="INSTALLDIR=""C:\Strawberry540"""
 #  - appveyor-retry choco upgrade strawberryperl --version 5.38.0
   - refreshenv
   - set PATH=%ST%\perl\bin;%ST%\perl\site\bin;%ST%\c\bin;%PATH%
@@ -37,6 +38,8 @@ install:
   
   - cpanm -v --notest Alien::sqlite
   - cpanm -v --notest Alien::geos::af
+  - set ALIEN_INSTALL_TYPE=share
+  - where libtiff*.dll
   - cpanm -v Alien::libtiff
   - cpanm -v Alien::proj
   
@@ -44,11 +47,10 @@ install:
   - cpanm -v Alien::gdal
 
   - cpanm --notest --installdeps .
-  - cpanm --installdeps .
-  #  for debugging purposes
+#  - cpanm --installdeps .
+#  #  for debugging purposes
   - set TEST_VERBOSE=1
-  - cpanm --reinstall --verbose Geo::GDAL::FFI
-
+  - cpanm --verbose https://github.com/ajolma/Geo-GDAL-FFI.git
 
 build_script:
 #  - prove -lv t\11-BaseData-import-feature-data.t t\11-BaseData.t

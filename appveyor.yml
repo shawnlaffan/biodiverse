@@ -45,9 +45,14 @@ install:
 
   - cpanm --notest --installdeps .
   - cpanm --installdeps .
+  #  for debugging purposes
+  - set TEST_VERBOSE=1
+  - cpanm --reinstall --verbose Geo::GDAL::FFI
 
 
 build_script:
-  - prove -l
-#  - perl -e "1"
+#  - prove -lv t\11-BaseData-import-feature-data.t t\11-BaseData.t
+#  - prove -l
+#  disable when modules are cached
+  - perl -e "1"
 

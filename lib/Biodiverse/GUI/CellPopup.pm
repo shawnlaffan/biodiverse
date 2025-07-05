@@ -356,10 +356,9 @@ sub show_output_list {
         #  sort differently if list elements are numbers or text
         my $numeric = 1;
         foreach my $key (keys %$list_ref) {
-            if (! looks_like_number ($key)) {
-                $numeric = 0;
-                last;
-            }
+            next if looks_like_number $key;
+            $numeric = 0;
+            last;
         }
         #my $sort_sub = sub {$a cmp $b};
         #if ($numeric) {
@@ -381,16 +380,10 @@ sub show_output_list {
     elsif (is_arrayref($list_ref)) {
         my $numeric = 1;
         foreach my $key (@$list_ref) {
-            if (! looks_like_number ($key)) {
-                $numeric = 0;
-                last;
-            }
+            next if looks_like_number $key;
+            $numeric = 0;
+            last;
         }
-        #my $sort_sub = sub {$a cmp $b};
-        #if ($numeric) {
-        #    $sort_sub = sub {$a <=> $b};
-        #}
-        #my @keys = sort $sort_sub @$list_ref;
         
         my @keys = $numeric
             ? sort {$a <=> $b} @$list_ref
@@ -461,9 +454,10 @@ sub find_neighbours {
         element_list1 => $nbr_list[0],
         element_list2 => $nbr_list[1],
     );
-    $ABC{element_list1} = $nbr_list[0];
-    $ABC{element_list2} = $nbr_list[1];
-    
+    my $gp = $basedata_ref->get_groups_ref;
+    $ABC{element_list1} = $gp->get_element_list_sorted (list => $nbr_list[0]);
+    $ABC{element_list2} = defined $nbr_list[1] ? $gp->get_element_list_sorted (list => $nbr_list[1]) : $nbr_list[1];
+
     return \%ABC;
 }
 

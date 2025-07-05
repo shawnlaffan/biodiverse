@@ -701,6 +701,29 @@ sub get_list_stats {
     return wantarray ? %stats_hash : \%stats_hash;
 }
 
+#  get mean, sd and count for the non-zero branch lengths
+sub get_nonzero_branch_length_stats {
+    my $self = shift;
+
+    my (%lens, $n);
+    foreach my $node ($self->get_node_refs) {
+        $lens{$node->get_length}++;
+        $n++;
+    }
+
+    use Statistics::Descriptive::PDL::SampleWeighted;
+    my $stats = Statistics::Descriptive::PDL::SampleWeighted->new;
+    $stats->add_data(\%lens);
+
+    my %summary_stats = (
+        mean  => $stats->mean,
+        sd    => $stats->sd,
+        count => $n,  #  save some processing?
+    );
+
+    return wantarray ? %summary_stats : \%summary_stats;
+}
+
 #  return 1 if the tree contains a node with the specified name
 sub node_is_in_tree {
     my $self = shift;

@@ -1667,14 +1667,32 @@ sub on_grid_hover {
         my $bd = $bd_ref;
         my (%labels1, %labels2);
 
-        foreach my $nbr_grp (@$nbrs_inner) {
-            my $this_labels = $bd->get_labels_in_group_as_hash_aa ($nbr_grp);
-            @labels1{keys %$this_labels} = values %$this_labels;
+        my $gp_count = $bd->get_group_count;
+        my $lb_count = $bd->get_label_count - $bd->get_rangeless_label_count;
+
+        #  Some conditions select all groups, e.g. sp_select_all()
+        #  in which case we can just grab the full set of labels
+        #  that have ranges.
+        if ($gp_count == @$nbrs_inner) {
+            #  this caches internally
+            my $labels = $bd->get_labels_with_nonzero_ranges;
+            @labels1{@$labels} = (1) x @$labels;
+        }
+        else {
+            foreach my $nbr_grp (@$nbrs_inner) {
+                my $this_labels = $bd->get_labels_in_group_as_hash_aa($nbr_grp);
+                @labels1{keys %$this_labels} = values %$this_labels;
+                #  early finish if all possible paths are to be highlighted
+                last if keys %labels1 == $lb_count;
+            }
         }
         foreach my $nbr_grp (@$nbrs_outer) {
             my $this_labels = $bd->get_labels_in_group_as_hash_aa ($nbr_grp);
             @labels2{keys %$this_labels} = values %$this_labels;
+            #  early finish if all possible paths are to be highlighted
+            last if keys %labels2 == $lb_count;
         }
+
 
         $self->highlight_paths_on_dendrogram ([\%labels1, \%labels2], $group);
     }

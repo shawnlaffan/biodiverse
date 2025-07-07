@@ -59,6 +59,52 @@ sub callback_order {
 
 sub plot_bottom_up {!!0};
 
+sub _on_selection_release {
+    my ($self, $x, $y) = @_;
+
+    return FALSE if $self->in_zoom_mode;
+
+    my $f = $self->{select_func};
+    if ($f && $self->{selecting}) {
+        my @rect = ($self->{sel_start_x}, $self->{sel_start_y}, $x, $y);
+        if ($rect[0] > $rect[2]) {
+            @rect[0,2] = @rect[2,0];
+        }
+        if ($rect[1] > $rect[3]) {
+            @rect[3,1] = @rect[1,3];
+        }
+
+        my ($x1, $y1) = $self->map_to_cell_coord(@rect[0, 1]);
+        my ($x2, $y2) = $self->map_to_cell_coord(@rect[2, 3]);
+
+        #  save some looping if clicks are outside the bounds
+        $x1 = $x2 if $x2 < $self->xmin;
+        $y1 = $y2 if $y2 < $self->ymin;
+        $x2 = $x1 if $x1 > $self->xmax;
+        $y2 = $y1 if $y1 > $self->ymax;
+
+        ($x1, $x2, $y1, $y2) = map {floor $_} ($x1, $x2, $y1, $y2);
+
+        my \@elements;
+        #  must have one corner of the rectangle on the grid
+        if (($x1 <= $self->xmax && $x2 >= $self->xmin) && ($y1 <= $self->ymax && $y2 >= $self->ymin)) {
+            foreach my $xx ($x1 .. $x2) {
+                foreach my $yy ($y1 .. $y2) {
+                    my $id = "$xx:$yy";
+                    my $ref = $self->{data}{$id}
+                        // next;
+                    push @elements, $ref;
+                }
+            }
+        }
+
+        # call callback, using snapped event coords
+        $f->(\@elements, undef, [$x1, $y1, $x2, $y2]);
+    }
+
+    return FALSE;
+}
+
 sub set_row_labels {
     my ($self, $labels) = @_;
     die 'number of row labels does not match matrix grid'
@@ -108,13 +154,6 @@ sub init_data {
             $data{$key}{rgb} = $default_rgb;
             $data{$key}{element} = $key;
         }
-    }
-
-    #  now build an rtree - random order is faster, hence it is outside the initial allocation
-    say "[Matrix] Building R-Tree index";
-    my $rtree = $self->{rtree} = Tree::R->new;
-    foreach my $key (keys %data) {
-        $rtree->insert($data{$key}, @{ $data{$key}{bounds} });
     }
 
     return $self->{data} = \%data;

@@ -219,14 +219,25 @@ sub draw_cells_cb {
     my $draw_borders = $self->get_cell_show_outline;
     my @borders;
 
+    my $default_rgb = [1,1,1];
+
+    my $last_rgba = '';
+    my $last_rgb = '';
+
     foreach my $href (values %$data) {
         \my @rect = $href->{rect};
         if (my $rgba = $href->{rgba}) {
-            $context->set_source_rgba(@$rgba);
+            if ($rgba ne $last_rgba) {
+                $context->set_source_rgba(@$rgba);
+                $last_rgba = $rgba;
+            };
         }
         else {
-            my $rgb = $href->{rgb} // [1,1,1];  #  should use a default
-            $context->set_source_rgb(@$rgb);
+            my $rgb = $href->{rgb} // $default_rgb;
+            if ($rgb ne $last_rgb) {
+                $context->set_source_rgb(@$rgb);
+                $last_rgb = $rgb;
+            };
         }
         $context->rectangle(@rect);
         $context->fill;

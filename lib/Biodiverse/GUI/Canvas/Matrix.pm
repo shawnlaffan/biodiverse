@@ -85,7 +85,7 @@ sub _on_selection_release {
 
         ($x1, $x2, $y1, $y2) = map {floor $_} ($x1, $x2, $y1, $y2);
 
-        my \@elements;
+        my @elements;
         #  must have one corner of the rectangle on the grid
         if (($x1 <= $self->xmax && $x2 >= $self->xmin) && ($y1 <= $self->ymax && $y2 >= $self->ymin)) {
             foreach my $xx ($x1 .. $x2) {

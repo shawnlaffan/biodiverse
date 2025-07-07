@@ -223,33 +223,40 @@ sub draw_cells_cb {
     $context->set_line_width($c);
 
     my $data = $self->{data};
-    my $draw_borders = $self->get_cell_show_outline;
 
     my $default_rgb = [1,1,1];
 
-    my %by_colour;
+    my (%by_colour, %colours, %colours_rgba);
     for my $href (values %$data) {
-        my $aref = $by_colour{$href->{rgba} // $href->{rgb} // $default_rgb} //= [];
-        push @$aref, $href;
+        my $colour = $href->{rgba};
+        if (defined $colour) {
+            $colours_rgba{$colour} = $colour
+        }
+        else {
+            $colour = $href->{rgb} // $default_rgb;
+            $colours{$colour} = $colour;
+        };
+        my $aref = $by_colour{$colour} //= [];
+        push @$aref, $href->{rect};
     }
 
-    foreach my $aref (values %by_colour) {
-        my $href1 = $aref->[0];
-        if (my $rgba = $href1->{rgba}) {
+    foreach my ($colour_key, $aref) (%by_colour) {
+        if (my $rgba = $colours_rgba{$colour_key}) {
             $context->set_source_rgba(@$rgba);
         }
         else {
-            my $rgb = $href1->{rgb} // $default_rgb;
+            my $rgb = $colours{$colour_key};
             $context->set_source_rgb(@$rgb);
         }
-        $context->rectangle(@{$_->{rect}}) foreach @$aref;
+        $context->rectangle(@$_) foreach @$aref;
         $context->fill;
     }
 
-    if ($draw_borders) {
+    if ($self->get_cell_show_outline) {
         my @outline_colour = $self->rgba_to_cairo ($self->get_cell_outline_colour);
         $context->set_source_rgb(@outline_colour);
-        $context->rectangle(@{$_->{rect}}) foreach values %$data;
+        \my @borders = $self->{border_rects};
+        $context->rectangle(@$_) foreach @borders;
         $context->stroke;
     }
 
@@ -466,6 +473,8 @@ sub set_base_struct {
         $data{$key}{element}  = $element;
         $elements{$element}   = $key;
     }
+
+    $self->{border_rects} = [map {$_->{rect}} values %data];
 
     my ($min_x, $max_x, $min_y, $max_y) = $self->get_data_extents();
 

@@ -161,6 +161,8 @@ sub init_data {
         }
     }
 
+    $self->{border_rects} = [map {$_->{rect}} values %data];
+
     return $self->{data} = \%data;
 }
 

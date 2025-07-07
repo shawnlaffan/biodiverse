@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.036;
 
-our $VERSION = '4.99_004';
+our $VERSION = '4.99_005';
 
 use Tree::R;
 use POSIX qw /floor/;

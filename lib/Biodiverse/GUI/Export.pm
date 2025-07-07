@@ -16,7 +16,7 @@ use Cwd;
 use List::MoreUtils qw /any none/;
 use Path::Tiny qw /path/;
 
-our $VERSION = '4.99_004';
+our $VERSION = '4.99_005';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::ParametersTable;

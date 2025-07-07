@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.036;
 
-our $VERSION = '4.99_003';
+our $VERSION = '4.99_004';
 
 use experimental qw /refaliasing declared_refs for_list/;
 use Glib qw/TRUE FALSE/;
@@ -32,6 +32,13 @@ sub new {
 sub callback_order {
     my $self = shift;
     return (qw /draw/);
+}
+
+sub cairo_draw {
+    my $self = shift;
+    return if !$self->get_tree_canvas->get_current_tree;
+
+    return $self->SUPER::cairo_draw(@_);
 }
 
 sub set_tree_canvas {

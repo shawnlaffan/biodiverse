@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.036;
 
-our $VERSION = '4.99_003';
+our $VERSION = '4.99_004';
 
 use experimental qw /refaliasing declared_refs for_list/;
 use Glib qw/TRUE FALSE/;
@@ -27,7 +27,7 @@ sub new {
     my $size = @$row_labels;
 
     #  This aligns cell labels on the coords
-    my $dim_max = $size + 0.5;
+    my $dim_max = $size - 0.5;
     my $dim_min = -0.5;
 
     $self->init_dims (
@@ -59,6 +59,52 @@ sub callback_order {
 
 sub plot_bottom_up {!!0};
 
+sub _on_selection_release {
+    my ($self, $x, $y) = @_;
+
+    return FALSE if $self->in_zoom_mode;
+
+    my $f = $self->{select_func};
+    if ($f && $self->{selecting}) {
+        my @rect = ($self->{sel_start_x}, $self->{sel_start_y}, $x, $y);
+        if ($rect[0] > $rect[2]) {
+            @rect[0,2] = @rect[2,0];
+        }
+        if ($rect[1] > $rect[3]) {
+            @rect[3,1] = @rect[1,3];
+        }
+
+        my ($x1, $y1) = $self->map_to_cell_coord(@rect[0, 1]);
+        my ($x2, $y2) = $self->map_to_cell_coord(@rect[2, 3]);
+
+        #  save some looping if clicks are outside the bounds
+        $x1 = $x2 if $x2 < $self->xmin;
+        $y1 = $y2 if $y2 < $self->ymin;
+        $x2 = $x1 if $x1 > $self->xmax;
+        $y2 = $y1 if $y1 > $self->ymax;
+
+        ($x1, $x2, $y1, $y2) = map {floor $_} ($x1, $x2, $y1, $y2);
+
+        my \@elements;
+        #  must have one corner of the rectangle on the grid
+        if (($x1 <= $self->xmax && $x2 >= $self->xmin) && ($y1 <= $self->ymax && $y2 >= $self->ymin)) {
+            foreach my $xx ($x1 .. $x2) {
+                foreach my $yy ($y1 .. $y2) {
+                    my $id = "$xx:$yy";
+                    my $ref = $self->{data}{$id}
+                        // next;
+                    push @elements, $ref;
+                }
+            }
+        }
+
+        # call callback, using snapped event coords
+        $f->(\@elements, undef, [$x1, $y1, $x2, $y2]);
+    }
+
+    return FALSE;
+}
+
 sub set_row_labels {
     my ($self, $labels) = @_;
     die 'number of row labels does not match matrix grid'
@@ -86,16 +132,25 @@ sub init_data {
     return $self->{data}
         if $self->{data};
 
+    #  avoid generating data if we have no matrix
+    return if !$self->{current_matrix};
+
     my %data;
     my @cellsizes = @{$self->{cellsizes}};  #  always (1,1)
     my $cell2     = 0.5;
+    my $max_iter = $self->get_size - 1;
+
+    my ($x_origin, $y_origin) = $self->cell_to_map_centroid(0, 0);
 
     my $default_rgb = [(0.8) x 3];
-    foreach my $col (0 .. $self->get_size-1) {
-        foreach my $row (0 .. $self->get_size-1) {
-            my $key = join ':', $col, $row;
-            my ($x, $y) = $self->cell_to_map_centroid($col, $row);
 
+    my $x = $x_origin - 1;  #  start one back as we increment early
+    foreach my $col (0 .. $max_iter) {
+        $x++;
+        my $y = $y_origin - 1;
+        foreach my $row (0 .. $max_iter) {
+            $y++;
+            my $key = join ':', $col, $row;
             my $bounds = [ $x - $cell2, $y - $cell2, $x + $cell2, $y + $cell2 ];
             $data{$key}{coord} = [$x, $y];
             $data{$key}{bounds} = $bounds;
@@ -106,11 +161,7 @@ sub init_data {
         }
     }
 
-    #  now build an rtree - random order is faster, hence it is outside the initial allocation
-    my $rtree = $self->{rtree} = Tree::R->new;
-    foreach my $key (keys %data) {
-        $rtree->insert($data{$key}, @{ $data{$key}{bounds} });
-    }
+    $self->{border_rects} = [map {$_->{rect}} values %data];
 
     return $self->{data} = \%data;
 }
@@ -181,13 +232,13 @@ sub draw_cells_cb {
 sub recolour {
     my ($self) = @_;
 
-    state @default_colour = ((0.8) x 3);
+    state $default_colour = [(0.8) x 3];
 
     my $mx = $self->get_current_matrix;
     return if !$mx;
 
-    my $data = $self->{data};
-    return if !keys %$data;
+    \my %data = ($self->{data} // {});
+    return if !keys %data;
 
     my $legend = $self->legend;
 
@@ -200,6 +251,9 @@ sub recolour {
     my $highlight_cols = keys %col_highlights;
     my $do_h = $highlight_rows && $highlight_cols;
 
+    state %rgb_cache;
+    state %rgba_cache;
+
     my $x = -1;
     for my $col_label (@$col_labels) {
         $x++;
@@ -208,17 +262,22 @@ sub recolour {
         ROW:
         for my $row_label (@$row_labels) {
             $y++;
-            my $val = $mx->get_defined_value_aa ($col_label, $row_label);
-            my @colour = defined $val
-                ? $self->rgb_to_array($legend->get_colour($val))
-                : @default_colour;
+            my $val = $mx->get_defined_value_aa($col_label, $row_label);
+            \my @colour = defined $val
+                ? $rgb_cache{sprintf "%.4g", $val} //= do {
+                    my $c = $legend->get_colour($val);
+                    [$c->red, $c->green, $c->blue]
+                }
+                : $default_colour;
             my $alpha
                 = $do_h
                 ? ($highlight_col && $row_highlights{$row_label}) ? 1 : 0.4
                 : 1;
-            $data->{"$x:$y"}->{rgba} = [@colour, $alpha];
+            $data{"$x:$y"}->{rgba} = $rgba_cache{$alpha}{join ':', @colour} //= [@colour, $alpha];
         }
     }
+
+    $self->set_colours_last_used_for_plotting(undef);
 
     return;
 }

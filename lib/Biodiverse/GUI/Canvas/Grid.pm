@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use 5.036;
 
-our $VERSION = '4.99_003';
+our $VERSION = '4.99_004';
 
 use experimental qw /refaliasing declared_refs for_list/;
 use Glib qw/TRUE FALSE/;
@@ -213,30 +213,64 @@ sub _get_data {
 sub draw_cells_cb {
     my ($self, $context) = @_;
 
-    $context->set_line_width(max($self->{cellsizes}[0] / 100));
+    #  somewhat clunky but we otherwise cannot see the boundaries for large data sets
+    my $c = $self->{cellsizes}[0] / 100;
+    if (!$self->isa('Biodiverse::GUI::Canvas::Matrix')) {
+        my @d2 = $context->device_to_user_distance (0.15,0.15);
+        $c = max($d2[0], $c);
+    }
+
+    $context->set_line_width($c);
 
     my $data = $self->{data};
-    my $draw_borders = $self->get_cell_show_outline;
-    my @borders;
 
-    foreach my $href (values %$data) {
-        \my @rect = $href->{rect};
-        if (my $rgba = $href->{rgba}) {
+    my $default_rgb = [1,1,1];
+
+    my (%by_colour, %colours, %colours_rgba);
+    #  avoid rebuilding the colours if they have not changed
+    if (my $cache = $self->get_colours_last_used_for_plotting) {
+        \%by_colour    = $cache->{by_colour};
+        \%colours      = $cache->{colours};
+        \%colours_rgba = $cache->{colours_rgba};
+    }
+    else {
+        for my \%elt_hash (values %$data) {
+            my $colour = $elt_hash{rgba};
+            if (defined $colour) {
+                $colours_rgba{$colour} = $colour
+            }
+            else {
+                $colour = $elt_hash{rgb} // $default_rgb;
+                $colours{$colour} = $colour;
+            };
+            my $aref = $by_colour{$colour} //= [];
+            push @$aref, $elt_hash{rect};
+        }
+        $self->set_colours_last_used_for_plotting (
+            {
+                by_colour    => \%by_colour,
+                colours      => \%colours,
+                colours_rgba => \%colours_rgba,
+            }
+        );
+    }
+
+    foreach my ($colour_key, $aref) (%by_colour) {
+        if (my $rgba = $colours_rgba{$colour_key}) {
             $context->set_source_rgba(@$rgba);
         }
         else {
-            my $rgb = $href->{rgb} // [1,1,1];  #  should use a default
+            my $rgb = $colours{$colour_key};
             $context->set_source_rgb(@$rgb);
         }
-        $context->rectangle(@rect);
+        $context->rectangle(@$_) foreach @$aref;
         $context->fill;
-        push @borders, $href->{rect}
-          if $draw_borders;
     }
 
-    if ($draw_borders) {
+    if ($self->get_cell_show_outline) {
         my @outline_colour = $self->rgba_to_cairo ($self->get_cell_outline_colour);
         $context->set_source_rgb(@outline_colour);
+        \my @borders = $self->{border_rects};
         $context->rectangle(@$_) foreach @borders;
         $context->stroke;
     }
@@ -455,6 +489,8 @@ sub set_base_struct {
         $elements{$element}   = $key;
     }
 
+    $self->{border_rects} = [map {$_->{rect}} values %data];
+
     my ($min_x, $max_x, $min_y, $max_y) = $self->get_data_extents();
 
     $self->init_dims (
@@ -568,7 +604,23 @@ sub colour {
         $cell->{rgb} = [$self->rgb_to_array($colour_ref)];
     }
 
+    #  clear this
+    $self->set_colours_last_used_for_plotting (undef);
+
     return;
+}
+
+{
+    state $cache_name = 'last_colours_used_for_colouring';
+    sub set_colours_last_used_for_plotting {
+        my ($self, $val) = @_;
+        return $self->set_cached_value ($cache_name => $val);
+    }
+
+    sub get_colours_last_used_for_plotting {
+        my ($self) = @_;
+        return $self->get_cached_value ($cache_name);
+    }
 }
 
 sub get_legend_hue {

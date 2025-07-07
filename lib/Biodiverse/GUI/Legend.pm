@@ -23,7 +23,7 @@ use Tree::R;
 
 #use Geo::ShapeFile;
 
-our $VERSION = '4.99_003';
+our $VERSION = '4.99_004';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::CellPopup;
@@ -1405,7 +1405,7 @@ sub rescale_grey {
     $value += DARKEST_GREY_FRAC;
     $value *= $max;
 
-    return $value;
+    return int $value;
 }
 
 #  flip the colour ranges if true

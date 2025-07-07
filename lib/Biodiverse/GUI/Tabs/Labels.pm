@@ -31,7 +31,7 @@ use Biodiverse::GUI::Canvas::Tree;
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
-our $VERSION = '4.99_003';
+our $VERSION = '4.99_004';
 
 use parent qw {
     Biodiverse::GUI::Tabs::Tab
@@ -1222,6 +1222,25 @@ sub on_grid_hover {
     #  don't pollute the original hash
     my %highlights;
     @highlights{keys %$labels} = (1) x keys %$labels;
+
+    my $node_ref;
+
+    LABEL:
+    foreach my $label (keys %$labels) {
+        # Might not match some or all nodes
+        my $success = eval {
+            $node_ref = $tree->get_node_ref_aa ($label);
+        };
+        next LABEL if !$success;
+        # set path to highlighted colour
+        NODE:
+        while ($node_ref = $node_ref->get_parent) {
+            my $node_name = $node_ref->get_name;
+            last NODE if $highlights{$node_name};
+            $highlights{$node_name} ++;
+        }
+    }
+
     $self->{dendrogram}->set_branch_highlights (\%highlights);
 
     return;

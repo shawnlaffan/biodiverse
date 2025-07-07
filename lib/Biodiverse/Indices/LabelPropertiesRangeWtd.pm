@@ -6,7 +6,7 @@ use experimental 'for_list';
 
 use Carp;
 
-our $VERSION = '4.99_003';
+our $VERSION = '4.99_004';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 

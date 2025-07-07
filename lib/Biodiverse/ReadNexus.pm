@@ -19,7 +19,7 @@ use Biodiverse::TreeNode;
 use Biodiverse::Exception;
 use Biodiverse::Progress;
 
-our $VERSION = '4.99_003';
+our $VERSION = '4.99_004';
 
 use parent qw /Biodiverse::Common/;
 

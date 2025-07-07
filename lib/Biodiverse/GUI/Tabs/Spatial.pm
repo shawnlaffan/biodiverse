@@ -5,7 +5,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '4.99_003';
+our $VERSION = '4.99_004';
 
 use Gtk3;
 use Carp;

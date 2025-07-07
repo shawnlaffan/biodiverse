@@ -86,13 +86,17 @@ sub init_data {
     return $self->{data}
         if $self->{data};
 
+    #  avoid generating data if we have no matrix
+    return if !$self->{current_matrix};
+
     my %data;
     my @cellsizes = @{$self->{cellsizes}};  #  always (1,1)
     my $cell2     = 0.5;
+    my $max_iter = $self->get_size - 1;
 
     my $default_rgb = [(0.8) x 3];
-    foreach my $col (0 .. $self->get_size-1) {
-        foreach my $row (0 .. $self->get_size-1) {
+    foreach my $col (0 .. $max_iter) {
+        foreach my $row (0 .. $max_iter) {
             my $key = join ':', $col, $row;
             my ($x, $y) = $self->cell_to_map_centroid($col, $row);
 
@@ -107,6 +111,7 @@ sub init_data {
     }
 
     #  now build an rtree - random order is faster, hence it is outside the initial allocation
+    say "[Matrix] Building R-Tree index";
     my $rtree = $self->{rtree} = Tree::R->new;
     foreach my $key (keys %data) {
         $rtree->insert($data{$key}, @{ $data{$key}{bounds} });

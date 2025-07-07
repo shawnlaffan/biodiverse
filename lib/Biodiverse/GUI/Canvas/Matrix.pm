@@ -140,12 +140,17 @@ sub init_data {
     my $cell2     = 0.5;
     my $max_iter = $self->get_size - 1;
 
-    my $default_rgb = [(0.8) x 3];
-    foreach my $col (0 .. $max_iter) {
-        foreach my $row (0 .. $max_iter) {
-            my $key = join ':', $col, $row;
-            my ($x, $y) = $self->cell_to_map_centroid($col, $row);
+    my ($x_origin, $y_origin) = $self->cell_to_map_centroid(0, 0);
 
+    my $default_rgb = [(0.8) x 3];
+
+    my $x = $x_origin - 1;  #  start one back as we increment early
+    foreach my $col (0 .. $max_iter) {
+        $x++;
+        my $y = $y_origin - 1;
+        foreach my $row (0 .. $max_iter) {
+            $y++;
+            my $key = join ':', $col, $row;
             my $bounds = [ $x - $cell2, $y - $cell2, $x + $cell2, $y + $cell2 ];
             $data{$key}{coord} = [$x, $y];
             $data{$key}{bounds} = $bounds;

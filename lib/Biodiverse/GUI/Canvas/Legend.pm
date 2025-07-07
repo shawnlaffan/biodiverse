@@ -188,10 +188,10 @@ sub draw {
     #  A no-op now but if we don't do it then a line is drawn
     #  to the mouse when hovering on cells.
     if (1) {
-        $cx->set_source_rgb((0.5) x 3);
+        $cx->set_source_rgba((0.5) x 3, 0);  #  transparent so no display
         $cx->set_line_width(2);
         my @rect = ($x_origin, $y_origin, $width, $legend_height);
-        @rect = (0,0,0,0);  #  no-op
+        @rect = (0,0,1,1);  #  no-op
         $cx->rectangle(@rect);
         $cx->stroke;
     }

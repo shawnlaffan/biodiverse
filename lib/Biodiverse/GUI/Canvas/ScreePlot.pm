@@ -34,6 +34,13 @@ sub callback_order {
     return (qw /draw/);
 }
 
+sub cairo_draw {
+    my $self = shift;
+    return if !$self->get_tree_canvas->get_current_tree;
+
+    return $self->SUPER::cairo_draw(@_);
+}
+
 sub set_tree_canvas {
     my ($self, $tree_canvas) = @_;
     $self->{tree_canvas} = $tree_canvas;

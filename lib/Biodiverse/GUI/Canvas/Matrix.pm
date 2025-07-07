@@ -277,6 +277,8 @@ sub recolour {
         }
     }
 
+    $self->set_colours_last_used_for_plotting(undef);
+
     return;
 }
 

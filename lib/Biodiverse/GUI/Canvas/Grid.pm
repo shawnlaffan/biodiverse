@@ -227,17 +227,32 @@ sub draw_cells_cb {
     my $default_rgb = [1,1,1];
 
     my (%by_colour, %colours, %colours_rgba);
-    for my \%elt_hash (values %$data) {
-        my $colour = $elt_hash{rgba};
-        if (defined $colour) {
-            $colours_rgba{$colour} = $colour
+    #  avoid rebuilding the colours if they have not changed
+    if (my $cache = $self->get_colours_last_used_for_plotting) {
+        \%by_colour    = $cache->{by_colour};
+        \%colours      = $cache->{colours};
+        \%colours_rgba = $cache->{colours_rgba};
+    }
+    else {
+        for my \%elt_hash (values %$data) {
+            my $colour = $elt_hash{rgba};
+            if (defined $colour) {
+                $colours_rgba{$colour} = $colour
+            }
+            else {
+                $colour = $elt_hash{rgb} // $default_rgb;
+                $colours{$colour} = $colour;
+            };
+            my $aref = $by_colour{$colour} //= [];
+            push @$aref, $elt_hash{rect};
         }
-        else {
-            $colour = $elt_hash{rgb} // $default_rgb;
-            $colours{$colour} = $colour;
-        };
-        my $aref = $by_colour{$colour} //= [];
-        push @$aref, $elt_hash{rect};
+        $self->set_colours_last_used_for_plotting (
+            {
+                by_colour    => \%by_colour,
+                colours      => \%colours,
+                colours_rgba => \%colours_rgba,
+            }
+        );
     }
 
     foreach my ($colour_key, $aref) (%by_colour) {
@@ -589,7 +604,23 @@ sub colour {
         $cell->{rgb} = [$self->rgb_to_array($colour_ref)];
     }
 
+    #  clear this
+    $self->set_colours_last_used_for_plotting (undef);
+
     return;
+}
+
+{
+    state $cache_name = 'last_colours_used_for_colouring';
+    sub set_colours_last_used_for_plotting {
+        my ($self, $val) = @_;
+        return $self->set_cached_value ($cache_name => $val);
+    }
+
+    sub get_colours_last_used_for_plotting {
+        my ($self) = @_;
+        return $self->get_cached_value ($cache_name);
+    }
 }
 
 sub get_legend_hue {

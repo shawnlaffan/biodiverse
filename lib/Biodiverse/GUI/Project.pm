@@ -1563,7 +1563,7 @@ sub delete_overlay {
     splice( @$overlays, $array_iter, 1 );
 
     # remove from hash if no longer needed
-    if (!grep {$_ eq $name} @$overlays) {
+    if (!grep {$_->{name} eq $name} @$overlays) {
         delete $self->{overlay_objects}{$name};
     }
 

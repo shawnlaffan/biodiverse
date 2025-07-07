@@ -230,8 +230,8 @@ sub recolour {
     my $mx = $self->get_current_matrix;
     return if !$mx;
 
-    my $data = $self->{data};
-    return if !keys %$data;
+    \my %data = ($self->{data} // {});
+    return if !keys %data;
 
     my $legend = $self->legend;
 
@@ -244,6 +244,8 @@ sub recolour {
     my $highlight_cols = keys %col_highlights;
     my $do_h = $highlight_rows && $highlight_cols;
 
+    state %colour_cache;
+
     my $x = -1;
     for my $col_label (@$col_labels) {
         $x++;
@@ -252,15 +254,18 @@ sub recolour {
         ROW:
         for my $row_label (@$row_labels) {
             $y++;
-            my $val = $mx->get_defined_value_aa ($col_label, $row_label);
-            my @colour = defined $val
-                ? $self->rgb_to_array($legend->get_colour($val))
-                : @default_colour;
+            my $val = $mx->get_defined_value_aa($col_label, $row_label);
+            my $colour = defined $val
+                ? $colour_cache{sprintf "%.4g", $val} //= do {
+                    my $c = $legend->get_colour($val);
+                    [$c->red, $c->green, $c->blue]
+                }
+                : \@default_colour;
             my $alpha
                 = $do_h
                 ? ($highlight_col && $row_highlights{$row_label}) ? 1 : 0.4
                 : 1;
-            $data->{"$x:$y"}->{rgba} = [@colour, $alpha];
+            $data{"$x:$y"}->{rgba} = [@$colour, $alpha];
         }
     }
 

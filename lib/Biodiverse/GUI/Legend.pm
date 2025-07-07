@@ -1405,7 +1405,7 @@ sub rescale_grey {
     $value += DARKEST_GREY_FRAC;
     $value *= $max;
 
-    return $value;
+    return int $value;
 }
 
 #  flip the colour ranges if true

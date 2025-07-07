@@ -953,9 +953,12 @@ sub get_colour_hue {
 
     $hue = int(180 - $hue); # reverse 0..180 to 180..0 (this makes high values red)
 
+    state %cache;
+    return $cache{$hue} if $cache{$hue};
+
     my ($r, $g, $b) = hsv_to_rgb($hue, 1, 1);
 
-    return Gtk3::Gdk::RGBA::parse("rgb($r,$g,$b)");
+    return $cache{$hue} //= Gtk3::Gdk::RGBA::parse("rgb($r,$g,$b)");
 }
 
 sub get_colour_saturation {
@@ -983,7 +986,10 @@ sub get_colour_saturation {
 
     my ($r, $g, $b) = hsv_to_rgb($self->{hue}, $sat, 1);
 
-    return Gtk3::Gdk::RGBA::parse("rgb($r,$g,$b)");
+    #  $r,$g and $b are integers so cache won't be enormous.
+    #  This is more for future-proofing than current savings.
+    my %cache;
+    return $cache{"$r,$g,$b"} //= Gtk3::Gdk::RGBA::parse("rgb($r,$g,$b)");
 }
 
 sub get_colour_grey {
@@ -1008,9 +1014,9 @@ sub get_colour_grey {
 
     $sat *= 255;
     $sat = $self->rescale_grey($sat);  #  don't use all the shades
-    # $sat *= 257;
 
-    return Gtk3::Gdk::RGBA::parse("rgb($sat,$sat,$sat)");
+    state %cache;
+    return $cache{int $sat} //= Gtk3::Gdk::RGBA::parse("rgb($sat,$sat,$sat)");
 }
 
 
@@ -1150,6 +1156,20 @@ sub set_colour_for_undef {
         if !($colour->isa('Gtk3::Gdk::Color') || $colour->isa('Gtk3::Gdk::RGBA'));
 
     return $self->{colour_none} = $colour;
+}
+
+#  rescale the grey values into lighter shades
+sub rescale_grey {
+    my $self  = shift;
+    my $value = shift;
+    my $max   = shift // 255;
+
+    $value /= $max;
+    $value *= (LIGHTEST_GREY_FRAC - DARKEST_GREY_FRAC);
+    $value += DARKEST_GREY_FRAC;
+    $value *= $max;
+
+    return $value;
 }
 
 

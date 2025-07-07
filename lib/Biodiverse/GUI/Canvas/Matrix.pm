@@ -27,7 +27,7 @@ sub new {
     my $size = @$row_labels;
 
     #  This aligns cell labels on the coords
-    my $dim_max = $size + 0.5;
+    my $dim_max = $size - 0.5;
     my $dim_min = -0.5;
 
     $self->init_dims (

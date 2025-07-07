@@ -227,17 +227,17 @@ sub draw_cells_cb {
     my $default_rgb = [1,1,1];
 
     my (%by_colour, %colours, %colours_rgba);
-    for my $href (values %$data) {
-        my $colour = $href->{rgba};
+    for my \%elt_hash (values %$data) {
+        my $colour = $elt_hash{rgba};
         if (defined $colour) {
             $colours_rgba{$colour} = $colour
         }
         else {
-            $colour = $href->{rgb} // $default_rgb;
+            $colour = $elt_hash{rgb} // $default_rgb;
             $colours{$colour} = $colour;
         };
         my $aref = $by_colour{$colour} //= [];
-        push @$aref, $href->{rect};
+        push @$aref, $elt_hash{rect};
     }
 
     foreach my ($colour_key, $aref) (%by_colour) {

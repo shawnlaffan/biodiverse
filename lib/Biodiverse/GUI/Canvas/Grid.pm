@@ -213,7 +213,14 @@ sub _get_data {
 sub draw_cells_cb {
     my ($self, $context) = @_;
 
-    $context->set_line_width(max($self->{cellsizes}[0] / 100));
+    #  somewhat clunky but we otherwise cannot see the boundaries for large data sets
+    my $c = $self->{cellsizes}[0] / 100;
+    if (!$self->isa('Biodiverse::GUI::Canvas::Matrix')) {
+        my @d2 = $context->device_to_user_distance (0.15,0.15);
+        $c = max($d2[0], $c);
+    }
+
+    $context->set_line_width($c);
 
     my $data = $self->{data};
     my $draw_borders = $self->get_cell_show_outline;

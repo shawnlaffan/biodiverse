@@ -838,13 +838,13 @@ sub run {
             return if $response ne 'yes';
         }
 
-        #  warn about single group basedata
+        #  warn about possible lat/long basedata with large cell sizes
         if (   $use_new
             && !$one_basedata_per_file
-            && $basedata_ref->get_group_count == 1 )
+            && $basedata_ref->get_group_count <= 4 )
         {
             my $header
-              = "Basedata has only one group.  Is your cellsize correct?\n";
+              = "Basedata has four or fewer groups.  Is your cellsize correct?\n";
             my $message
               = "If you have geographic coordinates (latitudes and longitudes) "
               . "then the default cellsize of $default_cell_size will be far too large.\n"

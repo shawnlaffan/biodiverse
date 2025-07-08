@@ -171,6 +171,7 @@ sub set_current_matrix {
 
     if (!$mx) {
         $self->{current_matrix} = undef;
+        $self->{mx_overlaps} = undef;
         return;
     }
 
@@ -182,6 +183,12 @@ sub set_current_matrix {
     $self->{mx_overlaps} = $have_overlap;
 
     return if !$have_overlap;
+
+    #  ensure we refresh if we now have data
+    if ($have_overlap && !keys %{$self->{data} // {}}) {
+        delete $self->{data};
+        delete $self->{border_rects};
+    }
 
     $self->{current_matrix} = $mx;
     my $legend = $self->get_legend;

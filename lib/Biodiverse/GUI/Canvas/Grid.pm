@@ -270,7 +270,7 @@ sub draw_cells_cb {
     if ($self->get_cell_show_outline) {
         my @outline_colour = $self->rgba_to_cairo ($self->get_cell_outline_colour);
         $context->set_source_rgb(@outline_colour);
-        \my @borders = $self->{border_rects};
+        \my @borders = $self->{border_rects} // $self->rebuild_border_rects;
         $context->rectangle(@$_) foreach @borders;
         $context->stroke;
     }
@@ -520,6 +520,15 @@ sub set_base_struct {
     $self->{base_struct_bounds}    = [$min_x, $min_y, $max_x, $max_y];
 
     return 1;
+}
+
+sub rebuild_border_rects {
+    my $self = shift;
+
+    my $data = $self->{data};
+    return if !$data;
+
+    $self->{border_rects} = [map {$_->{rect}} values %$data];
 }
 
 sub calculate_cell_sizes {

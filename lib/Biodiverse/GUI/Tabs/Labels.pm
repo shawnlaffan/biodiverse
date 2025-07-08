@@ -870,8 +870,42 @@ sub on_selected_matrix_changed {
 
     my $visible = $labels_are_in_mx && defined $matrix_ref;
 
-    $list_window->set_visible($visible);
     $col->set_visible ($visible);
+
+    my $vpane = $self->get_xmlpage_object('vpaneLists');
+    #  avoid draw errors when we have not been rendered yet
+    my $max_pos = $vpane->get('max-position');
+    if ($max_pos < 2**30) {
+        $list_window->set_visible($visible);
+        if ($visible) {
+            #  use the allocation as sometimes we get tiny max_pos values
+            my $alloc = $vpane->get_allocation;
+            my $pos = List::Util::max ($max_pos, $alloc->{height}) * 0.5;
+            $vpane->set_position($pos);
+        }
+    }
+    elsif (!$self->{_callback_for_empty_mx_has_been_set}) {
+        #  trigger an update when we finally have a useful max-position
+        $vpane->signal_connect (
+            'size-allocate' => sub {
+                my ($widget) = @_;
+
+                state $done;
+                #  we only do things once
+                return if $done;
+
+                return if $widget->get('max-position') == 2**31-1;  #  not rendered yet
+                return if !$self->{matrix_grid};
+
+                $list_window->set_visible($self->{matrix_grid}->current_matrix_overlaps);
+
+                $done++;
+
+                return 0;
+            }
+        );
+        $self->{_callback_for_empty_mx_has_been_set} = 1;
+    }
 
     return;
 }
@@ -1773,9 +1807,7 @@ sub set_pane {
 # This will schedule set_pane to be called from a temporary signal handler
 # Need when the pane hasn't got it's size yet and doesn't know its max position
 sub queue_set_pane {
-    my $self = shift;
-    my $pos  = shift;
-    my $id   = shift;
+    my ($self, $pos, $id) = @_;
 
     my $pane = $self->get_xmlpage_object($id);
 
@@ -1793,18 +1825,16 @@ sub queue_set_pane {
 }
 
 sub set_pane_signal {
-    my $args = shift;
-    shift;
-    my $pane = shift;
+    my ($args, undef, $pane) = @_;
 
-    my ($self, $id) = ($args->[0], $args->[1]);
+    my ($self, $id) = @{$args}[0, 1];
 
     # Queue resize of other panes that depend on this one to get their maximum size
     if ($id eq 'hpaneLabelsTop') {
         $self->queue_set_pane(0.5, 'vpaneLists');
     }
     elsif ($id eq 'hpaneLabelsBottom') {
-        $self->queue_set_pane(1, 'vpanePhylogeny');
+        $self->queue_set_pane(1, 'vpaneLists');
     }
 
     $self->set_pane( $self->{"set_panePos$id"}, $id );

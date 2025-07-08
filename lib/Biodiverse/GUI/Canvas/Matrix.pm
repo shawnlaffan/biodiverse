@@ -171,6 +171,7 @@ sub set_current_matrix {
 
     if (!$mx) {
         $self->{current_matrix} = undef;
+        $self->{mx_overlaps} = undef;
         return;
     }
 

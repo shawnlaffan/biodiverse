@@ -216,7 +216,7 @@ sub init_plot_coords {
         my ($x_l, $x_r) = minmax @$branch{qw/x_l x_r/};  #  handle negative lengths
         my $left  = floor (($x_l - $xdims[0]) / $increment);
         my $right = floor (($x_r - $xdims[0]) / $increment);
-        $histo[$_]{$name}++ for ($left .. $right);
+        $histo[$_]{$name}++ for (max (0, $left) .. $right);
     }
     my (@histo2, %collated);
     my $prev_frac = 0;

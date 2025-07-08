@@ -1550,9 +1550,7 @@ sub get_overlay_shape_object {
 }
 
 sub delete_overlay {
-    my $self = shift;
-    my $name = shift;
-    my $array_iter = shift;
+    my ($self, $name, $array_iter) = @_;
 
     my $overlays = $self->{OVERLAYS};
 
@@ -1563,7 +1561,7 @@ sub delete_overlay {
     splice( @$overlays, $array_iter, 1 );
 
     # remove from hash if no longer needed
-    if (!grep {$_ eq $name} @$overlays) {
+    if (!grep {$_->{name} eq $name} @$overlays) {
         delete $self->{overlay_objects}{$name};
     }
 
@@ -1571,8 +1569,7 @@ sub delete_overlay {
 }
 
 sub add_overlay {
-    my $self = shift;
-    my $entry = shift;
+    my ($self, $entry) = @_;
 
     $self->{overlay_objects}{$entry->{name}} = undef;
     push @{ $self->{OVERLAYS} }, $entry;
@@ -1584,26 +1581,26 @@ sub add_overlay {
 sub init_overlay_hash {
     my $self = shift;
 
-    my $existing_overlays = [];
+    my @existing_overlays;
     my @missing_overlays;
 
     foreach my $entry ( @{ $self->{OVERLAYS} } ) {
+        #  older projects just stored the name
         my $name = is_hashref $entry ? $entry->{name} : $entry;
 
         if ( Biodiverse::Common->file_is_readable (file_name => $name) ) {
-
             # Set hash entry to undef - will load on demand
             $self->{overlay_objects}{$name} = undef;
-            push @$existing_overlays, $entry;
+            push @existing_overlays, $entry;
         }
         else {
-            print "[Project] Missing overlay: $name\n";
+            say "[Project] Missing overlay: $name";
             push @missing_overlays, $name;
         }
     }
 
     # Replace list with available overlays
-    $self->{OVERLAYS} = $existing_overlays;
+    $self->{OVERLAYS} = \@existing_overlays;
 
     # Tell user if any missing
     if ( scalar @missing_overlays > 0 ) {
@@ -1613,9 +1610,10 @@ sub init_overlay_hash {
             $text .= "  $name\n";
         }
 
-        my $dialog =
-          Gtk3::MessageDialog->new( undef, 'destroy-with-parent', 'warning',
-            'ok', $text, );
+        my $dialog = Gtk3::MessageDialog->new(
+            undef, 'destroy-with-parent', 'warning',
+            'ok', $text,
+        );
         my $response = $dialog->run;
         $dialog->destroy;
     }

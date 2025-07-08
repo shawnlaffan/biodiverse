@@ -870,8 +870,42 @@ sub on_selected_matrix_changed {
 
     my $visible = $labels_are_in_mx && defined $matrix_ref;
 
-    $list_window->set_visible($visible);
     $col->set_visible ($visible);
+
+    my $vpane = $self->get_xmlpage_object('vpaneLists');
+    #  avoid draw errors when we have not been rendered yet
+    my $max_pos = $vpane->get('max-position');
+    if ($max_pos < 2**30) {
+        $list_window->set_visible($visible);
+        if ($visible) {
+            #  use the allocation as sometimes we get tiny max_pos values
+            my $alloc = $vpane->get_allocation;
+            my $pos = List::Util::max ($max_pos, $alloc->{height}) * 0.5;
+            $vpane->set_position($pos);
+        }
+    }
+    elsif (!$self->{_callback_for_empty_mx_has_been_set}) {
+        #  trigger an update when we finally have a useful max-position
+        $vpane->signal_connect (
+            'size-allocate' => sub {
+                my ($widget) = @_;
+
+                state $done;
+                #  we only do things once
+                return if $done;
+
+                return if $widget->get('max-position') == 2**31-1;  #  not rendered yet
+                return if !$self->{matrix_grid};
+
+                $list_window->set_visible($self->{matrix_grid}->current_matrix_overlaps);
+
+                $done++;
+
+                return 0;
+            }
+        );
+        $self->{_callback_for_empty_mx_has_been_set} = 1;
+    }
 
     return;
 }
@@ -1777,11 +1811,6 @@ sub queue_set_pane {
 
     my $pane = $self->get_xmlpage_object($id);
 
-    say STDERR "queue_set_pane: $id";
-
-    my $alloc = $pane->get_allocation;
-    use DDP; p $alloc;
-
     # remember id so can disconnect later
     my $sig_id = $pane->signal_connect_swapped(
         'size-allocate',
@@ -1791,8 +1820,6 @@ sub queue_set_pane {
 
     $self->{"set_pane_signalID$id"} = $sig_id;
     $self->{"set_panePos$id"} = $pos;
-
-    say STDERR "queue_set_pane: $id done";
 
     return;
 }

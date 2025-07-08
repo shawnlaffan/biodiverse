@@ -1773,11 +1773,14 @@ sub set_pane {
 # This will schedule set_pane to be called from a temporary signal handler
 # Need when the pane hasn't got it's size yet and doesn't know its max position
 sub queue_set_pane {
-    my $self = shift;
-    my $pos  = shift;
-    my $id   = shift;
+    my ($self, $pos, $id) = @_;
 
     my $pane = $self->get_xmlpage_object($id);
+
+    say STDERR "queue_set_pane: $id";
+
+    my $alloc = $pane->get_allocation;
+    use DDP; p $alloc;
 
     # remember id so can disconnect later
     my $sig_id = $pane->signal_connect_swapped(
@@ -1789,22 +1792,22 @@ sub queue_set_pane {
     $self->{"set_pane_signalID$id"} = $sig_id;
     $self->{"set_panePos$id"} = $pos;
 
+    say STDERR "queue_set_pane: $id done";
+
     return;
 }
 
 sub set_pane_signal {
-    my $args = shift;
-    shift;
-    my $pane = shift;
+    my ($args, undef, $pane) = @_;
 
-    my ($self, $id) = ($args->[0], $args->[1]);
+    my ($self, $id) = @{$args}[0, 1];
 
     # Queue resize of other panes that depend on this one to get their maximum size
     if ($id eq 'hpaneLabelsTop') {
         $self->queue_set_pane(0.5, 'vpaneLists');
     }
     elsif ($id eq 'hpaneLabelsBottom') {
-        $self->queue_set_pane(1, 'vpanePhylogeny');
+        $self->queue_set_pane(1, 'vpaneLists');
     }
 
     $self->set_pane( $self->{"set_panePos$id"}, $id );

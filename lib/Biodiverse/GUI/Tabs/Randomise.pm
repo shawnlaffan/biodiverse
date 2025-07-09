@@ -11,7 +11,7 @@ use experimental qw /for_list/;
 use Gtk3;
 use Biodiverse::Randomise;
 
-our $VERSION = '4.99_005';
+our $VERSION = '4.99_006';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;

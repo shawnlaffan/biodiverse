@@ -29,7 +29,10 @@ use Biodiverse::GUI::GUIManager;
 use Biodiverse::SpatialConditions;
 use Biodiverse::SpatialConditions::DefQuery;
 
-use parent qw /Biodiverse::Common/;  #  need get/set_param
+use parent qw /
+    Biodiverse::Common::Params
+    Biodiverse::Common::Caching
+/;
 
 sub new {
     my $class = shift;

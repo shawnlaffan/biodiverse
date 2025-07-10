@@ -16,7 +16,7 @@ our $VERSION = '4.99_006';
 use Biodiverse::GUI::GUIManager;
 use Ref::Util qw { :all };
 
-use Biodiverse::Common;
+use Biodiverse::Common::IO;
 
 # Show the dialog. Params:
 #   title
@@ -82,7 +82,7 @@ sub on_file_selection {
     my $builder = shift;
 
     my $filename = $chooser->get_filename();
-    if ($filename && Biodiverse::Common->file_exists_aa ($filename)) {
+    if ($filename && Biodiverse::Common::IO->file_exists_aa ($filename)) {
     
         my($name, $dir, $suffix) = fileparse($filename, qr/\.[^.]*/);
         

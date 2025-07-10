@@ -43,6 +43,7 @@ use parent qw {
   Biodiverse::Indices::LabelCounts
   Biodiverse::Indices::RWTurnover
   Biodiverse::Indices::RichnessEstimation
+  Biodiverse::Common::Metadata
   Biodiverse::Common
 };
 

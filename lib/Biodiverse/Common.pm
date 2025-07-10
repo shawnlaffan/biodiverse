@@ -54,10 +54,12 @@ use Clone ();
 use parent qw(
     Biodiverse::Common::Caching
     Biodiverse::Common::Params
-    Biodiverse::Common::Metadata
+
     Biodiverse::Common::IO
     Biodiverse::Common::CSV
 );
+
+# Biodiverse::Common::Metadata
 
 our $VERSION = '4.99_006';
 
@@ -142,10 +144,7 @@ sub set_basedata_ref {
 
 sub get_basedata_ref {
     my $self = shift;
-
-    my $bd = $self->get_param ('BASEDATA_REF');
-
-    return $bd;
+    return $self->get_param ('BASEDATA_REF');
 }
 
 

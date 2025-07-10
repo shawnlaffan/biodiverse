@@ -8,6 +8,8 @@ use List::Util qw /first/;
 
 use experimental qw /refaliasing for_list/;
 
+use parent qw/Biodiverse::Common::Metadata/;
+
 use constant DEFAULT_PRECISION_SMALL => 1e-10;
 
 sub compare_lists_by_item {

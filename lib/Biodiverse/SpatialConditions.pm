@@ -23,6 +23,7 @@ use Ref::Util qw { :all };
 
 
 use parent qw /
+    Biodiverse::Common::Metadata
     Biodiverse::Common
     Biodiverse::SpatialConditions::SpCalc
 /;

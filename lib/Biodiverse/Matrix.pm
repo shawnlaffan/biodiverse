@@ -24,7 +24,11 @@ use Biodiverse::Progress;
 my $EMPTY_STRING = q{};
 
 #  access the miscellaneous functions as methods
-use parent qw /Biodiverse::Common Biodiverse::Matrix::Base/;
+use parent qw /
+    Biodiverse::Common
+    Biodiverse::Matrix::Base
+    Biodiverse::Common::Metadata
+/;
 
 sub new {
     my $class = shift;

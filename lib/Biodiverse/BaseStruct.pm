@@ -32,6 +32,7 @@ our $VERSION = '4.99_006';
 my $EMPTY_STRING = q{};
 
 use parent qw /
+    Biodiverse::Common::Metadata
     Biodiverse::Common
     Biodiverse::BaseStruct::Export
 /;

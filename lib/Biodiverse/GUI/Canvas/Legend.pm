@@ -662,6 +662,7 @@ sub get_colour_method {
         my $check_method = "get_${mode}_mode";
         if ($self->$check_method) {
             $method = "get_colour_${mode}";
+            last;
         }
     }
 

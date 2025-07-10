@@ -3,6 +3,8 @@ use 5.036;
 use strict;
 use warnings;
 
+our $VERSION = '4.99_006';
+
 use Carp qw /croak/;
 use List::Util qw /first/;
 

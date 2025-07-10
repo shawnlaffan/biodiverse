@@ -34,13 +34,13 @@ use constant LIGHTEST_GREY_FRAC  => 0.8;
 
 #  refactor as state var inside a sub
 #  supports state on lists (5.28)
-my %canape_colour_hash = (
-    0 => Gtk3::Gdk::RGBA::parse('lightgoldenrodyellow'),  #  non-sig, lightgoldenrodyellow
-    1 => Gtk3::Gdk::RGBA::parse('red'),                   #  red, neo
-    2 => Gtk3::Gdk::RGBA::parse('royalblue1'),            #  blue, palaeo
-    3 => Gtk3::Gdk::RGBA::parse('#CB7FFF'),               #  purple, mixed
-    4 => Gtk3::Gdk::RGBA::parse('darkorchid'),            #  deep purple, super ('#6A3d9A' is too dark)
-);
+# my %canape_colour_hash = (
+#     0 => Gtk3::Gdk::RGBA::parse('lightgoldenrodyellow'),  #  non-sig, lightgoldenrodyellow
+#     1 => Gtk3::Gdk::RGBA::parse('red'),                   #  red, neo
+#     2 => Gtk3::Gdk::RGBA::parse('royalblue1'),            #  blue, palaeo
+#     3 => Gtk3::Gdk::RGBA::parse('#CB7FFF'),               #  purple, mixed
+#     4 => Gtk3::Gdk::RGBA::parse('darkorchid'),            #  deep purple, super ('#6A3d9A' is too dark)
+# );
 
 
 sub new {
@@ -235,10 +235,9 @@ sub make_data {
     if ($self->get_canape_mode) {
         #  special handling for CANAPE indices
         @labels = qw /Neo Non-Sig Palaeo Mixed Super/;
-        state @canape_order = (4,3,2,0,1);  #  double check
-        \my %canape_colour_hash = $self->get_canape_colour_hash;
+        state @canape_order = reverse (4,3,2,0,1);
         foreach my $class (@canape_order) {
-            my $colour = $canape_colour_hash{$class};
+            my $colour = $self->get_colour_canape($class);
             push @colours, [ $self->rgba_to_cairo($colour) ];
         }
     }
@@ -346,18 +345,6 @@ sub get_invert_colours {
 sub set_invert_colours {
     my ($self, $bool) = @_;
     $self->{invert_colours} = !!$bool;
-}
-
-sub get_canape_colour_hash {
-    #  refactor as state var inside a sub
-    state %canape_colour_hash = (
-        0 => Gtk3::Gdk::RGBA::parse('lightgoldenrodyellow'),  #  non-sig, lightgoldenrodyellow
-        1 => Gtk3::Gdk::RGBA::parse('red'),                   #  red, neo
-        2 => Gtk3::Gdk::RGBA::parse('royalblue1'),            #  blue, palaeo
-        3 => Gtk3::Gdk::RGBA::parse('#CB7FFF'),               #  purple, mixed
-        4 => Gtk3::Gdk::RGBA::parse('darkorchid'),            #  deep purple, super ('#6A3d9A' is too dark)
-    );
-    return wantarray ? %canape_colour_hash : \%canape_colour_hash;
 }
 
 sub get_colour_divergent {
@@ -631,15 +618,12 @@ sub set_colour_mode_from_list_and_index {
     }
     elsif (!$mode && $list =~ />>CANAPE>>/) {
         #  special handling for CANAPE indices
-        my %codes = (
+        state %codes = (
             NEO => 1, PALAEO => 2, MIXED => 3, SUPER => 4,
         );
-        #  special handling
-        \my %canape_colour_hash = $self->get_canape_colour_hash;
-        my $colour = $canape_colour_hash{$codes{$index} // 0};
         $self->{categorical}{colours} = {
-            0 => $canape_colour_hash{0},
-            1 => $colour,
+            0 => $self->get_colour_canape(0),
+            1 => $self->get_colour_canape($codes{$index}),
         };
         $self->{categorical}{labels} = {
             0 => 'other',
@@ -662,6 +646,7 @@ sub get_colour_method {
         my $check_method = "get_${mode}_mode";
         if ($self->$check_method) {
             $method = "get_colour_${mode}";
+            last;
         }
     }
 
@@ -870,58 +855,64 @@ sub get_colour_categorical {
 
 sub get_colour_canape {
     my ($self, $val) = @_;
-    $val //= -1;  #  avoid undef key warnings
-    return $canape_colour_hash{$val} || COLOUR_WHITE;
+    state %canape_colour_hash = (
+        0 => Gtk3::Gdk::RGBA::parse('lightgoldenrodyellow'),  #  non-sig, lightgoldenrodyellow
+        1 => Gtk3::Gdk::RGBA::parse('red'),                   #  red, neo
+        2 => Gtk3::Gdk::RGBA::parse('royalblue1'),            #  blue, palaeo
+        3 => Gtk3::Gdk::RGBA::parse('#CB7FFF'),               #  purple, mixed
+        4 => Gtk3::Gdk::RGBA::parse('darkorchid'),            #  deep purple, super ('#6A3d9A' is too dark)
+    );
+    #  avoid undef key warnings
+    return $canape_colour_hash{$val // -1} || COLOUR_WHITE;
 }
 
-#  colours from https://colorbrewer2.org/#type=diverging&scheme=RdYlBu&n=7
-#  refactor as state var inside sub when we require a perl version that
-#  supports state on lists (5.28)
-my @zscore_colours
-    = map {Gtk3::Gdk::RGBA::parse($_)}
-    reverse ('#d73027', '#fc8d59', '#fee090', '#ffffbf', '#e0f3f8', '#91bfdb', '#4575b4');
+{
+    #  colours from https://colorbrewer2.org/#type=diverging&scheme=RdYlBu&n=7
+    state @zscore_colours
+        = map {Gtk3::Gdk::RGBA::parse($_)}
+        reverse('#d73027', '#fc8d59', '#fee090', '#ffffbf', '#e0f3f8', '#91bfdb', '#4575b4');
 
-sub get_colour_zscore {
-    my ($self, $val) = @_;
+    sub get_colour_zscore {
+        my ($self, $val) = @_;
 
-    state $default_colour = Gtk3::Gdk::RGBA::parse('black');
+        state $default_colour = Gtk3::Gdk::RGBA::parse('black');
 
-    return $default_colour
-        if not defined $val;
+        return $default_colour
+            if not defined $val;
 
-    #  returns -1 if not found, which will give us last item in @zscore_colours
-    my $idx
-        = firstidx {$val < 0 ? $val < $_ : $val <= $_}
-        (-2.58, -1.96, -1.65, 1.65, 1.96, 2.58);
+        #  returns -1 if not found, which will give us last item in @zscore_colours
+        my $idx
+            = firstidx {$val < 0 ? $val < $_ : $val <= $_}
+            (-2.58, -1.96, -1.65, 1.65, 1.96, 2.58);
 
-    if ($self->get_invert_colours) {
-        $idx = $idx < 0 ? 0 : ($#zscore_colours - $idx);
+        if ($self->get_invert_colours) {
+            $idx = $idx < 0 ? 0 : ($#zscore_colours - $idx);
+        }
+
+        return $zscore_colours[$idx];
     }
 
-    return $zscore_colours[$idx];
-}
+    #  same colours as the z-scores
+    sub get_colour_prank {
+        my ($self, $val) = @_;
 
-#  same colours as the z-scores
-sub get_colour_prank {
-    my ($self, $val) = @_;
+        state $default_colour = Gtk3::Gdk::RGBA::parse('black');
 
-    state $default_colour = Gtk3::Gdk::RGBA::parse('black');
+        return $default_colour
+            if not defined $val;
 
-    return $default_colour
-        if not defined $val;
+        #  returns -1 if not found, which will give us last item in @zscore_colours
+        my $idx
+            = firstidx {$val < 0 ? $val < $_ : $val <= $_}
+            (0.01, 0.025, 0.05, 0.95, 0.975, 0.99);
 
-    #  returns -1 if not found, which will give us last item in @zscore_colours
-    my $idx
-        = firstidx {$val < 0 ? $val < $_ : $val <= $_}
-        (0.01, 0.025, 0.05, 0.95, 0.975, 0.99);
+        if ($self->get_invert_colours) {
+            $idx = $idx < 0 ? 0 : ($#zscore_colours - $idx);
+        }
 
-    if ($self->get_invert_colours) {
-        $idx = $idx < 0 ? 0 : ($#zscore_colours - $idx);
+        return $zscore_colours[$idx];
     }
-
-    return $zscore_colours[$idx];
 }
-
 
 sub get_colour_hue {
     my ($self, $val, $min, $max) = @_;

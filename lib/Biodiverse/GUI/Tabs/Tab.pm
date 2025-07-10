@@ -628,8 +628,8 @@ sub on_colour_mode_changed {
 
     $self->{grid}->set_legend_mode($self->get_colour_mode);
     # $self->recolour(all_elements => 1);
-    # $self->recolour();
-    # $self->{grid}->update_legend;
+    $self->recolour();
+    $self->queue_draw;
 
     return;
 }

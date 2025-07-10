@@ -1121,6 +1121,10 @@ sub recolour_cluster_lines {
     my ($legend, @minmax_args, $colour_method);
     if ($colour_mode ne 'palette' and not $self->in_multiselect_mode) {
         $legend = $map->get_legend;
+        $legend->set_colour_mode_from_list_and_index (
+            list  => $list_name,
+            index => $list_index,
+        );
         @minmax_args = $legend->get_min_max;
         $colour_method = $legend->get_colour_method;
     }

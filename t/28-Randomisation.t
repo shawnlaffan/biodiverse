@@ -1899,7 +1899,7 @@ sub test_p_ranks  {
 
 #  not used currently - still need to test?
 sub test_p_rank_thresh_calcs {
-    my $bd = Biodiverse::BaseData->new(NAME => 'test_p_ranks', CELL_SIZES => [1,1]);
+    # my $bd = Biodiverse::BaseData->new(NAME => 'test_p_ranks', CELL_SIZES => [1,1]);
     
     #  set things up in one go for clarity, then subdivide
     my %setup = (
@@ -1948,7 +1948,7 @@ sub test_p_rank_thresh_calcs {
         $check_hash{$P_key} = $check_hash{$key} / 1000;
     }
     
-    my $p_rank = $bd->get_sig_rank_threshold_from_comp_results (
+    my $p_rank = Biodiverse::Spatial->get_sig_rank_threshold_from_comp_results (
         comp_list_ref => \%check_hash,
     );
     

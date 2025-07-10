@@ -57,7 +57,6 @@ use parent qw(
     Biodiverse::Common::Metadata
     Biodiverse::Common::IO
     Biodiverse::Common::CSV
-    Biodiverse::Analyses::Common
 );
 
 our $VERSION = '4.99_006';

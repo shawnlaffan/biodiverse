@@ -56,7 +56,9 @@ my $progress_update_interval = $Biodiverse::Config::progress_update_interval;
 use parent qw {
     Biodiverse::Randomise::IndependentSwaps
     Biodiverse::Randomise::CurveBall
-    Biodiverse::Common};
+    Biodiverse::Common
+    Biodiverse::Analyses::Common
+};
 
 sub new {
     my $class = shift;

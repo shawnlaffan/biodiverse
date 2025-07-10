@@ -46,6 +46,7 @@ use Ref::Util qw { :all };
 
 use parent qw /
     Biodiverse::Tree
+    Biodiverse::Analyses::Common
     Biodiverse::Common
 /;
 

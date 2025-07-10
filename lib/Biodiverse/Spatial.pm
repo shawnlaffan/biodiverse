@@ -22,9 +22,10 @@ use Biodiverse::SpatialConditions::DefQuery;
 use Biodiverse::Progress;
 use Biodiverse::Indices;
 
-
-
-use parent qw /Biodiverse::BaseStruct/;
+use parent qw /
+    Biodiverse::Analyses::Common
+    Biodiverse::BaseStruct
+/;
 
 my $EMPTY_STRING = q{};
 

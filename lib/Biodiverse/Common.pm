@@ -44,22 +44,14 @@ BEGIN {
 
 use Math::Random::MT::Auto ();
 
-#use Regexp::Common qw /number/;
-
-use Biodiverse::Progress;
-use Biodiverse::Exception;
-
 use Clone ();
 
 use parent qw(
     Biodiverse::Common::Caching
     Biodiverse::Common::Params
-
     Biodiverse::Common::IO
     Biodiverse::Common::CSV
 );
-
-# Biodiverse::Common::Metadata
 
 our $VERSION = '4.99_006';
 

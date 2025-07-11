@@ -572,7 +572,7 @@ sub on_combo_metric_changed {
     my $source_sub = $indices_object->get_index_source (index => $metric);
     my $metadata   = $indices_object->get_metadata (sub => $source_sub);
 
-    my $explanation = 'Description: ' . $metadata->get_index_description ($metric);
+    my $explanation = '   Description: ' . $metadata->get_index_description ($metric);
 
     $widget->set_text($explanation);
 

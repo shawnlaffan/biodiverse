@@ -361,6 +361,7 @@ sub init {
     my $self = shift;
 
     my $window = $self->get_object('wndMain');
+    $self->{main_window} = $window;
 
     # title
     $window->set_title( 'Biodiverse ' . $self->get_version );
@@ -444,6 +445,11 @@ sub init {
     }
 
     return;
+}
+
+sub get_main_window {
+    my ($self) = @_;
+    $self->{main_window} || $self->get_object('wndMain');
 }
 
 #sub progress_test {

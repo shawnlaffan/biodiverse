@@ -49,7 +49,8 @@ sub show_dialog {
     $dlgxml->add_from_file($gui->get_gtk_ui_file('wndOverlays.ui'));
     my $dlg = $dlgxml->get_object('wndOverlays');
     my $colour_button = $dlgxml->get_object('colorbutton_overlays');
-    $dlg->set_transient_for($gui->get_object('wndMain'));
+    $dlg->set_transient_for($gui->get_main_window);
+    $dlg->set_position('center-on-parent');
 
     $colour_button->set_rgba($last_selected_colour);
 

@@ -688,12 +688,22 @@ sub on_scroll_event {
     return FALSE if not defined $self->{cairo_context};
 
     my $direction = $event->direction;
+    my $state = $event->state;
+    my $method;
     if ($direction eq 'down') {
-        $self->do_zoom_out_centre();
+        $method
+            = $state >= [ 'control-mask' ] ? 'do_pan_left'
+            : $state >= [ 'shift-mask' ]   ? 'do_pan_up'
+            : 'do_zoom_out_centre';
     }
     else {
-        $self->do_zoom_in_centre()
+        $method
+            = $state >= [ 'control-mask' ] ? 'do_pan_right'
+            : $state >= [ 'shift-mask' ]   ? 'do_pan_down'
+            : 'do_zoom_in_centre';
     }
+
+    $self->$method;
 
     return FALSE;
 }

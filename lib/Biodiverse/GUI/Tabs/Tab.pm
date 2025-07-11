@@ -356,10 +356,10 @@ sub on_bare_key {
     # Immediate actions without changing the current tool.
     # A zoom_fit variant is probably not useful
 
-    #  these only apply in zoom mode
+    #  these only apply in zoom mode, and are redundant now we use the +/-/= keys
     state %instant_zoom_methods = (
-        i => 'do_zoom_in_centre',
-        o => 'do_zoom_out_centre',
+        # i => 'do_zoom_in_centre',
+        # o => 'do_zoom_out_centre',
     );
     #  these apply at any time
     state %instant_key_methods = (

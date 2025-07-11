@@ -54,6 +54,7 @@ sub new {
             button-release-mask
             pointer-motion-mask
             pointer-motion-hint-mask
+            scroll-mask
         / ]
     );
 
@@ -67,6 +68,10 @@ sub new {
     $drawable->signal_connect(
         enter_notify_event => sub {$self->get_parent_tab->set_active_pane($self)}
     );
+    $drawable->signal_connect(
+        scroll_event => sub {$self->on_scroll_event (@_)}
+    );
+
 
     $self->{callbacks} = {};
 
@@ -110,12 +115,13 @@ sub show_all {
     $_[0]->{frame}->show_all;
 }
 
-sub dump_self {
-    my $self = shift;
-    use DDP;
-    delete local $self->{data};
-    p $self;
-}
+
+# sub dump_self {
+#     my $self = shift;
+#     use DDP;
+#     delete local $self->{data};
+#     p $self;
+# }
 
 sub xmax {
     $_[0]->{dims}->xmax;
@@ -676,6 +682,21 @@ sub on_button_release {
     return FALSE;
 }
 
+sub on_scroll_event {
+    my ($self, $widget, $event) = @_;
+
+    return FALSE if not defined $self->{cairo_context};
+
+    my $direction = $event->direction;
+    if ($direction eq 'down') {
+        $self->do_zoom_out_centre();
+    }
+    else {
+        $self->do_zoom_in_centre()
+    }
+
+    return FALSE;
+}
 
 sub on_button_press {
     my ($self, $widget, $event) = @_;

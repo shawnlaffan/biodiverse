@@ -358,8 +358,8 @@ sub on_bare_key {
 
     #  these only apply in zoom mode
     state %instant_zoom_methods = (
-        i     => 'do_zoom_in_centre',
-        o     => 'do_zoom_out_centre',
+        i => 'do_zoom_in_centre',
+        o => 'do_zoom_out_centre',
     );
     #  these apply at any time
     state %instant_key_methods = (
@@ -370,6 +370,7 @@ sub on_bare_key {
         Right => 'do_pan_right',
         Up    => 'do_pan_up',
         Down  => 'do_pan_down',
+        V     => 'do_zoom_fit',
     );
 
     my $inst_meth  = $instant_key_methods{$key}

@@ -354,12 +354,11 @@ sub on_bare_key {
     $self->set_last_hotkey_event_time;
 
     # Immediate actions without changing the current tool.
-    # A zoom_fit variant is probably not useful
 
-    #  these only apply in zoom mode
+    #  these only apply in zoom mode, and are redundant now we use the +/-/= keys
     state %instant_zoom_methods = (
-        i     => 'do_zoom_in_centre',
-        o     => 'do_zoom_out_centre',
+        # i => 'do_zoom_in_centre',
+        # o => 'do_zoom_out_centre',
     );
     #  these apply at any time
     state %instant_key_methods = (
@@ -370,6 +369,7 @@ sub on_bare_key {
         Right => 'do_pan_right',
         Up    => 'do_pan_up',
         Down  => 'do_pan_down',
+        V     => 'do_zoom_fit',
     );
 
     my $inst_meth  = $instant_key_methods{$key}
@@ -415,19 +415,21 @@ sub queue_draw {
 }
 
 sub choose_tool {
-    my $self = shift;
-    my ($tool, ) = @_;
+    my ($self, $tool) = @_;
+
+    return if !$tool;
 
     my $old_tool = $self->{tool};
 
     if ($old_tool) {
         #  should really edit the ui files so they use the same names
+        state %widget_suffixes = (
+            'Biodiverse::GUI::Tabs::Labels'     => 'VL',
+            'Biodiverse::GUI::Tabs::Clustering' => 'CL',
+            'Biodiverse::GUI::Tabs::Spatial'    => 'SP',
+        );
         my $class = blessed $self;
-        my $suffix
-            = $class =~ /Labels/  ? 'VL'
-            : $class =~ /Spatial/ ? 'SP'
-            : $class =~ /Cluster/ ? 'CL'
-            : die 'Unknown tab class';
+        my $suffix = $widget_suffixes{$class} // die "Unknown tab class $class";
 
         $self->{ignore_tool_click} = 1;
         my $widget = $self->get_xmlpage_object("btn${old_tool}Tool${suffix}");

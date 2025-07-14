@@ -700,7 +700,8 @@ sub plot_highlights {
 
 sub set_overlay {
     my ($self, %args) = @_;
-    my ($shapefile, $colour, $plot_on_top, $type) = @args{qw /shapefile colour plot_on_top type/};
+    my ($shapefile, $colour, $plot_on_top, $use_alpha, $type)
+      = @args{qw /shapefile colour plot_on_top use_alpha type/};
 
     my $cb_target_name = $plot_on_top ? 'overlays' : 'underlays';
 
@@ -713,7 +714,10 @@ sub set_overlay {
 
     my $data = $self->load_shapefile($shapefile);
 
-    my @rgb = $self->rgb_to_array($colour);
+    my @rgba = (
+        $self->rgb_to_array($colour),
+        $use_alpha ? 0.5 : 1,
+    );
     my $is_poly = $type eq 'polygon';
     my $stroke_or_fill = $is_poly ? 'fill' : 'stroke';
 
@@ -732,7 +736,7 @@ sub set_overlay {
         }
 
         $cx->set_matrix($self->{matrix});
-        $cx->set_source_rgb(@rgb);
+        $cx->set_source_rgba(@rgba);
         #  line width should be an option in the GUI
         $cx->set_line_width(max($cx->device_to_user_distance (1, 1)));
 
@@ -741,8 +745,8 @@ sub set_overlay {
             foreach my $vertex (@segment[1 .. $#segment]) {
                 $cx->line_to(@$vertex);
             }
-            $cx->$stroke_or_fill;
         }
+        $cx->$stroke_or_fill;
     };
 
     $self->{callbacks}{$cb_target_name} = $cb;

@@ -487,8 +487,8 @@ sub on_set {
 
     # my ($iter, $filename, $plot_as_poly, $array_iter) = get_selection($list);
     my %results = get_selection($list);
-    my ($iter, $filename, $type, $plot_on_top, $array_iter)
-        = @results{qw /iter filename type plot_on_top array_iter/};
+    my ($filename, $type, $plot_on_top, $use_alpha)
+        = @results{qw /filename type plot_on_top use_alpha/};
 
     my $colour = $colour_button->get_rgba;
 
@@ -501,6 +501,7 @@ sub on_set {
         shapefile   => $project->get_overlay_shape_object($filename),
         colour      => $colour,
         plot_on_top => $plot_on_top,
+        use_alpha   => $use_alpha,
         type        => $type,
     );
     #$dlg->destroy();

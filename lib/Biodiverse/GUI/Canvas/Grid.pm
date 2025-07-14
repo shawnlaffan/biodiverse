@@ -676,23 +676,23 @@ sub plot_highlights {
 
     if (my $elements = $self->{highlights}{circles}) {
         no autovivification;
+        $cx->set_source_rgb(0, 0, 0);
+        $cx->set_line_width($cellsizes->[0] / 10);
         foreach my $c (grep {defined} map {$self->{data}{$_}{centroid}} @$elements) {
             $cx->arc(@$c, $cellsizes->[0] / 4, 0, 2.0 * PI);
-            $cx->set_line_width($cellsizes->[0] / 10);
             $cx->stroke_preserve;
-            $cx->set_source_rgb(0, 0, 0);
             $cx->fill;
         };
     };
     if (my $elements = $self->{highlights}{dashes}) {
         no autovivification;
+        $cx->set_source_rgb(0, 0, 0);
+        $cx->set_line_width($cellsizes->[0] / 10);
         foreach my $c (grep {defined} map {$self->{data}{$_}{centroid}} @$elements) {
-            $cx->set_line_width($cellsizes->[0] / 10);
-            $cx->set_source_rgb(0, 0, 0);
             $cx->move_to($c->[0] - $cellsizes->[0] / 3, $c->[1]);
             $cx->line_to($c->[0] + $cellsizes->[0] / 3, $c->[1]);
-            $cx->stroke;
         }
+        $cx->stroke;
     }
 
     return FALSE;

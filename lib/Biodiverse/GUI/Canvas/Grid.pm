@@ -676,23 +676,23 @@ sub plot_highlights {
 
     if (my $elements = $self->{highlights}{circles}) {
         no autovivification;
+        $cx->set_source_rgb(0, 0, 0);
+        $cx->set_line_width($cellsizes->[0] / 10);
         foreach my $c (grep {defined} map {$self->{data}{$_}{centroid}} @$elements) {
             $cx->arc(@$c, $cellsizes->[0] / 4, 0, 2.0 * PI);
-            $cx->set_line_width($cellsizes->[0] / 10);
             $cx->stroke_preserve;
-            $cx->set_source_rgb(0, 0, 0);
             $cx->fill;
         };
     };
     if (my $elements = $self->{highlights}{dashes}) {
         no autovivification;
+        $cx->set_source_rgb(0, 0, 0);
+        $cx->set_line_width($cellsizes->[0] / 10);
         foreach my $c (grep {defined} map {$self->{data}{$_}{centroid}} @$elements) {
-            $cx->set_line_width($cellsizes->[0] / 10);
-            $cx->set_source_rgb(0, 0, 0);
             $cx->move_to($c->[0] - $cellsizes->[0] / 3, $c->[1]);
             $cx->line_to($c->[0] + $cellsizes->[0] / 3, $c->[1]);
-            $cx->stroke;
         }
+        $cx->stroke;
     }
 
     return FALSE;
@@ -700,7 +700,8 @@ sub plot_highlights {
 
 sub set_overlay {
     my ($self, %args) = @_;
-    my ($shapefile, $colour, $plot_on_top, $type) = @args{qw /shapefile colour plot_on_top type/};
+    my ($shapefile, $colour, $plot_on_top, $use_alpha, $type)
+      = @args{qw /shapefile colour plot_on_top use_alpha type/};
 
     my $cb_target_name = $plot_on_top ? 'overlays' : 'underlays';
 
@@ -713,43 +714,46 @@ sub set_overlay {
 
     my $data = $self->load_shapefile($shapefile);
 
-    my @rgb = $self->rgb_to_array($colour);
-    my $is_poly = $type eq 'polygon';
-    my $stroke_or_fill = $is_poly ? 'fill' : 'stroke';
+    my @rgba = (
+        $self->rgb_to_array($colour),
+        $use_alpha ? 0.5 : 1,
+    );
+    my $stroke_or_fill = $type eq 'polygon' ? 'fill' : 'stroke';
 
     my $cb = sub {
         my ($self, $cx) = @_;
 
-        my $gui_project = eval {
-            Biodiverse::GUI::GUIManager->instance->get_project;
-        };
-        if ($gui_project) {
-            return if !$gui_project->overlay_is_valid (
-                shapefile   => $shapefile,
-                plot_on_top => $plot_on_top,
-                type        => $type,
-            );
-        }
-
         $cx->set_matrix($self->{matrix});
-        $cx->set_source_rgb(@rgb);
+        $cx->set_source_rgba(@rgba);
         #  line width should be an option in the GUI
         $cx->set_line_width(max($cx->device_to_user_distance (1, 1)));
 
         foreach \my @segment (@$data) {
             $cx->move_to(@{$segment[0]});
-            foreach my $vertex (@segment[1 .. $#segment]) {
-                $cx->line_to(@$vertex);
-            }
-            $cx->$stroke_or_fill;
+            $cx->line_to (@$_) foreach @segment;
         }
+        $cx->$stroke_or_fill;
     };
 
     $self->{callbacks}{$cb_target_name} = $cb;
 
-    $self->drawable->queue_draw;
+    $self->queue_draw;
 
     return;
+}
+
+sub _error_msg_no_shapes_in_plot_area {
+    state $txt = <<~'EOL'
+        No shapes overlap the plot area.
+
+        A common cause is that the shapefile coordinate system does
+        not match that of the BaseData, for example your BaseData
+        is in a UTM coordinate system but the shapefile is in
+        decimal degrees.  If this is the case then your shapefile
+        can be reprojected to match your spatial data using GIS software.
+        EOL
+    ;
+    return $txt;
 }
 
 sub load_shapefile {

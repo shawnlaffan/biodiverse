@@ -1,22 +1,24 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.40.0 -->
 <interface>
+  <requires lib="gtk+" version="3.0"/>
   <object class="GtkWindow" id="wndOverlays">
     <property name="visible">True</property>
-    <property name="can_focus">False</property>
+    <property name="can-focus">False</property>
     <property name="title" translatable="yes">Select Overlay</property>
     <property name="modal">True</property>
     <child>
       <object class="GtkVBox" id="vbox21">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <child>
           <object class="GtkLabel" id="label99">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <property name="ypad">3</property>
             <property name="label" translatable="yes">&lt;b&gt;Overlays&lt;/b&gt;
 &lt;i&gt;Currently only shapefiles are supported&lt;/i&gt;</property>
-            <property name="use_markup">True</property>
+            <property name="use-markup">True</property>
             <property name="justify">center</property>
           </object>
           <packing>
@@ -28,14 +30,16 @@
         <child>
           <object class="GtkScrolledWindow" id="scrolledwindow19">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="hscrollbar_policy">automatic</property>
-            <property name="vscrollbar_policy">automatic</property>
-            <property name="shadow_type">in</property>
+            <property name="can-focus">True</property>
+            <property name="hscrollbar-policy">always</property>
+            <property name="shadow-type">in</property>
             <child>
               <object class="GtkTreeView" id="treeOverlays">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
+                <property name="can-focus">True</property>
+                <child internal-child="selection">
+                  <object class="GtkTreeSelection"/>
+                </child>
               </object>
             </child>
           </object>
@@ -48,11 +52,11 @@
         <child>
           <object class="GtkHBox" id="hbox1">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <child>
               <object class="GtkLabel" id="label1">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">Select overlay colour</property>
               </object>
               <packing>
@@ -64,9 +68,9 @@
             <child>
               <object class="GtkColorButton" id="colorbutton_overlays">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="border_width">3</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="border-width">3</property>
                 <property name="color">#000011116969</property>
               </object>
               <packing>
@@ -79,8 +83,8 @@
               <object class="GtkButton" id="btn_overlay_set_default_colour">
                 <property name="label" translatable="yes">Reset colour to default</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -98,20 +102,20 @@
         <child>
           <object class="GtkHButtonBox" id="hbuttonbox5">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="border_width">5</property>
+            <property name="can-focus">False</property>
+            <property name="border-width">5</property>
             <property name="spacing">5</property>
-            <property name="layout_style">end</property>
+            <property name="layout-style">end</property>
             <child>
               <object class="GtkButton" id="btnAdd">
                 <property name="label">gtk-add</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
+                <property name="can-focus">True</property>
+                <property name="can-default">True</property>
+                <property name="receives-default">True</property>
+                <property name="has-tooltip">True</property>
                 <property name="tooltip-text" translatable="yes">Add a new shapefile to the list</property>
-                <property name="use_stock">True</property>
+                <property name="use-stock">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -123,12 +127,12 @@
               <object class="GtkButton" id="btnDelete">
                 <property name="label">Remove</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
+                <property name="can-focus">True</property>
+                <property name="can-default">True</property>
+                <property name="receives-default">True</property>
+                <property name="has-tooltip">True</property>
                 <property name="tooltip-text" translatable="yes">Remove selected entry from the list</property>
-                <property name="use_stock">True</property>
+                <property name="use-stock">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -140,12 +144,12 @@
               <object class="GtkButton" id="btnClear">
                 <property name="label">gtk-clear</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
+                <property name="can-focus">True</property>
+                <property name="can-default">True</property>
+                <property name="receives-default">True</property>
+                <property name="has-tooltip">True</property>
                 <property name="tooltip-text" translatable="yes">Clears the overlay from the current display</property>
-                <property name="use_stock">True</property>
+                <property name="use-stock">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -157,13 +161,13 @@
               <object class="GtkButton" id="btnOverlayCancel">
                 <property name="label">gtk-cancel</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
+                <property name="can-focus">True</property>
+                <property name="can-default">True</property>
+                <property name="receives-default">True</property>
+                <property name="has-tooltip">True</property>
                 <property name="tooltip-text" translatable="yes">Use selected file.
 Merely closes the window if no file is selected.</property>
-                <property name="use_stock">True</property>
+                <property name="use-stock">True</property>
                 <accelerator key="Return" signal="activate"/>
               </object>
               <packing>
@@ -176,13 +180,13 @@ Merely closes the window if no file is selected.</property>
               <object class="GtkButton" id="btnSet">
                 <property name="label">gtk-ok</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
+                <property name="can-focus">True</property>
+                <property name="can-default">True</property>
+                <property name="receives-default">True</property>
+                <property name="has-tooltip">True</property>
                 <property name="tooltip-text" translatable="yes">Use selected file.
 Merely closes the window if no file is selected.</property>
-                <property name="use_stock">True</property>
+                <property name="use-stock">True</property>
                 <accelerator key="Return" signal="activate"/>
               </object>
               <packing>

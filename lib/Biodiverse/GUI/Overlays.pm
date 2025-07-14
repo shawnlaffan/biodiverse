@@ -19,8 +19,7 @@ my $last_selected_colour = $default_colour;
 use constant COL_FNAME       => 0;
 use constant COL_FTYPE       => 1;
 use constant COL_PLOT_ON_TOP => 2;
-use constant COL_PLOT_COLOUR => 3;
-use constant COL_PLOT_COLOUR_BK => 4;
+use constant COL_USE_ALPHA   => 3;
 
 sub show_dialog {
     my $grid = shift;
@@ -158,6 +157,28 @@ sub init_overlay_list {
     );
     $tree->insert_column($col_plot_on_top, -1);
 
+
+    #  Does not display the spinners.  Not sure why.
+    #  So use a boolean instead and hard code 0.5 if true.
+    # my $alpha_renderer = Gtk3::CellRendererSpin->new();
+    # my $adjustment = Gtk3::Adjustment->new(
+    #     1, 0, 1, 0.05, 0.1, 0,
+    # );
+    # $alpha_renderer->set_property(adjustment => $adjustment);
+    # use DDP; p $alpha_renderer;
+    # my $attrs = $alpha_renderer->get_attributes;
+    my $col_alpha = Gtk3::TreeViewColumn->new();
+    $col_alpha->set_title('Transparent');
+    my $alpha_renderer = Gtk3::CellRendererToggle->new();
+    $col_alpha->pack_start($alpha_renderer, 0);
+    $alpha_renderer->signal_connect('toggled' => \&_plot_alpha, $model);
+    # say $col_alpha->get_attributes->to_string;
+    $col_alpha->set_attributes($alpha_renderer,
+        'active' => COL_USE_ALPHA,
+    );
+    $tree->insert_column($col_alpha, -1);
+
+
     # my $col_colour = Gtk3::TreeViewColumn->new();
     # my $colour_renderer_toggle = Gtk3::CellRendererToggle->new();
     # my $colour_renderer_text   = Gtk3::CellRendererText->new();
@@ -198,46 +219,62 @@ sub _plot_on_top {
     return;
 }
 
-sub _update_colour_for_selection {
-    return;
+sub _plot_alpha {
     my ($cell, $path_str, $model) = @_;
 
     my $path = Gtk3::TreePath->new_from_string ($path_str);
 
     # get toggled iter
     my $iter = $model->get_iter ($path);
-    my ($bool) = $model->get ($iter, COL_PLOT_COLOUR);
-
-    my $gui = Biodiverse::GUI::GUIManager->instance;
-    my $overlay_components = $gui->get_overlay_components;
-    my $colour_button = $overlay_components->{colour_button};
-
-    my $colour = $model->get ($iter, COL_PLOT_COLOUR_BK);
-    if (!defined $colour or $colour eq 'undef') {
-        $colour = $colour_button->get_colour; #$self->get_last_colour;
-    }
-
-    if (!Scalar::Util::blessed $colour) {
-        $colour = Gtk3::Gdk::RGBA::parse($colour);
-    }
-    $colour_button->set_rgba($colour);
-
-    $colour_button->clicked;
-    $colour = $colour_button->get_color;
-
-    say STDERR $bool, ' ', $colour->to_string;
+    my ($bool) = $model->get ($iter, COL_USE_ALPHA);
 
     # toggle the value
-    $model->set ($iter,
-        COL_PLOT_COLOUR, !$bool,
-    );
-    $model->set ($iter,
-        COL_PLOT_COLOUR_BK, $colour->to_string,
-        # 'cell-background' => $colour->to_string,
-    );
-    say '--- ' .  $model->get ($iter, COL_PLOT_COLOUR);
-    say '--- ' .  $model->get ($iter, COL_PLOT_COLOUR_BK);
+    $model->set($iter, COL_USE_ALPHA, !$bool);
+
+    return;
 }
+
+
+# sub _update_colour_for_selection {
+#     return;
+#     my ($cell, $path_str, $model) = @_;
+#
+#     my $path = Gtk3::TreePath->new_from_string ($path_str);
+#
+#     # get toggled iter
+#     my $iter = $model->get_iter ($path);
+#     my ($bool) = $model->get ($iter, COL_PLOT_COLOUR);
+#
+#     my $gui = Biodiverse::GUI::GUIManager->instance;
+#     my $overlay_components = $gui->get_overlay_components;
+#     my $colour_button = $overlay_components->{colour_button};
+#
+#     my $colour = $model->get ($iter, COL_PLOT_COLOUR_BK);
+#     if (!defined $colour or $colour eq 'undef') {
+#         $colour = $colour_button->get_colour; #$self->get_last_colour;
+#     }
+#
+#     if (!Scalar::Util::blessed $colour) {
+#         $colour = Gtk3::Gdk::RGBA::parse($colour);
+#     }
+#     $colour_button->set_rgba($colour);
+#
+#     $colour_button->clicked;
+#     $colour = $colour_button->get_color;
+#
+#     say STDERR $bool, ' ', $colour->to_string;
+#
+#     # toggle the value
+#     $model->set ($iter,
+#         COL_PLOT_COLOUR, !$bool,
+#     );
+#     $model->set ($iter,
+#         COL_PLOT_COLOUR_BK, $colour->to_string,
+#         # 'cell-background' => $colour->to_string,
+#     );
+#     say '--- ' .  $model->get ($iter, COL_PLOT_COLOUR);
+#     say '--- ' .  $model->get ($iter, COL_PLOT_COLOUR_BK);
+# }
 
 # Make the object tree that appears on the left
 sub make_overlay_model {
@@ -247,8 +284,7 @@ sub make_overlay_model {
         'Glib::String',
         'Glib::String',
         'Glib::Boolean',
-        # 'Glib::Boolean',  #  next two are colour stuff
-        # 'Glib::String',
+        'Glib::Boolean',
     );
 
     my $overlays = $project->get_overlay_list();
@@ -257,11 +293,10 @@ sub make_overlay_model {
         my $iter = $model->append;
         if (!is_hashref $entry) {  # previous versions did not store these
             $entry = {
-                name         => $entry,
-                type         => 'polyline',
-                plot_on_top  => !!1,
-                # has_colour   => undef,
-                # colour       => undef,
+                name        => $entry,
+                type        => 'polyline',
+                plot_on_top => !!1,
+                use_alpha       => 1,  #  a boolean for partial transparency
             };
         }
         # use DDP;
@@ -271,8 +306,7 @@ sub make_overlay_model {
             COL_FNAME,       $entry->{name},
             COL_FTYPE,       $entry->{type} // 'polyline',
             COL_PLOT_ON_TOP, !!$entry->{plot_on_top},
-            # COL_PLOT_COLOUR, !!$entry->{colour},
-            # COL_PLOT_COLOUR_BK, ($entry->{colour} // 'white'),
+            COL_USE_ALPHA,   !!$entry->{use_alpha},
         );
     }
 
@@ -291,12 +325,14 @@ sub get_settings_table {
     my $iter  = $model->get_iter_first();
     while ($iter) {
         push @table, {
-            name => $model->get($iter, COL_FNAME),
-            type => $model->get($iter, COL_FTYPE),
+            name        => $model->get($iter, COL_FNAME),
+            type        => $model->get($iter, COL_FTYPE),
             plot_on_top => $model->get($iter, COL_PLOT_ON_TOP),
+            use_alpha   => $model->get($iter, COL_USE_ALPHA),
         };
         last if !$model->iter_next($iter);
     }
+
     return wantarray ? @table : \@table;
 }
 
@@ -314,11 +350,14 @@ sub get_selection {
     my $name  = $model->get($iter, COL_FNAME);
     my $type  = $model->get($iter, COL_FTYPE);
     my $plot_on_top = $model->get($iter, COL_PLOT_ON_TOP);
+    my $use_alpha   = $model->get($iter, COL_USE_ALPHA);
     # my $array_iter  = $path->to_string;  #  only works for a simple tree
     my $array_iter  = $path->get_string_from_iter($iter);
 
     return wantarray
-        ? (iter => $iter, filename => $name, type => $type, plot_on_top => $plot_on_top, array_iter => $array_iter)
+        ? (iter        => $iter,        filename  => $name,      type       => $type,
+           plot_on_top => $plot_on_top, use_alpha => $use_alpha, array_iter => $array_iter,
+          )
         : $name;
 }
 
@@ -373,18 +412,18 @@ sub on_add {
 
     #  load as a polyline
     my $iter = $list->get_model->append;
-    $list->get_model->set($iter, COL_FNAME, $filename, COL_FTYPE, 'polyline', COL_PLOT_ON_TOP, 1);
+    $list->get_model->set($iter, COL_FNAME, $filename, COL_FTYPE, 'polyline', COL_PLOT_ON_TOP, 1, COL_USE_ALPHA, 1);
     my $sel = $list->get_selection;
     $sel->select_iter($iter);
-    $project->add_overlay({name => $filename, type => 'polyline', plot_on_top => 1});
+    $project->add_overlay({name => $filename, type => 'polyline', plot_on_top => 1, use_alpha => 1});
 
     #  also load as polygon
     if (_shp_type_is_polygon($filename)) {
         $iter = $list->get_model->append;
-        $list->get_model->set($iter, COL_FNAME, $filename, COL_FTYPE, 'polygon', COL_PLOT_ON_TOP, 0);
+        $list->get_model->set($iter, COL_FNAME, $filename, COL_FTYPE, 'polygon', COL_PLOT_ON_TOP, 0, COL_USE_ALPHA, 0);
         $sel = $list->get_selection;
         $sel->select_iter($iter);
-        $project->add_overlay({ name => $filename, type => 'polygon', plot_on_top => 0 });
+        $project->add_overlay({ name => $filename, type => 'polygon', plot_on_top => 0, use_alpha => 0 });
     }
 
     return;
@@ -448,8 +487,8 @@ sub on_set {
 
     # my ($iter, $filename, $plot_as_poly, $array_iter) = get_selection($list);
     my %results = get_selection($list);
-    my ($iter, $filename, $type, $plot_on_top, $array_iter)
-        = @results{qw /iter filename type plot_on_top array_iter/};
+    my ($filename, $type, $plot_on_top, $use_alpha)
+        = @results{qw /filename type plot_on_top use_alpha/};
 
     my $colour = $colour_button->get_rgba;
 
@@ -462,6 +501,7 @@ sub on_set {
         shapefile   => $project->get_overlay_shape_object($filename),
         colour      => $colour,
         plot_on_top => $plot_on_top,
+        use_alpha   => $use_alpha,
         type        => $type,
     );
     #$dlg->destroy();

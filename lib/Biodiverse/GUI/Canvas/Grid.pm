@@ -718,8 +718,7 @@ sub set_overlay {
         $self->rgb_to_array($colour),
         $use_alpha ? 0.5 : 1,
     );
-    my $is_poly = $type eq 'polygon';
-    my $stroke_or_fill = $is_poly ? 'fill' : 'stroke';
+    my $stroke_or_fill = $type eq 'polygon' ? 'fill' : 'stroke';
 
     my $cb = sub {
         my ($self, $cx) = @_;
@@ -738,7 +737,7 @@ sub set_overlay {
 
     $self->{callbacks}{$cb_target_name} = $cb;
 
-    $self->drawable->queue_draw;
+    $self->queue_draw;
 
     return;
 }

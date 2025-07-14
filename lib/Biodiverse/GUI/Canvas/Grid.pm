@@ -742,9 +742,7 @@ sub set_overlay {
 
         foreach \my @segment (@$data) {
             $cx->move_to(@{$segment[0]});
-            foreach my $vertex (@segment[1 .. $#segment]) {
-                $cx->line_to(@$vertex);
-            }
+            $cx->line_to (@$_) foreach @segment;
         }
         $cx->$stroke_or_fill;
     };

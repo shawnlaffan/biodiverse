@@ -10,7 +10,7 @@ use Carp;
 use List::Util qw /sum reduce/;
 use Ref::Util qw /is_hashref/;
 
-our $VERSION = '4.99_006';
+our $VERSION = '4.99_007';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 

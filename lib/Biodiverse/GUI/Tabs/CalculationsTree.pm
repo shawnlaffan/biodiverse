@@ -19,7 +19,7 @@ use Biodiverse::Indices;
 use Ref::Util qw { :all };
 use Text::Wrapper;
 
-our $VERSION = '4.99_006';
+our $VERSION = '4.99_007';
 
 my $i;
 use constant MODEL_NAME_COL        =>   $i || 0;

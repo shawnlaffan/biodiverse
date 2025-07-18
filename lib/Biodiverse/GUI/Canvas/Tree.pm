@@ -83,11 +83,6 @@ sub new {
 
     $self->init_legend(%args, parent => $self);
 
-    # warn 'Tree is using default data';
-    # $self->{data} = $self->get_data($args{ntips});
-    # $self->init_plot_coords;
-    # say join ' ', $self->get_data_extents;
-
     $self->{callbacks} = {
         plot   => sub {shift->draw(@_)},
         legend => sub {shift->get_legend->draw(@_)},

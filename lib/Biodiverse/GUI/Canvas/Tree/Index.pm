@@ -24,7 +24,7 @@ sub populate_from_tree {
     my ($self, $tree) = @_;
 
     my $branch_hash = $tree->{data}{by_node};
-    my $line_width  = max ($tree->get_horizontal_line_width, 0.02);  #  need to tweak this
+    my $line_width  = 0.02; # max ($tree->get_horizontal_line_width, 0.02);  #  need to tweak this
     my $lw2         = $self->{lw2} //= $line_width / 2;
 
     if ($self->{line_width} && ($line_width == $self->{line_width})) {

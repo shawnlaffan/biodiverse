@@ -539,35 +539,34 @@ sub draw_slider {
 
 #  branch line width in canvas units
 sub get_horizontal_line_width {
-    my ($self) = @_;
+    my ($self, $cx) = @_;
 
     my $ntips  = $self->{data}{ntips};
-    my $dims_h = $self->{dims};  #  full plot
-    my $disp_h = $self->{disp};  #  current zoom
-    my $disp_ymin = $disp_h->{ymin} // $dims_h->ymin;
-    my $disp_ymax = $disp_h->{ymax} // $dims_h->ymax;
 
     my $line_width = $self->get_branch_line_width;
+
+    #  A minimum of one pixel ensures branches are visible
+    my $default = ($cx->device_to_user_distance(0,1))[1];
+
     if (!$ntips) {
         $line_width = 1;
     }
     elsif (!$line_width) {
-        #  calculate it as a function of the plot height
-        my $frac_displayed = ($disp_ymax - $disp_ymin) / $dims_h->height;
-        $frac_displayed = min(1, $frac_displayed); #  use dims if zoomed out
-        $line_width = ($disp_ymax - $disp_ymin) / ($ntips * 3 * $frac_displayed);
-    }
-    else {  #  convert pixel to canvas
-        my $drawable = $self->drawable;
-        my $draw_size = $drawable->get_allocation();
+        my $draw_size = $self->drawable->get_allocation();
         my $canvas_height = $draw_size->{height};
-        $line_width /= $canvas_height;
+
+        #  how much of the tree (vertically) is visible due to zooming?
+        my $scaler = ($cx->user_to_device_distance(0,$self->{dims}->height))[1];
+
+        #  Calculate line width as a function of the plot height.
+        #  The 3 allows a one branch gap under "ideal circumstances".
+        $line_width = $canvas_height / ($scaler * $ntips * 3);
+    }
+    else  {  #  convert pixel to canvas
+        $line_width *= $default;
     }
 
-    # say "LW: $line_width";
-
-    #  Arbitrary but we can also be too small.
-    return max (0.002, $line_width);
+    return max ($default, $line_width);
 }
 
 #  ensure the vertical lines are the same as the horizontal ones
@@ -611,7 +610,7 @@ sub draw {
     # $cx->rectangle (0, 0, 1, 1);
     # $cx->fill;
 
-    my $h_line_width = $self->get_horizontal_line_width;
+    my $h_line_width = $self->get_horizontal_line_width ($cx);
     my $v_line_width = $self->get_vertical_line_width ($h_line_width);
 
     \my %highlight_hash = $self->{branch_highlights} // {};

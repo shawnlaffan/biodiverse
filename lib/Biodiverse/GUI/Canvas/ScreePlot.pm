@@ -152,9 +152,10 @@ sub draw {
     $cx->rectangle ($left, 0, $width, 1);
     $cx->fill;
 
-    my $h_line_width = $self->get_line_width;
-    $cx->set_line_width($h_line_width);
+    # my $h_line_width = $self->get_line_width;
+    my ($v_line_width, $h_line_width) = $cx->device_to_user_distance(1,1);
 
+    $cx->set_source_rgb(0, 0, 0);
     foreach my $i (0 .. $#$data-1) {
         my $vertex_l = $data->[$i];
         my $vertex_r = $data->[$i+1];
@@ -164,9 +165,8 @@ sub draw {
         my $y_l = $vertex_l->[1];
         my $y_r = $vertex_r->[1];
 
-        # say "$x_l, $y_l, $x_r, $y_r";
+        $cx->set_line_width($y_l == $y_r ? $h_line_width : $v_line_width);
 
-        $cx->set_source_rgb(0, 0, 0);
         $cx->move_to($x_l, 1 - $y_l);
         $cx->line_to($x_r, 1 - $y_r);
         $cx->stroke;

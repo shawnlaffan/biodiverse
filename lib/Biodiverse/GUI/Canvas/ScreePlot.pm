@@ -152,21 +152,19 @@ sub draw {
     $cx->rectangle ($left, 0, $width, 1);
     $cx->fill;
 
-    my $h_line_width = $self->get_line_width;
-    $cx->set_line_width($h_line_width);
+    # my $h_line_width = $self->get_line_width;
+    my ($v_line_width, $h_line_width) = $cx->device_to_user_distance(1,1);
 
+    $cx->set_source_rgb(0, 0, 0);
     foreach my $i (0 .. $#$data-1) {
         my $vertex_l = $data->[$i];
         my $vertex_r = $data->[$i+1];
 
-        my $x_l = $vertex_l->[0];
-        my $x_r = $vertex_r->[0];
-        my $y_l = $vertex_l->[1];
-        my $y_r = $vertex_r->[1];
+        my ($x_l, $y_l) = @$vertex_l[0,1];
+        my ($x_r, $y_r) = @$vertex_r[0,1];
 
-        # say "$x_l, $y_l, $x_r, $y_r";
+        $cx->set_line_width($y_l == $y_r ? $h_line_width : $v_line_width);
 
-        $cx->set_source_rgb(0, 0, 0);
         $cx->move_to($x_l, 1 - $y_l);
         $cx->line_to($x_r, 1 - $y_r);
         $cx->stroke;
@@ -196,17 +194,15 @@ sub init_plot_coords {
     my $tree_data = $tree_canvas->get_data;
 
     #  now iterate over the branches and accumulate
-    my $npoints = 50;
+    my $npoints = 200;
     my $branches = $tree_data->{by_node};
     my $nbranches = scalar keys %$branches;
 
     return if !$nbranches;
 
-    my @histogram;
-
     #  use the rtree and get the sum of tips for intersected branches
     my $dims  = $tree_canvas->{dims};
-    my @xdims = ($dims->{xmin}, $dims->{xmax});
+    my @xdims = ($dims->xmin, $dims->xmax);
 
     my $increment = ($xdims[1] - $xdims[0]) / $npoints;
 
@@ -225,8 +221,10 @@ sub init_plot_coords {
         my $href = $histo[$i];
         @collated{keys %$href} = ();
         my $frac = (scalar keys %collated) / $nbranches;
-        push @histo2, ([$x, $prev_frac], [$x, $frac]);
-        $prev_frac = $frac;
+        if ($frac != $prev_frac) {
+            push @histo2, ([ $x, $prev_frac ], [ $x, $frac ]);
+            $prev_frac = $frac;
+        }
         $x += $increment;
     }
     push @histo2, ([$xdims[1], $prev_frac], [$xdims[1], 1]);

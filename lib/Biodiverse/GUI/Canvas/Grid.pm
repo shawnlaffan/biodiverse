@@ -163,53 +163,6 @@ sub _on_selection_release {
     return FALSE;
 }
 
-sub _get_data {
-    my $self = shift;
-    my $dims = $self->{dims};
-    my ($xmin, $xmax, $ymin, $ymax) = map {$dims->$_} (qw/xmin xmax ymin ymax/);
-    my $cellsizes = $self->{cellsizes};
-
-    # say join ' ', ($xmin, $xmax, $ymin, $ymax, $cellsizes);
-
-    my %data;
-    my $nx = floor(($xmax - $xmin) / $cellsizes->[0]);
-    my $ny = floor(($ymax - $ymin) / $cellsizes->[1]);
-    my $cell2x = $cellsizes->[0] / 2;
-    my $cell2y = $cellsizes->[1] / 2;
-
-    srand(12345);
-    for my $col (0 .. $nx - 1) {
-
-        for my $row (0 .. $ny - 1) {
-            next if rand() < 0.15;
-            my $key = "$col:$row";
-            my ($x, $y) = $self->cell_to_map_centroid($col, $row);
-            # say "$key $x $y $col $row";
-            my $coord = [ $x, $y ];
-            my $bounds = [ $x - $cell2x, $y - $cell2y, $x + $cell2x, $y + $cell2y ];
-            my $val = $x + $y;
-            $data{$key}{val} = $val;
-            $data{$key}{coord} = $coord;
-            $data{$key}{bounds} = $bounds;
-            $data{$key}{rect} = [ @$bounds[0, 1], $cellsizes->[0], $cellsizes->[1] ];
-            $data{$key}{centroid} = [ @$coord ];
-
-            my $rgb = [ $col / $nx, $row / $ny, 0 ];
-            $data{$key}{rgb} = $rgb;
-            $data{$key}{rgb_orig} = [ @$rgb ];
-            $data{$key}{nbrs} = [
-                map
-                  {join ':', @$_}
-                  ([ $col - 1, $row ], [ $col, $row + 1 ], [ $col + 1, $row ], [ $col, $row - 1 ])
-            ];
-
-        }
-
-    }
-
-    return \%data;
-}
-
 sub draw_cells_cb {
     my ($self, $context) = @_;
 

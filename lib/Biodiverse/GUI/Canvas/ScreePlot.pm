@@ -160,10 +160,8 @@ sub draw {
         my $vertex_l = $data->[$i];
         my $vertex_r = $data->[$i+1];
 
-        my $x_l = $vertex_l->[0];
-        my $x_r = $vertex_r->[0];
-        my $y_l = $vertex_l->[1];
-        my $y_r = $vertex_r->[1];
+        my ($x_l, $y_l) = @$vertex_l[0,1];
+        my ($x_r, $y_r) = @$vertex_r[0,1];
 
         $cx->set_line_width($y_l == $y_r ? $h_line_width : $v_line_width);
 

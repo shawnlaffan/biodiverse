@@ -204,7 +204,7 @@ sub init_plot_coords {
 
     #  use the rtree and get the sum of tips for intersected branches
     my $dims  = $tree_canvas->{dims};
-    my @xdims = ($dims->{xmin}, $dims->{xmax});
+    my @xdims = ($dims->xmin, $dims->xmax);
 
     my $increment = ($xdims[1] - $xdims[0]) / $npoints;
 
@@ -223,8 +223,10 @@ sub init_plot_coords {
         my $href = $histo[$i];
         @collated{keys %$href} = ();
         my $frac = (scalar keys %collated) / $nbranches;
-        push @histo2, ([$x, $prev_frac], [$x, $frac]);
-        $prev_frac = $frac;
+        if ($frac != $prev_frac) {
+            push @histo2, ([ $x, $prev_frac ], [ $x, $frac ]);
+            $prev_frac = $frac;
+        }
         $x += $increment;
     }
     push @histo2, ([$xdims[1], $prev_frac], [$xdims[1], 1]);

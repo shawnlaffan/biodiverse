@@ -194,13 +194,11 @@ sub init_plot_coords {
     my $tree_data = $tree_canvas->get_data;
 
     #  now iterate over the branches and accumulate
-    my $npoints = 50;
+    my $npoints = 200;
     my $branches = $tree_data->{by_node};
     my $nbranches = scalar keys %$branches;
 
     return if !$nbranches;
-
-    my @histogram;
 
     #  use the rtree and get the sum of tips for intersected branches
     my $dims  = $tree_canvas->{dims};

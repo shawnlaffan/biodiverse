@@ -412,46 +412,53 @@ sub set_base_struct {
     my $bd = $source->get_basedata_ref;
 
     state $cache_name = 'GUI_2D_PLOT_DATA';
-    my $cached_data = $bd->get_cached_value ($cache_name);
+    my $cached_data = $bd->get_cached_value_dor_set_default_href ($cache_name);
 
     my @res = $self->calculate_cell_sizes($source); #  handles zero and text
 
-    my ($cell_x, $cell_y) = @res[0, 1]; #  just grab first two for now
+    my ($cell_x, $cell_y) = @res[0, 1]; #  just grab first two for now - update the caching if we ever change
     $cell_y ||= $cell_x;                #  default to a square if not defined or zero
 
-    my $cell2x = $cell_x / 2;
-    my $cell2y = $cell_y / 2;
+    if (%$cached_data) {
+        # say 'Cache hit';
+        $self->{data}  = $cached_data->{data};
+        $self->{rtree} = $cached_data->{rtree};
+    }
+    else {
+        my $cell2x = $cell_x / 2;
+        my $cell2y = $cell_y / 2;
 
-    my %data;
-    $self->{data} = \%data;
+        my %data;
+        #  sorted list for consistency when there are >2 axes
+        foreach my $element ($source->get_element_list_sorted) {
+            my ($x, $y) = $source->get_element_name_coord(element => $element);
+            $y //= $res[1];
 
-    my %elements;
-    $self->{element_data_map} = \%elements;
+            my $key = "$x:$y";
+            next if exists $data{$key};
 
-    #  sorted list for consistency when there are >2 axes
-    foreach my $element ($source->get_element_list_sorted) {
-        my ($x, $y) = $source->get_element_name_coord(element => $element);
-        $y //= $res[1];
+            my $coord = [ $x, $y ];
+            my $bounds = [ $x - $cell2x, $y - $cell2y, $x + $cell2x, $y + $cell2y ];
 
-        my $key = "$x:$y";
-        next if exists $data{$key};
+            $data{$key}{coord} = $coord;
+            $data{$key}{bounds} = $bounds;
+            $data{$key}{rect} = [ @$bounds[0, 1], $res[0], $res[1] ];
+            $data{$key}{centroid} = [ @$coord ];
+            $data{$key}{element} = $element;
+        }
 
-        my $coord = [ $x, $y ];
-        my $bounds = [ $x - $cell2x, $y - $cell2y, $x + $cell2x, $y + $cell2y ];
+        #  Now build an rtree - random order is faster, hence it is outside the initial allocation
+        #  (An STR Tree would be faster to build)
+        my $rtree = $self->{rtree} = Tree::R->new;
+        foreach my $key (keys %data) {
+            $rtree->insert($data{$key}{element}, @{$data{$key}{bounds}});
+        }
 
-        $data{$key}{coord} = $coord;
-        $data{$key}{bounds} = $bounds;
-        $data{$key}{rect} = [ @$bounds[0, 1], $res[0], $res[1] ];
-        $data{$key}{centroid} = [ @$coord ];
-        $data{$key}{element} = $element;
-        $elements{$element} = $key;
+        $cached_data->{data} = $self->{data} = \%data;
+        $cached_data->{rtree} = $self->{rtree};
     }
 
-    #  now build an rtree - random order is faster, hence it is outside the initial allocation
-    my $rtree = $self->{rtree} = Tree::R->new;
-    foreach my $key (keys %data) {
-        $rtree->insert($data{$key}{element}, @{$data{$key}{bounds}});
-    }
+    #  the rest could also be cached but does not take long
 
     $self->rebuild_border_rects;
 
@@ -472,10 +479,6 @@ sub set_base_struct {
 
     # Store info needed by load_shapefile
     $self->{dataset_info} = [ $min_x, $min_y, $max_x, $max_y, $cell_x, $cell_y ];
-
-    #  save some coords stuff for later transforms - poss no longer needed
-    $self->{base_struct_cellsizes} = [ $cell_x, $cell_y ];
-    $self->{base_struct_bounds} = [ $min_x, $min_y, $max_x, $max_y ];
 
     return 1;
 }

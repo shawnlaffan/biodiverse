@@ -453,7 +453,7 @@ sub set_base_struct {
         $rtree->insert($data{$key}{element}, @{$data{$key}{bounds}});
     }
 
-    $self->{border_rects} = [ map {$_->{rect}} values %data ];
+    $self->rebuild_border_rects;
 
     my ($min_x, $max_x, $min_y, $max_y) = $self->get_data_extents();
 

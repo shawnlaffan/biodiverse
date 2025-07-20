@@ -1682,8 +1682,10 @@ sub weaken_parent_ref {
 }
 
 sub get_parent_name {
-    my $self = shift;
-    $self->is_root_node ? '' : $self->get_parent->get_name;
+    my ($self) = @_;
+    my $parent = $self->get_parent
+      // return '';
+    return $parent->get_name;
 }
 
 sub is_root_node {

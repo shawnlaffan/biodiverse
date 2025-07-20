@@ -758,26 +758,34 @@ sub get_terminal_nodes {
 
 sub get_terminal_node_refs {
     my $self = shift;
-    my @node_list;
 
-    foreach my $node_ref ( values %{ $self->get_node_hash } ) {
-        next if !$node_ref->is_terminal_node;
-        push @node_list, $node_ref;
-    }
+    state $cache_name = 'TERMINAL_NODE_REFS';
+
+    my $cache = $self->get_cached_value ($cache_name);
+    return wantarray ? %$cache : $cache
+        if $cache;
+
+    my $node_hash = $self->get_node_hash;
+    my @node_list = grep {$_->is_terminal_node} values %$node_hash;
+
+    $self->set_cached_value ($cache_name => \@node_list);
 
     return wantarray ? @node_list : \@node_list;
 }
 
 sub get_terminal_node_refs_sorted_by_name {
     my $self = shift;
-    my @node_list;
 
-    foreach my $node_ref ( values %{ $self->get_node_hash } ) {
-        next if !$node_ref->is_terminal_node;
-        push @node_list, $node_ref;
-    }
+    state $cache_name = 'TERMINAL_NODE_REFS_SORTED_BY_NAME';
 
-    @node_list = natkeysort {$_->get_name} @node_list;
+    my $cache = $self->get_cached_value ($cache_name);
+    return wantarray ? %$cache : $cache
+        if $cache;
+
+    my $terminals = $self->get_terminal_node_refs;
+    my @node_list = natkeysort {$_->get_name} @$terminals;
+
+    $self->set_cached_value ($cache_name => \@node_list);
 
     return wantarray ? @node_list : \@node_list;
 }

@@ -142,10 +142,14 @@ sub set_current_tree {
 
     $self->{plot_mode} = $plot_mode;
 
-    my $cache = $self->get_cached_value_dor_set_default_href('cached_data');
-    if (my $data = $cache->{$tree}{$plot_mode}) {
+    #  should only use tree cache
+    my $cached_on_self = $self->get_cached_value_dor_set_default_href('cached_data');
+    my $cached_on_tree = $tree->get_cached_value_dor_set_default_href('GUI_plot_data');
+    if (my $data = $cached_on_self->{$tree}{$plot_mode}{data} // $cached_on_tree->{$plot_mode}{data}) {
         $self->{data} = $data;
         $self->{current_tree} = $tree;
+        my $graph_data = $cached_on_tree->{$plot_mode}{graph_data};
+        $self->get_scree_plot->set_plot_coords($graph_data);
         say "Using cached data to plot ", $tree->get_name, " using mode $plot_mode";
         return;
     }
@@ -210,16 +214,18 @@ sub set_current_tree {
 
     $self->init_plot_coords;
 
+    #  cluster analyses have this, and they only plot one tree at the moment
     if ($self->{map_list_combo}) {
         $self->setup_map_list_model( scalar $tree->get_hash_lists() );
     }
 
-    # TODO: Abstract this properly - but not sure it is used any more
-    if (exists $self->{map_lists_ready_cb}) {
-        $self->{map_lists_ready_cb}->($self->get_map_lists());
-    }
+    $cached_on_self->{$tree}{$plot_mode}{data}
+        = $cached_on_tree->{$plot_mode}{data}
+        = $self->{data};
+    $cached_on_self->{$tree}{$plot_mode}{graph_data}
+        = $cached_on_tree->{$plot_mode}{graph_data}
+        = $self->get_scree_plot->{data};
 
-    $cache->{$tree}{$plot_mode} = $self->{data};
 
     return;
 }
@@ -454,6 +460,12 @@ sub get_slider_coords {
     };
 }
 
+#  this should be configurable
+sub slider_width_px {
+    my ($self) = @_;
+    $self->{slider_width_px} //= 5;
+}
+
 sub draw_slider {
     my ($self, $cx) = @_;
 
@@ -464,8 +476,8 @@ sub draw_slider {
 
     my ($x, $y0, $y1) = @{$slider_coords}{qw/x y0 y1/};
 
-    my $disp = $self->{disp};
-    my $line_width = $disp->width / 100;
+    my $slider_width_px = $self->slider_width_px;
+    my $line_width = ($cx->device_to_user_distance($slider_width_px,0))[0];
     my $l2 = $line_width / 2;
 
     $cx->save;
@@ -815,6 +827,8 @@ sub init_plot_coords {
     my $box_index = $self->get_index;
 
     if (my $scree_plot = $self->get_scree_plot) {
+        #  force an update
+        $scree_plot->{plot_coords_generated} = 0;
         $scree_plot->init_plot_coords;
     }
 

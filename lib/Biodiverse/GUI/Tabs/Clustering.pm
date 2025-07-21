@@ -675,9 +675,6 @@ sub init_dendrogram {
         num_clusters    => 6,
     );
 
-    # TODO: Abstract this properly
-    #$self->{dendrogram}->{map_lists_ready_cb} = sub { $self->on_map_lists_ready(@_) };
-
     $dendro->set_parent_tab($self);
     $dendro->init_multiselect;
     $dendro->init_scree_plot(frame => $graph_frame);

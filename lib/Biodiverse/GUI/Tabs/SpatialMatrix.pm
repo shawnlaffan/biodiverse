@@ -251,8 +251,8 @@ sub init_grid {
             $self->{groups_ref},
         );
     };
-    my $grid_click_closure = sub { $self->on_grid_click(@_); };
-    # my $select_closure     = sub { $self->on_grid_select(@_); };
+    # my $grid_click_closure = sub { $self->on_grid_click(@_); };
+    my $select_closure     = sub { $self->on_cell_selected(@_); };
     my $right_click_closure = sub {$self->toggle_do_canvas_hover_flag (@_)};
 
     my $grid = $self->{grid} = Biodiverse::GUI::Canvas::Grid->new(
@@ -262,8 +262,8 @@ sub init_grid {
         hover_func       => $hover_closure,
         end_hover_func   => sub {$self->on_end_grid_hover(@_)},
         ctl_click_func   => $click_closure, # Middle click or ctl left-click
-        # select_func      => $select_closure,
-        grid_click_func  => $grid_click_closure, # Left click
+        select_func      => $select_closure,
+        # grid_click_func  => $grid_click_closure, # Left click
         right_click_func => $right_click_closure,
     );
     $grid->set_parent_tab($self);
@@ -401,8 +401,7 @@ sub on_run {
 ##################################################
 
 sub on_cell_selected {
-    my $self = shift;
-    my $data = shift;
+    my ($self, $data) = @_;
 
     my $element;
     if (scalar @$data == 1) {

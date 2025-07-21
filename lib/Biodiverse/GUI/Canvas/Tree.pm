@@ -142,8 +142,10 @@ sub set_current_tree {
 
     $self->{plot_mode} = $plot_mode;
 
-    my $cache = $self->get_cached_value_dor_set_default_href('cached_data');
-    if (my $data = $cache->{$tree}{$plot_mode}) {
+    #  should only use tree cache
+    my $cached_on_self = $self->get_cached_value_dor_set_default_href('cached_data');
+    my $cached_on_tree = $tree->get_cached_value_dor_set_default_href('GUI_plot_data');
+    if (my $data = $cached_on_self->{$tree}{$plot_mode}{data} // $cached_on_tree->{$plot_mode}{data}) {
         $self->{data} = $data;
         $self->{current_tree} = $tree;
         say "Using cached data to plot ", $tree->get_name, " using mode $plot_mode";
@@ -219,7 +221,9 @@ sub set_current_tree {
         $self->{map_lists_ready_cb}->($self->get_map_lists());
     }
 
-    $cache->{$tree}{$plot_mode} = $self->{data};
+    $cached_on_self->{$tree}{$plot_mode}{data}
+        = $cached_on_tree->{$plot_mode}{data}
+        = $self->{data};
 
     return;
 }

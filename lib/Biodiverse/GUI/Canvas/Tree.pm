@@ -148,6 +148,8 @@ sub set_current_tree {
     if (my $data = $cached_on_self->{$tree}{$plot_mode}{data} // $cached_on_tree->{$plot_mode}{data}) {
         $self->{data} = $data;
         $self->{current_tree} = $tree;
+        my $graph_data = $cached_on_tree->{$plot_mode}{graph_data};
+        $self->get_scree_plot->set_plot_coords($graph_data);
         say "Using cached data to plot ", $tree->get_name, " using mode $plot_mode";
         return;
     }
@@ -224,6 +226,10 @@ sub set_current_tree {
     $cached_on_self->{$tree}{$plot_mode}{data}
         = $cached_on_tree->{$plot_mode}{data}
         = $self->{data};
+    $cached_on_self->{$tree}{$plot_mode}{graph_data}
+        = $cached_on_tree->{$plot_mode}{graph_data}
+        = $self->get_scree_plot->{data};
+
 
     return;
 }
@@ -819,6 +825,8 @@ sub init_plot_coords {
     my $box_index = $self->get_index;
 
     if (my $scree_plot = $self->get_scree_plot) {
+        #  force an update
+        $scree_plot->{plot_coords_generated} = 0;
         $scree_plot->init_plot_coords;
     }
 

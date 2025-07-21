@@ -182,6 +182,24 @@ sub get_line_width {
     return 0.01;
 }
 
+#  Requires the data match expectations
+sub set_plot_coords {
+    my ($self, $data) = @_;
+
+    my $tree_canvas = $self->get_tree_canvas;
+
+    my $dims = $tree_canvas->{dims};
+
+    $self->init_dims (
+        xmin => $dims->xmin,
+        xmax => $dims->xmax,
+        ymin => 0,
+        ymax => 1,
+    );
+    $self->{data} = $data;
+
+    return;
+}
 
 #  requires the tree to have generated its data
 sub init_plot_coords {

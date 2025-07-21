@@ -424,9 +424,10 @@ sub choose_tool {
     if ($old_tool) {
         #  should really edit the ui files so they use the same names
         state %widget_suffixes = (
-            'Biodiverse::GUI::Tabs::Labels'     => 'VL',
-            'Biodiverse::GUI::Tabs::Clustering' => 'CL',
-            'Biodiverse::GUI::Tabs::Spatial'    => 'SP',
+            'Biodiverse::GUI::Tabs::Labels'        => 'VL',
+            'Biodiverse::GUI::Tabs::Clustering'    => 'CL',
+            'Biodiverse::GUI::Tabs::Spatial'       => 'SP',
+            'Biodiverse::GUI::Tabs::SpatialMatrix' => 'SP',
         );
         my $class = blessed $self;
         my $suffix = $widget_suffixes{$class} // die "Unknown tab class $class";

@@ -112,24 +112,35 @@ sub draw_slider {
     #  might only need the x coord
     my $slider_coords = $self->get_slider_coords;
 
+    $cx->save;
     $cx->set_source_rgba(0, 0, 1, 0.5);
     my $bounds = $slider_coords->{bounds};
 
-    if (1 && $bounds) {  #  disabled for now
+    if (1 && $bounds) {
+        #  never less than one px, never more than the tree's slider_width_px
+        my $width = min (
+            ($cx->device_to_user_distance($self->get_tree_canvas->slider_width_px,0))[0],
+            max (
+                $bounds->[2] - $bounds->[0],
+                ($cx->device_to_user_distance(1,0))[0],
+            )
+        );
         $cx->rectangle(
             $bounds->[0],
             0,
-            $bounds->[2] - $bounds->[0],
+            $width,
             1,
         );
         $cx->fill;
     }
     else {
+        #  we should not hit this
         my $x = $slider_coords->{x};
         $cx->move_to($x, 0);
         $cx->line_to($x, 1);
         $cx->stroke;
     }
+    $cx->restore;
 
     return;
 }

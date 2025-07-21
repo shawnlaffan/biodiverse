@@ -460,6 +460,12 @@ sub get_slider_coords {
     };
 }
 
+#  this should be configurable
+sub slider_width_px {
+    my ($self) = @_;
+    $self->{slider_width_px} //= 5;
+}
+
 sub draw_slider {
     my ($self, $cx) = @_;
 
@@ -470,8 +476,8 @@ sub draw_slider {
 
     my ($x, $y0, $y1) = @{$slider_coords}{qw/x y0 y1/};
 
-    my $disp = $self->{disp};
-    my $line_width = $disp->width / 100;
+    my $slider_width_px = $self->slider_width_px;
+    my $line_width = ($cx->device_to_user_distance($slider_width_px,0))[0];
     my $l2 = $line_width / 2;
 
     $cx->save;

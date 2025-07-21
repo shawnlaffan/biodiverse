@@ -214,13 +214,9 @@ sub set_current_tree {
 
     $self->init_plot_coords;
 
+    #  cluster analyses have this, and they only plot one tree at the moment
     if ($self->{map_list_combo}) {
         $self->setup_map_list_model( scalar $tree->get_hash_lists() );
-    }
-
-    # TODO: Abstract this properly - but not sure it is used any more
-    if (exists $self->{map_lists_ready_cb}) {
-        $self->{map_lists_ready_cb}->($self->get_map_lists());
     }
 
     $cached_on_self->{$tree}{$plot_mode}{data}

@@ -577,8 +577,9 @@ sub plot_highlights {
         $cx->set_line_width($cellsizes->[0] / 10);
         foreach my $c (grep {defined} map {$self->{data}{$_}{centroid}} @$elements) {
             $cx->arc(@$c, $cellsizes->[0] / 4, 0, 2.0 * PI);
-            $cx->fill;
+            $cx->close_path;
         };
+        $cx->fill;
     };
     if (my $elements = $self->{highlights}{dashes}) {
         no autovivification;

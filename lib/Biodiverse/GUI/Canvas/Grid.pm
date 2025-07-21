@@ -45,7 +45,7 @@ sub new {
         map        => sub {shift->draw_cells_cb(@_)},
         highlights => sub {shift->plot_highlights(@_)},
         overlays   => sub {shift->_bounding_box_page_units(@_)},
-        underlays  => sub {shift->underlay_cb(@_)},
+        underlays  => sub {},
         legend     => sub {shift->get_legend->draw(@_)},
     };
     $self->{callback_order} = [qw /underlays map overlays legend highlights/];
@@ -262,72 +262,6 @@ return;
     # $cx->set_matrix($self->{matrix});
 
     return;
-}
-
-sub overlay_cb {
-    my ($self, $context) = @_;
-
-    my ($ncells_x, $ncells_y) = @$self{qw/ncells_x ncells_y/};
-
-    state @vertices = (
-        [ $self->cell_to_map_coord($ncells_x * 0.15, $ncells_y * 0.15) ],
-        [ $self->cell_to_map_coord($ncells_x * 0.5,  $ncells_y * 0.5) ],
-        [ $self->cell_to_map_coord($ncells_x * 0.85, $ncells_y * 0.15) ],
-        [ $self->cell_to_map_coord($ncells_x * 0.85, $ncells_y * 0.85) ],
-        [ $self->cell_to_map_coord($ncells_x * 0.15, $ncells_y * 0.85) ],
-        [ $self->cell_to_map_coord($ncells_x * 0.15, $ncells_y * 0.15) ],
-    );
-    state $path = [
-        { type => 'move_to', points => $vertices[0] },
-        map {{ type => 'line_to', points => $_ }} @vertices[1 .. $#vertices],
-        # { type => 'close_path', points => [] },
-    ];
-
-    $context->set_line_width($self->{cellsizes}[0] / 10);
-    $context->set_source_rgb(0, 0.5, 0);
-    # say "Setting path";
-    #  should be able to use the path structure directly as a Cairo::Path?
-    foreach my $elt (@$path) {
-        my $method = $elt->{type};
-        # say "$method (" . join (' ', @{$elt{points}}) . ")";
-        $context->$method(@{$elt->{points}});
-    }
-    $context->stroke;
-    return;
-}
-
-sub underlay_cb {
-    my ($self, $context) = @_;
-return;
-    
-    state @vertices = (
-        [ $self->cell_to_map_coord(-0.2, -0.2) ],
-        [ $self->cell_to_map_coord($self->{ncells_x} + 0.2, -0.2) ],
-        [ $self->cell_to_map_coord($self->{ncells_x} + 0.2, $self->{ncells_y} + 0.2) ],
-        [ $self->cell_to_map_coord(-0.2, $self->{ncells_y} + 0.2) ],
-        [ $self->cell_to_map_coord(-0.2, -0.2) ],
-    );
-    state $path = [
-        { type => 'move_to', points => $vertices[0] },
-        map {{ type => 'line_to', points => $_ }} @vertices[1 .. $#vertices],
-        # { type => 'close_path', points => [] },
-    ];
-
-    $context->set_line_width(3);
-    # $context->set_source_rgb(0.53, 0.53, 0.53);
-    $context->set_source_rgb(0.8, 0.8, 0.8);
-
-    # say "Setting path";
-    #  should be able to use the path structure directly as a Cairo::Path?
-    foreach my $elt (@$path) {
-        my $method = $elt->{type};
-        # say "$method (" . join (' ', @{$elt{points}}) . ")";
-        $context->$method(@{$elt->{points}});
-    }
-    $context->close_path;
-    $context->fill;
-    # $context->queue_draw;
-
 }
 
 sub snap_coord_to_grid {

@@ -5,7 +5,7 @@ use 5.022;
 
 use Carp qw/croak/;
 
-our $VERSION = '4.99_007';
+our $VERSION = '4.99_008';
 
 use experimental qw/refaliasing for_list/;
 

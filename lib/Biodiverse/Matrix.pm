@@ -8,7 +8,7 @@ use strict;
 use warnings;
 use 5.010;
 
-our $VERSION = '4.99_007';
+our $VERSION = '4.99_008';
 
 use English ( -no_match_vars );
 use experimental qw /refaliasing for_list/;

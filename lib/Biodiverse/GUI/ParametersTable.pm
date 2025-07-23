@@ -188,7 +188,7 @@ sub fill {
     #  hack for spatial conditions widgets so we don't show both edit views
     foreach my $object (values %$get_innards_hash) {
         next if !blessed $object;
-        next if not (blessed $object) =~ /Spatial/;
+        next if (blessed $object) !~ /Spatial/;
         #  trigger a change
         my $text = $object->get_text;
         if (length $text) {

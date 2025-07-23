@@ -660,7 +660,7 @@ sub set_last_file_serialisation_format {
     my ($self, $format) = @_;
 
     croak "Invalid serialisation format name passed"
-        if not ($format // '') =~ /^(?:sereal|storable)$/;
+        if ($format // '') !~ /^(?:sereal|storable)$/;
 
     return $self->set_param(LAST_FILE_SERIALISATION_FORMAT => $format);
 }

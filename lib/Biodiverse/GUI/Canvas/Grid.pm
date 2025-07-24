@@ -175,46 +175,20 @@ sub draw_cells_cb {
 
     $context->set_line_width($c);
 
-    my $data = $self->{data};
+    my (%by_colour, %colours_rgb, %colours_rgba);
+    my $colour_data = $self->get_colours_last_used_for_plotting;
+    \%by_colour    = $colour_data->{rect_by_colour} // {};
+    \%colours_rgb  = $colour_data->{colours_rgb} // {};
+    \%colours_rgba = $colour_data->{colours_rgba} // {};
 
-    my $default_rgb = [1,1,1];
-
-    my (%by_colour, %colours, %colours_rgba);
-    #  avoid rebuilding the colours if they have not changed
-    if (my $cache = $self->get_colours_last_used_for_plotting) {
-        \%by_colour    = $cache->{by_colour};
-        \%colours      = $cache->{colours};
-        \%colours_rgba = $cache->{colours_rgba};
-    }
-    else {
-        for my \%elt_hash (values %$data) {
-            my $colour = $elt_hash{rgba};
-            if (defined $colour) {
-                $colours_rgba{$colour} = $colour
-            }
-            else {
-                $colour = $elt_hash{rgb} // $default_rgb;
-                $colours{$colour} = $colour;
-            };
-            my $aref = $by_colour{$colour} //= [];
-            push @$aref, $elt_hash{rect};
-        }
-        $self->set_colours_last_used_for_plotting (
-            {
-                by_colour    => \%by_colour,
-                colours      => \%colours,
-                colours_rgba => \%colours_rgba,
-            }
-        );
-    }
+    state $default_rgb  = [1,1,1];
 
     foreach my ($colour_key, $aref) (%by_colour) {
         if (my $rgba = $colours_rgba{$colour_key}) {
             $context->set_source_rgba(@$rgba);
         }
         else {
-            my $rgb = $colours{$colour_key};
-            $context->set_source_rgb(@$rgb);
+            $context->set_source_rgb(@{$colours_rgb{$colour_key} // $default_rgb});
         }
         $context->rectangle(@$_) foreach @$aref;
         $context->fill;
@@ -486,16 +460,23 @@ sub colour {
 
     my $is_hash = is_hashref($colours);
 
+    #  clear the previous colours
+    $self->set_colours_last_used_for_plotting (undef);
+
     my $colour_none = $self->get_colour_for_undef // COLOUR_WHITE;
 
-    CELL:
-    foreach my $cell (values %{$self->{data}}) {
+    my $data = $self->{data};
+    my (%rect_by_colour, %colours_rgb, %colours_rgba);
 
-        #  sometimes we are called before all cells have contents - should be a loop exit?
-        next CELL if !defined $cell->{coord};
+    my %as_array;
+
+    CELL:
+    for my \%cell (values %$data) {
+        #  sometimes we are called before all cells have contents
+        last CELL if !defined $cell{coord};
 
         #  one day we will just pass a hash
-        my $elt = $cell->{element};
+        my $elt = $cell{element};
         my $colour_ref
             = $is_hash
             ? $colours->{$elt}
@@ -505,11 +486,19 @@ sub colour {
         next CELL if $colour_ref eq '-1';
 
         #  Cairo does not like Gtk3::Gdk::RGBA objects
-        $cell->{rgb} = [$self->rgb_to_array($colour_ref)];
+        $colours_rgb{$colour_ref} = $as_array{$colour_ref} //= [$self->rgb_to_array($colour_ref)];
+
+        my $aref = $rect_by_colour{$colour_ref} //= [];
+        push @$aref, $cell{rect};
     }
 
-    #  clear this
-    $self->set_colours_last_used_for_plotting (undef);
+    $self->set_colours_last_used_for_plotting (
+        {
+            rect_by_colour => \%rect_by_colour,
+            colours_rgb    => \%colours_rgb,
+            colours_rgba   => \%colours_rgba,  #  not used for spatial grids yet
+        }
+    );
 
     return;
 }

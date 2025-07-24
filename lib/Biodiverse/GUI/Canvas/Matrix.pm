@@ -258,8 +258,13 @@ sub recolour {
     my $highlight_cols = keys %col_highlights;
     my $do_h = $highlight_rows && $highlight_cols;
 
+    #  clear the previous colours
+    $self->set_colours_last_used_for_plotting (undef);
+
     state %rgb_cache;
     state %rgba_cache;
+
+    my (%rect_by_colour, %colours_rgba);
 
     my $x = -1;
     for my $col_label (@$col_labels) {
@@ -280,11 +285,20 @@ sub recolour {
                 = $do_h
                 ? ($highlight_col && $row_highlights{$row_label}) ? 1 : 0.4
                 : 1;
-            $data{"$x:$y"}->{rgba} = $rgba_cache{$alpha}{join ':', @colour} //= [@colour, $alpha];
+            my $colour_ref = $rgba_cache{$alpha}{join ':', @colour} //= [@colour, $alpha];
+            $colours_rgba{$colour_ref} =  $colour_ref;
+            my $aref = $rect_by_colour{$colour_ref} //= [];
+            push @$aref, $data{"$x:$y"}{rect};
         }
     }
 
-    $self->set_colours_last_used_for_plotting(undef);
+    $self->set_colours_last_used_for_plotting(
+        {
+            rect_by_colour => \%rect_by_colour,
+            colours_rgb    => {},  #  not used for matrices
+            colours_rgba   => \%colours_rgba,
+        }
+    );
 
     return;
 }

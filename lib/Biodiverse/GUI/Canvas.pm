@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use 5.036;
 
-our $VERSION = '4.99_008';
+our $VERSION = '4.99_009';
 
 use experimental qw /refaliasing declared_refs for_list/;
 use Glib qw/TRUE FALSE/;

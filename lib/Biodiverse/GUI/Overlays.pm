@@ -8,7 +8,7 @@ use Gtk3;
 use Geo::ShapeFile;
 use Ref::Util qw/is_hashref/;
 
-our $VERSION = '4.99_008';
+our $VERSION = '4.99_009';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;

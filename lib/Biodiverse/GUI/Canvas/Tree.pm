@@ -245,6 +245,11 @@ sub get_branch_count {
     scalar %{$branches // {}};
 }
 
+sub get_branches_intersecting_slider {
+    my $self = shift;
+    return $self->get_index->intersects_slider(@_);
+}
+
 sub _on_motion {
     my ($self, $widget, $event) = @_;
 
@@ -254,12 +259,13 @@ sub _on_motion {
     my ($x, $y) = $self->get_event_xy($event);
 
     my $current_cursor_name = $self->{motion_cursor_name} //= 'default';
+    my $on_slider;
 
     if ($self->get_show_slider) {
         my $slider = $self->get_slider_coords;
         \my @sb = $slider->{bounds};
 
-        if ($self->{sliding}) {
+        if ($self->sliding) {
             $slider->{x} = $x;
             my $w = ($sb[2] - $sb[0]) / 2;
             $sb[0] = $x - $w;
@@ -269,7 +275,7 @@ sub _on_motion {
             $self->set_cursor_from_name ('sb_h_double_arrow');
 
             #  get the overlapping branches
-            my @bres = $self->get_index->intersects_slider(@sb);
+            my @bres = $self->get_branches_intersecting_slider(@sb);
             $self->do_slider_intersection(\@bres);
 
             $self->get_parent_tab->queue_draw;
@@ -286,6 +292,7 @@ sub _on_motion {
                 $self->set_cursor_from_name ('sb_h_double_arrow');
                 # $self->set_cursor_from_name ('pointer');
                 $self->{motion_cursor_name} = 'pointer';
+                $on_slider = 1;
                 # return FALSE;
             }
             else {
@@ -320,13 +327,18 @@ sub _on_motion {
 
     #  should get cursor name from mode
     my $new_cursor_name = @results ? 'pointer' : 'default';
-    if ($current_cursor_name ne $new_cursor_name) {
+    if (!$on_slider && $current_cursor_name ne $new_cursor_name) {
         #  change mouse style
         $self->set_cursor_from_name ($new_cursor_name);
         $self->{motion_cursor_name} = $new_cursor_name;
     }
 
     return FALSE;
+}
+
+sub sliding {
+    $_[0]->{sliding} = $_[1] if @_ > 1;
+    $_[0]->{sliding};
 }
 
 sub coord_in_root_marker_bbox {
@@ -370,7 +382,7 @@ sub get_index {
 sub _on_button_release {
     my ($self, $x, $y) = @_;
 
-    delete $self->{sliding};
+    $self->sliding (undef);
 
     return FALSE;
 }
@@ -382,7 +394,7 @@ sub _select_while_not_selecting {
         my $slider = $self->get_slider_coords;
         \my @b = $slider->{bounds};
         if ($x >= $b[0] && $x < $b[2] && $y >= $b[1] && $y < $b[3]) {
-            $self->{sliding} = 1;
+            $self->sliding (1);
             # say 'SLIDER';
 
             $self->set_cursor_from_name ('pointer');
@@ -493,7 +505,7 @@ sub draw_slider {
         $x + $l2, $y1,
     ];
 
-    if ($self->{sliding}) {
+    if ($self->sliding) {
         # Update the slider textbox
         #  Cannot get Pango::Cairo to work so do it by hand.
         my $intersecting = $self->get_slider_intersection;
@@ -1502,14 +1514,8 @@ sub get_palette {
 
 sub get_palette_max_colours {
     my $self = shift;
-    if (blessed ($self)
-        and blessed ($self->{cluster})
-        and defined $self->{cluster}->get_param ('MAX_COLOURS')) {
 
-        return $self->{cluster}->get_param ('MAX_COLOURS');
-    }
-
-    return 13;  #  modify if more are added to the palettes.
+    return $self->{max_colours} || 13;  #  modify if more are added to the palettes.
 }
 
 

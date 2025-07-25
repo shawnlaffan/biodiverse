@@ -331,18 +331,19 @@ sub init_dendrogram {
     my $right_click_closure = sub {$self->toggle_do_canvas_hover_flag (@_)};
 
     my $dendro = $self->{dendrogram} = Biodiverse::GUI::Canvas::Tree->new(
-        frame           => $frame,
-        grid            => undef,
-        list_combo      => $list_combo,
-        index_combo     => $index_combo,
-        hover_func      => undef,
-        end_hover_func  => $end_hover_closure,
-        highlight_func  => $highlight_closure,
-        ctrl_click_func => $ctrl_click_closure,
-        click_func      => $click_closure,
+        frame                => $frame,
+        grid                 => undef,
+        list_combo           => $list_combo,
+        index_combo          => $index_combo,
+        hover_func           => undef,
+        end_hover_func       => $end_hover_closure,
+        highlight_func       => $highlight_closure,
+        ctrl_click_func      => $ctrl_click_closure,
+        click_func           => $click_closure,
         # select_func     => $select_closure,
-        right_click_func => $right_click_closure,
-        show_legend     => 0,
+        right_click_func     => $right_click_closure,
+        show_legend          => 0,
+        max_colours          => 1,
     );
     $dendro->set_parent_tab($self);
     #  cannot colour more than one in a phylogeny

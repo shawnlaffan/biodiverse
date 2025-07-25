@@ -1514,14 +1514,8 @@ sub get_palette {
 
 sub get_palette_max_colours {
     my $self = shift;
-    if (blessed ($self)
-        and blessed ($self->{cluster})
-        and defined $self->{cluster}->get_param ('MAX_COLOURS')) {
 
-        return $self->{cluster}->get_param ('MAX_COLOURS');
-    }
-
-    return 13;  #  modify if more are added to the palettes.
+    return $self->{max_colours} || 13;  #  modify if more are added to the palettes.
 }
 
 

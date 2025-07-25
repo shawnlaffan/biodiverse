@@ -254,6 +254,7 @@ sub _on_motion {
     my ($x, $y) = $self->get_event_xy($event);
 
     my $current_cursor_name = $self->{motion_cursor_name} //= 'default';
+    my $on_slider;
 
     if ($self->get_show_slider) {
         my $slider = $self->get_slider_coords;
@@ -286,6 +287,7 @@ sub _on_motion {
                 $self->set_cursor_from_name ('sb_h_double_arrow');
                 # $self->set_cursor_from_name ('pointer');
                 $self->{motion_cursor_name} = 'pointer';
+                $on_slider = 1;
                 # return FALSE;
             }
             else {
@@ -320,7 +322,7 @@ sub _on_motion {
 
     #  should get cursor name from mode
     my $new_cursor_name = @results ? 'pointer' : 'default';
-    if ($current_cursor_name ne $new_cursor_name) {
+    if (!$on_slider && $current_cursor_name ne $new_cursor_name) {
         #  change mouse style
         $self->set_cursor_from_name ($new_cursor_name);
         $self->{motion_cursor_name} = $new_cursor_name;

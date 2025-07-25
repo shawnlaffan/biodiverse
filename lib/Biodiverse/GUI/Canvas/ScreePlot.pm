@@ -139,11 +139,12 @@ sub _select_while_not_selecting {
         \my @b = $slider->{bounds};
         if ($x >= $b[0] && $x < $b[2] && $y >= $b[1] && $y < $b[3]) {
             $self->sliding (1);
+            $self->get_tree_canvas->sliding(1);
             # say 'SLIDER';
 
             $self->set_cursor_from_name ('pointer');
 
-            $widget->queue_draw;
+            $self->queue_draw;
             return FALSE;
         }
     }
@@ -160,6 +161,7 @@ sub sliding {
 sub on_button_release {
     my ($self) = @_;
     $self->sliding(0);
+    $self->get_tree_canvas->sliding(0);
     $self->{selecting} = 0;
 }
 

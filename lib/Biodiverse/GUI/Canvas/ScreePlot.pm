@@ -70,11 +70,104 @@ sub get_slider_coords {
 }
 
 
-#  no mouse or keyboard interaction
-sub on_button_release {}
-sub on_button_press {}
-sub on_motion {}
+sub on_motion {
+    my ($self, $widget, $event) = @_;
+
+    # return FALSE if $self->{mode} ne 'select';
+    # return FALSE if !$self->{plot_coords_generated};
+
+    my ($x, $y) = $self->get_event_xy($event);
+
+    my $current_cursor_name = $self->{motion_cursor_name} //= 'default';
+    my $on_slider;
+
+    if ($self->get_show_slider) {
+        my $slider = $self->get_slider_coords;
+        \my @sb = $slider->{bounds};
+
+        my $tree_canvas = $self->get_tree_canvas;
+
+        if ($self->sliding) {
+            $slider->{x} = $x;
+            my $w = ($sb[2] - $sb[0]) / 2;
+            $sb[0] = $x - $w;
+            $sb[2] = $x + $w;
+            $slider->{x} = $x;
+
+            $self->set_cursor_from_name ('sb_h_double_arrow');
+
+            #  get the overlapping branches
+            my @bres = $tree_canvas->get_branches_intersecting_slider(@sb);
+            $tree_canvas->do_slider_intersection(\@bres);
+
+            $self->get_parent_tab->queue_draw;
+            return FALSE;
+        }
+        else {
+            if ($x >= $sb[0] && $x < $sb[2] && $y >= $sb[1] && $y < $sb[3]) {
+                #  on slider
+                $self->set_cursor_from_name ('sb_h_double_arrow');
+                # $self->set_cursor_from_name ('pointer');
+                $self->{motion_cursor_name} = 'pointer';
+                $on_slider = 1;
+                # return FALSE;
+            }
+            else {
+                #  reset - needs to be in a conditional or we stop the slide
+                $self->set_cursor_from_name ($current_cursor_name);
+            }
+        }
+
+    }
+
+    # #  should get cursor name from mode
+    if (!$on_slider) {
+        #  change mouse style
+        my $new_cursor_name = 'default';
+        $self->set_cursor_from_name ($new_cursor_name);
+        $self->{motion_cursor_name} = $new_cursor_name;
+    }
+
+    return FALSE;
+}
+
+sub _select_while_not_selecting {
+    my ($self, $widget, $x, $y) = @_;
+
+    if ($self->get_show_slider && $self->selecting) {
+        my $slider = $self->get_slider_coords;
+        \my @b = $slider->{bounds};
+        if ($x >= $b[0] && $x < $b[2] && $y >= $b[1] && $y < $b[3]) {
+            $self->sliding (1);
+            # say 'SLIDER';
+
+            $self->set_cursor_from_name ('pointer');
+
+            $widget->queue_draw;
+            return FALSE;
+        }
+    }
+
+    return FALSE;
+}
+
+sub sliding {
+    $_[0]->{sliding} = $_[1] if @_ > 1;
+    $_[0]->{sliding};
+}
+
+
+sub on_button_release {
+    my ($self) = @_;
+    $self->sliding(0);
+    $self->{selecting} = 0;
+}
+
+#  no keyboard interaction
 sub on_key_press {}
+
+#  the plot is never in pan or zoom mode
+sub in_select_mode {1}
 
 sub do_zoom_in_centre{
     my ($self) = @_;

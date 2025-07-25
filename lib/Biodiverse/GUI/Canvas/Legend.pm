@@ -17,6 +17,10 @@ use POSIX qw /ceil/;
 # use parent qw /Biodiverse::GUI::Legend/;  #  should not be needed now
 use parent qw /Biodiverse::Common::Caching/;
 
+use constant ON_WINDOWS => ($^O eq 'MSWin32');
+use constant ON_MACOS   => ($^O eq 'darwin');
+use constant ON_WIN_OR_MAC => (ON_WINDOWS || ON_MACOS);
+
 ##########################################################
 # Constants
 ##########################################################
@@ -539,13 +543,14 @@ sub get_dynamic_labels {
     #  Flag when data exceed legend range.
     #  Conditional because we do not always have stats,
     #  e.g. tree lists might only have min and max.
+    #  The unicode syms do not plot properly on windows or macs
     if (keys %$stats) {
         if ($max < ($stats->{MAX} // $max)) {
-            my $sym = $^O eq 'MSWin32' ? '>=' : "\x{2A7E}";
+            my $sym = ON_WIN_OR_MAC ? '>=' : "\x{2A7E}";
             $labels[0] = "${sym}$labels[0]";
         }
         if ($min > ($stats->{MIN} // $min)) {
-            my $sym = $^O eq 'MSWin32' ? '<=' : "\x{2A7D}";
+            my $sym = ON_WIN_OR_MAC ? '<=' : "\x{2A7D}";
             $labels[-1] = "${sym}$labels[-1]";
         }
     }

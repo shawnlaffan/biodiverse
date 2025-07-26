@@ -539,10 +539,6 @@ sub pan {
         : int (Time::HiRes::time * 10);
     $self->{last_pan_update} //= $time;
 
-    #  disable for now due to flicker - need scrollbars again as in Biodiverse?
-    #  although mouse is offset so possibly it's a matrix update issue interacting with lagged events
-    #  or grab mouse pos from a parent widget? - nope
-    #  https://stackoverflow.com/questions/30034714/gtk3-gtk2hs-panning-in-a-scrolledwindow-flickers
     if (1 || ($time - $self->{last_pan_update}) > 3) {
         #  need to update the display relative to start
         #  calc offset from mouse click, then adjust the display centre accordingly

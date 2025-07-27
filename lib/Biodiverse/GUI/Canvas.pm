@@ -69,7 +69,7 @@ sub new {
         enter_notify_event => sub {$self->get_parent_tab->set_active_pane($self)}
     );
     $drawable->signal_connect(
-        scroll_event => sub {$self->on_scroll_event (@_)}
+        scroll_event => sub {$self->on_scroll_wheel_event (@_)}
     );
 
 
@@ -682,28 +682,46 @@ sub on_button_release {
     return FALSE;
 }
 
-sub on_scroll_event {
+sub on_scroll_wheel_event {
     my ($self, $widget, $event) = @_;
 
     return FALSE if not defined $self->{cairo_context};
 
     my $direction = $event->direction;
     my $state = $event->state;
-    my $method;
-    if ($direction eq 'down') {
-        $method
-            = $state >= [ 'control-mask' ] ? 'do_pan_left'
-            : $state >= [ 'shift-mask' ]   ? 'do_pan_up'
-            : 'do_zoom_out_centre';
+
+    if ($state >= [ 'control-mask' ] || $state >= [ 'shift-mask' ]) {
+        my $method;
+        if ($direction eq 'down') {
+            $method = $state >= [ 'control-mask' ] ? 'do_pan_left' : 'do_pan_up';
+        }
+        else {
+            $method = $state >= [ 'control-mask' ] ? 'do_pan_right' : 'do_pan_down';
+        }
+        $self->$method;
     }
     else {
-        $method
-            = $state >= [ 'control-mask' ] ? 'do_pan_right'
-            : $state >= [ 'shift-mask' ]   ? 'do_pan_down'
-            : 'do_zoom_in_centre';
+        my ($x, $y) = ($event->x, $event->y);
+
+        #  coord of mouse event
+        my ($canvas_x1, $canvas_y1) = $self->get_event_xy_from_mx([$x, $y]);
+
+        my $method = $direction eq 'down' ? 'do_zoom_out_centre' : 'do_zoom_in_centre';
+        $self->$method;
+
+        #  coord of mouse event after zoom
+        my ($canvas_x2, $canvas_y2) = $self->get_event_xy_from_mx([$x, $y]);
+
+        my $dims = $self->{disp};
+        my ($xcen, $ycen) = ($dims->xcen, $dims->ycen);
+
+        #  now shift the plot so the mouse is over the same feature
+        $dims->xcen($xcen + $canvas_x1 - $canvas_x2);
+        $dims->ycen($ycen + $canvas_y1 - $canvas_y2);
+        $self->{matrix} = $self->get_tfm_mx;
     }
 
-    $self->$method;
+    $self->queue_draw;
 
     return FALSE;
 }

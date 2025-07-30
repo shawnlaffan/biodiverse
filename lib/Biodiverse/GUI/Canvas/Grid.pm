@@ -384,13 +384,15 @@ sub set_base_struct {
 
         #  Now build an rtree - random order is faster, hence it is outside the initial allocation
         #  (An STR Tree would be faster to build)
-        my $rtree = $self->{rtree} = Tree::R->new;
-        foreach my $key (keys %data) {
-            $rtree->insert($data{$key}{element}, @{$data{$key}{bounds}});
-        }
+        #  Actually, we do not really need it for grids.
+        #  We can look at an STR tree for non-gridded data.
+        # my $rtree = $self->{rtree} = Tree::R->new;
+        # foreach my $key (keys %data) {
+        #     $rtree->insert($data{$key}{element}, @{$data{$key}{bounds}});
+        # }
 
         $cached_data->{data} = $self->{data} = \%data;
-        $cached_data->{rtree} = $self->{rtree};
+        # $cached_data->{rtree} = $self->{rtree};
     }
 
     #  the rest could also be cached but does not take long

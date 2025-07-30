@@ -146,18 +146,45 @@ sub _on_selection_release {
     my $f = $self->{select_func};
     if ($f && $self->{selecting}) {
         my @rect = ($self->{sel_start_x}, $self->{sel_start_y}, $x, $y);
-        if ($rect[0] > $rect[2]) {
-            @rect[0,2] = @rect[2,0];
-        }
-        if ($rect[1] > $rect[3]) {
-            @rect[3,1] = @rect[1,3];
+        @rect[0,2] = minmax (@rect[0,2]);
+        @rect[1,3] = minmax (@rect[1,3]);
+
+        my ($x1, $y1) = $self->snap_coord_to_grid(@rect[0, 1]);
+        my ($x2, $y2) = $self->snap_coord_to_grid(@rect[2, 3]);
+
+        #  save some looping if clicks are outside the bounds
+        $x1 = $x2 if $x2 < $self->xmin;
+        $y1 = $y2 if $y2 < $self->ymin;
+        $x2 = $x1 if $x1 > $self->xmax;
+        $y2 = $y1 if $y1 > $self->ymax;
+
+        #  Grab the intersecting elements directly from the grid.
+        #  This might get slow for large and sparse grids,
+        #  in which event we can look at a spatial index again.
+        my @elements;
+        #  must have one corner of the rectangle on the grid
+        if (($x1 <= $self->xmax && $x2 >= $self->xmin) && ($y1 <= $self->ymax && $y2 >= $self->ymin)) {
+            $x1 = max ($x1, $self->xmin);  #  more snapping to save loops
+            $y1 = max ($y1, $self->ymin);
+            $x2 = min ($x2, $self->xmax);
+            $y2 = min ($y2, $self->ymax);
+
+            my ($cx, $cy) = @{$self->get_cell_sizes};
+            for (my $xx = $x1; $xx <= $x2; $xx += $cx) {
+                for (my $yy = $y1; $yy <= $y2; $yy += $cy) {
+                    my $id = "$xx:$yy";
+                    my $ref = $self->{data}{$id}
+                        // next;
+                    push @elements, $ref->{element};
+                }
+            }
         }
 
-        my $elements = [];
-        $self->{rtree}->query_partly_within_rect(@rect, $elements);
+        # my $elements = [];
+        # $self->{rtree}->query_partly_within_rect(@rect, $elements);
 
         # call callback, using original event coords
-        $f->($elements, undef, \@rect);
+        $f->(\@elements, undef, \@rect);
     }
 
     return FALSE;

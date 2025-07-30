@@ -67,15 +67,11 @@ sub _on_selection_release {
     my $f = $self->{select_func};
     if ($f && $self->{selecting}) {
         my @rect = ($self->{sel_start_x}, $self->{sel_start_y}, $x, $y);
-        if ($rect[0] > $rect[2]) {
-            @rect[0,2] = @rect[2,0];
-        }
-        if ($rect[1] > $rect[3]) {
-            @rect[3,1] = @rect[1,3];
-        }
-
         my ($x1, $y1) = $self->map_to_cell_coord(@rect[0, 1]);
         my ($x2, $y2) = $self->map_to_cell_coord(@rect[2, 3]);
+
+        ($x1, $x2) = minmax($x1, $x2);
+        ($y1, $y2) = minmax($y1, $y2);
 
         #  save some looping if clicks are outside the bounds
         $x1 = $x2 if $x2 < $self->xmin;

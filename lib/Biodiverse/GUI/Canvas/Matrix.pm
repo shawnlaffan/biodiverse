@@ -42,8 +42,9 @@ sub new {
     $self->{size}     = $size;
 
     $self->{callbacks} = {
-        map       => sub {shift->draw_cells_cb(@_)},
-        highlight => sub {shift->highlight_cb (@_)}
+        map        => sub {shift->draw_cells_cb(@_)},
+        highlight  => sub {shift->highlight_cb (@_)},
+        sel_rect   => sub {shift->draw_selection_rect (@_)}
     };
 
     $self->init_data;
@@ -52,8 +53,7 @@ sub new {
 }
 
 sub callback_order {
-    my $self = shift;
-    return ('map');
+    return ('map', 'sel_rect');
     # return ('map', 'highlight');
 }
 

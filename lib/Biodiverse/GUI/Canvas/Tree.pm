@@ -86,7 +86,7 @@ sub new {
     $self->{callbacks} = {
         plot   => sub {shift->draw(@_)},
         legend => sub {shift->get_legend->draw(@_)},
-        # graph  => sub {shift->get_scree_plot->draw (@_))}
+        sel_rect   => sub {shift->draw_selection_rect (@_)},
         graph  => sub {},
     };
 
@@ -109,7 +109,7 @@ sub new {
 
 sub callback_order {
     my $self = shift;
-    return (qw /plot legend graph/);
+    return (qw /plot legend sel_rect graph/);
 }
 
 sub set_current_tree {

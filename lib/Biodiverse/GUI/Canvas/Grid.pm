@@ -47,8 +47,9 @@ sub new {
         overlays   => sub {shift->_bounding_box_page_units(@_)},
         underlays  => sub {},
         legend     => sub {shift->get_legend->draw(@_)},
+        sel_rect   => sub {shift->draw_selection_rect (@_)}
     };
-    $self->{callback_order} = [qw /underlays map overlays legend highlights/];
+    $self->{callback_order} = [qw /underlays map overlays legend highlights sel_rect/];
 
     return $self;
 }
@@ -145,6 +146,7 @@ sub _on_selection_release {
 
     my $f = $self->{select_func};
     if ($f && $self->{selecting}) {
+        #  @rect is passed on to the callback
         my @rect = ($self->{sel_start_x}, $self->{sel_start_y}, $x, $y);
         @rect[0,2] = minmax (@rect[0,2]);
         @rect[1,3] = minmax (@rect[1,3]);

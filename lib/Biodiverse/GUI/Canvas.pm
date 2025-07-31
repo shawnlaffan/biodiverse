@@ -606,9 +606,10 @@ sub on_motion {
     return FALSE if not defined $self->{cairo_context};
 
     if ($self->selecting) {
-        #  update display if there was a function
-        #  should we be deleting?
-        if (defined delete $self->{highlights}) {
+        @{$self}{qw /sel_current_x sel_current_y/} = $self->get_event_xy($event);
+        #  Update display if there were highlights, or
+        #  we are a matrix and do not have highlights.
+        if (defined delete $self->{highlights} || $self->isa('Biodiverse::GUI::Canvas::Matrix')) {
             $self->queue_draw;
             return FALSE;
         }
@@ -765,6 +766,8 @@ sub on_button_press {
         # say "selection started, $x $y";
         $self->{sel_start_x} = $x;
         $self->{sel_start_y} = $y;
+        $self->{sel_current_x} = $x;
+        $self->{sel_current_y} = $y;
 
         if ($self->in_select_mode) {
             $self->_select_while_not_selecting ($widget, $x, $y);
@@ -777,6 +780,32 @@ sub on_button_press {
     return FALSE;
 }
 
+
+sub draw_selection_rect {
+    my ($self, $cx) = @_;
+
+    return if !$self->selecting;
+
+    $cx->save;
+    $cx->set_matrix($self->{matrix});
+    $cx->set_source_rgba(0, 0, 0, 0.6);
+
+    # one pixel
+    my $line_width = ($cx->device_to_user_distance(1,0))[0];
+    $cx->set_line_width($line_width);
+
+    $cx->rectangle(
+        $self->{sel_start_x},
+        $self->{sel_start_y},
+        ($self->{sel_current_x} - $self->{sel_start_x}),
+        ($self->{sel_current_y} - $self->{sel_start_y}),
+    );
+    $cx->stroke;
+
+    $cx->restore;
+
+    return;
+}
 
 
 sub cairo_draw {

@@ -82,8 +82,20 @@ sub _on_selection_release {
         ($x1, $x2, $y1, $y2) = map {floor $_} ($x1, $x2, $y1, $y2);
 
         my @elements;
+        #  does the rectangle span the extent?
+        if ($x1 < $self->xmin && $x2 > $self->xmax && $y1 < $self->ymin && $y2 > $self->ymax) {
+            @elements = values %{$self->{data}};
+        }
         #  must have one corner of the rectangle on the grid
-        if (($x1 <= $self->xmax && $x2 >= $self->xmin) && ($y1 <= $self->ymax && $y2 >= $self->ymin)) {
+        elsif (($x1 <= $self->xmax && $x2 >= $self->xmin) && ($y1 <= $self->ymax && $y2 >= $self->ymin)) {
+            my ($cx, $cy) = @{$self->get_cell_sizes};
+
+            #  more snapping to save looping
+            $x1 = max ($x1, $self->xmin + $cx/2);
+            $y1 = max ($y1, $self->ymin + $cy/2);
+            $x2 = min ($x2, $self->xmax - $cx/2);
+            $y2 = min ($y2, $self->ymax - $cy/2);
+
             foreach my $xx ($x1 .. $x2) {
                 foreach my $yy ($y1 .. $y2) {
                     my $id = "$xx:$yy";

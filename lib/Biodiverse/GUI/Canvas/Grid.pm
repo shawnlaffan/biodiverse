@@ -162,14 +162,21 @@ sub _on_selection_release {
         #  This might get slow for large and sparse grids,
         #  in which event we can look at a spatial index again.
         my @elements;
-        #  must have one corner of the rectangle on the grid
-        if (($x1 <= $self->xmax && $x2 >= $self->xmin) && ($y1 <= $self->ymax && $y2 >= $self->ymin)) {
-            $x1 = max ($x1, $self->xmin);  #  more snapping to save loops
-            $y1 = max ($y1, $self->ymin);
-            $x2 = min ($x2, $self->xmax);
-            $y2 = min ($y2, $self->ymax);
 
+        #  does the rectangle span the extent?
+        if ($x1 < $self->xmin && $x2 > $self->xmax && $y1 < $self->ymin && $y2 > $self->ymax) {
+            @elements = map {$_->{element}} values %{$self->{data}};
+        }
+        #  must have one edge of the rectangle on the grid
+        elsif (($x1 <= $self->xmax && $x2 >= $self->xmin) || ($y1 <= $self->ymax && $y2 >= $self->ymin)) {
             my ($cx, $cy) = @{$self->get_cell_sizes};
+
+            #  more snapping to save looping
+            $x1 = max ($x1, $self->xmin + $cx/2);
+            $y1 = max ($y1, $self->ymin + $cy/2);
+            $x2 = min ($x2, $self->xmax - $cx/2);
+            $y2 = min ($y2, $self->ymax - $cy/2);
+
             for (my $xx = $x1; $xx <= $x2; $xx += $cx) {
                 for (my $yy = $y1; $yy <= $y2; $yy += $cy) {
                     my $id = "$xx:$yy";

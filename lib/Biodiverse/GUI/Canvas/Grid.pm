@@ -47,8 +47,9 @@ sub new {
         overlays   => sub {shift->_bounding_box_page_units(@_)},
         underlays  => sub {},
         legend     => sub {shift->get_legend->draw(@_)},
+        sel_rect   => sub {shift->draw_selection_rect (@_)}
     };
-    $self->{callback_order} = [qw /underlays map overlays legend highlights/];
+    $self->{callback_order} = [qw /underlays map overlays legend highlights sel_rect/];
 
     return $self;
 }
@@ -145,19 +146,54 @@ sub _on_selection_release {
 
     my $f = $self->{select_func};
     if ($f && $self->{selecting}) {
+        #  @rect is passed on to the callback
         my @rect = ($self->{sel_start_x}, $self->{sel_start_y}, $x, $y);
-        if ($rect[0] > $rect[2]) {
-            @rect[0,2] = @rect[2,0];
+        @rect[0,2] = minmax (@rect[0,2]);
+        @rect[1,3] = minmax (@rect[1,3]);
+
+        my ($x1, $y1) = $self->snap_coord_to_grid(@rect[0, 1]);
+        my ($x2, $y2) = $self->snap_coord_to_grid(@rect[2, 3]);
+
+        #  save some looping if clicks are outside the bounds
+        $x1 = $x2 if $x2 < $self->xmin;
+        $y1 = $y2 if $y2 < $self->ymin;
+        $x2 = $x1 if $x1 > $self->xmax;
+        $y2 = $y1 if $y1 > $self->ymax;
+
+        #  Grab the intersecting elements directly from the grid.
+        #  This might get slow for large and sparse grids,
+        #  in which event we can look at a spatial index again.
+        my @elements;
+
+        #  does the rectangle span the extent?
+        if ($x1 < $self->xmin && $x2 > $self->xmax && $y1 < $self->ymin && $y2 > $self->ymax) {
+            @elements = map {$_->{element}} values %{$self->{data}};
         }
-        if ($rect[1] > $rect[3]) {
-            @rect[3,1] = @rect[1,3];
+        #  must have one edge of the rectangle on the grid
+        elsif (($x1 <= $self->xmax && $x2 >= $self->xmin) || ($y1 <= $self->ymax && $y2 >= $self->ymin)) {
+            my ($cx, $cy) = @{$self->get_cell_sizes};
+
+            #  more snapping to save looping
+            $x1 = max ($x1, $self->xmin + $cx/2);
+            $y1 = max ($y1, $self->ymin + $cy/2);
+            $x2 = min ($x2, $self->xmax - $cx/2);
+            $y2 = min ($y2, $self->ymax - $cy/2);
+
+            for (my $xx = $x1; $xx <= $x2; $xx += $cx) {
+                for (my $yy = $y1; $yy <= $y2; $yy += $cy) {
+                    my $id = "$xx:$yy";
+                    my $ref = $self->{data}{$id}
+                        // next;
+                    push @elements, $ref->{element};
+                }
+            }
         }
 
-        my $elements = [];
-        $self->{rtree}->query_partly_within_rect(@rect, $elements);
+        # my $elements = [];
+        # $self->{rtree}->query_partly_within_rect(@rect, $elements);
 
         # call callback, using original event coords
-        $f->($elements, undef, \@rect);
+        $f->(\@elements, undef, \@rect);
     }
 
     return FALSE;
@@ -357,13 +393,15 @@ sub set_base_struct {
 
         #  Now build an rtree - random order is faster, hence it is outside the initial allocation
         #  (An STR Tree would be faster to build)
-        my $rtree = $self->{rtree} = Tree::R->new;
-        foreach my $key (keys %data) {
-            $rtree->insert($data{$key}{element}, @{$data{$key}{bounds}});
-        }
+        #  Actually, we do not really need it for grids.
+        #  We can look at an STR tree for non-gridded data.
+        # my $rtree = $self->{rtree} = Tree::R->new;
+        # foreach my $key (keys %data) {
+        #     $rtree->insert($data{$key}{element}, @{$data{$key}{bounds}});
+        # }
 
         $cached_data->{data} = $self->{data} = \%data;
-        $cached_data->{rtree} = $self->{rtree};
+        # $cached_data->{rtree} = $self->{rtree};
     }
 
     #  the rest could also be cached but does not take long

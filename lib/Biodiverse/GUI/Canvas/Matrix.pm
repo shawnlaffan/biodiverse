@@ -42,8 +42,9 @@ sub new {
     $self->{size}     = $size;
 
     $self->{callbacks} = {
-        map       => sub {shift->draw_cells_cb(@_)},
-        highlight => sub {shift->highlight_cb (@_)}
+        map        => sub {shift->draw_cells_cb(@_)},
+        highlight  => sub {shift->highlight_cb (@_)},
+        sel_rect   => sub {shift->draw_selection_rect (@_)}
     };
 
     $self->init_data;
@@ -52,8 +53,7 @@ sub new {
 }
 
 sub callback_order {
-    my $self = shift;
-    return ('map');
+    return ('map', 'sel_rect');
     # return ('map', 'highlight');
 }
 
@@ -67,15 +67,11 @@ sub _on_selection_release {
     my $f = $self->{select_func};
     if ($f && $self->{selecting}) {
         my @rect = ($self->{sel_start_x}, $self->{sel_start_y}, $x, $y);
-        if ($rect[0] > $rect[2]) {
-            @rect[0,2] = @rect[2,0];
-        }
-        if ($rect[1] > $rect[3]) {
-            @rect[3,1] = @rect[1,3];
-        }
-
         my ($x1, $y1) = $self->map_to_cell_coord(@rect[0, 1]);
         my ($x2, $y2) = $self->map_to_cell_coord(@rect[2, 3]);
+
+        ($x1, $x2) = minmax($x1, $x2);
+        ($y1, $y2) = minmax($y1, $y2);
 
         #  save some looping if clicks are outside the bounds
         $x1 = $x2 if $x2 < $self->xmin;
@@ -86,8 +82,20 @@ sub _on_selection_release {
         ($x1, $x2, $y1, $y2) = map {floor $_} ($x1, $x2, $y1, $y2);
 
         my @elements;
+        #  does the rectangle span the extent?
+        if ($x1 < $self->xmin && $x2 > $self->xmax && $y1 < $self->ymin && $y2 > $self->ymax) {
+            @elements = values %{$self->{data}};
+        }
         #  must have one corner of the rectangle on the grid
-        if (($x1 <= $self->xmax && $x2 >= $self->xmin) && ($y1 <= $self->ymax && $y2 >= $self->ymin)) {
+        elsif (($x1 <= $self->xmax && $x2 >= $self->xmin) && ($y1 <= $self->ymax && $y2 >= $self->ymin)) {
+            my ($cx, $cy) = @{$self->get_cell_sizes};
+
+            #  more snapping to save looping
+            $x1 = max ($x1, $self->xmin + $cx/2);
+            $y1 = max ($y1, $self->ymin + $cy/2);
+            $x2 = min ($x2, $self->xmax - $cx/2);
+            $y2 = min ($y2, $self->ymax - $cy/2);
+
             foreach my $xx ($x1 .. $x2) {
                 foreach my $yy ($y1 .. $y2) {
                     my $id = "$xx:$yy";

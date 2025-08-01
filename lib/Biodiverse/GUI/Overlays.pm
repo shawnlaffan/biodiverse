@@ -384,11 +384,18 @@ sub on_add {
         'gtk-ok',
         'ok'
     );
-    my $filter = Gtk3::FileFilter->new();
-
-    $filter->add_pattern('*.shp');
-    $filter->set_name('.shp files');
-    $open->add_filter($filter);
+    my @filters = (
+        'shapefiles'  => '*.shp',
+        'geopackages' => '*.gpkg',
+        # 'ESRI Geodatabases' => '*.gdb',  #  not yet - need to select directories when this is chosen
+    );
+    use experimental qw /for_list/;
+    foreach my ($label, $glob) (@filters) {
+        my $filter = Gtk3::FileFilter->new();
+        $filter->add_pattern($glob);
+        $filter->set_name($label);
+        $open->add_filter($filter);
+    }
     $open->set_modal(1);
 
     my $filename;
@@ -431,21 +438,17 @@ sub on_add {
 
 #  needed until we plot points
 sub _shp_type_is_point {
-    my $name = shift;
-    
-    my $shpfile = Geo::ShapeFile->new ($name);
-    my $type = $shpfile->shape_type_text;
-    
-    return $type =~/point/i;
+    _shp_type(@_) =~/point/i;
 }
 
 sub _shp_type_is_polygon {
-    my $name = shift;
+    _shp_type(@_) =~/polygon/i;
+}
 
-    my $shpfile = Geo::ShapeFile->new ($name);
-    my $type = $shpfile->shape_type_text;
-
-    return $type =~/polygon/i;
+sub _shp_type {
+    my ($dataset, $layer_name) = @_;
+    my $layer = Geo::GDAL::FFI::Open($dataset)->GetLayer($layer_name || 0);
+    return $layer->GetDefn->GetGeomFieldDefn->GetType;
 }
 
 sub on_delete {

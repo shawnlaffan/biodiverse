@@ -406,7 +406,10 @@ sub on_add {
 
     return if !defined $filename;
 
-    if (_shp_type_is_point($filename)) {
+    #  need to handle layers in geopackages and geodatabases
+    my $layer;
+
+    if (_shp_type_is_point($filename, $layer)) {
         my $error = "Unable to display shapefiles of type point.";
         $error .= "\n\nBiodiverse currently only supports polygon and polyline overlays.\n";
         my $gui = Biodiverse::GUI::GUIManager->instance;
@@ -422,7 +425,7 @@ sub on_add {
     $list->get_model->set($iter, COL_FNAME, $filename, COL_FTYPE, 'polyline', COL_PLOT_ON_TOP, 1, COL_USE_ALPHA, 1);
     my $sel = $list->get_selection;
     $sel->select_iter($iter);
-    $project->add_overlay({name => $filename, type => 'polyline', plot_on_top => 1, use_alpha => 1});
+    $project->add_overlay({name => $filename, layer => $layer, type => 'polyline', plot_on_top => 1, use_alpha => 1});
 
     #  also load as polygon
     if (_shp_type_is_polygon($filename)) {
@@ -430,7 +433,7 @@ sub on_add {
         $list->get_model->set($iter, COL_FNAME, $filename, COL_FTYPE, 'polygon', COL_PLOT_ON_TOP, 0, COL_USE_ALPHA, 0);
         $sel = $list->get_selection;
         $sel->select_iter($iter);
-        $project->add_overlay({ name => $filename, type => 'polygon', plot_on_top => 0, use_alpha => 0 });
+        $project->add_overlay({ name => $filename, layer => $layer, type => 'polygon', plot_on_top => 0, use_alpha => 0 });
     }
 
     return;

@@ -4,6 +4,8 @@ use strict;
 use warnings;
 use 5.010;
 
+use Path::Tiny qw /path/;
+
 #use Data::Structure::Util qw /has_circular_ref get_refs/; #  hunting for circular refs
 
 use Biodiverse::BaseData;
@@ -1536,14 +1538,18 @@ sub get_overlay_shape_object {
 
     if ( not defined $self->{overlay_objects}{$name} ) {
 
-        print "[Project] Loading shapefile...\n";
+        say "[Project] Loading geospatial data";
+        use Biodiverse::GUI::Overlays::Data;
+        my $ggf = Biodiverse::GUI::Overlays::Data->new;
+        $ggf->load_data ($name);
 
+        print "[Project] Loading shapefile...\n";
         my $shapefile = Geo::ShapeFile->new($name);
         printf "[Project] loaded %i shapes of type %s\n",
           $shapefile->shapes,
           $shapefile->shape_type_text;
 
-        $self->{overlay_objects}{$name} = $shapefile;
+        $self->{overlay_objects}{$name} = $ggf;
     }
 
     return $self->{overlay_objects}{$name};
@@ -1571,7 +1577,14 @@ sub delete_overlay {
 sub add_overlay {
     my ($self, $entry) = @_;
 
-    $self->{overlay_objects}{$entry->{name}} = undef;
+    my $name = $entry->{name};
+    my $layer = $entry->{layer};
+    #  0 is possibly a valid layer name
+    if (length $layer) {
+        $name .= "/$layer";
+    }
+
+    $self->{overlay_objects}{$name} = undef;
     push @{ $self->{OVERLAYS} }, $entry;
 
     return;
@@ -1587,8 +1600,12 @@ sub init_overlay_hash {
     foreach my $entry ( @{ $self->{OVERLAYS} } ) {
         #  older projects just stored the name
         my $name = is_hashref $entry ? $entry->{name} : $entry;
+        my $db = path ($name)->parent;
+        if ($db !~ m{\.(gpkg|gdb)}) {
+            $db = $name;  #  shapefiles are not in databases
+        }
 
-        if ( Biodiverse::Common->file_is_readable (file_name => $name) ) {
+        if ( Biodiverse::Common->file_is_readable (file_name => $db) ) {
             # Set hash entry to undef - will load on demand
             $self->{overlay_objects}{$name} = undef;
             push @existing_overlays, $entry;

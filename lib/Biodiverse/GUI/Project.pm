@@ -1540,8 +1540,8 @@ sub get_overlay_shape_object {
 
         say "[Project] Loading geospatial data";
         use Biodiverse::GUI::Overlays::Data;
-        my $ggf = Biodiverse::GUI::Overlays::Data->new;
-        $ggf->load_data ($name);
+        my $ggf = Biodiverse::GUI::Overlays::Data->new ($name);
+        $ggf->load_data (defer_loading => 1);
 
         print "[Project] Loading shapefile...\n";
         my $shapefile = Geo::ShapeFile->new($name);

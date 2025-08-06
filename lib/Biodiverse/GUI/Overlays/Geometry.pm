@@ -6,9 +6,13 @@ use Carp qw /croak/;
 
 sub new {
     my ($class, %args) = @_;
-    croak 'No geometry argument' if !$args{geometry};
     croak 'No extent argument' if !$args{extent};
+    croak 'No id argument' if !defined $args{id};
     bless \%args, $class || __PACKAGE__;
+}
+
+sub get_id {
+    $_[0]{id};
 }
 
 sub set_geometry {

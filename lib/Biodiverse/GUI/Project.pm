@@ -1543,12 +1543,6 @@ sub get_overlay_shape_object {
         my $ggf = Biodiverse::GUI::Overlays::Data->new ($name);
         $ggf->load_data (defer_loading => 1);
 
-        print "[Project] Loading shapefile...\n";
-        my $shapefile = Geo::ShapeFile->new($name);
-        printf "[Project] loaded %i shapes of type %s\n",
-          $shapefile->shapes,
-          $shapefile->shape_type_text;
-
         $self->{overlay_objects}{$name} = $ggf;
     }
 

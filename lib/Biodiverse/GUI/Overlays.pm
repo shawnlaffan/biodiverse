@@ -405,6 +405,21 @@ sub on_add {
     $open->set_filter($allfilter);
     $open->set_modal(1);
 
+    my $text = <<~'EOT'
+        Note:
+        1. Layers in database types (e.g. geopackages and geodatabases) can be
+        selected in the next popup window, except if there is only one layer
+        in which case it is used directly.
+        2. A geodatabase is a folder so cannot be selected directly.  Instead,
+        choose any gdbtable file inside it and click OK.
+    EOT
+    ;
+    my $label = Gtk3::Label->new($text);
+    my $box = $open->get_content_area;
+    $box->pack_start ($label, 0, 1, 0);
+    $box->show_all;
+
+
     my $filename;
     if ($open->run() eq 'ok') {
         $filename = $open->get_filename();

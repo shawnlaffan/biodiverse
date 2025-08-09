@@ -657,12 +657,11 @@ sub set_overlay {
 
             foreach my $shape (@$data) {
                 my $g = $shape->get_geometry;
-                foreach my \@part ($g) {
+                foreach my \@part (@$g) {
                     foreach my \@vertices (@part) {
                         $cx->move_to(@{$vertices[0]});
                         $cx->line_to(@$_) foreach @vertices;
                     }
-                    # $cx->close_path;  #  maybe needed for holes?
                 }
             }
             $cx->$stroke_or_fill;

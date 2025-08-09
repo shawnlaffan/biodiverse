@@ -409,8 +409,17 @@ sub on_add {
     #  need to handle layers in geopackages and geodatabases
     my $layer;
 
-    if (_shp_type_is_point($filename, $layer)) {
-        my $error = "Unable to display shapefiles of type point.";
+    if ($filename !~ /.shp$/) {
+        my @layers = get_layer_names_in_ogc_dataset($filename);
+        return Biodiverse::GUI::GUIManager->instance->report_error (
+            "Selected database does not contain any layers",
+        ) if !@layers;
+        $layer = @layers == 1 ? $layers[0] : get_choice (\@layers);
+    }
+
+    my $shapetype = _shp_type ($filename, $layer);
+    if ($shapetype !~ /Poly/) {
+        my $error = "Unable to display shapefiles of type $shapetype.";
         $error .= "\n\nBiodiverse currently only supports polygon and polyline overlays.\n";
         my $gui = Biodiverse::GUI::GUIManager->instance;
         $gui->report_error (
@@ -420,23 +429,52 @@ sub on_add {
         return;
     }
 
+    my $fname = defined $layer ? "$filename/$layer" : $filename;
+
     #  load as a polyline
     my $iter = $list->get_model->append;
-    $list->get_model->set($iter, COL_FNAME, $filename, COL_FTYPE, 'polyline', COL_PLOT_ON_TOP, 1, COL_USE_ALPHA, 1);
+    $list->get_model->set($iter, COL_FNAME, $fname, COL_FTYPE, 'polyline', COL_PLOT_ON_TOP, 1, COL_USE_ALPHA, 1);
     my $sel = $list->get_selection;
     $sel->select_iter($iter);
-    $project->add_overlay({name => $filename, layer => $layer, type => 'polyline', plot_on_top => 1, use_alpha => 1});
+    $project->add_overlay({name => $fname, layer => $layer, type => 'polyline', plot_on_top => 1, use_alpha => 1});
 
     #  also load as polygon
-    if (_shp_type_is_polygon($filename)) {
+    if ($shapetype =~ /Polygon/i) {
         $iter = $list->get_model->append;
-        $list->get_model->set($iter, COL_FNAME, $filename, COL_FTYPE, 'polygon', COL_PLOT_ON_TOP, 0, COL_USE_ALPHA, 0);
+        $list->get_model->set($iter, COL_FNAME, $fname, COL_FTYPE, 'polygon', COL_PLOT_ON_TOP, 0, COL_USE_ALPHA, 0);
         $sel = $list->get_selection;
         $sel->select_iter($iter);
-        $project->add_overlay({ name => $filename, layer => $layer, type => 'polygon', plot_on_top => 0, use_alpha => 0 });
+        $project->add_overlay({ name => $fname, layer => $layer, type => 'polygon', plot_on_top => 0, use_alpha => 0 });
     }
 
     return;
+}
+
+sub get_choice {
+    my ($choices, $window_text) = @_;
+
+    my $dlg = Gtk3::Dialog->new_with_buttons(
+        $window_text // 'Layer selection',
+        undef,
+        'modal',
+        'gtk-cancel' => 'cancel',
+        'gtk-ok'     => 'ok',
+    );
+    my $box = $dlg->get_content_area;
+    my $combo = Gtk3::ComboBoxText->new;
+    foreach my $choice (@$choices) {
+        $combo->append_text ($choice);
+    }
+    $combo->set_active(0);
+    $box->pack_start ($combo, 0, 1, 0);
+    $dlg->show_all;
+    my $response = $dlg->run;
+    my $choice;
+    if ($response eq 'ok') {
+        $choice = $combo->get_active_text;
+    }
+    $dlg->destroy;
+    return $choice;
 }
 
 #  needed until we plot points
@@ -452,6 +490,24 @@ sub _shp_type {
     my ($dataset, $layer_name) = @_;
     my $layer = Geo::GDAL::FFI::Open($dataset)->GetLayer($layer_name || 0);
     return $layer->GetDefn->GetGeomFieldDefn->GetType;
+}
+
+sub get_layer_names_in_ogc_dataset {
+    my ($dataset) = @_;
+    my $ds = Geo::GDAL::FFI::Open($dataset);
+
+    return $ds->GetLayerNameArray
+        if $Geo::GDAL::FFI::VERSION ge '0.13_004';
+
+    my @layers;
+    for my $i (0 .. $ds->GetLayerCount-1) {
+        # my $layer = $ds->GetLayer(int $i);
+        # push @layers, $layer->GetName;
+        #  work around a bug in Geo::GDAL::FFI when under the debugger
+        #  https://github.com/ajolma/Geo-GDAL-FFI/issues/91
+        push @layers, Geo::GDAL::FFI::OGR_L_GetName (Geo::GDAL::FFI::GDALDatasetGetLayer($$ds, $i));
+    }
+    return wantarray ? @layers : \@layers;
 }
 
 sub on_delete {

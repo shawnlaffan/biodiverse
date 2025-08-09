@@ -1572,11 +1572,11 @@ sub add_overlay {
     my ($self, $entry) = @_;
 
     my $name = $entry->{name};
-    my $layer = $entry->{layer};
-    #  0 is possibly a valid layer name
-    if (length $layer) {
-        $name .= "/$layer";
-    }
+    # my $layer = $entry->{layer};
+    # #  0 is possibly a valid layer name
+    # if (length $layer) {
+    #     $name .= "/$layer";
+    # }
 
     $self->{overlay_objects}{$name} = undef;
     push @{ $self->{OVERLAYS} }, $entry;

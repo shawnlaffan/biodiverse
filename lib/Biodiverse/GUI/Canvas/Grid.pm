@@ -11,7 +11,7 @@ use Glib qw/TRUE FALSE/;
 use Gtk3;
 use List::Util qw /min max/;
 use List::MoreUtils qw /minmax/;
-use Ref::Util qw /is_hashref/;
+use Ref::Util qw /is_hashref is_blessed_ref/;
 use POSIX qw /floor/;
 use Carp qw /croak confess/;
 use Tree::R;
@@ -645,20 +645,45 @@ sub set_overlay {
     );
     my $stroke_or_fill = $type eq 'polygon' ? 'fill' : 'stroke';
 
-    my $cb = sub {
-        my ($self, $cx) = @_;
+    my $cb;
+    if (is_blessed_ref ($data->[0])) {
+        $cb = sub {
+            my ($self, $cx) = @_;
 
-        $cx->set_matrix($self->{matrix});
-        $cx->set_source_rgba(@rgba);
-        #  line width should be an option in the GUI
-        $cx->set_line_width(max($cx->device_to_user_distance (1, 1)));
+            $cx->set_matrix($self->{matrix});
+            $cx->set_source_rgba(@rgba);
+            #  line width should be an option in the GUI
+            $cx->set_line_width(max($cx->device_to_user_distance(1, 1)));
 
-        foreach \my @segment (@$data) {
-            $cx->move_to(@{$segment[0]});
-            $cx->line_to (@$_) foreach @segment;
-        }
-        $cx->$stroke_or_fill;
-    };
+            foreach my $shape (@$data) {
+                my $g = $shape->get_geometry;
+                foreach my \@part (@$g) {
+                    foreach my \@vertices (@part) {
+                        $cx->move_to(@{$vertices[0]});
+                        $cx->line_to(@$_) foreach @vertices;
+                    }
+                }
+            }
+            $cx->$stroke_or_fill;
+        };
+    }
+    else {  #  shapefiles, old style
+        $cb = sub {
+            my ($self, $cx) = @_;
+
+            $cx->set_matrix($self->{matrix});
+            $cx->set_source_rgba(@rgba);
+            #  line width should be an option in the GUI
+            $cx->set_line_width(max($cx->device_to_user_distance(1, 1)));
+
+            foreach \my @segment (@$data)
+            {
+                $cx->move_to(@{$segment[0]});
+                $cx->line_to(@$_) foreach @segment;
+            }
+            $cx->$stroke_or_fill;
+        };
+    }
 
     $self->{callbacks}{$cb_target_name} = $cb;
 
@@ -701,14 +726,13 @@ sub load_shapefile {
     );
 
     # Get shapes within visible region - allow for cell extents
-    my @shapes;
-    @shapes = $shapefile->shapes_in_area (@rect);
+    my @shapes = $shapefile->shapes_in_area (@rect);
 
-    my $shapes_in_plot_area = @shapes;
-    say "[Grid] Shapes within plot area: $shapes_in_plot_area";
+    my $shape_count_in_plot_area = @shapes;
+    say "[Grid] Shapes within plot area: $shape_count_in_plot_area";
 
     my $gui = Biodiverse::GUI::GUIManager->instance;
-    if (!$shapes_in_plot_area) {
+    if (!$shape_count_in_plot_area) {
         $gui->report_error (
             $self->_error_msg_no_shapes_in_plot_area,
             'No shapes overlap the plot area',
@@ -718,48 +742,69 @@ sub load_shapefile {
 
     my @features;
     my @bnd_extrema;
-    # Add all shapes
-    foreach my $shapeid (@shapes) {
-        my $shape = $shapefile->get_shp_record($shapeid);
 
-        #  track the bound extents so we can warn if they will be tiny
-        my @bnds = $shape->bounds;
-        @bnd_extrema = @bnds if !@bnd_extrema;
-        $bnd_extrema[0] = min ($bnd_extrema[0], $bnds[0]);
-        $bnd_extrema[1] = min ($bnd_extrema[1], $bnds[1]);
-        $bnd_extrema[2] = max ($bnd_extrema[2], $bnds[2]);
-        $bnd_extrema[3] = max ($bnd_extrema[3], $bnds[3]);
+    if ($shapefile->isa('Geo::Shapefile')) {
+        # Add all shapes
+        foreach my $shapeid (@shapes) {
+            my $shape = $shapefile->get_shp_record($shapeid);
 
-        # Make polygon from each "part"
-        BY_PART:
-        foreach my $part (1 .. $shape->num_parts) {
+            #  track the bound extents so we can warn if they will be tiny
+            my @bnds = $shape->bounds;
+            @bnd_extrema = @bnds if !@bnd_extrema;
+            $bnd_extrema[0] = min ($bnd_extrema[0], $bnds[0]);
+            $bnd_extrema[1] = min ($bnd_extrema[1], $bnds[1]);
+            $bnd_extrema[2] = max ($bnd_extrema[2], $bnds[2]);
+            $bnd_extrema[3] = max ($bnd_extrema[3], $bnds[3]);
 
-            my @plot_points;    # x,y coordinates that will be given to canvas
-            my @segments = $shape->get_segments($part);
+            # Make polygon from each "part"
+            BY_PART:
+            foreach my $part (1 .. $shape->num_parts) {
 
-            #  add the points from all of the vertices
-            #  Geo::ShapeFile gives them to us as vertex pairs
-            #  so extract the first point from each
-            POINT_TO_ADD:
-            foreach my $vertex (@segments) {
+                my @plot_points;    # x,y coordinates that will be given to canvas
+                my @segments = $shape->get_segments($part);
+
+                #  add the points from all of the vertices
+                #  Geo::ShapeFile gives them to us as vertex pairs
+                #  so extract the first point from each
+                POINT_TO_ADD:
+                foreach my $vertex (@segments) {
+                    push @plot_points, [
+                        $vertex->[0]->{X},
+                        $vertex->[0]->{Y},
+                    ];
+                }
+
+                #  Get the end of the line, otherwise we don't plot the last vertex.
+                #  (Segments are stored as start-end pairs of vertices).
+                my $current_vertex = $segments[-1];
                 push @plot_points, [
-                    $vertex->[0]->{X},
-                    $vertex->[0]->{Y},
+                    $current_vertex->[1]->{X},
+                    $current_vertex->[1]->{Y},
                 ];
+
+                # must have more than one point (two coords)
+                next if @plot_points < 2;
+
+                push @features, \@plot_points;
             }
-
-            #  Get the end of the line, otherwise we don't plot the last vertex.
-            #  (Segments are stored as start-end pairs of vertices).
-            my $current_vertex = $segments[-1];
-            push @plot_points, [
-                $current_vertex->[1]->{X},
-                $current_vertex->[1]->{Y},
-            ];
-
-            # must have more than one point (two coords)
-            next if @plot_points < 2;
-
-            push @features, \@plot_points;
+        }
+    }
+    else {  #  we are the newer structure
+        @features = @shapes;
+        my @load_ids;  #  not yet loaded due to lazy loading
+        foreach my $shape (@features) {
+            my @bnds = $shape->get_extent;
+            @bnd_extrema = @bnds if !@bnd_extrema;
+            $bnd_extrema[0] = min ($bnd_extrema[0], $bnds[0]);
+            $bnd_extrema[1] = min ($bnd_extrema[1], $bnds[1]);
+            $bnd_extrema[2] = max ($bnd_extrema[2], $bnds[2]);
+            $bnd_extrema[3] = max ($bnd_extrema[3], $bnds[3]);
+            if (!$shape->get_geometry) {
+                push @load_ids, $shape->get_id;
+            }
+        }
+        if (@load_ids) {
+            $shapefile->reload_geometries(\@load_ids);
         }
     }
 
@@ -774,7 +819,7 @@ sub load_shapefile {
         my $error = <<"END_OF_ERROR"
 Warning: Shapes might not be visible.
 
-The extent of the $shapes_in_plot_area shapes overlapping the
+The extent of the $shape_count_in_plot_area shapes overlapping the
 plot area is very small.  They might not be visible as a result.
 
 One possible cause is that the shapefile coordinate system does

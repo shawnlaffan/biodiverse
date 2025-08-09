@@ -73,7 +73,7 @@ sub load_data {
             type   => $self->{type},
         );
         if (!($lazy_load && $item->{geometry})) {
-            my $g = $geom->GetPoints;
+            my $g = $geom->GetPoints (0, 0);  #  no Z or M
             #  this way we have one structure for the plotting to handle
             $item->{geometry} = $is_multi_type ? $g : [$g];
         }
@@ -97,7 +97,7 @@ sub reload_geometries {
         my $item    = $features->[$id + $fid_base];
         my $feature = $layer->GetFeature($id);
         my $geom    = $feature->GetGeomField();
-        $item->set_geometry ($geom->GetPoints);
+        $item->set_geometry ($geom->GetPoints(0,0));  #  no Z or M
     }
 
     return;

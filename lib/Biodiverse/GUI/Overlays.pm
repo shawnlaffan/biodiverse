@@ -7,6 +7,8 @@ use Gtk3;
 #use Data::Dumper;
 use Geo::ShapeFile;
 use Ref::Util qw/is_hashref/;
+use Carp qw/croak/;
+use Path::Tiny qw /path/;
 
 our $VERSION = '4.99_009';
 
@@ -376,7 +378,7 @@ sub on_add {
     my ($list, $project) = @$args;
 
     my $open = Gtk3::FileChooserDialog->new(
-        'Add shapefile',
+        'Add overlay feature class',
         undef,
         'open',
         'gtk-cancel',
@@ -387,15 +389,20 @@ sub on_add {
     my @filters = (
         'shapefiles'  => '*.shp',
         'geopackages' => '*.gpkg',
-        # 'ESRI Geodatabases' => '*.gdb',  #  not yet - need to select directories when this is chosen
+        'ESRI file geodatabases' => '*.gdbtable',
     );
+    my $allfilter = Gtk3::FileFilter->new();
+    $allfilter->set_name('All supported');
     use experimental qw /for_list/;
     foreach my ($label, $glob) (@filters) {
         my $filter = Gtk3::FileFilter->new();
         $filter->add_pattern($glob);
         $filter->set_name($label);
         $open->add_filter($filter);
+        $allfilter->add_pattern($glob);
     }
+    $open->add_filter($allfilter);
+    $open->set_filter($allfilter);
     $open->set_modal(1);
 
     my $filename;
@@ -405,6 +412,12 @@ sub on_add {
     $open->destroy;
 
     return if !defined $filename;
+
+    #  file geodatabase - we want the parent dir
+    if ($filename =~ /\.gdbtable$/) {
+        $filename = path($filename)->parent;
+        croak "Invalid geodatabase $filename" if $filename !~ /\.gdb$/;
+    }
 
     #  need to handle layers in geopackages and geodatabases
     my $layer;

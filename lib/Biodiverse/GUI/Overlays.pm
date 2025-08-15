@@ -99,15 +99,15 @@ sub set_button_actions {
     # Connect buttons
 
     #  these are always the same
-    $signals->{btnAdd} //= $buttons->{btnAdd}->signal_connect(
+    $signals->{btnAdd} //= $buttons->{btnAdd}->signal_connect_swapped(
         clicked => \&on_add,
-        [$list, $project],
+        $project,
     );
-    $signals->{btnDelete} //= $buttons->{btnDelete}->signal_connect(
+    $signals->{btnDelete} //= $buttons->{btnDelete}->signal_connect_swapped(
         clicked => \&on_delete,
-        [$list, $project],
+        $project,
     );
-    $signals->{btnOverlayCancel} //= $buttons->{btnOverlayCancel}->signal_connect(
+    $signals->{btnOverlayCancel} //= $buttons->{btnOverlayCancel}->signal_connect_swapped(
         clicked => \&on_cancel,
         $dlg,
     );
@@ -122,11 +122,11 @@ sub set_button_actions {
         my $id = $signals->{$btn} // next;
         $buttons->{$btn}->signal_handler_disconnect($id);
     }
-    $signals->{btnClear} = $buttons->{btnClear}->signal_connect(
+    $signals->{btnClear} = $buttons->{btnClear}->signal_connect_swapped(
         clicked => \&on_clear,
         [$list, $project, $grid, $dlg],
     );
-    $signals->{btnSet} = $buttons->{btnSet}->signal_connect(
+    $signals->{btnSet} = $buttons->{btnSet}->signal_connect_swapped(
         clicked => \&on_set,
         [$list, $project, $grid, $dlg, $colour_button],
     );
@@ -295,9 +295,7 @@ sub on_set_default_colour {
 }
 
 sub on_add {
-    my $button = shift;
-    my $args = shift;
-    my ($list, $project) = @$args;
+    my ($project) = @_;
 
     my $open = Gtk3::FileChooserDialog->new(
         'Add overlay feature class',
@@ -471,7 +469,6 @@ sub on_delete {
 
 
 sub on_clear {
-    my $button = shift;
     my $args = shift;
     my ($list, $project, $grid, $dlg) = @$args;
 
@@ -490,7 +487,6 @@ sub on_clear {
 }
 
 sub on_set {
-    my $button = shift;
     my $args = shift;
     my ($list, $project, $grid, $dlg, $colour_button) = @$args;
 
@@ -528,11 +524,8 @@ sub on_set {
 }
 
 sub on_cancel {
-    my $button = shift;
-    my $dlg    = shift;
-
+    my $dlg = shift;
     $dlg->hide;
-
     return;
 }
 

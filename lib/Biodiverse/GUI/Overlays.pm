@@ -58,6 +58,12 @@ sub show_dialog {
     my $model = make_overlay_model($project);
     my $list = init_overlay_list($dlgxml, $model);
 
+    my $vbox = $dlgxml->get_object('vbox21');
+    my ($table, $extractors) = update_overlay_table ($project);
+    my $window = Gtk3::ScrolledWindow->new;
+    $window->add($table);
+    $vbox->pack_start ($window, 1, 1, 1);
+
     my %buttons = map {$_ => $dlgxml->get_object($_)}
         (qw /btnAdd btnDelete btnClear btnSet btnOverlayCancel btn_overlay_set_default_colour/);
     my %components = (
@@ -65,6 +71,8 @@ sub show_dialog {
         colour_button => $colour_button,
         list          => $list,
         buttons       => \%buttons,
+        params_table  => $table,
+        extractors    => $extractors,
     );
 
     my $signals = set_button_actions (
@@ -76,7 +84,7 @@ sub show_dialog {
     #  store some but not all components we set actions for
     $gui->set_overlay_components ({
         %components,
-        signals       => $signals,
+        signals     => $signals,
     });
 
     $dlg->set_modal(1);
@@ -315,6 +323,82 @@ sub make_overlay_model {
     return $model;
 }
 
+sub update_overlay_table {
+    my ($project) = @_;
+
+    my $overlays = $project->get_overlay_list();
+    my $components = Biodiverse::GUI::GUIManager->instance->get_overlay_components // {};
+    my $extractors = $components->{extractors} // [];
+
+    my $table = $components->{params_table};
+
+    if (!$table) {
+        $table = $components->{params_table} = Gtk3::Grid->new;
+        $table->set_row_spacing(5);
+        $table->set_column_spacing(5);
+
+        $table->insert_row(0);
+        my $i = -1;
+        foreach my $label ('Plot', 'Name', 'Type', 'Plot above cells', 'Transparency') {
+            $i++;
+            my $label = Gtk3::Label->new($label);
+            $label->set_halign('start');
+            $table->insert_column($i);
+            $table->attach($label, $i, 0, 1, 1);
+        }
+    }
+
+
+    my $row = @$extractors;
+    foreach my $entry (@{$overlays}[$row..$#$overlays]) {
+        $row++;
+        $table->insert_row ($row);
+
+        if (!is_hashref $entry) {  # previous versions did not store these
+            $entry = {
+                name        => $entry,
+                type        => 'polyline',
+                plot_on_top => !!1,
+                use_alpha   => 1,  #  a boolean for partial transparency
+            };
+        }
+
+        my $name = $entry->{name};
+        my $layer_name = path ($name)->basename;
+        my $col = -1;
+
+        my $use_check = Gtk3::CheckButton->new;
+        $use_check->set_active (0);
+        $use_check->set_halign('center');
+        $table->attach ($use_check, ++$col, $row, 1, 1);
+
+        my $name_label = Gtk3::Label->new ($layer_name);
+        $name_label->set_tooltip_text (path ($name)->stringify);
+        $table->attach ($name_label, ++$col, $row, 1, 1);
+        $table->attach (Gtk3::Label->new ($entry->{type} // 'polyline'), ++$col, $row, 1, 1);
+
+        my $plot_on_top = Gtk3::CheckButton->new;
+        $plot_on_top->set_active (!!$entry->{plot_on_top});
+        $plot_on_top->set_halign('center');
+        $table->attach ($plot_on_top, ++$col, $row, 1, 1);
+
+        my $use_alpha = Gtk3::CheckButton->new;
+        $use_alpha->set_active (!!$entry->{use_alpha});
+        $use_alpha->set_halign('center');
+        $table->attach ($use_alpha, ++$col, $row, 1, 1);
+
+        push @$extractors, {
+            name        => $name,
+            plot_on_top => sub {$plot_on_top->get_active},
+            use_alpha   => sub {$use_alpha->get_active},
+        };
+
+    }
+    $table->show_all;
+
+    return ($table, $extractors);
+}
+
 #  get all the settings as an array of hashes
 sub get_settings_table {
     my $gui = Biodiverse::GUI::GUIManager->instance;
@@ -475,6 +559,8 @@ sub on_add {
         $project->add_overlay({ name => $fname, layer => $layer, type => 'polygon', plot_on_top => 0, use_alpha => 0 });
     }
 
+    update_overlay_table($project);
+
     return;
 }
 
@@ -524,7 +610,7 @@ sub get_layer_names_in_ogc_dataset {
     my ($dataset) = @_;
     my $ds = Geo::GDAL::FFI::Open($dataset);
 
-    return $ds->GetLayerNameArray
+    return $ds->GetLayerNames
         if $Geo::GDAL::FFI::VERSION ge '0.13_004';
 
     my @layers;

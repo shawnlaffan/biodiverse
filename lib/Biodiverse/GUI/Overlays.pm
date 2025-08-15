@@ -6,7 +6,7 @@ use warnings;
 use Gtk3;
 #use Data::Dumper;
 use Geo::ShapeFile;
-use Ref::Util qw/is_hashref/;
+use Ref::Util qw/is_hashref is_blessed_ref/;
 use Carp qw/croak/;
 use Path::Tiny qw /path/;
 
@@ -140,6 +140,8 @@ sub update_overlay_table {
     my $components = Biodiverse::GUI::GUIManager->instance->get_overlay_components // {};
     my $extractors = $components->{extractors} // [];
 
+    my $colour_button = $components->{colour_button};
+
     my $table = $components->{params_table};
 
     if (!$table) {
@@ -149,7 +151,7 @@ sub update_overlay_table {
 
         $table->insert_row(0);
         my $i = -1;
-        foreach my $label_text ('Plot?', 'Name', 'Type', 'Plot above cells', 'Transparency') {
+        foreach my $label_text ('Plot?', 'Name', 'Type', 'Plot above cells', 'Transparency', 'Colour') {
             $i++;
             my $label = Gtk3::Label->new($label_text);
             $label->set_use_markup(1);
@@ -181,7 +183,7 @@ sub update_overlay_table {
         my $col = -1;
 
         my $use_check = Gtk3::CheckButton->new;
-        $use_check->set_active (0);
+        $use_check->set_active ($entry->{plot});
         $use_check->set_halign('center');
         $table->attach ($use_check, ++$col, $row, 1, 1);
 
@@ -201,12 +203,21 @@ sub update_overlay_table {
         $use_alpha->set_halign('center');
         $table->attach ($use_alpha, ++$col, $row, 1, 1);
 
+        my $rgba = $entry->{rgba} // $colour_button->get_rgba;
+        if (!is_blessed_ref $rgba) {
+            $rgba = Gtk3::Gdk::RGBA::parse ($rgba);
+        }
+        my $colour_button = Gtk3::ColorButton->new_with_rgba($rgba);
+        $colour_button->set_halign('center');
+        $table->attach ($colour_button, ++$col, $row, 1, 1);
+
         push @$extractors, {
             name        => $name,
             type        => $type,
             plot_on_top => sub {$plot_on_top->get_active},
             use_alpha   => sub {$use_alpha->get_active},
             plot        => sub {$use_check->get_active},
+            rgba        => sub {$colour_button->get_rgba},
             chkbox_plot => $use_check,
         };
 
@@ -230,6 +241,7 @@ sub get_settings_table_from_grid {
             plot_on_top => $entry->{plot_on_top}->(),
             use_alpha   => $entry->{use_alpha}->(),
             plot        => $entry->{plot}->(),
+            rgba        => $entry->{rgba}->()->to_string,
         };
     }
 
@@ -453,9 +465,6 @@ sub on_set {
     my $args = shift;
     my ($project, $grid, $dlg, $colour_button) = @$args;
 
-    my $colour = $colour_button->get_rgba;
-    $last_selected_colour = $colour;
-
     my $settings = get_settings_table_from_grid();
 
     $dlg->hide;
@@ -475,6 +484,10 @@ sub on_set {
         $plot_count{$plot_position}++;
         my $name = $layer{name};
         say qq{[Overlay] Setting overlay to "$name"};
+        my $colour = $layer{rgba};
+        if (!is_blessed_ref $colour) {
+            $colour = Gtk3::Gdk::RGBA::parse ($colour);
+        }
         $grid->set_overlay(
             shapefile   => $project->get_overlay_shape_object($name),
             colour      => $colour,

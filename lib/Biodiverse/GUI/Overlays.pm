@@ -124,11 +124,11 @@ sub set_button_actions {
     }
     $signals->{btnClear} = $buttons->{btnClear}->signal_connect_swapped(
         clicked => \&on_clear,
-        [$list, $project, $grid, $dlg],
+        $project,
     );
     $signals->{btnSet} = $buttons->{btnSet}->signal_connect_swapped(
         clicked => \&on_set,
-        [$list, $project, $grid, $dlg, $colour_button],
+        [$project, $grid, $dlg, $colour_button],
     );
     return $signals;
 }
@@ -453,7 +453,6 @@ sub get_layer_names_in_ogc_dataset {
 }
 
 sub on_delete {
-    my $button = shift;
     my $args = shift;
     my ($list, $project) = @$args;
 
@@ -469,8 +468,7 @@ sub on_delete {
 
 
 sub on_clear {
-    my $args = shift;
-    my ($list, $project, $grid, $dlg) = @$args;
+    my ($project) = @_;
 
     #  clunky
     my $gui = Biodiverse::GUI::GUIManager->instance;
@@ -488,7 +486,7 @@ sub on_clear {
 
 sub on_set {
     my $args = shift;
-    my ($list, $project, $grid, $dlg, $colour_button) = @$args;
+    my ($project, $grid, $dlg, $colour_button) = @$args;
 
     my $colour = $colour_button->get_rgba;
     $last_selected_colour = $colour;

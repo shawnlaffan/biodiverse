@@ -207,6 +207,7 @@ sub update_overlay_table {
             plot_on_top => sub {$plot_on_top->get_active},
             use_alpha   => sub {$use_alpha->get_active},
             plot        => sub {$use_check->get_active},
+            chkbox_plot => $use_check,
         };
 
     }
@@ -474,13 +475,16 @@ sub on_clear {
     my $args = shift;
     my ($list, $project, $grid, $dlg) = @$args;
 
-    my %results = get_selection($list);
+    #  clunky
+    my $gui = Biodiverse::GUI::GUIManager->instance;
+    my $overlay_components = $gui->get_overlay_components;
+    my $extractors = $overlay_components->{extractors} // [];
 
-    $grid->set_overlay(
-        shapefile   => undef,
-        plot_on_top => $results{plot_on_top},  #  are we clearing an overlay or underlay?
-    );
-    $dlg->hide();
+    foreach my $entry (@$extractors) {
+        $entry->{chkbox_plot}->set_active(0);
+    }
+
+    update_overlay_table($project);
 
     return;
 }
@@ -490,17 +494,20 @@ sub on_set {
     my $args = shift;
     my ($list, $project, $grid, $dlg, $colour_button) = @$args;
 
-    # my ($iter, $filename, $plot_as_poly, $array_iter) = get_selection($list);
-    # my %results = get_selection($list);
-    # my ($filename, $type, $plot_on_top, $use_alpha)
-    #     = @results{qw /filename type plot_on_top use_alpha/};
-
     my $colour = $colour_button->get_rgba;
     $last_selected_colour = $colour;
 
     my $settings = get_settings_table_from_grid();
 
     $dlg->hide;
+
+    #  clear existing
+    foreach my $i (0,1) {
+        $grid->set_overlay(
+            shapefile   => undef,
+            plot_on_top => $i,
+        );
+    }
 
     my %plot_count;
     foreach my \%layer (@$settings) {
@@ -518,22 +525,6 @@ sub on_set {
     }
 
     return;
-
-    # return if not $filename;
-    #
-    # print "[Overlay] Setting overlay to $filename\n";
-    # $grid->set_overlay(
-    #     shapefile   => $project->get_overlay_shape_object($filename),
-    #     colour      => $colour,
-    #     plot_on_top => $plot_on_top,
-    #     use_alpha   => $use_alpha,
-    #     type        => $type,
-    # );
-    # #$dlg->destroy();
-    #
-    # $last_selected_colour = $colour;
-    #
-    # return;
 }
 
 sub on_cancel {

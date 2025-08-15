@@ -216,29 +216,6 @@ sub update_overlay_table {
     return ($table, $extractors);
 }
 
-#  get all the settings as an array of hashes
-sub get_settings_table {
-    my $gui = Biodiverse::GUI::GUIManager->instance;
-    my $overlay_components = $gui->get_overlay_components;
-
-    my $tree = $overlay_components->{list} // return;
-
-    my @table;
-    my $model = $tree->get_model();
-    my $iter  = $model->get_iter_first();
-    while ($iter) {
-        push @table, {
-            name        => $model->get($iter, COL_FNAME),
-            type        => $model->get($iter, COL_FTYPE),
-            plot_on_top => $model->get($iter, COL_PLOT_ON_TOP),
-            use_alpha   => $model->get($iter, COL_USE_ALPHA),
-        };
-        last if !$model->iter_next($iter);
-    }
-
-    return wantarray ? @table : \@table;
-}
-
 sub get_settings_table_from_grid {
     my $gui = Biodiverse::GUI::GUIManager->instance;
     my $overlay_components = $gui->get_overlay_components;
@@ -257,32 +234,6 @@ sub get_settings_table_from_grid {
     }
 
     return wantarray ? @table : \@table;
-}
-
-
-# Get what was selected..
-sub get_selection {
-    my $tree = shift;
-
-    my $selection = $tree->get_selection();
-    my $path = $selection->get_selected_rows();
-    my $iter = $selection->get_selected();
-    return if not $iter;
-
-    my $model = $tree->get_model();
-    # my $iter  = $model->get_iter($path);
-    my $name  = $model->get($iter, COL_FNAME);
-    my $type  = $model->get($iter, COL_FTYPE);
-    my $plot_on_top = $model->get($iter, COL_PLOT_ON_TOP);
-    my $use_alpha   = $model->get($iter, COL_USE_ALPHA);
-    # my $array_iter  = $path->to_string;  #  only works for a simple tree
-    my $array_iter  = $path->get_string_from_iter($iter);
-
-    return wantarray
-        ? (iter        => $iter,        filename  => $name,      type       => $type,
-           plot_on_top => $plot_on_top, use_alpha => $use_alpha, array_iter => $array_iter,
-          )
-        : $name;
 }
 
 

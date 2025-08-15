@@ -10,6 +10,8 @@ use Ref::Util qw/is_hashref/;
 use Carp qw/croak/;
 use Path::Tiny qw /path/;
 
+use experimental qw /declared_refs refaliasing/;
+
 our $VERSION = '4.99_009';
 
 use Biodiverse::GUI::GUIManager;
@@ -365,6 +367,7 @@ sub update_overlay_table {
 
         my $name = $entry->{name};
         my $layer_name = path ($name)->basename;
+        my $type = $entry->{type} // 'polyline';
         my $col = -1;
 
         my $use_check = Gtk3::CheckButton->new;
@@ -374,8 +377,9 @@ sub update_overlay_table {
 
         my $name_label = Gtk3::Label->new ($layer_name);
         $name_label->set_tooltip_text (path ($name)->stringify);
+        $name_label->set_halign ('start');
         $table->attach ($name_label, ++$col, $row, 1, 1);
-        $table->attach (Gtk3::Label->new ($entry->{type} // 'polyline'), ++$col, $row, 1, 1);
+        $table->attach (Gtk3::Label->new ($type), ++$col, $row, 1, 1);
 
         my $plot_on_top = Gtk3::CheckButton->new;
         $plot_on_top->set_active (!!$entry->{plot_on_top});
@@ -389,8 +393,10 @@ sub update_overlay_table {
 
         push @$extractors, {
             name        => $name,
+            type        => $type,
             plot_on_top => sub {$plot_on_top->get_active},
             use_alpha   => sub {$use_alpha->get_active},
+            plot        => sub {$use_check->get_active},
         };
 
     }
@@ -421,6 +427,27 @@ sub get_settings_table {
 
     return wantarray ? @table : \@table;
 }
+
+sub get_settings_table_from_grid {
+    my $gui = Biodiverse::GUI::GUIManager->instance;
+    my $overlay_components = $gui->get_overlay_components;
+
+    my $extractors = $overlay_components->{extractors} // return;
+
+    my @table;
+    foreach my $entry (@$extractors) {
+        push @table, {
+            name        => $entry->{name},
+            type        => $entry->{type} // 'polyline',
+            plot_on_top => $entry->{plot_on_top}->(),
+            use_alpha   => $entry->{use_alpha}->(),
+            plot        => $entry->{plot}->(),
+        };
+    }
+
+    return wantarray ? @table : \@table;
+}
+
 
 # Get what was selected..
 sub get_selection {
@@ -667,8 +694,28 @@ sub on_set {
         = @results{qw /filename type plot_on_top use_alpha/};
 
     my $colour = $colour_button->get_rgba;
+    $last_selected_colour = $colour;
+
+    my $settings = get_settings_table_from_grid();
 
     $dlg->hide;
+
+    my %plot_count;
+    foreach my \%layer (@$settings) {
+        next if !$layer{plot};
+        my $plot_position = $layer{plot_on_top} ? 'above' : 'below';
+        next if $plot_count{$plot_position};
+        $plot_count{$plot_position}++;
+        my $name = $layer{name};
+        say "[Overlay] Setting overlay to $name";
+        $grid->set_overlay(
+            shapefile   => $project->get_overlay_shape_object($name),
+            colour      => $colour,
+            %layer{qw /plot_on_top use_alpha type/},
+        );
+    }
+
+    return;
 
     return if not $filename;
 

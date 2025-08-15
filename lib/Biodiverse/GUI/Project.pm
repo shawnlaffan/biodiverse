@@ -137,7 +137,7 @@ sub save {
     delete local $self->{models};
     delete local $self->{overlay_objects};
 
-    my $tbl = eval {Biodiverse::GUI::Overlays::get_settings_table()};
+    my $tbl = eval {Biodiverse::GUI::Overlays::get_settings_table_from_grid()};
     warn $@ if $@;
     local $self->{OVERLAYS} = $tbl;
 
@@ -1554,14 +1554,16 @@ sub delete_overlay {
 
     my $overlays = $self->{OVERLAYS};
 
+    $name = path ($name);
+
     # Remove from list unless not found or possible
-    $array_iter //= List::Util::first {$_ eq $name} @$overlays;
+    $array_iter //= List::Util::first {path ($_) eq $name} @$overlays;
     return if $array_iter < 0 || $array_iter > $#$overlays;
 
     splice( @$overlays, $array_iter, 1 );
 
     # remove from hash if no longer needed
-    if (!grep {$_->{name} eq $name} @$overlays) {
+    if (!grep {path ($_->{name}) eq $name} @$overlays) {
         delete $self->{overlay_objects}{$name};
     }
 
@@ -1572,14 +1574,21 @@ sub add_overlay {
     my ($self, $entry) = @_;
 
     my $name = $entry->{name};
-    # my $layer = $entry->{layer};
-    # #  0 is possibly a valid layer name
-    # if (length $layer) {
-    #     $name .= "/$layer";
-    # }
 
     $self->{overlay_objects}{$name} = undef;
     push @{ $self->{OVERLAYS} }, $entry;
+
+    return;
+}
+
+sub update_overlay {
+    my ($self, $iter, $data) = @_;
+
+    my $array = $self->{OVERLAYS};
+    return if abs ($iter) >= @$array;
+
+    my $entry = $array->[$iter];
+    @$entry{keys %$data} = values %$data;
 
     return;
 }

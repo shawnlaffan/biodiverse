@@ -16,8 +16,7 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="ypad">3</property>
-            <property name="label" translatable="yes">&lt;b&gt;Overlays&lt;/b&gt;
-&lt;i&gt;Currently only shapefiles are supported&lt;/i&gt;</property>
+            <property name="label" translatable="yes">&lt;b&gt;Overlays&lt;/b&gt;</property>
             <property name="use-markup">True</property>
             <property name="justify">center</property>
           </object>
@@ -33,14 +32,9 @@
             <property name="can-focus">True</property>
             <property name="hscrollbar-policy">always</property>
             <property name="shadow-type">in</property>
+            <property name="min-content-height">250</property>
             <child>
-              <object class="GtkTreeView" id="treeOverlays">
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <child internal-child="selection">
-                  <object class="GtkTreeSelection"/>
-                </child>
-              </object>
+              <placeholder/>
             </child>
           </object>
           <packing>

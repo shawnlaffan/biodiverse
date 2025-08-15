@@ -6,9 +6,11 @@ use warnings;
 use Gtk3;
 #use Data::Dumper;
 use Geo::ShapeFile;
-use Ref::Util qw/is_hashref/;
+use Ref::Util qw/is_hashref is_blessed_ref/;
 use Carp qw/croak/;
 use Path::Tiny qw /path/;
+
+use experimental qw /declared_refs refaliasing/;
 
 our $VERSION = '4.99_009';
 
@@ -55,16 +57,18 @@ sub show_dialog {
 
     $colour_button->set_rgba($last_selected_colour);
 
-    my $model = make_overlay_model($project);
-    my $list = init_overlay_list($dlgxml, $model);
+    my ($table, $extractors) = update_overlay_table ($project);
+    my $table_window = $dlgxml->get_object('scrolledwindow19');
+    $table_window->add($table);
 
     my %buttons = map {$_ => $dlgxml->get_object($_)}
         (qw /btnAdd btnDelete btnClear btnSet btnOverlayCancel btn_overlay_set_default_colour/);
     my %components = (
         dialog        => $dlg,
         colour_button => $colour_button,
-        list          => $list,
         buttons       => \%buttons,
+        params_table  => $table,
+        extractors    => $extractors,
     );
 
     my $signals = set_button_actions (
@@ -76,7 +80,7 @@ sub show_dialog {
     #  store some but not all components we set actions for
     $gui->set_overlay_components ({
         %components,
-        signals       => $signals,
+        signals     => $signals,
     });
 
     $dlg->set_modal(1);
@@ -95,15 +99,15 @@ sub set_button_actions {
     # Connect buttons
 
     #  these are always the same
-    $signals->{btnAdd} //= $buttons->{btnAdd}->signal_connect(
+    $signals->{btnAdd} //= $buttons->{btnAdd}->signal_connect_swapped(
         clicked => \&on_add,
-        [$list, $project],
+        $project,
     );
-    $signals->{btnDelete} //= $buttons->{btnDelete}->signal_connect(
+    $signals->{btnDelete} //= $buttons->{btnDelete}->signal_connect_swapped(
         clicked => \&on_delete,
-        [$list, $project],
+        $project,
     );
-    $signals->{btnOverlayCancel} //= $buttons->{btnOverlayCancel}->signal_connect(
+    $signals->{btnOverlayCancel} //= $buttons->{btnOverlayCancel}->signal_connect_swapped(
         clicked => \&on_cancel,
         $dlg,
     );
@@ -118,249 +122,130 @@ sub set_button_actions {
         my $id = $signals->{$btn} // next;
         $buttons->{$btn}->signal_handler_disconnect($id);
     }
-    $signals->{btnClear} = $buttons->{btnClear}->signal_connect(
+    $signals->{btnClear} = $buttons->{btnClear}->signal_connect_swapped(
         clicked => \&on_clear,
-        [$list, $project, $grid, $dlg],
+        $project,
     );
-    $signals->{btnSet} = $buttons->{btnSet}->signal_connect(
+    $signals->{btnSet} = $buttons->{btnSet}->signal_connect_swapped(
         clicked => \&on_set,
-        [$list, $project, $grid, $dlg, $colour_button],
+        [$project, $grid, $dlg, $colour_button],
     );
     return $signals;
 }
 
-sub init_overlay_list {
-    my $dlgxml = shift;
-    my $model = shift;
-    my $tree = $dlgxml->get_object('treeOverlays');
-
-    my $col_name = Gtk3::TreeViewColumn->new();
-    my $name_renderer = Gtk3::CellRendererText->new ();
-    #$name_renderer->signal_connect('toggled' => \&_update_colour_for_selection, $model);
-    $col_name->set_title('File name');
-    $col_name->pack_start($name_renderer, 1);
-    $col_name->add_attribute($name_renderer,  text => COL_FNAME);
-    $tree->insert_column($col_name, -1);
-
-    my $col_type = Gtk3::TreeViewColumn->new();
-    my $type_renderer = Gtk3::CellRendererText->new ();
-    $col_type->set_title('Type');
-    $col_type->pack_start($type_renderer, 1);
-    $col_type->add_attribute($type_renderer,  text => COL_FTYPE);
-    $tree->insert_column($col_type, -1);
-
-    my $col_plot_on_top = Gtk3::TreeViewColumn->new();
-    $col_plot_on_top->set_title('Plot above cells');
-    my $plot_on_top_renderer = Gtk3::CellRendererToggle->new();
-    $col_plot_on_top->pack_start($plot_on_top_renderer, 0);
-    $plot_on_top_renderer->signal_connect('toggled' => \&_plot_on_top, $model);
-    $col_plot_on_top->set_attributes($plot_on_top_renderer,
-        'active' => COL_PLOT_ON_TOP,
-    );
-    $tree->insert_column($col_plot_on_top, -1);
-
-
-    #  Does not display the spinners.  Not sure why.
-    #  So use a boolean instead and hard code 0.5 if true.
-    # my $alpha_renderer = Gtk3::CellRendererSpin->new();
-    # my $adjustment = Gtk3::Adjustment->new(
-    #     1, 0, 1, 0.05, 0.1, 0,
-    # );
-    # $alpha_renderer->set_property(adjustment => $adjustment);
-    # use DDP; p $alpha_renderer;
-    # my $attrs = $alpha_renderer->get_attributes;
-    my $col_alpha = Gtk3::TreeViewColumn->new();
-    $col_alpha->set_title('Transparent');
-    my $alpha_renderer = Gtk3::CellRendererToggle->new();
-    $col_alpha->pack_start($alpha_renderer, 0);
-    $alpha_renderer->signal_connect('toggled' => \&_plot_alpha, $model);
-    # say $col_alpha->get_attributes->to_string;
-    $col_alpha->set_attributes($alpha_renderer,
-        'active' => COL_USE_ALPHA,
-    );
-    $tree->insert_column($col_alpha, -1);
-
-
-    # my $col_colour = Gtk3::TreeViewColumn->new();
-    # my $colour_renderer_toggle = Gtk3::CellRendererToggle->new();
-    # my $colour_renderer_text   = Gtk3::CellRendererText->new();
-    # $col_colour->set_title('Colour');
-    # $col_colour->pack_start($colour_renderer_toggle, 0);
-    # $col_colour->pack_start($colour_renderer_text, 0);
-    # $col_colour->add_attribute($colour_renderer_toggle, active => COL_PLOT_COLOUR);
-    # $col_colour->set_attributes($colour_renderer_toggle, active => 1);
-    # $col_colour->add_attribute($colour_renderer_text,
-    #     'cell-background' => COL_PLOT_COLOUR_BK,
-    # );
-    # $col_colour->set_attributes($colour_renderer_text,
-    #     'cell-background' => COL_PLOT_COLOUR_BK,
-    # );
-    # $colour_renderer_toggle->signal_connect(
-    #     'toggled' => \&_update_colour_for_selection, $model
-    # );
-    # $tree->insert_column($col_colour, -1);
-
-    $tree->set_headers_visible(1);
-    $tree->set_model($model);
-
-    return $tree;
-}
-
-sub _plot_on_top {
-    my ($cell, $path_str, $model) = @_;
-
-    my $path = Gtk3::TreePath->new_from_string ($path_str);
-
-    # get toggled iter
-    my $iter = $model->get_iter ($path);
-    my ($bool) = $model->get ($iter, COL_PLOT_ON_TOP);
-
-    # toggle the value
-    $model->set($iter, COL_PLOT_ON_TOP, !$bool);
-
-    return;
-}
-
-sub _plot_alpha {
-    my ($cell, $path_str, $model) = @_;
-
-    my $path = Gtk3::TreePath->new_from_string ($path_str);
-
-    # get toggled iter
-    my $iter = $model->get_iter ($path);
-    my ($bool) = $model->get ($iter, COL_USE_ALPHA);
-
-    # toggle the value
-    $model->set($iter, COL_USE_ALPHA, !$bool);
-
-    return;
-}
-
-
-# sub _update_colour_for_selection {
-#     return;
-#     my ($cell, $path_str, $model) = @_;
-#
-#     my $path = Gtk3::TreePath->new_from_string ($path_str);
-#
-#     # get toggled iter
-#     my $iter = $model->get_iter ($path);
-#     my ($bool) = $model->get ($iter, COL_PLOT_COLOUR);
-#
-#     my $gui = Biodiverse::GUI::GUIManager->instance;
-#     my $overlay_components = $gui->get_overlay_components;
-#     my $colour_button = $overlay_components->{colour_button};
-#
-#     my $colour = $model->get ($iter, COL_PLOT_COLOUR_BK);
-#     if (!defined $colour or $colour eq 'undef') {
-#         $colour = $colour_button->get_colour; #$self->get_last_colour;
-#     }
-#
-#     if (!Scalar::Util::blessed $colour) {
-#         $colour = Gtk3::Gdk::RGBA::parse($colour);
-#     }
-#     $colour_button->set_rgba($colour);
-#
-#     $colour_button->clicked;
-#     $colour = $colour_button->get_color;
-#
-#     say STDERR $bool, ' ', $colour->to_string;
-#
-#     # toggle the value
-#     $model->set ($iter,
-#         COL_PLOT_COLOUR, !$bool,
-#     );
-#     $model->set ($iter,
-#         COL_PLOT_COLOUR_BK, $colour->to_string,
-#         # 'cell-background' => $colour->to_string,
-#     );
-#     say '--- ' .  $model->get ($iter, COL_PLOT_COLOUR);
-#     say '--- ' .  $model->get ($iter, COL_PLOT_COLOUR_BK);
-# }
-
-# Make the object tree that appears on the left
-sub make_overlay_model {
-    my $project = shift;
-
-    my $model = Gtk3::ListStore->new(
-        'Glib::String',
-        'Glib::String',
-        'Glib::Boolean',
-        'Glib::Boolean',
-    );
+sub update_overlay_table {
+    my ($project) = @_;
 
     my $overlays = $project->get_overlay_list();
+    my $components = Biodiverse::GUI::GUIManager->instance->get_overlay_components // {};
+    my $extractors = $components->{extractors} // [];
 
-    foreach my $entry (@{$overlays}) {
-        my $iter = $model->append;
+    my $colour_button = $components->{colour_button};
+
+    my $table = $components->{params_table};
+
+    if (!$table) {
+        $table = $components->{params_table} = Gtk3::Grid->new;
+        $table->set_row_spacing(5);
+        $table->set_column_spacing(5);
+
+        $table->insert_row(0);
+        my $i = -1;
+        foreach my $label_text ('Plot?', 'Name', 'Type', 'Plot above cells', 'Transparency', 'Colour') {
+            $i++;
+            my $label = Gtk3::Label->new($label_text);
+            $label->set_use_markup(1);
+            $label->set_markup("<b>$label_text</b>");
+            $label->set_halign('start');
+            $table->insert_column($i);
+            $table->attach($label, $i, 0, 1, 1);
+        }
+    }
+
+
+    my $row = @$extractors;
+    foreach my $entry (@{$overlays}[$row..$#$overlays]) {
+        $row++;
+        $table->insert_row ($row);
+
         if (!is_hashref $entry) {  # previous versions did not store these
             $entry = {
                 name        => $entry,
                 type        => 'polyline',
                 plot_on_top => !!1,
-                use_alpha       => 1,  #  a boolean for partial transparency
+                use_alpha   => 1,  #  a boolean for partial transparency
             };
         }
-        # use DDP;
-        # p $entry;
-        $model->set(
-            $iter,
-            COL_FNAME,       $entry->{name},
-            COL_FTYPE,       $entry->{type} // 'polyline',
-            COL_PLOT_ON_TOP, !!$entry->{plot_on_top},
-            COL_USE_ALPHA,   !!$entry->{use_alpha},
-        );
-    }
 
-    return $model;
+        my $name = $entry->{name};
+        my $layer_name = path ($name)->basename;
+        my $type = $entry->{type} // 'polyline';
+        my $col = -1;
+
+        my $use_check = Gtk3::CheckButton->new;
+        $use_check->set_active ($entry->{plot});
+        $use_check->set_halign('center');
+        $table->attach ($use_check, ++$col, $row, 1, 1);
+
+        my $name_label = Gtk3::Label->new ($layer_name);
+        $name_label->set_tooltip_text (path ($name)->stringify);
+        $name_label->set_halign ('start');
+        $table->attach ($name_label, ++$col, $row, 1, 1);
+        $table->attach (Gtk3::Label->new ($type), ++$col, $row, 1, 1);
+
+        my $plot_on_top = Gtk3::CheckButton->new;
+        $plot_on_top->set_active (!!$entry->{plot_on_top});
+        $plot_on_top->set_halign('center');
+        $table->attach ($plot_on_top, ++$col, $row, 1, 1);
+
+        my $use_alpha = Gtk3::CheckButton->new;
+        $use_alpha->set_active (!!$entry->{use_alpha});
+        $use_alpha->set_halign('center');
+        $table->attach ($use_alpha, ++$col, $row, 1, 1);
+
+        my $rgba = $entry->{rgba} // $colour_button->get_rgba;
+        if (!is_blessed_ref $rgba) {
+            $rgba = Gtk3::Gdk::RGBA::parse ($rgba);
+        }
+        my $colour_button = Gtk3::ColorButton->new_with_rgba($rgba);
+        $colour_button->set_halign('center');
+        $table->attach ($colour_button, ++$col, $row, 1, 1);
+
+        push @$extractors, {
+            name        => $name,
+            type        => $type,
+            plot_on_top => sub {$plot_on_top->get_active},
+            use_alpha   => sub {$use_alpha->get_active},
+            plot        => sub {$use_check->get_active},
+            rgba        => sub {$colour_button->get_rgba},
+            chkbox_plot => $use_check,
+        };
+
+    }
+    $table->show_all;
+
+    return ($table, $extractors);
 }
 
-#  get all the settings as an array of hashes
-sub get_settings_table {
+sub get_settings_table_from_grid {
     my $gui = Biodiverse::GUI::GUIManager->instance;
     my $overlay_components = $gui->get_overlay_components;
 
-    my $tree = $overlay_components->{list} // return;
+    my $extractors = $overlay_components->{extractors} // return;
 
     my @table;
-    my $model = $tree->get_model();
-    my $iter  = $model->get_iter_first();
-    while ($iter) {
+    foreach my $entry (@$extractors) {
         push @table, {
-            name        => $model->get($iter, COL_FNAME),
-            type        => $model->get($iter, COL_FTYPE),
-            plot_on_top => $model->get($iter, COL_PLOT_ON_TOP),
-            use_alpha   => $model->get($iter, COL_USE_ALPHA),
+            name        => $entry->{name},
+            type        => $entry->{type} // 'polyline',
+            plot_on_top => $entry->{plot_on_top}->(),
+            use_alpha   => $entry->{use_alpha}->(),
+            plot        => $entry->{plot}->(),
+            rgba        => $entry->{rgba}->()->to_string,
         };
-        last if !$model->iter_next($iter);
     }
 
     return wantarray ? @table : \@table;
-}
-
-# Get what was selected..
-sub get_selection {
-    my $tree = shift;
-
-    my $selection = $tree->get_selection();
-    my $path = $selection->get_selected_rows();
-    my $iter = $selection->get_selected();
-    return if not $iter;
-
-    my $model = $tree->get_model();
-    # my $iter  = $model->get_iter($path);
-    my $name  = $model->get($iter, COL_FNAME);
-    my $type  = $model->get($iter, COL_FTYPE);
-    my $plot_on_top = $model->get($iter, COL_PLOT_ON_TOP);
-    my $use_alpha   = $model->get($iter, COL_USE_ALPHA);
-    # my $array_iter  = $path->to_string;  #  only works for a simple tree
-    my $array_iter  = $path->get_string_from_iter($iter);
-
-    return wantarray
-        ? (iter        => $iter,        filename  => $name,      type       => $type,
-           plot_on_top => $plot_on_top, use_alpha => $use_alpha, array_iter => $array_iter,
-          )
-        : $name;
 }
 
 
@@ -373,9 +258,7 @@ sub on_set_default_colour {
 }
 
 sub on_add {
-    my $button = shift;
-    my $args = shift;
-    my ($list, $project) = @$args;
+    my ($project) = @_;
 
     my $open = Gtk3::FileChooserDialog->new(
         'Add overlay feature class',
@@ -460,20 +343,14 @@ sub on_add {
     my $fname = defined $layer ? "$filename/$layer" : $filename;
 
     #  load as a polyline
-    my $iter = $list->get_model->append;
-    $list->get_model->set($iter, COL_FNAME, $fname, COL_FTYPE, 'polyline', COL_PLOT_ON_TOP, 1, COL_USE_ALPHA, 1);
-    my $sel = $list->get_selection;
-    $sel->select_iter($iter);
     $project->add_overlay({name => $fname, layer => $layer, type => 'polyline', plot_on_top => 1, use_alpha => 1});
 
     #  also load as polygon
     if ($shapetype =~ /Polygon/i) {
-        $iter = $list->get_model->append;
-        $list->get_model->set($iter, COL_FNAME, $fname, COL_FTYPE, 'polygon', COL_PLOT_ON_TOP, 0, COL_USE_ALPHA, 0);
-        $sel = $list->get_selection;
-        $sel->select_iter($iter);
         $project->add_overlay({ name => $fname, layer => $layer, type => 'polygon', plot_on_top => 0, use_alpha => 0 });
     }
+
+    update_overlay_table($project);
 
     return;
 }
@@ -497,12 +374,13 @@ sub get_choice {
     $box->pack_start ($combo, 0, 1, 0);
     $dlg->show_all;
     my $response = $dlg->run;
-    my $choice;
+    my ($choice, $iter);
     if ($response eq 'ok') {
         $choice = $combo->get_active_text;
+        $iter   = $combo->get_active;
     }
     $dlg->destroy;
-    return $choice;
+    return wantarray ? ($choice, $iter) : $choice;
 }
 
 #  needed until we plot points
@@ -524,7 +402,7 @@ sub get_layer_names_in_ogc_dataset {
     my ($dataset) = @_;
     my $ds = Geo::GDAL::FFI::Open($dataset);
 
-    return $ds->GetLayerNameArray
+    return $ds->GetLayerNames
         if $Geo::GDAL::FFI::VERSION ge '0.13_004';
 
     my @layers;
@@ -539,74 +417,90 @@ sub get_layer_names_in_ogc_dataset {
 }
 
 sub on_delete {
-    my $button = shift;
-    my $args = shift;
-    my ($list, $project) = @$args;
+    my ($project) = @_;
 
-    # my ($iter, $filename, undef, $array_iter) = get_selection($list);
-    my %results = get_selection($list);
-    my ($iter, $filename, $array_iter) = @results{qw/iter filename array_iter/};
+    #  clunky
+    my $gui = Biodiverse::GUI::GUIManager->instance;
+    my $overlay_components = $gui->get_overlay_components;
+    my $extractors = $overlay_components->{extractors} // [];
+
+    return if !@$extractors;
+
+    my @choices = map {"$_->{name} ($_->{type})"} @$extractors;
+
+    my ($choice, $i) = get_choice(\@choices);
+
+    my $entry = $extractors->[$i];
+
+    my ($filename) = $entry->{name};
     return if not defined $filename;
-    $project->delete_overlay($filename, $array_iter);
-    $list->get_model->remove($iter);
+    $project->delete_overlay($filename, $i);
+
+    my $table = $overlay_components->{params_table};
+    $table->remove_row($i+1);  #  allow for header
+    $table->show_all;
 
     return;
 }
 
 
 sub on_clear {
-    my $button = shift;
-    my $args = shift;
-    my ($list, $project, $grid, $dlg) = @$args;
+    my ($project) = @_;
 
-    my %results = get_selection($list);
+    #  clunky
+    my $gui = Biodiverse::GUI::GUIManager->instance;
+    my $overlay_components = $gui->get_overlay_components;
+    my $extractors = $overlay_components->{extractors} // [];
 
-    $grid->set_overlay(
-        shapefile   => undef,
-        plot_on_top => $results{plot_on_top},  #  are we clearing an overlay or underlay?
-    );
-    $dlg->hide();
+    foreach my $entry (@$extractors) {
+        $entry->{chkbox_plot}->set_active(0);
+    }
+
+    update_overlay_table($project);
 
     return;
 }
 
 sub on_set {
-    my $button = shift;
     my $args = shift;
-    my ($list, $project, $grid, $dlg, $colour_button) = @$args;
+    my ($project, $grid, $dlg, $colour_button) = @$args;
 
-    # my ($iter, $filename, $plot_as_poly, $array_iter) = get_selection($list);
-    my %results = get_selection($list);
-    my ($filename, $type, $plot_on_top, $use_alpha)
-        = @results{qw /filename type plot_on_top use_alpha/};
-
-    my $colour = $colour_button->get_rgba;
+    my $settings = get_settings_table_from_grid();
 
     $dlg->hide;
 
-    return if not $filename;
+    #  clear existing
+    foreach my $i (0,1) {
+        $grid->set_overlay(
+            shapefile   => undef,
+            plot_on_top => $i,
+        );
+    }
 
-    print "[Overlay] Setting overlay to $filename\n";
-    $grid->set_overlay(
-        shapefile   => $project->get_overlay_shape_object($filename),
-        colour      => $colour,
-        plot_on_top => $plot_on_top,
-        use_alpha   => $use_alpha,
-        type        => $type,
-    );
-    #$dlg->destroy();
-
-    $last_selected_colour = $colour;
+    my %plot_count;
+    foreach my \%layer (@$settings) {
+        next if !$layer{plot};
+        my $plot_position = $layer{plot_on_top} ? 'overlay' : 'underlay';
+        $plot_count{$plot_position}++;
+        my $name = $layer{name};
+        say qq{[Overlay] Plotting "$name" as an $plot_position};
+        my $colour = $layer{rgba};
+        if (!is_blessed_ref $colour) {
+            $colour = Gtk3::Gdk::RGBA::parse ($colour);
+        }
+        $grid->set_overlay(
+            shapefile   => $project->get_overlay_shape_object($name),
+            colour      => $colour,
+            %layer{qw /plot_on_top use_alpha type/},
+        );
+    }
 
     return;
 }
 
 sub on_cancel {
-    my $button = shift;
-    my $dlg    = shift;
-
+    my $dlg = shift;
     $dlg->hide;
-
     return;
 }
 

@@ -411,12 +411,13 @@ sub get_choice {
     $box->pack_start ($combo, 0, 1, 0);
     $dlg->show_all;
     my $response = $dlg->run;
-    my $choice;
+    my ($choice, $iter);
     if ($response eq 'ok') {
         $choice = $combo->get_active_text;
+        $iter   = $combo->get_active;
     }
     $dlg->destroy;
-    return $choice;
+    return wantarray ? ($choice, $iter) : $choice;
 }
 
 #  needed until we plot points
@@ -453,15 +454,28 @@ sub get_layer_names_in_ogc_dataset {
 }
 
 sub on_delete {
-    my $args = shift;
-    my ($list, $project) = @$args;
+    my ($project) = @_;
 
-    # my ($iter, $filename, undef, $array_iter) = get_selection($list);
-    my %results = get_selection($list);
-    my ($iter, $filename, $array_iter) = @results{qw/iter filename array_iter/};
+    #  clunky
+    my $gui = Biodiverse::GUI::GUIManager->instance;
+    my $overlay_components = $gui->get_overlay_components;
+    my $extractors = $overlay_components->{extractors} // [];
+
+    return if !@$extractors;
+
+    my @choices = map {"$_->{name} ($_->{type})"} @$extractors;
+
+    my ($choice, $i) = get_choice(\@choices);
+
+    my $entry = $extractors->[$i];
+
+    my ($filename) = $entry->{name};
     return if not defined $filename;
-    $project->delete_overlay($filename, $array_iter);
-    $list->get_model->remove($iter);
+    $project->delete_overlay($filename, $i);
+
+    my $table = $overlay_components->{params_table};
+    $table->remove_row($i+1);  #  allow for header
+    $table->show_all;
 
     return;
 }

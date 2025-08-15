@@ -62,9 +62,10 @@ sub show_dialog {
 
     my $vbox = $dlgxml->get_object('vbox21');
     my ($table, $extractors) = update_overlay_table ($project);
-    my $window = Gtk3::ScrolledWindow->new;
-    $window->add($table);
-    $vbox->pack_start ($window, 1, 1, 1);
+    my $table_window = Gtk3::ScrolledWindow->new;
+    $table_window->add($table);
+    $vbox->pack_start ($table_window, 1, 1, 1);
+    $vbox->reorder_child($table_window, 1);
 
     my %buttons = map {$_ => $dlgxml->get_object($_)}
         (qw /btnAdd btnDelete btnClear btnSet btnOverlayCancel btn_overlay_set_default_colour/);
@@ -403,6 +404,9 @@ sub update_overlay_table {
 
     }
     $table->show_all;
+
+    #  dodgy
+    eval {$dlgxml->get_object('scrolledwindow19')->hide};
 
     return ($table, $extractors);
 }

@@ -521,10 +521,9 @@ sub on_set {
     foreach my \%layer (@$settings) {
         next if !$layer{plot};
         my $plot_position = $layer{plot_on_top} ? 'above' : 'below';
-        next if $plot_count{$plot_position};
         $plot_count{$plot_position}++;
         my $name = $layer{name};
-        say "[Overlay] Setting overlay to $name";
+        say qq{[Overlay] Setting overlay to "$name"};
         $grid->set_overlay(
             shapefile   => $project->get_overlay_shape_object($name),
             colour      => $colour,

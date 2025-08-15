@@ -685,7 +685,8 @@ sub set_overlay {
         };
     }
 
-    $self->{callbacks}{$cb_target_name} = $cb;
+    my $aref = $self->{callbacks}{$cb_target_name} //= [];
+    push @$aref, $cb;
 
     $self->queue_draw;
 

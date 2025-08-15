@@ -32,14 +32,9 @@
             <property name="can-focus">True</property>
             <property name="hscrollbar-policy">always</property>
             <property name="shadow-type">in</property>
+            <property name="min-content-height">250</property>
             <child>
-              <object class="GtkTreeView" id="treeOverlays">
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <child internal-child="selection">
-                  <object class="GtkTreeSelection"/>
-                </child>
-              </object>
+              <placeholder/>
             </child>
           </object>
           <packing>

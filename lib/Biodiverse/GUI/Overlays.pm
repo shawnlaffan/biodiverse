@@ -480,10 +480,10 @@ sub on_set {
     my %plot_count;
     foreach my \%layer (@$settings) {
         next if !$layer{plot};
-        my $plot_position = $layer{plot_on_top} ? 'above' : 'below';
+        my $plot_position = $layer{plot_on_top} ? 'overlay' : 'underlay';
         $plot_count{$plot_position}++;
         my $name = $layer{name};
-        say qq{[Overlay] Setting overlay to "$name"};
+        say qq{[Overlay] Plotting "$name" as an $plot_position};
         my $colour = $layer{rgba};
         if (!is_blessed_ref $colour) {
             $colour = Gtk3::Gdk::RGBA::parse ($colour);

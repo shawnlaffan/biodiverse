@@ -341,9 +341,11 @@ sub update_overlay_table {
 
         $table->insert_row(0);
         my $i = -1;
-        foreach my $label ('Plot', 'Name', 'Type', 'Plot above cells', 'Transparency') {
+        foreach my $label_text ('Plot?', 'Name', 'Type', 'Plot above cells', 'Transparency') {
             $i++;
-            my $label = Gtk3::Label->new($label);
+            my $label = Gtk3::Label->new($label_text);
+            $label->set_use_markup(1);
+            $label->set_markup("<b>$label_text</b>");
             $label->set_halign('start');
             $table->insert_column($i);
             $table->attach($label, $i, 0, 1, 1);

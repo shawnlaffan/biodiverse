@@ -498,7 +498,7 @@ sub on_set {
         $grid->set_overlay(
             shapefile   => $project->get_overlay_shape_object($name),
             colour      => $colour,
-            %layer{qw /plot_on_top use_alpha type/},
+            %layer{qw /plot_on_top use_alpha type linewidth/},
         );
     }
 

@@ -151,12 +151,12 @@ sub update_overlay_table {
 
         $table->insert_row(0);
         my $i = -1;
-        foreach my $label_text ('Plot?', 'Name', 'Colour', 'Type', 'Plot above cells', 'Line width', 'Opacity') {
+        foreach my $label_text ('Layer', 'Colour', 'Type', 'Plot above cells', 'Line width', 'Opacity') {
             $i++;
             my $label = Gtk3::Label->new($label_text);
             $label->set_use_markup(1);
             $label->set_markup("<b>$label_text</b>");
-            $label->set_halign('start');
+            $label->set_halign($label_text =~ /Layer/ ? 'center' : 'start');
             $table->insert_column($i);
             $table->attach($label, $i, 0, 1, 1);
         }
@@ -182,15 +182,11 @@ sub update_overlay_table {
         my $type = $entry->{type} // 'polyline';
         my $col = -1;
 
-        my $use_check = Gtk3::CheckButton->new;
-        $use_check->set_active ($entry->{plot});
-        $use_check->set_halign('center');
-        $table->attach ($use_check, ++$col, $row, 1, 1);
-
-        my $name_label = Gtk3::Label->new ($layer_name);
-        $name_label->set_tooltip_text (path ($name)->stringify);
-        $name_label->set_halign ('start');
-        $table->attach ($name_label, ++$col, $row, 1, 1);
+        my $name_chk = Gtk3::CheckButton->new_with_label ($layer_name);
+        $name_chk->set_tooltip_text (path ($name)->stringify);
+        $name_chk->set_active ($entry->{plot});
+        $name_chk->set_halign('center');
+        $table->attach ($name_chk, ++$col, $row, 1, 1);
 
         my $rgba = $entry->{rgba} // $colour_button->get_rgba;
         if (!is_blessed_ref $rgba) {
@@ -224,10 +220,10 @@ sub update_overlay_table {
             type        => $type,
             plot_on_top => sub {$plot_on_top->get_active},
             alpha       => sub {$alpha->get_value},
-            plot        => sub {$use_check->get_active},
+            plot        => sub {$name_chk->get_active},
             rgba        => sub {$colour_button->get_rgba},
             linewidth   => sub {$linewidth->get_value},
-            chkbox_plot => $use_check,
+            chkbox_plot => $name_chk,
         };
 
     }

@@ -151,7 +151,7 @@ sub update_overlay_table {
 
         $table->insert_row(0);
         my $i = -1;
-        foreach my $label_text ('Layer', 'Type', 'Colour', 'Plot above cells', 'Line width', 'Opacity') {
+        foreach my $label_text ('Reorder', 'Layer', 'Type', 'Colour', 'Plot above cells', 'Line width', 'Opacity') {
             $i++;
             my $label = Gtk3::Label->new($label_text);
             $label->set_use_markup(1);
@@ -215,7 +215,8 @@ sub update_overlay_table {
         $alpha->set_halign('center');
         $table->attach ($alpha, ++$col, $row, 1, 1);
 
-        push @$extractors, {
+        #  the array is one shorter than the grid due to the header
+        $extractors->[$row-1] = {
             name        => $name,
             type        => $type,
             plot_on_top => sub {$plot_on_top->get_active},

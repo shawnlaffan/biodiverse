@@ -151,7 +151,7 @@ sub update_overlay_table {
 
         $table->insert_row(0);
         my $i = -1;
-        foreach my $label_text ('Plot?', 'Name', 'Type', 'Plot above cells', 'Opacity', 'Colour', 'Line width') {
+        foreach my $label_text ('Plot?', 'Name', 'Colour', 'Type', 'Plot above cells', 'Line width', 'Opacity') {
             $i++;
             my $label = Gtk3::Label->new($label_text);
             $label->set_use_markup(1);
@@ -191,23 +191,6 @@ sub update_overlay_table {
         $name_label->set_tooltip_text (path ($name)->stringify);
         $name_label->set_halign ('start');
         $table->attach ($name_label, ++$col, $row, 1, 1);
-        $table->attach (Gtk3::Label->new ($type), ++$col, $row, 1, 1);
-
-        my $plot_on_top = Gtk3::CheckButton->new;
-        $plot_on_top->set_active (!!$entry->{plot_on_top});
-        $plot_on_top->set_halign('center');
-        $table->attach ($plot_on_top, ++$col, $row, 1, 1);
-
-        # my $use_alpha = Gtk3::CheckButton->new;
-        # $use_alpha->set_active (!!$entry->{use_alpha});
-        # $use_alpha->set_halign('center');
-        # $table->attach ($use_alpha, ++$col, $row, 1, 1);
-
-        my $alpha = Gtk3::SpinButton->new_with_range (0, 1, 0.05);
-        $alpha->set_tooltip_text ("Controls transparency/opacity.\n0 is fully transparent.");
-        $alpha->set_value ($entry->{alpha} || 1);
-        $alpha->set_halign('center');
-        $table->attach ($alpha, ++$col, $row, 1, 1);
 
         my $rgba = $entry->{rgba} // $colour_button->get_rgba;
         if (!is_blessed_ref $rgba) {
@@ -217,10 +200,24 @@ sub update_overlay_table {
         $colour_button->set_halign('center');
         $table->attach ($colour_button, ++$col, $row, 1, 1);
 
+        $table->attach (Gtk3::Label->new ($type), ++$col, $row, 1, 1);
+
+        my $plot_on_top = Gtk3::CheckButton->new;
+        $plot_on_top->set_active (!!$entry->{plot_on_top});
+        $plot_on_top->set_halign('center');
+        $table->attach ($plot_on_top, ++$col, $row, 1, 1);
+
         my $linewidth = Gtk3::SpinButton->new_with_range (1, 20, 1);
+        $linewidth->set_tooltip_text ("In pixel units.");
         $linewidth->set_value ($entry->{linewidth} || 1);
         $linewidth->set_halign('center');
         $table->attach ($linewidth, ++$col, $row, 1, 1);
+
+        my $alpha = Gtk3::SpinButton->new_with_range (0, 1, 0.05);
+        $alpha->set_tooltip_text ("Controls transparency/opacity.\n0 is fully transparent.");
+        $alpha->set_value ($entry->{alpha} || !!$entry->{plot_on_top} ? 0.5 : 1);
+        $alpha->set_halign('center');
+        $table->attach ($alpha, ++$col, $row, 1, 1);
 
         push @$extractors, {
             name        => $name,

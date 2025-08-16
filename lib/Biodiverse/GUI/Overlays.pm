@@ -33,7 +33,7 @@ sub show_dialog {
     my $overlay_components = $gui->get_overlay_components;
     my $project = $gui->get_project;
 
-    if ($overlay_components) {
+    if (%$overlay_components) {
         my $dlg           = $overlay_components->{dialog};
         my $colour_button = $overlay_components->{colour_button};
         $colour_button->set_rgba($last_selected_colour);
@@ -137,10 +137,8 @@ sub update_overlay_table {
     my ($project) = @_;
 
     my $overlays = $project->get_overlay_list();
-    my $components = Biodiverse::GUI::GUIManager->instance->get_overlay_components // {};
-    my $extractors = $components->{extractors} // [];
-
-    my $colour_button = $components->{colour_button};
+    my $components = Biodiverse::GUI::GUIManager->instance->get_overlay_components;
+    my $extractors = $components->{extractors} //= [];
 
     my $table = $components->{params_table};
 
@@ -166,71 +164,94 @@ sub update_overlay_table {
     my $row = @$extractors;
     foreach my $entry (@{$overlays}[$row..$#$overlays]) {
         $row++;
-        $table->insert_row ($row);
-
-        if (!is_hashref $entry) {  # previous versions did not store these
-            $entry = {
-                name        => $entry,
-                type        => 'polyline',
-                plot_on_top => !!1,
-                alpha       => 1,  #  alpha channel
-            };
-        }
-
-        my $name = $entry->{name};
-        my $layer_name = path ($name)->basename;
-        my $type = $entry->{type} // 'polyline';
-        my $col = -1;
-
-        my $name_chk = Gtk3::CheckButton->new_with_label ($layer_name);
-        $name_chk->set_tooltip_text (path ($name)->stringify);
-        $name_chk->set_active ($entry->{plot});
-        $name_chk->set_halign('center');
-        $table->attach ($name_chk, ++$col, $row, 1, 1);
-
-        $table->attach (Gtk3::Label->new ($type), ++$col, $row, 1, 1);
-
-        my $rgba = $entry->{rgba} // $colour_button->get_rgba;
-        if (!is_blessed_ref $rgba) {
-            $rgba = Gtk3::Gdk::RGBA::parse ($rgba);
-        }
-        my $colour_button = Gtk3::ColorButton->new_with_rgba($rgba);
-        $colour_button->set_halign('center');
-        $table->attach ($colour_button, ++$col, $row, 1, 1);
-
-        my $plot_on_top = Gtk3::CheckButton->new;
-        $plot_on_top->set_active (!!$entry->{plot_on_top});
-        $plot_on_top->set_halign('center');
-        $table->attach ($plot_on_top, ++$col, $row, 1, 1);
-
-        my $linewidth = Gtk3::SpinButton->new_with_range (1, 20, 1);
-        $linewidth->set_tooltip_text ("In pixel units.");
-        $linewidth->set_value ($entry->{linewidth} || 1);
-        $linewidth->set_halign('center');
-        $table->attach ($linewidth, ++$col, $row, 1, 1);
-
-        my $alpha = Gtk3::SpinButton->new_with_range (0, 1, 0.05);
-        $alpha->set_tooltip_text ("Controls transparency/opacity.\n0 is fully transparent.");
-        $alpha->set_value ($entry->{alpha} // (!!$entry->{plot_on_top} ? 0.5 : 1));
-        $alpha->set_halign('center');
-        $table->attach ($alpha, ++$col, $row, 1, 1);
-
-        #  the array is one shorter than the grid due to the header
-        $extractors->[$row-1] = {
-            name        => $name,
-            type        => $type,
-            plot_on_top => sub {$plot_on_top->get_active},
-            alpha       => sub {$alpha->get_value},
-            plot        => sub {$name_chk->get_active},
-            rgba        => sub {$colour_button->get_rgba},
-            linewidth   => sub {$linewidth->get_value},
-            chkbox_plot => $name_chk,
-        };
-
+        overlay_table_insert_row (
+            row   => $row,
+            entry => $entry,
+            table => $table,
+        );
     }
     $table->show_all;
 
     return ($table, $extractors);
+}
+
+#  insert a single row at the specified position
+sub overlay_table_insert_row {
+    my (%args) = @_;
+
+    my ($table, $row, $entry) = @args{qw/table row entry project/};
+
+    my $components = Biodiverse::GUI::GUIManager->instance->get_overlay_components // {};
+    my $extractors = $components->{extractors} //= [];
+
+    $table->insert_row ($row);
+
+    if (!is_hashref $entry) {  # previous versions did not store these
+        $entry = {
+            name        => $entry,
+            type        => 'polyline',
+            plot_on_top => !!1,
+            alpha       => 1,  #  alpha channel
+        };
+    }
+
+    my $name = $entry->{name};
+    my $layer_name = path ($name)->basename;
+    my $type = $entry->{type} // 'polyline';
+    my $col = -1;
+
+    my $name_chk = Gtk3::CheckButton->new_with_label ($layer_name);
+    $name_chk->set_tooltip_text (path ($name)->stringify);
+    $name_chk->set_active ($entry->{plot});
+    $name_chk->set_halign('center');
+    $table->attach ($name_chk, ++$col, $row, 1, 1);
+
+    $table->attach (Gtk3::Label->new ($type), ++$col, $row, 1, 1);
+
+    my $rgba = $entry->{rgba} // $components->{colour_button}->get_rgba;
+    if (!is_blessed_ref $rgba) {
+        $rgba = Gtk3::Gdk::RGBA::parse ($rgba);
+    }
+    my $colour_button = Gtk3::ColorButton->new_with_rgba($rgba);
+    $colour_button->set_halign('center');
+    $table->attach ($colour_button, ++$col, $row, 1, 1);
+
+    my $plot_on_top = Gtk3::CheckButton->new;
+    $plot_on_top->set_active (!!$entry->{plot_on_top});
+    $plot_on_top->set_halign('center');
+    $table->attach ($plot_on_top, ++$col, $row, 1, 1);
+
+    my $linewidth = Gtk3::SpinButton->new_with_range (1, 20, 1);
+    $linewidth->set_tooltip_text ("In pixel units.");
+    $linewidth->set_value ($entry->{linewidth} || 1);
+    $linewidth->set_halign('center');
+    $table->attach ($linewidth, ++$col, $row, 1, 1);
+
+    my $alpha = Gtk3::SpinButton->new_with_range (0, 1, 0.05);
+    $alpha->set_tooltip_text ("Controls transparency/opacity.\n0 is fully transparent.");
+    $alpha->set_value ($entry->{alpha} // (!!$entry->{plot_on_top} ? 0.5 : 1));
+    $alpha->set_halign('center');
+    $table->attach ($alpha, ++$col, $row, 1, 1);
+
+    #  the array is one shorter than the grid due to the header
+    my $callbacks = {
+        name        => $name,
+        type        => $type,
+        plot_on_top => sub {$plot_on_top->get_active},
+        alpha       => sub {$alpha->get_value},
+        plot        => sub {$name_chk->get_active},
+        rgba        => sub {$colour_button->get_rgba},
+        linewidth   => sub {$linewidth->get_value},
+        chkbox_plot => $name_chk,
+    };
+    if ($row > @$extractors) {
+        push @$extractors, $callbacks,
+    }
+    else {
+        splice @$extractors, $row - 1, 0, $callbacks;
+    }
+
+    return;
 }
 
 sub get_settings_table_from_grid {

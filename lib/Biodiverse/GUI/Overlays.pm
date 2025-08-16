@@ -151,7 +151,7 @@ sub update_overlay_table {
 
         $table->insert_row(0);
         my $i = -1;
-        foreach my $label_text ('Layer', 'Colour', 'Type', 'Plot above cells', 'Line width', 'Opacity') {
+        foreach my $label_text ('Layer', 'Type', 'Colour', 'Plot above cells', 'Line width', 'Opacity') {
             $i++;
             my $label = Gtk3::Label->new($label_text);
             $label->set_use_markup(1);
@@ -188,6 +188,8 @@ sub update_overlay_table {
         $name_chk->set_halign('center');
         $table->attach ($name_chk, ++$col, $row, 1, 1);
 
+        $table->attach (Gtk3::Label->new ($type), ++$col, $row, 1, 1);
+
         my $rgba = $entry->{rgba} // $colour_button->get_rgba;
         if (!is_blessed_ref $rgba) {
             $rgba = Gtk3::Gdk::RGBA::parse ($rgba);
@@ -195,8 +197,6 @@ sub update_overlay_table {
         my $colour_button = Gtk3::ColorButton->new_with_rgba($rgba);
         $colour_button->set_halign('center');
         $table->attach ($colour_button, ++$col, $row, 1, 1);
-
-        $table->attach (Gtk3::Label->new ($type), ++$col, $row, 1, 1);
 
         my $plot_on_top = Gtk3::CheckButton->new;
         $plot_on_top->set_active (!!$entry->{plot_on_top});
@@ -211,7 +211,7 @@ sub update_overlay_table {
 
         my $alpha = Gtk3::SpinButton->new_with_range (0, 1, 0.05);
         $alpha->set_tooltip_text ("Controls transparency/opacity.\n0 is fully transparent.");
-        $alpha->set_value ($entry->{alpha} || !!$entry->{plot_on_top} ? 0.5 : 1);
+        $alpha->set_value ($entry->{alpha} // (!!$entry->{plot_on_top} ? 0.5 : 1));
         $alpha->set_halign('center');
         $table->attach ($alpha, ++$col, $row, 1, 1);
 

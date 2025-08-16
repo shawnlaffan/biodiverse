@@ -625,8 +625,8 @@ sub plot_highlights {
 
 sub set_overlay {
     my ($self, %args) = @_;
-    my ($shapefile, $colour, $plot_on_top, $use_alpha, $type, $linewidth)
-      = @args{qw /shapefile colour plot_on_top use_alpha type linewidth/};
+    my ($shapefile, $colour, $plot_on_top, $alpha, $type, $linewidth)
+      = @args{qw /shapefile colour plot_on_top alpha type linewidth/};
 
     my $cb_target_name = $plot_on_top ? 'overlays' : 'underlays';
 
@@ -641,7 +641,7 @@ sub set_overlay {
 
     my @rgba = (
         $self->rgb_to_array($colour),
-        $use_alpha ? 0.5 : 1,
+        $alpha // 1,
     );
     my $stroke_or_fill = $type eq 'polygon' ? 'fill' : 'stroke';
 

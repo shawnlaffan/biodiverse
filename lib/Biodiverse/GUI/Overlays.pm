@@ -151,12 +151,12 @@ sub update_overlay_table {
 
         $table->insert_row(0);
         my $i = -1;
-        foreach my $label_text ('Plot?', 'Name', 'Type', 'Plot above cells', 'Transparency', 'Colour', 'Line width') {
+        foreach my $label_text ('Layer', 'Type', 'Colour', 'Plot above cells', 'Line width', 'Opacity') {
             $i++;
             my $label = Gtk3::Label->new($label_text);
             $label->set_use_markup(1);
             $label->set_markup("<b>$label_text</b>");
-            $label->set_halign('start');
+            $label->set_halign($label_text =~ /Layer/ ? 'center' : 'start');
             $table->insert_column($i);
             $table->attach($label, $i, 0, 1, 1);
         }
@@ -173,7 +173,7 @@ sub update_overlay_table {
                 name        => $entry,
                 type        => 'polyline',
                 plot_on_top => !!1,
-                use_alpha   => 1,  #  a boolean for partial transparency
+                alpha       => 1,  #  alpha channel
             };
         }
 
@@ -182,26 +182,13 @@ sub update_overlay_table {
         my $type = $entry->{type} // 'polyline';
         my $col = -1;
 
-        my $use_check = Gtk3::CheckButton->new;
-        $use_check->set_active ($entry->{plot});
-        $use_check->set_halign('center');
-        $table->attach ($use_check, ++$col, $row, 1, 1);
+        my $name_chk = Gtk3::CheckButton->new_with_label ($layer_name);
+        $name_chk->set_tooltip_text (path ($name)->stringify);
+        $name_chk->set_active ($entry->{plot});
+        $name_chk->set_halign('center');
+        $table->attach ($name_chk, ++$col, $row, 1, 1);
 
-        my $name_label = Gtk3::Label->new ($layer_name);
-        $name_label->set_tooltip_text (path ($name)->stringify);
-        $name_label->set_halign ('start');
-        $table->attach ($name_label, ++$col, $row, 1, 1);
         $table->attach (Gtk3::Label->new ($type), ++$col, $row, 1, 1);
-
-        my $plot_on_top = Gtk3::CheckButton->new;
-        $plot_on_top->set_active (!!$entry->{plot_on_top});
-        $plot_on_top->set_halign('center');
-        $table->attach ($plot_on_top, ++$col, $row, 1, 1);
-
-        my $use_alpha = Gtk3::CheckButton->new;
-        $use_alpha->set_active (!!$entry->{use_alpha});
-        $use_alpha->set_halign('center');
-        $table->attach ($use_alpha, ++$col, $row, 1, 1);
 
         my $rgba = $entry->{rgba} // $colour_button->get_rgba;
         if (!is_blessed_ref $rgba) {
@@ -211,20 +198,32 @@ sub update_overlay_table {
         $colour_button->set_halign('center');
         $table->attach ($colour_button, ++$col, $row, 1, 1);
 
+        my $plot_on_top = Gtk3::CheckButton->new;
+        $plot_on_top->set_active (!!$entry->{plot_on_top});
+        $plot_on_top->set_halign('center');
+        $table->attach ($plot_on_top, ++$col, $row, 1, 1);
+
         my $linewidth = Gtk3::SpinButton->new_with_range (1, 20, 1);
+        $linewidth->set_tooltip_text ("In pixel units.");
         $linewidth->set_value ($entry->{linewidth} || 1);
         $linewidth->set_halign('center');
         $table->attach ($linewidth, ++$col, $row, 1, 1);
+
+        my $alpha = Gtk3::SpinButton->new_with_range (0, 1, 0.05);
+        $alpha->set_tooltip_text ("Controls transparency/opacity.\n0 is fully transparent.");
+        $alpha->set_value ($entry->{alpha} // (!!$entry->{plot_on_top} ? 0.5 : 1));
+        $alpha->set_halign('center');
+        $table->attach ($alpha, ++$col, $row, 1, 1);
 
         push @$extractors, {
             name        => $name,
             type        => $type,
             plot_on_top => sub {$plot_on_top->get_active},
-            use_alpha   => sub {$use_alpha->get_active},
-            plot        => sub {$use_check->get_active},
+            alpha       => sub {$alpha->get_value},
+            plot        => sub {$name_chk->get_active},
             rgba        => sub {$colour_button->get_rgba},
             linewidth   => sub {$linewidth->get_value},
-            chkbox_plot => $use_check,
+            chkbox_plot => $name_chk,
         };
 
     }
@@ -245,7 +244,7 @@ sub get_settings_table_from_grid {
             name        => $entry->{name},
             type        => $entry->{type} // 'polyline',
             plot_on_top => $entry->{plot_on_top}->(),
-            use_alpha   => $entry->{use_alpha}->(),
+            alpha       => $entry->{alpha}->(),
             plot        => $entry->{plot}->(),
             rgba        => $entry->{rgba}->()->to_string,
             linewidth   => $entry->{linewidth}->(),
@@ -350,11 +349,11 @@ sub on_add {
     my $fname = defined $layer ? "$filename/$layer" : $filename;
 
     #  load as a polyline
-    $project->add_overlay({name => $fname, layer => $layer, type => 'polyline', plot_on_top => 1, use_alpha => 1});
+    $project->add_overlay({name => $fname, layer => $layer, type => 'polyline', plot_on_top => 1, alpha => 0.5});
 
     #  also load as polygon
     if ($shapetype =~ /Polygon/i) {
-        $project->add_overlay({ name => $fname, layer => $layer, type => 'polygon', plot_on_top => 0, use_alpha => 0 });
+        $project->add_overlay({ name => $fname, layer => $layer, type => 'polygon', plot_on_top => 0, alpha => 1 });
     }
 
     update_overlay_table($project);
@@ -498,7 +497,7 @@ sub on_set {
         $grid->set_overlay(
             shapefile   => $project->get_overlay_shape_object($name),
             colour      => $colour,
-            %layer{qw /plot_on_top use_alpha type linewidth/},
+            %layer{qw /plot_on_top alpha type linewidth/},
         );
     }
 

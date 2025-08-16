@@ -625,8 +625,8 @@ sub plot_highlights {
 
 sub set_overlay {
     my ($self, %args) = @_;
-    my ($shapefile, $colour, $plot_on_top, $use_alpha, $type)
-      = @args{qw /shapefile colour plot_on_top use_alpha type/};
+    my ($shapefile, $colour, $plot_on_top, $use_alpha, $type, $linewidth)
+      = @args{qw /shapefile colour plot_on_top use_alpha type linewidth/};
 
     my $cb_target_name = $plot_on_top ? 'overlays' : 'underlays';
 
@@ -645,6 +645,8 @@ sub set_overlay {
     );
     my $stroke_or_fill = $type eq 'polygon' ? 'fill' : 'stroke';
 
+    $linewidth ||= 1;
+
     my $cb;
     if (is_blessed_ref ($data->[0])) {
         $cb = sub {
@@ -653,7 +655,7 @@ sub set_overlay {
             $cx->set_matrix($self->{matrix});
             $cx->set_source_rgba(@rgba);
             #  line width should be an option in the GUI
-            $cx->set_line_width(max($cx->device_to_user_distance(1, 1)));
+            $cx->set_line_width(max($cx->device_to_user_distance($linewidth, $linewidth)));
 
             foreach my $shape (@$data) {
                 my $g = $shape->get_geometry;

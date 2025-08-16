@@ -151,7 +151,7 @@ sub update_overlay_table {
 
         $table->insert_row(0);
         my $i = -1;
-        foreach my $label_text ('Plot?', 'Name', 'Type', 'Plot above cells', 'Transparency', 'Colour') {
+        foreach my $label_text ('Plot?', 'Name', 'Type', 'Plot above cells', 'Transparency', 'Colour', 'Line width') {
             $i++;
             my $label = Gtk3::Label->new($label_text);
             $label->set_use_markup(1);
@@ -211,6 +211,11 @@ sub update_overlay_table {
         $colour_button->set_halign('center');
         $table->attach ($colour_button, ++$col, $row, 1, 1);
 
+        my $linewidth = Gtk3::SpinButton->new_with_range (1, 20, 1);
+        $linewidth->set_value ($entry->{linewidth} || 1);
+        $linewidth->set_halign('center');
+        $table->attach ($linewidth, ++$col, $row, 1, 1);
+
         push @$extractors, {
             name        => $name,
             type        => $type,
@@ -218,6 +223,7 @@ sub update_overlay_table {
             use_alpha   => sub {$use_alpha->get_active},
             plot        => sub {$use_check->get_active},
             rgba        => sub {$colour_button->get_rgba},
+            linewidth   => sub {$linewidth->get_value},
             chkbox_plot => $use_check,
         };
 
@@ -242,6 +248,7 @@ sub get_settings_table_from_grid {
             use_alpha   => $entry->{use_alpha}->(),
             plot        => $entry->{plot}->(),
             rgba        => $entry->{rgba}->()->to_string,
+            linewidth   => $entry->{linewidth}->(),
         };
     }
 
@@ -491,7 +498,7 @@ sub on_set {
         $grid->set_overlay(
             shapefile   => $project->get_overlay_shape_object($name),
             colour      => $colour,
-            %layer{qw /plot_on_top use_alpha type/},
+            %layer{qw /plot_on_top use_alpha type linewidth/},
         );
     }
 

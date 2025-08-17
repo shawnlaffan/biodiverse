@@ -687,7 +687,13 @@ sub on_scroll_wheel_event {
     my $direction = $event->direction;
     my $state = $event->state;
 
-    if ($state >= [ 'control-mask' ] || $state >= [ 'shift-mask' ]) {
+    if ($direction eq 'left') {
+        $self->do_pan_left;
+    }
+    elsif ($direction eq 'right') {
+        $self->do_pan_right;
+    }
+    elsif ($state >= [ 'control-mask' ] || $state >= [ 'shift-mask' ]) {
         my $method;
         if ($direction eq 'down') {
             $method = $state >= [ 'control-mask' ] ? 'do_pan_left' : 'do_pan_up';

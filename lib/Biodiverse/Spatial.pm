@@ -772,9 +772,21 @@ sub sp_calc {
     );
 
     #  drop out if we have none to do and we don't have an override flag
-    croak $INVALID_CALCS_ERROR_MESSAGE
-        if (!$indices_object->get_valid_calculation_count
-            and not $args{override_valid_analysis_check});
+    if (!$indices_object->get_valid_calculation_count
+        and not $args{override_valid_analysis_check}) {
+        my $e = $INVALID_CALCS_ERROR_MESSAGE;
+        $e .= "\nSpecific errors:\n";
+        my $messages = $indices_object->get_param('INVALID_CALCULATION_ERROR_MESSAGES') // [];
+        foreach my $m (@$messages) {
+            $e .= '> ';
+            my $em = $m;  #  don't wipe the original
+            $em =~ s/[Dd]ropping it and any calc that depends on it\.?//;
+            $em =~ s/\[INDICES\] WARNING\: //;
+            $em =~ s/[.,]\s*$//;
+            $e .= "$em\n";
+        }
+        die $e;
+    }
 
     my $valid_calcs = scalar $indices_object->get_valid_calculations_to_run;
     my $indices_reqd_args = $indices_object->get_required_args_as_flat_array(calculations => $valid_calcs);

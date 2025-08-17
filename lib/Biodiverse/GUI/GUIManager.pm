@@ -2878,7 +2878,10 @@ sub report_error {
     $details_box->pack_start( Gtk3::HSeparator->new(), 0, 0, 0 );
 
     #$details_box->pack_start($check_button, 0, 0, 0);
-    $details_box->pack_start( $extra_text_widget, 0, 0, 0 );
+    my $scrolled_window = Gtk3::ScrolledWindow->new;
+    $scrolled_window->add($extra_text_widget);
+    $scrolled_window->set_propagate_natural_height(1);
+    $details_box->pack_start( $scrolled_window, 1, 1, 0 );
 
     $dlg->get_content_area->pack_start( $text_widget, 0, 0, 0 );
     $dlg->get_content_area->pack_start( $details_box, 0, 0, 0 );
@@ -2892,18 +2895,13 @@ sub report_error {
 
     while (1) {
         my $response = $dlg->run;
-        last
-          if $response ne
-          'apply';    #  not sure whey we're being fed 'apply' as the value
-        if ($details_visible)
-        {             #  replace with set_visible when Gtk used is 2.18+
-            $details_box->hide;
+        #  not sure whey we're being fed 'apply' as the value
+        last if $response ne 'apply';
+        if ($details_visible) {
             $dlg->resize( 1, 1 );
         }
-        else {
-            $details_box->show;
-        }
         $details_visible = !$details_visible;
+        $details_box->set_visible ($details_visible);
     }
 
     $dlg->destroy;

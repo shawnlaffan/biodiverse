@@ -817,7 +817,7 @@ sub parse_dependencies_for_calc {
                     if ( !$check ) {
                         Biodiverse::Indices::FailedPreCondition->throw(
                             error =>
-                              "[INDICES] WARNING: $calc failed precondition. "
+                              "[INDICES] WARNING: $calc failed precondition $pre_cond_iter. "
                               . "Dropping it and any calc that depends on it\n",
                         );
                     }
@@ -876,6 +876,7 @@ sub get_valid_calculations {
 
     my %valid_calcs;
     my @removed;
+    my @error_msgs;
 
   CALC:
     foreach my $calc (@$calcs) {
@@ -892,6 +893,7 @@ sub get_valid_calculations {
             for my $exception (@valid_calc_exceptions) {
                 if ( $exception->caught ) {
                     print $e;
+                    push @error_msgs, $e->message;
                     push @removed, $calc;
                     next CALC;
                 }
@@ -922,6 +924,7 @@ sub get_valid_calculations {
 
     $self->set_param( VALID_CALCULATIONS   => \%results );
     $self->set_param( INVALID_CALCULATIONS => \@removed );
+    $self->set_param( INVALID_CALCULATION_ERROR_MESSAGES => \@error_msgs );
 
     return wantarray ? %results : \%results;
 }

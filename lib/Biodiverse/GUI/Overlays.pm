@@ -9,6 +9,7 @@ use Geo::ShapeFile;
 use Ref::Util qw/is_hashref is_blessed_ref/;
 use Carp qw/croak/;
 use Path::Tiny qw /path/;
+use List::MoreUtils qw /firstidx/;
 
 use experimental qw /declared_refs refaliasing/;
 
@@ -195,18 +196,67 @@ sub overlay_table_insert_row {
         };
     }
 
+    my $widget_array = [];
+
     my $name = $entry->{name};
     my $layer_name = path ($name)->basename;
     my $type = $entry->{type} // 'polyline';
     my $col = -1;
+
+
+    my $up   = Gtk3::Button->new_from_icon_name ('go-up', 4);
+    my $down = Gtk3::Button->new_from_icon_name ('go-down', 4);
+    my $updown_box = Gtk3::Box->new('horizontal', 0);
+    $updown_box->pack_start($up, 1, 1, 1);
+    $updown_box->pack_start($down, 1, 1, 1);
+    $table->attach ($updown_box, ++$col, $row, 1, 1);
+    push @$widget_array, $updown_box;
+    $up->signal_connect (
+        clicked => sub {
+            my $ex_idx = firstidx {$_->{widgets} eq $widget_array} @$extractors;
+            return if $ex_idx <= 0;
+            my $ex = splice @$extractors, $ex_idx, 1;
+            splice @$extractors, $ex_idx - 1, 0, $ex;
+            my $grid_row = $ex_idx + 1;
+            my $new_grid_row = $grid_row - 1;
+            $table->remove_row ($grid_row);
+            $table->insert_row ($new_grid_row);
+            my $c = -1;
+            foreach my $w (@$widget_array) {
+                $table->attach ($w, ++$c, $new_grid_row, 1, 1);
+            }
+            $table->show_all;
+        }
+    );
+    #  could refactor common logic but that would increase comprehension requirements
+    $down->signal_connect (
+        clicked => sub {
+            my $ex_idx = firstidx {$_->{widgets} eq $widget_array} @$extractors;
+            return if $ex_idx >= $#$extractors;
+            my $ex = splice @$extractors, $ex_idx, 1;
+            splice @$extractors, $ex_idx + 1, 0, $ex;
+            my $grid_row = $ex_idx + 1;
+            my $new_grid_row = $grid_row + 1;
+            $table->remove_row ($grid_row);
+            $table->insert_row ($new_grid_row);
+            my $c = -1;
+            foreach my $w (@$widget_array) {
+                $table->attach ($w, ++$c, $new_grid_row, 1, 1);
+            }
+            $table->show_all;
+        }
+    );
 
     my $name_chk = Gtk3::CheckButton->new_with_label ($layer_name);
     $name_chk->set_tooltip_text (path ($name)->stringify);
     $name_chk->set_active ($entry->{plot});
     $name_chk->set_halign('center');
     $table->attach ($name_chk, ++$col, $row, 1, 1);
+    push @$widget_array, $name_chk;
 
-    $table->attach (Gtk3::Label->new ($type), ++$col, $row, 1, 1);
+    my $type_label = Gtk3::Label->new ($type);
+    $table->attach ($type_label, ++$col, $row, 1, 1);
+    push @$widget_array, $type_label;
 
     my $rgba = $entry->{rgba} // $components->{colour_button}->get_rgba;
     if (!is_blessed_ref $rgba) {
@@ -215,23 +265,27 @@ sub overlay_table_insert_row {
     my $colour_button = Gtk3::ColorButton->new_with_rgba($rgba);
     $colour_button->set_halign('center');
     $table->attach ($colour_button, ++$col, $row, 1, 1);
+    push @$widget_array, $colour_button;
 
     my $plot_on_top = Gtk3::CheckButton->new;
     $plot_on_top->set_active (!!$entry->{plot_on_top});
     $plot_on_top->set_halign('center');
     $table->attach ($plot_on_top, ++$col, $row, 1, 1);
+    push @$widget_array, $plot_on_top;
 
     my $linewidth = Gtk3::SpinButton->new_with_range (1, 20, 1);
     $linewidth->set_tooltip_text ("In pixel units.");
     $linewidth->set_value ($entry->{linewidth} || 1);
     $linewidth->set_halign('center');
     $table->attach ($linewidth, ++$col, $row, 1, 1);
+    push @$widget_array, $linewidth;
 
     my $alpha = Gtk3::SpinButton->new_with_range (0, 1, 0.05);
     $alpha->set_tooltip_text ("Controls transparency/opacity.\n0 is fully transparent.");
     $alpha->set_value ($entry->{alpha} // (!!$entry->{plot_on_top} ? 0.5 : 1));
     $alpha->set_halign('center');
     $table->attach ($alpha, ++$col, $row, 1, 1);
+    push @$widget_array, $alpha;
 
     #  the array is one shorter than the grid due to the header
     my $callbacks = {
@@ -243,6 +297,7 @@ sub overlay_table_insert_row {
         rgba        => sub {$colour_button->get_rgba},
         linewidth   => sub {$linewidth->get_value},
         chkbox_plot => $name_chk,
+        widgets     => $widget_array,
     };
     if ($row > @$extractors) {
         push @$extractors, $callbacks,

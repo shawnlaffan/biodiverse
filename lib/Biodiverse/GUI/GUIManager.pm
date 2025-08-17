@@ -334,7 +334,7 @@ sub show_progress {
 
 sub get_overlay_components {
     my ($self) = @_;
-    return $self->{overlay_components};
+    return $self->{overlay_components} //= {};
 }
 
 sub set_overlay_components {

@@ -19,7 +19,7 @@ use parent 'Biodiverse::Common::ColourPalettes';
 # use Faster::Maths;
 #no if ($Faster::Maths::VERSION le '0.02') => 'Faster::Maths';
 
-our $VERSION = '4.99_009';
+our $VERSION = '4.99_010';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 

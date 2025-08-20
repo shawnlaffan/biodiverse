@@ -4,7 +4,7 @@ use warnings;
 use 5.036;
 use Carp qw /croak/;
 
-our $VERSION = '4.99_009';
+our $VERSION = '4.99_010';
 
 sub new {
     my ($class, %args) = @_;

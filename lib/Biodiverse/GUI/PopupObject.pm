@@ -3,7 +3,7 @@ package Biodiverse::GUI::PopupObject;
 use strict;
 use warnings;
 
-our $VERSION = '4.99_009';
+our $VERSION = '4.99_010';
 
 use Gtk3;
 

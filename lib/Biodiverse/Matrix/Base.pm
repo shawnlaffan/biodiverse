@@ -9,7 +9,7 @@ use English qw / -no_match_vars/;
 use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max sum/;
 
-our $VERSION = '4.99_009';
+our $VERSION = '4.99_010';
 
 use Biodiverse::Exception;
 use Ref::Util qw { :all };

@@ -15,7 +15,7 @@ use Time::HiRes qw /time/;
 use Ref::Util qw { :all };
 use experimental qw /refaliasing/;
 
-our $VERSION = '4.99_009';
+our $VERSION = '4.99_010';
 
 use Biodiverse::SpatialConditions;
 use Biodiverse::SpatialConditions::DefQuery;

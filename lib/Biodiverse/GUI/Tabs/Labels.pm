@@ -1135,9 +1135,10 @@ sub set_selected_list_cols {
         ? $labels_model_list1_sel_col
         : $labels_model_list2_sel_col;
 
-    my $max_iter = $self->{base_ref}-> get_label_count() - 1;
-
     my $selected_rows = ($selection->get_selected_rows)[0];
+
+    #  the global model iters are persistent so we can cache
+    my $iter_cache = $self->{iter_cache} //= {};
 
     $self->{ignore_selection_change} = 'listLabels1';
 
@@ -1145,22 +1146,31 @@ sub set_selected_list_cols {
     my %selected_labels;
 
     foreach my $path (@$selected_rows) {
-        my $iter = Gtk3::TreeIter->new;
-        $iter = $sorted_model->get_iter($path);
+        my $iter = $sorted_model->get_iter($path);
         my $label = $sorted_model->get($iter, LABELS_MODEL_NAME);
-        my $iter1 = $sorted_model->convert_iter_to_child_iter($iter);
-        $global_model->set($iter1, $change_col, 1);
-        $selected_labels{$label}++;
-        delete $prev_selected_labels{$label};  #  in case we overlap
+        my $iter1 = $iter_cache->{$label} //= $sorted_model->convert_iter_to_child_iter($iter);
+        #  delete in case we overlap
+        if (!delete $prev_selected_labels{$label}) {
+            $global_model->set($iter1, $change_col, 1);
+        }
+        $selected_labels{$label} = $iter1;
     }
 
     $self->{selected_labels}{$widget_name} = \%selected_labels;
 
+    foreach my $label (keys %prev_selected_labels) {
+        my $iter1 = $prev_selected_labels{$label} // $iter_cache->{$label};
+        $global_model->set($iter1, $change_col, 0);
+        delete $prev_selected_labels{$label};
+    }
 
-    #  process the selection changes - linear scan is inefficient but we need to work with the selections
+    #  linear scan is inefficient but we need to work with the selections
+    #  ...but we should have nothing left by now if all has worked
     my $change_count = 0;
+    my $max_iter = $self->{base_ref}->get_label_count - 1;
     foreach my $cell_iter (0..$max_iter) {
-        last if $change_count >= keys %prev_selected_labels;
+        last if $change_count >= keys %prev_selected_labels;  #  all found
+        last if $max_iter == $#$selected_rows;  #  all selected
 
         my $iter  = $sorted_model->iter_nth_child(undef, $cell_iter);
         my $label = $sorted_model->get($iter, LABELS_MODEL_NAME);
@@ -1170,7 +1180,7 @@ sub set_selected_list_cols {
 
         $change_count++;
 
-        my $iter1 = $sorted_model->convert_iter_to_child_iter($iter);
+        my $iter1 = $iter_cache->{$label} //= $sorted_model->convert_iter_to_child_iter($iter);
         $global_model->set($iter1, $change_col, 0);
 
     }

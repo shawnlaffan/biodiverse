@@ -1121,17 +1121,11 @@ sub on_selected_labels_changed {
 }
 
 sub set_selected_list_cols {
-    my $self   = shift;
-    my $selection = shift;
-    my $rowcol = shift;
+    my ($self, $selection, $rowcol) = @_;
 
     my $widget_name = $rowcol eq 'rows'
         ? 'listLabels1'
         : 'listLabels2';
-
-# Select all terminal labels
-#my $model      = $self->{labels_model};
-#my $widget     = $self->get_xmlpage_object($widget_name);
 
     my $sorted_model = $selection->get_tree_view()->get_model();
     my $global_model = $self->{labels_model};
@@ -1143,33 +1137,45 @@ sub set_selected_list_cols {
 
     my $max_iter = $self->{base_ref}-> get_label_count() - 1;
 
-#  get the selection changes
-    my @changed_iters;
-    foreach my $cell_iter (0..$max_iter) {
-
-        my $iter = $sorted_model->iter_nth_child(undef,$cell_iter);
-
-        my $iter1 = $sorted_model->convert_iter_to_child_iter($iter);
-        #my $orig_label = $global_model->get($iter1, LABELS_MODEL_NAME);
-        my $orig_value = $global_model->get($iter1, $change_col);
-
-        my $value = $selection->iter_is_selected ($iter) || 0;
-
-        if ($value != $orig_value) {
-            push (@changed_iters, [$iter1, $value]);
-        }
-    }
+    my $selected_rows = ($selection->get_selected_rows)[0];
 
     $self->{ignore_selection_change} = 'listLabels1';
 
-#  and now loop over the iters and change the selection values
-    foreach my $array_ref (@changed_iters) {
-        $global_model->set($array_ref->[0], $change_col, $array_ref->[1]);
+    \my %prev_selected_labels = $self->{selected_labels}{$widget_name} //= {};
+    my %selected_labels;
+
+    foreach my $path (@$selected_rows) {
+        my $iter = Gtk3::TreeIter->new;
+        $iter = $sorted_model->get_iter($path);
+        my $label = $sorted_model->get($iter, LABELS_MODEL_NAME);
+        my $iter1 = $sorted_model->convert_iter_to_child_iter($iter);
+        $global_model->set($iter1, $change_col, 1);
+        $selected_labels{$label}++;
+        delete $prev_selected_labels{$label};  #  in case we overlap
+    }
+
+    $self->{selected_labels}{$widget_name} = \%selected_labels;
+
+
+    #  process the selection changes - linear scan is inefficient but we need to work with the selections
+    my $change_count = 0;
+    foreach my $cell_iter (0..$max_iter) {
+        last if $change_count >= keys %prev_selected_labels;
+
+        my $iter  = $sorted_model->iter_nth_child(undef, $cell_iter);
+        my $label = $sorted_model->get($iter, LABELS_MODEL_NAME);
+
+        #  skip anything we have already set or which does not need to be unset
+        next if $selected_labels{$label} || !$prev_selected_labels{$label};
+
+        $change_count++;
+
+        my $iter1 = $sorted_model->convert_iter_to_child_iter($iter);
+        $global_model->set($iter1, $change_col, 0);
+
     }
 
     delete $self->{ignore_selection_change};
-
-#print "[Labels] \n";
 
     return;
 }

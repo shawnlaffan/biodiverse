@@ -134,6 +134,10 @@ sub get_size {
     $_[0]->{size};
 }
 
+sub have_data {
+    defined $_[0]->{data};
+}
+
 sub init_data {
     my ($self) = @_;
 

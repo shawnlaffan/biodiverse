@@ -342,6 +342,11 @@ sub get_base_struct {
     return $self->{data_source};
 }
 
+sub have_data {
+    my ($self) = @_;
+    defined $self->{data};
+}
+
 sub set_base_struct {
     my ($self, $source) = @_;
 

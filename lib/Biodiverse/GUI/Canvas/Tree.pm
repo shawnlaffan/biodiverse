@@ -112,6 +112,11 @@ sub callback_order {
     return (qw /plot legend sel_rect graph/);
 }
 
+sub have_data {
+    my ($self) = @_;
+    defined $self->{current_tree};
+}
+
 sub set_current_tree {
     my ($self, $tree, $plot_mode) = @_;
 

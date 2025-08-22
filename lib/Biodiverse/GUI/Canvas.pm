@@ -733,6 +733,7 @@ sub on_button_press {
     my ($self, $widget, $event) = @_;
 
     return FALSE if not defined $self->{cairo_context};
+    return FALSE if not $self->have_data;
 
     return 1 if $self->{selecting};
 

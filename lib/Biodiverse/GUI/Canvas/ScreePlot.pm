@@ -73,6 +73,7 @@ sub get_slider_coords {
 sub on_motion {
     my ($self, $widget, $event) = @_;
 
+    return FALSE if !$self->have_data;
     # return FALSE if $self->{mode} ne 'select';
     # return FALSE if !$self->{plot_coords_generated};
 
@@ -305,6 +306,11 @@ sub set_plot_coords {
     $self->{data} = $data;
 
     return;
+}
+
+sub have_data {
+    my ($self) = @_;
+    $self->get_tree_canvas->have_data;
 }
 
 #  requires the tree to have generated its data

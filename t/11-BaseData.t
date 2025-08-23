@@ -155,8 +155,17 @@ sub test_import_unicode_name {
 sub test_sample_count {
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [300000, 300000]);
 
+    my $exp = 1795;
     my $count = $bd->get_sample_count;
-    is ($count, 1795, "Got expected sample count for basedata");
+    is ($count, $exp, "Got expected sample count for basedata");
+
+    my $groups = $bd->get_groups;
+    my $labels = $bd->get_labels;
+
+    my $extra = 200;
+    $bd->add_element_simple_aa ($labels->[0], $groups->[0], $extra);
+    is ($bd->get_sample_count, $exp + $extra, "Got expected sample count for basedata");
+
 }
 
 

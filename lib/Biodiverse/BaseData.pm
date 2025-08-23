@@ -1,7 +1,7 @@
 package Biodiverse::BaseData;
 
 #  package containing methods to access and store a Biodiverse BaseData object
-use 5.022;
+use 5.036;
 
 use strict;
 use warnings;
@@ -406,8 +406,9 @@ sub _describe {
         push @description, "$key: $desc";
     }
 
-    my $gp_count = $self->get_group_count;
-    my $lb_count = $self->get_label_count;
+    my $gp_count  = $self->get_group_count;
+    my $lb_count  = $self->get_label_count;
+    my $smp_count = $self->get_sample_count;
     my $sp_count = scalar @{ $self->get_spatial_output_refs };
     my $cl_count = scalar @{ $self->get_cluster_output_refs };
     my $rd_count = scalar @{ $self->get_randomisation_output_refs };
@@ -415,6 +416,7 @@ sub _describe {
 
     push @description, "Group count: $gp_count";
     push @description, "Label count: $lb_count";
+    push @description, "Sample count: $smp_count";
     push @description, "Spatial outputs: $sp_count";
     push @description, "Cluster outputs: $cl_count";
     push @description, "Randomisation outputs: $rd_count";
@@ -2392,6 +2394,16 @@ sub get_label_column_count {
 
 sub get_group_count {
     $_[0]->get_groups_ref->get_element_count;
+}
+
+sub get_sample_count {
+    my ($self) = @_;
+    my $gp = $self->get_groups_ref;
+    my $count = 0;
+    foreach my $element ($gp->get_element_list) {
+        $count += $gp->get_sample_count_aa($element);
+    }
+    return $count;
 }
 
 sub exists_group {

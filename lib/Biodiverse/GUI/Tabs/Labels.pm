@@ -12,7 +12,7 @@ use Sort::Key::Natural qw /natsort mkkey_natural/;
 
 use List::MoreUtils qw /firstidx any minmax/;
 use List::Util qw /max/;
-use Scalar::Util qw /weaken/;
+use Scalar::Util qw /weaken looks_like_number/;
 use Ref::Util qw /is_ref is_arrayref is_hashref/;
 use POSIX qw /floor ceil/;
 use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
@@ -57,6 +57,12 @@ my $selected_list2_name = 'Col selected';
 use constant TYPE_TEXT => 1;
 use constant TYPE_HTML => 2; # some programs want HTML tables
 
+#  The row updates in set_selected_list_cols run quadratically
+#  for later values in the list.
+my $MAX_ROW_COUNT_FOR_SEL_UPDATES
+    = looks_like_number($ENV{BD_MAX_ROW_COUNT_FOR_UPDATES})
+    ? $ENV{BD_MAX_ROW_COUNT_FOR_UPDATES}
+    : 10000;
 
 ##################################################
 # Initialisation
@@ -548,8 +554,20 @@ sub make_labels_model {
     my $basestats_metadata = $labels_ref->get_metadata (sub => 'get_base_stats');
 
     my @column_order;
+    my $label_count = $base_ref->get_label_count;
 
-#  the selection cols
+    say "[Labels tab] Setting up lists for $label_count labels";
+    if ($label_count > $MAX_ROW_COUNT_FOR_SEL_UPDATES) {
+        my $header = "Number of labels ($label_count) exceeds limit ($MAX_ROW_COUNT_FOR_SEL_UPDATES).\n";
+        my $msg    = 'Selection flag column updates have been disabled to avoid slowdowns.';
+        say "[Labels] ${header}${msg}";
+        #  Tried a popup but it caused errors
+        #  Set tooltip instead
+        my $widget = $self->get_xmlpage_object('scrolledwindow_labels1');
+        my $tt = $widget->get_tooltip_text;
+        $widget->set_tooltip_text ("${tt}\n\nNote: ${header}${msg}");
+    }
+
     my @selection_cols = (
         {$selected_list1_name => 'Int'},
         {$selected_list2_name => 'Int'},
@@ -1123,6 +1141,11 @@ sub on_selected_labels_changed {
 sub set_selected_list_cols {
     my ($self, $selection, $rowcol) = @_;
 
+    my $label_count = $self->{base_ref}->get_label_count;
+
+    #  we get quadratic behaviour in the set methods as iters are further along the tree
+    return if $label_count > $MAX_ROW_COUNT_FOR_SEL_UPDATES;
+
     my $widget_name = $rowcol eq 'rows'
         ? 'listLabels1'
         : 'listLabels2';
@@ -1167,10 +1190,9 @@ sub set_selected_list_cols {
     #  linear scan is inefficient but we need to work with the selections
     #  ...but we should have nothing left by now if all has worked
     my $change_count = 0;
-    my $max_iter = $self->{base_ref}->get_label_count - 1;
-    foreach my $cell_iter (0..$max_iter) {
+    foreach my $cell_iter (0..$label_count-1) {
         last if $change_count >= keys %prev_selected_labels;  #  all found
-        last if $max_iter == $#$selected_rows;  #  all selected
+        last if $label_count == @$selected_rows;  #  all selected
 
         my $iter  = $sorted_model->iter_nth_child(undef, $cell_iter);
         my $label = $sorted_model->get($iter, LABELS_MODEL_NAME);

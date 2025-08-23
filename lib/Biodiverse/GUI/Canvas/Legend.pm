@@ -984,7 +984,7 @@ sub get_colour_saturation {
 
     #  $r,$g and $b are integers so cache won't be enormous.
     #  This is more for future-proofing than current savings.
-    my %cache;
+    state %cache;
     return $cache{"$r,$g,$b"} //= Gtk3::Gdk::RGBA::parse("rgb($r,$g,$b)");
 }
 

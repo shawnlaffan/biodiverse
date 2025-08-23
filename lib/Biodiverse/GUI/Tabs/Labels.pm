@@ -12,7 +12,7 @@ use Sort::Key::Natural qw /natsort mkkey_natural/;
 
 use List::MoreUtils qw /firstidx any minmax/;
 use List::Util qw /max/;
-use Scalar::Util qw /weaken/;
+use Scalar::Util qw /weaken looks_like_number/;
 use Ref::Util qw /is_ref is_arrayref is_hashref/;
 use POSIX qw /floor ceil/;
 use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
@@ -57,6 +57,12 @@ my $selected_list2_name = 'Col selected';
 use constant TYPE_TEXT => 1;
 use constant TYPE_HTML => 2; # some programs want HTML tables
 
+#  The row updates in set_selected_list_cols run quadratically
+#  for later values in the list.
+my $MAX_ROW_COUNT_FOR_SEL_UPDATES
+    = looks_like_number($ENV{BD_MAX_ROW_COUNT_FOR_UPDATES})
+    ? $ENV{BD_MAX_ROW_COUNT_FOR_UPDATES}
+    : 10000;
 
 ##################################################
 # Initialisation
@@ -548,8 +554,20 @@ sub make_labels_model {
     my $basestats_metadata = $labels_ref->get_metadata (sub => 'get_base_stats');
 
     my @column_order;
+    my $label_count = $base_ref->get_label_count;
 
-#  the selection cols
+    say "[Labels tab] Setting up lists for $label_count labels";
+    if ($label_count > $MAX_ROW_COUNT_FOR_SEL_UPDATES) {
+        my $header = "Number of labels ($label_count) exceeds limit ($MAX_ROW_COUNT_FOR_SEL_UPDATES).\n";
+        my $msg    = 'Selection flag column updates have been disabled to avoid slowdowns.';
+        say "[Labels] ${header}${msg}";
+        #  Tried a popup but it caused errors
+        #  Set tooltip instead
+        my $widget = $self->get_xmlpage_object('scrolledwindow_labels1');
+        my $tt = $widget->get_tooltip_text;
+        $widget->set_tooltip_text ("${tt}\n\nNote: ${header}${msg}");
+    }
+
     my @selection_cols = (
         {$selected_list1_name => 'Int'},
         {$selected_list2_name => 'Int'},
@@ -1121,17 +1139,16 @@ sub on_selected_labels_changed {
 }
 
 sub set_selected_list_cols {
-    my $self   = shift;
-    my $selection = shift;
-    my $rowcol = shift;
+    my ($self, $selection, $rowcol) = @_;
+
+    my $label_count = $self->{base_ref}->get_label_count;
+
+    #  we get quadratic behaviour in the set methods as iters are further along the tree
+    return if $label_count > $MAX_ROW_COUNT_FOR_SEL_UPDATES;
 
     my $widget_name = $rowcol eq 'rows'
         ? 'listLabels1'
         : 'listLabels2';
-
-# Select all terminal labels
-#my $model      = $self->{labels_model};
-#my $widget     = $self->get_xmlpage_object($widget_name);
 
     my $sorted_model = $selection->get_tree_view()->get_model();
     my $global_model = $self->{labels_model};
@@ -1141,35 +1158,56 @@ sub set_selected_list_cols {
         ? $labels_model_list1_sel_col
         : $labels_model_list2_sel_col;
 
-    my $max_iter = $self->{base_ref}-> get_label_count() - 1;
+    my $selected_rows = ($selection->get_selected_rows)[0];
 
-#  get the selection changes
-    my @changed_iters;
-    foreach my $cell_iter (0..$max_iter) {
-
-        my $iter = $sorted_model->iter_nth_child(undef,$cell_iter);
-
-        my $iter1 = $sorted_model->convert_iter_to_child_iter($iter);
-        #my $orig_label = $global_model->get($iter1, LABELS_MODEL_NAME);
-        my $orig_value = $global_model->get($iter1, $change_col);
-
-        my $value = $selection->iter_is_selected ($iter) || 0;
-
-        if ($value != $orig_value) {
-            push (@changed_iters, [$iter1, $value]);
-        }
-    }
+    #  the global model iters are persistent so we can cache
+    my $iter_cache = $self->{iter_cache} //= {};
 
     $self->{ignore_selection_change} = 'listLabels1';
 
-#  and now loop over the iters and change the selection values
-    foreach my $array_ref (@changed_iters) {
-        $global_model->set($array_ref->[0], $change_col, $array_ref->[1]);
+    \my %prev_selected_labels = $self->{selected_labels}{$widget_name} //= {};
+    my %selected_labels;
+
+    foreach my $path (@$selected_rows) {
+        my $iter = $sorted_model->get_iter($path);
+        my $label = $sorted_model->get($iter, LABELS_MODEL_NAME);
+        my $iter1 = $iter_cache->{$label} //= $sorted_model->convert_iter_to_child_iter($iter);
+        #  delete in case we overlap
+        if (!delete $prev_selected_labels{$label}) {
+            $global_model->set($iter1, $change_col, 1);
+        }
+        $selected_labels{$label} = $iter1;
+    }
+
+    $self->{selected_labels}{$widget_name} = \%selected_labels;
+
+    foreach my $label (keys %prev_selected_labels) {
+        my $iter1 = $prev_selected_labels{$label} // $iter_cache->{$label};
+        $global_model->set($iter1, $change_col, 0);
+        delete $prev_selected_labels{$label};
+    }
+
+    #  linear scan is inefficient but we need to work with the selections
+    #  ...but we should have nothing left by now if all has worked
+    my $change_count = 0;
+    foreach my $cell_iter (0..$label_count-1) {
+        last if $change_count >= keys %prev_selected_labels;  #  all found
+        last if $label_count == @$selected_rows;  #  all selected
+
+        my $iter  = $sorted_model->iter_nth_child(undef, $cell_iter);
+        my $label = $sorted_model->get($iter, LABELS_MODEL_NAME);
+
+        #  skip anything we have already set or which does not need to be unset
+        next if $selected_labels{$label} || !$prev_selected_labels{$label};
+
+        $change_count++;
+
+        my $iter1 = $iter_cache->{$label} //= $sorted_model->convert_iter_to_child_iter($iter);
+        $global_model->set($iter1, $change_col, 0);
+
     }
 
     delete $self->{ignore_selection_change};
-
-#print "[Labels] \n";
 
     return;
 }

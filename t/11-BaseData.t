@@ -152,6 +152,13 @@ sub test_import_unicode_name {
 
 }
 
+sub test_sample_count {
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [300000, 300000]);
+
+    my $count = $bd->get_sample_count;
+    is ($count, 1795, "Got expected sample count for basedata");
+}
+
 
 sub test_rename_outputs {
     my $bd = get_basedata_object (

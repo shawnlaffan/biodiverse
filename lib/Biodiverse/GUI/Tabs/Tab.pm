@@ -684,6 +684,23 @@ sub on_zoom_fit_tool {
     $self->choose_tool('ZoomFit');
 }
 
+sub on_set_map_background_colour {
+    my ($self) = @_;
+
+    my $grid = $self->{grid} // return;
+
+    my $colour = $self->get_colour_from_chooser ($self->{map_background_colour} // Gtk3::Gdk::RGBA::parse('white'));
+
+    #  if still no colour chosen
+    return if !$colour;
+
+    $grid->set_background_colour($colour);
+
+    $self->recolour (all_elements => 1);
+
+    return;
+}
+
 sub on_set_cell_outline_colour {
     my $self = shift;
     my $menu_item = shift;

@@ -283,6 +283,7 @@ sub new {
         menuitem_spatial_undef_cell_colour    => {activate => \&on_set_undef_cell_colour},
         menuitem_spatial_cell_show_outline    => {toggled  => \&on_set_cell_show_outline},
         menuitem_spatial_show_legend          => {toggled  => \&on_show_hide_legend},
+        menuitem_spatial_background_colour    => {activate => \&on_set_map_background_colour},
 
         button_spatial_options => {clicked => \&run_options_dialogue},
     );
@@ -386,6 +387,13 @@ sub get_tree_menu_items {
             tooltip  => 'Set the colour used to display list values that are undefined.',
             event    => 'activate',
             callback => \&on_tree_undef_colour_changed,
+        },
+        {
+            type     => 'Gtk3::MenuItem',
+            label    => 'Set background colour for the tree pane',
+            tooltip  => 'Set the background colour the tree pane.',
+            event    => 'activate',
+            callback => \&on_tree_background_colour_changed,
         },
         {
             type  => 'submenu_radio_group',
@@ -828,6 +836,22 @@ sub get_dendrogram_colour_for_undef {
     my $dendrogram = $self->{dendrogram};
     return if !$dendrogram;
     $dendrogram->get_legend->get_colour_for_undef;
+}
+
+sub set_dendrogram_background_colour {
+    my ($self, $colour) = @_;
+    my $dendrogram = $self->{dendrogram};
+    return if !$dendrogram;
+    $dendrogram->set_background_colour($colour // COLOUR_WHITE);
+}
+
+sub get_dendrogram_background_colour {
+    my $self = shift;
+    my $dendrogram = $self->{dendrogram};
+    return if !$dendrogram;
+    my $aref = $dendrogram->get_background_colour // [0,0,0];
+    my $colour = Gtk3::Gdk::RGBA::parse (sprintf "rgb(%d,%d,%d)", @$aref);
+    return $colour;
 }
 
 
@@ -2582,6 +2606,28 @@ sub on_tree_undef_colour_changed {
         my $hue = $colour_select->get_current_rgba();
         $self->set_dendrogram_colour_for_undef ($hue);
         $self->{dendrogram}->update_legend;
+    }
+    $colour_dialog->destroy();
+
+    return;
+}
+
+sub on_tree_background_colour_changed {
+    my ($self, $menu_item) = @_;
+
+    return if !$menu_item;
+
+    # Pop up dialog for choosing the hue to use in saturation mode
+    my $colour_dialog = Gtk3::ColorChooserDialog->new('Select colour');
+    # my $colour_select = $colour_dialog->get_rgba();
+    if (my $current_colour = $self->get_dendrogram_background_colour) {
+        $colour_dialog->set_rgba ($current_colour);
+    }
+    $colour_dialog->show_all();
+    my $response = $colour_dialog->run;
+    if ($response eq 'ok') {
+        my $hue = $colour_dialog->get_rgba();
+        $self->set_dendrogram_background_colour ($hue);
     }
     $colour_dialog->destroy();
 

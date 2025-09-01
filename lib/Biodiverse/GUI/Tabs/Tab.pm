@@ -791,20 +791,20 @@ sub on_set_excluded_cell_colour {
 sub get_colour_from_chooser {
     my ($self, $colour) = @_;
 
-    my $dialog = Gtk3::ColorSelectionDialog->new ('Select a colour');
-    my $selector = $dialog->get_color_selection;
+    my $dialog = Gtk3::ColorChooserDialog->new ('Select a colour');
 
     if ($colour) {
         if ($colour->isa('Gtk3::Gdk::Color')) {
-            $selector->set_current_color($colour);
+            $colour = sprintf "rgb(%d,%d,%d)", map {$_ / 257} ($colour->red, $colour->green, $colour->blue);
+            $dialog->set_rgba( Gtk3::Gdk::RGBA::parse $colour);
         }
         else {
-            $selector->set_current_rgba($colour);
+            $dialog->set_rgba($colour);
         }
     }
 
     if ($dialog->run eq 'ok') {
-        $colour = $selector->get_current_rgba;
+        $colour = $dialog->get_rgba;
     }
     $dialog->destroy;
 

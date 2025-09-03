@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.036;
 
-our $VERSION = '4.99_010';
+our $VERSION = '4.99_011';
 
 use experimental qw/refaliasing declared_refs/;
 

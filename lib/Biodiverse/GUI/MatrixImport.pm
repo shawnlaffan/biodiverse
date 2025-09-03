@@ -8,7 +8,7 @@ use Ref::Util qw { :all };
 
 use Gtk3;
 
-our $VERSION = '4.99_010';
+our $VERSION = '4.99_011';
 
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::BasedataImport

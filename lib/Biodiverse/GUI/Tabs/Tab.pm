@@ -696,7 +696,10 @@ sub on_set_map_background_colour {
 
     $grid->set_background_colour($colour);
 
-    $self->recolour (all_elements => 1);
+    #  spatial does, labels does not
+    if ($self->can('recolour')) {
+        $self->recolour(all_elements => 1);
+    }
 
     return;
 }

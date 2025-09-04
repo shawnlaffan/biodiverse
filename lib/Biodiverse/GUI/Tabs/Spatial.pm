@@ -412,15 +412,8 @@ sub get_tree_menu_items {
             event    => 'activate',
             callback => \&on_tree_undef_colour_changed,
         },
-        {
-            type     => 'Gtk3::MenuItem',
-            label    => 'Set background colour for the tree pane',
-            tooltip  => 'Set the background colour the tree pane.',
-            event    => 'activate',
-            callback => \&on_tree_background_colour_changed,
-        },
         (   map {$self->get_tree_menu_item($_)}
-               qw /separator plot_branches_by set_tree_branch_line_widths
+               qw /background_colour separator plot_branches_by set_tree_branch_line_widths
                    separator export_tree /
         ),
     );

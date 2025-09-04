@@ -1320,6 +1320,13 @@ EOT
         separator => {
             type  => 'Gtk3::SeparatorMenuItem',
         },
+        background_colour => {
+            type     => 'Gtk3::MenuItem',
+            label    => 'Set background colour for the tree pane',
+            tooltip  => 'Set the background colour the tree pane.',
+            event    => 'activate',
+            callback => \&on_tree_background_colour_changed,
+        },
     };
 
     my $item = $items->{$wanted};

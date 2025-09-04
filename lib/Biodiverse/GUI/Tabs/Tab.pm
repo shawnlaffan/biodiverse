@@ -891,6 +891,45 @@ sub on_set_tree_line_widths {
     
 }
 
+sub on_tree_background_colour_changed {
+    my ($self, $menu_item) = @_;
+
+    return if !$menu_item;
+
+    # Pop up dialog for choosing the hue to use in saturation mode
+    my $colour_dialog = Gtk3::ColorChooserDialog->new('Select colour');
+    # my $colour_select = $colour_dialog->get_rgba();
+    if (my $current_colour = $self->get_dendrogram_background_colour) {
+        $colour_dialog->set_rgba ($current_colour);
+    }
+    $colour_dialog->show_all();
+    my $response = $colour_dialog->run;
+    if ($response eq 'ok') {
+        my $hue = $colour_dialog->get_rgba();
+        $self->set_dendrogram_background_colour ($hue);
+    }
+    $colour_dialog->destroy();
+
+    return;
+}
+
+sub set_dendrogram_background_colour {
+    my ($self, $colour) = @_;
+    my $dendrogram = $self->{dendrogram};
+    return if !$dendrogram;
+    use constant COLOUR_WHITE => Gtk3::Gdk::RGBA::parse('white');
+    $dendrogram->set_background_colour($colour // COLOUR_WHITE);
+}
+
+sub get_dendrogram_background_colour {
+    my $self = shift;
+    my $dendrogram = $self->{dendrogram};
+    return if !$dendrogram;
+    my $aref = $dendrogram->get_background_colour // [0,0,0];
+    my $colour = Gtk3::Gdk::RGBA::parse (sprintf "rgb(%d,%d,%d)", @$aref);
+    return $colour;
+}
+
 ########
 ##
 ##  Some cache methods which have been copied across from Biodiverse::Common

@@ -382,20 +382,6 @@ sub get_tree_menu_items {
             active   => 0,
         },
         {
-            type     => 'Gtk3::MenuItem',
-            label    => 'Set colour for undefined list values',
-            tooltip  => 'Set the colour used to display list values that are undefined.',
-            event    => 'activate',
-            callback => \&on_tree_undef_colour_changed,
-        },
-        {
-            type     => 'Gtk3::MenuItem',
-            label    => 'Set background colour for the tree pane',
-            tooltip  => 'Set the background colour the tree pane.',
-            event    => 'activate',
-            callback => \&on_tree_background_colour_changed,
-        },
-        {
             type  => 'submenu_radio_group',
             label => 'Colour mode',
             items => [  #  could be refactored
@@ -418,6 +404,20 @@ sub get_tree_menu_items {
                     callback => \&on_tree_colour_mode_changed,
                 }
             ],
+        },
+        {
+            type     => 'Gtk3::MenuItem',
+            label    => 'Set colour for undefined list values',
+            tooltip  => 'Set the colour used to display list values that are undefined.',
+            event    => 'activate',
+            callback => \&on_tree_undef_colour_changed,
+        },
+        {
+            type     => 'Gtk3::MenuItem',
+            label    => 'Set background colour for the tree pane',
+            tooltip  => 'Set the background colour the tree pane.',
+            event    => 'activate',
+            callback => \&on_tree_background_colour_changed,
         },
         (   map {$self->get_tree_menu_item($_)}
                qw /separator plot_branches_by set_tree_branch_line_widths
@@ -837,23 +837,6 @@ sub get_dendrogram_colour_for_undef {
     return if !$dendrogram;
     $dendrogram->get_legend->get_colour_for_undef;
 }
-
-sub set_dendrogram_background_colour {
-    my ($self, $colour) = @_;
-    my $dendrogram = $self->{dendrogram};
-    return if !$dendrogram;
-    $dendrogram->set_background_colour($colour // COLOUR_WHITE);
-}
-
-sub get_dendrogram_background_colour {
-    my $self = shift;
-    my $dendrogram = $self->{dendrogram};
-    return if !$dendrogram;
-    my $aref = $dendrogram->get_background_colour // [0,0,0];
-    my $colour = Gtk3::Gdk::RGBA::parse (sprintf "rgb(%d,%d,%d)", @$aref);
-    return $colour;
-}
-
 
 sub init_grid {
     my $self = shift;
@@ -2612,27 +2595,7 @@ sub on_tree_undef_colour_changed {
     return;
 }
 
-sub on_tree_background_colour_changed {
-    my ($self, $menu_item) = @_;
 
-    return if !$menu_item;
-
-    # Pop up dialog for choosing the hue to use in saturation mode
-    my $colour_dialog = Gtk3::ColorChooserDialog->new('Select colour');
-    # my $colour_select = $colour_dialog->get_rgba();
-    if (my $current_colour = $self->get_dendrogram_background_colour) {
-        $colour_dialog->set_rgba ($current_colour);
-    }
-    $colour_dialog->show_all();
-    my $response = $colour_dialog->run;
-    if ($response eq 'ok') {
-        my $hue = $colour_dialog->get_rgba();
-        $self->set_dendrogram_background_colour ($hue);
-    }
-    $colour_dialog->destroy();
-
-    return;
-}
 
 
 #  methods aren't inherited when called as GTK callbacks

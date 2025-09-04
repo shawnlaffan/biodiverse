@@ -294,6 +294,7 @@ sub new {
         #menuitem_cluster_data_tearoff => {activate => \&on_toolbar_data_menu_tearoff},
         menuitem_cluster_excluded_cell_colour => {activate => \&on_set_excluded_cell_colour},
         menuitem_cluster_undef_cell_colour    => {activate => \&on_set_undef_cell_colour},
+        menuitem_cluster_background_colour    => {activate => \&on_set_map_background_colour},
     );
 
     for my $n (0..6) {
@@ -387,6 +388,13 @@ sub get_tree_menu_items {
                 $self->{dendrogram}->set_no_use_slider_to_select_nodes ($bool);
             },
             active   => 0,
+        },
+        {
+            type     => 'Gtk3::MenuItem',
+            label    => 'Set background colour for the tree pane',
+            tooltip  => 'Set the background colour the tree pane.',
+            event    => 'activate',
+            callback => \&on_tree_background_colour_changed,
         },
         (   map {$self->get_tree_menu_item($_)}
                qw/separator set_tree_branch_line_widths

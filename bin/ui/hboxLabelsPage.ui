@@ -192,6 +192,14 @@
                           </object>
                         </child>
                         <child>
+                          <object class="GtkMenuItem" id="menuitem_labels_overlays">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                            <property name="label" translatable="yes">Overlays...</property>
+                            <property name="use-underline">True</property>
+                          </object>
+                        </child>
+                        <child>
                           <object class="GtkMenuItem" id="menuitem_label_grid_colour_scale">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
@@ -253,14 +261,6 @@
                             <property name="can-focus">False</property>
                             <property name="tooltip-text" translatable="yes">Set the background of the map frame</property>
                             <property name="label" translatable="yes">Set background colour</property>
-                            <property name="use-underline">True</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkMenuItem" id="menuitem_labels_overlays">
-                            <property name="visible">True</property>
-                            <property name="can-focus">False</property>
-                            <property name="label" translatable="yes">Overlays...</property>
                             <property name="use-underline">True</property>
                           </object>
                         </child>

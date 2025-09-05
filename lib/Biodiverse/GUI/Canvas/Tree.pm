@@ -1216,9 +1216,10 @@ sub recolour_cluster_lines {
     #  Might be worth skipping if we know the colours have not changed
     #  but that needs profiling first.
     if (keys %colour_hash) {
+        my $xx;
         my %for_cache
             = map {
-                my $c = $colour_hash{$_};
+                my $c = $colour_hash{$_} // DEFAULT_LINE_COLOUR;
                 $_ => [ $c->red, $c->green, $c->blue ]
             } keys %colour_hash;
         $self->get_current_tree->set_most_recent_line_colours_aa (\%for_cache);

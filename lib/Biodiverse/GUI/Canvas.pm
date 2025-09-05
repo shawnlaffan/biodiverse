@@ -232,6 +232,21 @@ sub set_legend_ltgt_flags {
     $legend->set_gtlt_flags (@args);
 }
 
+sub get_background_colour {
+    my ($self) = @_;
+    return $self->{colour_background};
+}
+
+sub set_background_colour {
+    my ($self, $colour) = @_;
+
+    $colour //= COLOUR_WHITE;
+
+    croak "Colour argument must be a Gtk3::Gdk::Color or Gtk3::Gdk::Color::RGBA object\n"
+        if not blessed ($colour) =~ /Gtk3::Gdk::(Color|RGBA)/;
+
+    $self->{colour_background} = [$self->rgb_to_array($colour)];
+}
 
 sub get_colour_for_undef {
     my $self = shift;
@@ -824,8 +839,10 @@ sub cairo_draw {
     $self->{cairo_context} = !!$context;
     $self->{orig_tfm_mx}   = $self->clone_tfm_mx($context->get_matrix);
 
-    # $context->set_source_rgb(0.9, 0.9, 0.7);
-    # $context->paint;
+    if (my $background = $self->get_background_colour) {
+        $context->set_source_rgb(@$background);
+        $context->paint;
+    }
 
     #  we autosize to the drawing area when this is set each call
     $self->{matrix} = $self->get_tfm_mx($widget);

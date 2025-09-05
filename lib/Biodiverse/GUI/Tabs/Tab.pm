@@ -684,6 +684,26 @@ sub on_zoom_fit_tool {
     $self->choose_tool('ZoomFit');
 }
 
+sub on_set_map_background_colour {
+    my ($self) = @_;
+
+    my $grid = $self->{grid} // return;
+
+    my $colour = $self->get_colour_from_chooser ($self->{map_background_colour} // Gtk3::Gdk::RGBA::parse('white'));
+
+    #  if still no colour chosen
+    return if !$colour;
+
+    $grid->set_background_colour($colour);
+
+    #  spatial does, labels does not
+    if ($self->can('recolour')) {
+        $self->recolour(all_elements => 1);
+    }
+
+    return;
+}
+
 sub on_set_cell_outline_colour {
     my $self = shift;
     my $menu_item = shift;
@@ -774,20 +794,20 @@ sub on_set_excluded_cell_colour {
 sub get_colour_from_chooser {
     my ($self, $colour) = @_;
 
-    my $dialog = Gtk3::ColorSelectionDialog->new ('Select a colour');
-    my $selector = $dialog->get_color_selection;
+    my $dialog = Gtk3::ColorChooserDialog->new ('Select a colour');
 
     if ($colour) {
         if ($colour->isa('Gtk3::Gdk::Color')) {
-            $selector->set_current_color($colour);
+            $colour = sprintf "rgb(%d,%d,%d)", map {$_ / 257} ($colour->red, $colour->green, $colour->blue);
+            $dialog->set_rgba( Gtk3::Gdk::RGBA::parse $colour);
         }
         else {
-            $selector->set_current_rgba($colour);
+            $dialog->set_rgba($colour);
         }
     }
 
     if ($dialog->run eq 'ok') {
-        $colour = $selector->get_current_rgba;
+        $colour = $dialog->get_rgba;
     }
     $dialog->destroy;
 
@@ -872,6 +892,45 @@ sub on_set_tree_line_widths {
 
     return $val;
     
+}
+
+sub on_tree_background_colour_changed {
+    my ($self, $menu_item) = @_;
+
+    return if !$menu_item;
+
+    # Pop up dialog for choosing the hue to use in saturation mode
+    my $colour_dialog = Gtk3::ColorChooserDialog->new('Select colour');
+    # my $colour_select = $colour_dialog->get_rgba();
+    if (my $current_colour = $self->get_dendrogram_background_colour) {
+        $colour_dialog->set_rgba ($current_colour);
+    }
+    $colour_dialog->show_all();
+    my $response = $colour_dialog->run;
+    if ($response eq 'ok') {
+        my $hue = $colour_dialog->get_rgba();
+        $self->set_dendrogram_background_colour ($hue);
+    }
+    $colour_dialog->destroy();
+
+    return;
+}
+
+sub set_dendrogram_background_colour {
+    my ($self, $colour) = @_;
+    my $dendrogram = $self->{dendrogram};
+    return if !$dendrogram;
+    use constant COLOUR_WHITE => Gtk3::Gdk::RGBA::parse('white');
+    $dendrogram->set_background_colour($colour // COLOUR_WHITE);
+}
+
+sub get_dendrogram_background_colour {
+    my $self = shift;
+    my $dendrogram = $self->{dendrogram};
+    return if !$dendrogram;
+    my $aref = $dendrogram->get_background_colour // [0,0,0];
+    my $colour = Gtk3::Gdk::RGBA::parse (sprintf "rgb(%d,%d,%d)", @$aref);
+    return $colour;
 }
 
 ########
@@ -1263,6 +1322,13 @@ EOT
         },
         separator => {
             type  => 'Gtk3::SeparatorMenuItem',
+        },
+        background_colour => {
+            type     => 'Gtk3::MenuItem',
+            label    => 'Set background colour for the tree pane',
+            tooltip  => 'Set the background colour the tree pane.',
+            event    => 'activate',
+            callback => \&on_tree_background_colour_changed,
         },
     };
 

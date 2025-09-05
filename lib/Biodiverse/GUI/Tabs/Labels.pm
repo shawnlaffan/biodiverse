@@ -5,7 +5,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-use experimental qw/refaliasing declared_refs/;
+use experimental qw/refaliasing declared_refs for_list/;
 
 #use Data::Dumper;
 use Sort::Key::Natural qw /natsort mkkey_natural/;
@@ -208,7 +208,21 @@ sub new {
         );
     }
 
-    $self->{use_highlight_path} = 1;
+    my %widgets_and_signals = (
+        menuitem_labels_background_colour  => {activate => \&on_set_map_background_colour}
+    );
+
+    foreach my ($widget_name, $args) (%widgets_and_signals) {
+        my $widget = $self->get_xmlpage_object($widget_name);
+        warn "Cannot connect $widget_name\n" if !defined $widget;
+        $widget->signal_connect_swapped(
+            %$args,
+            $self,
+        );
+    }
+
+
+        $self->{use_highlight_path} = 1;
 
     $self->{menubar} = $self->get_xmlpage_object('menubarLabelsOptions');
     $self->update_selection_menu;
@@ -379,9 +393,14 @@ sub get_tree_menu_items {
         },
         (   map {$self->get_tree_menu_item($_)}
                qw /plot_branches_by
-                   highlight_groups_on_map highlight_paths_on_tree
-                   separator               set_tree_branch_line_widths
-                   separator               export_tree /
+                   highlight_groups_on_map
+                   highlight_paths_on_tree
+                   separator
+                   background_colour
+                   set_tree_branch_line_widths
+                   separator
+                   export_tree
+               /
         ),
     );
 

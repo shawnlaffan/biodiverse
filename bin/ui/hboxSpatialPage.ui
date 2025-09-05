@@ -439,6 +439,15 @@ Colours are scaled using percentiles defined in the colour stretch menu. </prope
                           </object>
                         </child>
                         <child>
+                          <object class="GtkMenuItem" id="menuitem_spatial_background_colour">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Set the background of the map frame</property>
+                            <property name="label" translatable="yes">Set background colour</property>
+                            <property name="use-underline">True</property>
+                          </object>
+                        </child>
+                        <child>
                           <object class="GtkMenuItem" id="menuitem_spatial_excluded_cell_colour">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
@@ -862,6 +871,12 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                           <placeholder/>
                         </child>
                         <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
                           <object class="GtkFrame" id="gridFrame">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
@@ -909,6 +924,9 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                             <property name="can-focus">False</property>
                             <property name="n-rows">2</property>
                             <child>
+                              <placeholder/>
+                            </child>
+                            <child>
                               <object class="GtkVPaned" id="spatial_vpanePhylogeny">
                                 <property name="visible">True</property>
                                 <property name="can-focus">True</property>
@@ -918,15 +936,15 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                                     <property name="can-focus">False</property>
                                     <property name="n-columns">2</property>
                                     <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
                                       <object class="GtkFrame" id="spatialPhylogenyFrame">
                                         <property name="visible">True</property>
                                         <property name="can-focus">False</property>
                                         <property name="label-xalign">0</property>
                                         <property name="shadow-type">none</property>
                                       </object>
-                                    </child>
-                                    <child>
-                                      <placeholder/>
                                     </child>
                                   </object>
                                   <packing>
@@ -947,9 +965,6 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                                   </packing>
                                 </child>
                               </object>
-                            </child>
-                            <child>
-                              <placeholder/>
                             </child>
                           </object>
                           <packing>

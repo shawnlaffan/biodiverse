@@ -283,6 +283,7 @@ sub new {
         menuitem_spatial_undef_cell_colour    => {activate => \&on_set_undef_cell_colour},
         menuitem_spatial_cell_show_outline    => {toggled  => \&on_set_cell_show_outline},
         menuitem_spatial_show_legend          => {toggled  => \&on_show_hide_legend},
+        menuitem_spatial_background_colour    => {activate => \&on_set_map_background_colour},
 
         button_spatial_options => {clicked => \&run_options_dialogue},
     );
@@ -381,13 +382,6 @@ sub get_tree_menu_items {
             active   => 0,
         },
         {
-            type     => 'Gtk3::MenuItem',
-            label    => 'Set colour for undefined list values',
-            tooltip  => 'Set the colour used to display list values that are undefined.',
-            event    => 'activate',
-            callback => \&on_tree_undef_colour_changed,
-        },
-        {
             type  => 'submenu_radio_group',
             label => 'Colour mode',
             items => [  #  could be refactored
@@ -411,8 +405,15 @@ sub get_tree_menu_items {
                 }
             ],
         },
+        {
+            type     => 'Gtk3::MenuItem',
+            label    => 'Set colour for undefined list values',
+            tooltip  => 'Set the colour used to display list values that are undefined.',
+            event    => 'activate',
+            callback => \&on_tree_undef_colour_changed,
+        },
         (   map {$self->get_tree_menu_item($_)}
-               qw /separator plot_branches_by set_tree_branch_line_widths
+               qw /background_colour separator plot_branches_by set_tree_branch_line_widths
                    separator export_tree /
         ),
     );
@@ -829,7 +830,6 @@ sub get_dendrogram_colour_for_undef {
     return if !$dendrogram;
     $dendrogram->get_legend->get_colour_for_undef;
 }
-
 
 sub init_grid {
     my $self = shift;
@@ -2587,6 +2587,8 @@ sub on_tree_undef_colour_changed {
 
     return;
 }
+
+
 
 
 #  methods aren't inherited when called as GTK callbacks

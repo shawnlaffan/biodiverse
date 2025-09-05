@@ -155,6 +155,10 @@ sub set_current_tree {
         $self->{current_tree} = $tree;
         my $graph_data = $cached_on_tree->{$plot_mode}{graph_data};
         $self->get_scree_plot->set_plot_coords($graph_data);
+        #  make sure this is updated
+        if ($self->{map_list_combo}) {
+            $self->setup_map_list_model( scalar $tree->get_hash_lists() );
+        }
         say "Using cached data to plot ", $tree->get_name, " using mode $plot_mode";
         return;
     }

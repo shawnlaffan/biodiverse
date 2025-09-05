@@ -229,6 +229,9 @@ sub new {
     $self->update_export_menu;
     $self->update_tree_menu (output_ref => $self->get_base_ref->get_groups_ref);
 
+    #  trigger a display so the cells are not empty
+    on_selected_labels_changed (undef, [$self]);
+
     say "[GUI] - Loaded tab - Labels";
 
     return $self;

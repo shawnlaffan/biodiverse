@@ -2055,26 +2055,26 @@ sub update_output_indices_combo {
     my $combo = $self->get_xmlpage_object('comboIndices');
     $combo->set_model($model);
 
-    # Select the previous analysis (or the first one)
+    #  If this list has a matching index then choose it,
+    #  otherwise we use the first one.
     my $iter     = $model->get_iter_first();
-    my $selected = $iter;
-    my $idx      = 0;
+    my $selected_index = $self->{selected_index} // '';
+    my $found;
 
+    my $idx = -1;
     BY_ITER:
     while ($iter) {
+        $idx++;
         my ($analysis) = $model->get($iter, 0);
-        if ($self->{selected_index} && ($analysis eq $self->{selected_index}) ) {
-            $selected = $iter;
+        if ($analysis eq $selected_index) {
+            $found = 1;
             last BY_ITER; # break loop
         }
         last BY_ITER if !$model->iter_next($iter);
-        $idx++;
     }
 
-    if ($selected) {
-        # $combo->set_active_iter($selected);  #  does not work under Gtk3, not sure why
-        $combo->set_active($idx);
-    }
+    $combo->set_active($found ? $idx : 0);
+
     $self->on_active_index_changed($combo);
 
     return;

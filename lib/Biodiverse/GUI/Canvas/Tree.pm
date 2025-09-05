@@ -155,6 +155,10 @@ sub set_current_tree {
         $self->{current_tree} = $tree;
         my $graph_data = $cached_on_tree->{$plot_mode}{graph_data};
         $self->get_scree_plot->set_plot_coords($graph_data);
+        #  make sure this is updated
+        if ($self->{map_list_combo}) {
+            $self->setup_map_list_model( scalar $tree->get_hash_lists() );
+        }
         say "Using cached data to plot ", $tree->get_name, " using mode $plot_mode";
         return;
     }
@@ -1214,7 +1218,7 @@ sub recolour_cluster_lines {
     if (keys %colour_hash) {
         my %for_cache
             = map {
-                my $c = $colour_hash{$_};
+                my $c = $colour_hash{$_} // DEFAULT_LINE_COLOUR;
                 $_ => [ $c->red, $c->green, $c->blue ]
             } keys %colour_hash;
         $self->get_current_tree->set_most_recent_line_colours_aa (\%for_cache);
@@ -1986,8 +1990,8 @@ sub setup_map_index_model {
     # Add all the analyses
     if ($indices) { # can be undef if we want to clear the list (eg: selecting "Cluster" mode)
 
-        # restore previously selected index for this list
-        my $selected_index = $self->{selected_list_index}{$indices};
+        #  Try to use the same index for this list.
+        my $selected_index = $self->{analysis_list_index} // '';
         my $selected_iter = undef;
 
         foreach my $key (sort_list_with_tree_names_aa ([keys %$indices])) {
@@ -1995,7 +1999,7 @@ sub setup_map_index_model {
             $iter = $model->append;
             $model->set($iter, 0, $key);
 
-            if (defined $selected_index && $selected_index eq $key) {
+            if ($selected_index eq $key) {
                 $selected_iter = $iter;
             }
         }
@@ -2036,7 +2040,6 @@ sub on_map_list_combo_changed {
     my $list  = $model->get($iter, 0);
 
     $self->{analysis_list_name}  = undef;
-    $self->{analysis_list_index} = undef;
     $self->{analysis_min}        = undef;
     $self->{analysis_max}        = undef;
 

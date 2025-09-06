@@ -285,6 +285,7 @@ sub new {
         comboLinkage        => {changed => \&on_combo_linkage_changed},
         comboMetric         => {changed => \&on_combo_metric_changed},
         comboMapList        => {changed => \&on_combo_map_list_changed},
+        comboMapShow        => {changed => sub {$self->queue_draw}},
 
         chk_output_to_file  => {clicked => \&on_chk_output_to_file_changed},
 

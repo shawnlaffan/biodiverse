@@ -103,6 +103,7 @@ sub fill {
         next PARAM if !$widget;  # might not be putting into table (eg: using the filechooser)
         
         my $param_name = $param->{name};
+        my $is_comment = $param->{type} eq 'comment';
 
         # Make the label
         my $label_text = $param->{label_text} // $param_name;
@@ -112,7 +113,7 @@ sub fill {
         $label->set ('max-width-chars' => 30);
         $label->set_alignment(0, 0.5);
 
-        if ($param->{type} eq 'comment') {
+        if ($is_comment) {
             #  reflow the label text, let Gtk handle the wrapping
             # $label_text =~ s/(?<=\w)\n(?!\n)/ /g;
             $label_text =~ s/\n(?!\n)/ /g;
@@ -120,7 +121,7 @@ sub fill {
             $label_text =~ s/\n/\n\n/gs;
             $label_text =~ s/^ +//gms;
             $label->set_text( $label_text );
-            $widget = undef;
+            $widget = Gtk3::Box->new ('horizontal', 0);  #  dummy widget
         }
 
         $label_widget_pairs{$param_name} = [$label, $widget];
@@ -147,7 +148,9 @@ sub fill {
             }
             $hbox //= $self->{box_groups}{$box_group_name};
             $hbox->pack_start($label, 0, 0, 0);
-            $hbox->pack_start($widget, 0, 0, 0);
+            if (!$is_comment) {
+                $hbox->pack_start($widget, 0, 0, 0);
+            }
             if ($box_group_name ne 'Debug'){
                 $hbox->show_all;
             }
@@ -157,10 +160,10 @@ sub fill {
                 $label,
                 0,
                 $nrows,
-                defined $widget ? 1 : 2,  #  comments span both columns
+                $is_comment ? 2 : 1,  #  comments span both columns
                 1,
             );
-            if (defined $widget) {
+            if (!$is_comment) {
                 $grid->attach($widget, 1, $nrows, 1, 1);
             }
         }
@@ -175,7 +178,7 @@ sub fill {
         # $widget->set ('vexpand' => 0);
 
         $label->show;
-        if ($param->{type} ne 'comment') {
+        if (!$is_comment) {
             # widgets are sensitive unless explicitly told otherwise
             $widget->set_sensitive ($param->get_always_sensitive ? 1 : $param->get_sensitive // 1);
             $widget->show_all;

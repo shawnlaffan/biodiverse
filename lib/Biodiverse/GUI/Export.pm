@@ -38,6 +38,9 @@ sub Run {
     #  stop keyboard events being applied to any open tabs
     my $snooper_status = $gui->keyboard_snooper_active;
     $gui->activate_keyboard_snooper (0);
+    #  reinstate the snooper on scope exit
+    use experimental qw /defer/;
+    defer { $gui->activate_keyboard_snooper ($snooper_status); }
 
     # Get the Parameters metadata.  No cache as we need some updates.
     my $metadata = $object->get_metadata (sub => 'export', no_use_cache => 1);
@@ -78,7 +81,6 @@ sub Run {
 
         if ($format_response ne 'ok') {
             $format_dlg->destroy;
-            $gui->activate_keyboard_snooper ($snooper_status);
             return;
         }
 
@@ -100,19 +102,15 @@ sub Run {
         selected_format => $selected_format,
     );
 
+    return if !$results->{success};
+
     my $parameters_table = $results->{param_table};
     my $extractors = $results->{extractors};
     my $dlg = $results->{dlg};
     my $chooser = $results->{chooser};
-    my $filename = $chooser->get_filename;
 
-    #  a defer block would be nice here
-    if (!$results->{success}) {
-        $gui->activate_keyboard_snooper($snooper_status);
-        return;
-    }
-    elsif (-d $filename || !length $filename) {
-        $gui->activate_keyboard_snooper($snooper_status);
+    my $filename = $chooser->get_filename;
+    if (!length $filename || Biodiverse::Common->dir_exists_aa ($filename)) {
         $dlg->destroy;
 
         Biodiverse::GUI::YesNoCancel->run({
@@ -151,13 +149,11 @@ sub Run {
             )
         };
         if ($EVAL_ERROR) {
-            $gui->activate_keyboard_snooper (1);
             $gui->report_error ($EVAL_ERROR);
         }
     }
 
     $dlg->destroy;
-    $gui->activate_keyboard_snooper ($snooper_status);
 
     return;
 }

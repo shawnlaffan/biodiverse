@@ -82,6 +82,7 @@ sub fill {
 
     my $nrows = -1;
     $grid->set_row_homogeneous(0);
+    # $grid->set_column_homogeneous(1);
     $grid->set_row_spacing (10);
     $grid->set_column_spacing (5);
 
@@ -116,7 +117,7 @@ sub fill {
             #  reflow the label text
             $label_text =~ s/(?<=\w)\n(?!\n)/ /g;
             $label->set_text( $label_text );
-            $widget = Gtk3::HBox->new;
+            $widget = undef;
         }
 
         $label_widget_pairs{$param_name} = [$label, $widget];
@@ -149,8 +150,16 @@ sub fill {
             }
         }
         else {
-            $grid->attach($label,  0, $nrows, 1, 1);
-            $grid->attach($widget, 1, $nrows, 1, 1);
+            $grid->attach(
+                $label,
+                0,
+                $nrows,
+                defined $widget ? 1 : 2,  #  comments span both columns
+                1,
+            );
+            if (defined $widget) {
+                $grid->attach($widget, 1, $nrows, 1, 1);
+            }
         }
 
         # Add a tooltip
@@ -159,14 +168,13 @@ sub fill {
             $label->set_tooltip_text ($tip_text);
         }
 
-        # widgets are sensitive unless explicitly told otherwise
-        $widget->set_sensitive ($param->get_always_sensitive ? 1 : $param->get_sensitive // 1);
-
         #  can we shrink the widget vertically?  Seems not.
         # $widget->set ('vexpand' => 0);
 
         $label->show;
         if ($param->{type} ne 'comment') {
+            # widgets are sensitive unless explicitly told otherwise
+            $widget->set_sensitive ($param->get_always_sensitive ? 1 : $param->get_sensitive // 1);
             $widget->show_all;
         }
     }

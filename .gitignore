@@ -23,4 +23,5 @@ biodiverse.iml
 /.idea
 /AGS_bin
 /etc/benchmark_scripts/nytprof
-*.ui~
+/bin/ui/*.ui~
+/bin/ui/*.ui#

@@ -110,12 +110,15 @@ sub fill {
         my $label = Gtk3::Label->new ($label_text);
         $label->set_line_wrap(1);
         $label->set ('max-width-chars' => 30);
-        #my $label_text = $label_wrapper->wrap($param->{label_text} || $param->{name});
         $label->set_alignment(0, 0.5);
 
         if ($param->{type} eq 'comment') {
-            #  reflow the label text
-            $label_text =~ s/(?<=\w)\n(?!\n)/ /g;
+            #  reflow the label text, let Gtk handle the wrapping
+            # $label_text =~ s/(?<=\w)\n(?!\n)/ /g;
+            $label_text =~ s/\n(?!\n)/ /g;
+            $label_text =~ s/  / /g;
+            $label_text =~ s/\n/\n\n/gs;
+            $label_text =~ s/^ +//gms;
             $label->set_text( $label_text );
             $widget = undef;
         }

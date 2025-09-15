@@ -1666,6 +1666,17 @@ sub file_exists {
     return;
 }
 
+sub dir_exists_aa {
+    my ($self, $dir) = @_;
+
+    return 1 if -d $dir;
+
+    return testL ('d', $dir)
+      if ON_WINDOWS;
+
+    return;
+}
+
 sub file_is_readable_aa {
     $_[0]->file_is_readable (file_name => $_[1]);
 }

@@ -128,7 +128,7 @@ sub Run {
     $filename = path($filename)->stringify;
 
     my $writefile = 'yes';
-    while (-e $filename) {
+    while (Biodiverse::Common->file_exists_aa($filename)) {
         $writefile = Biodiverse::GUI::YesNoCancel->run({
             header => "Overwrite file $filename?"
         });

@@ -6,7 +6,7 @@ use warnings;
 use Carp;
 use List::Util qw /min max/;
 
-our $VERSION = '4.99_011';
+our $VERSION = '4.99_012';
 
 use Biodiverse::Matrix;
 use Biodiverse::Exception;

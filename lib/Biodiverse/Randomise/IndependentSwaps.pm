@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use 5.022;
 
-our $VERSION = '4.99_011';
+our $VERSION = '4.99_012';
 
 use experimental 'refaliasing';
 no warnings 'experimental::refaliasing';

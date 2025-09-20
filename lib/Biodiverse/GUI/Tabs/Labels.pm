@@ -367,6 +367,7 @@ sub init_dendrogram {
         right_click_func     => $right_click_closure,
         show_legend          => 0,
         max_colours          => 1,
+        no_use_slider_to_select_nodes => 1,
     );
     $dendro->set_parent_tab($self);
     #  cannot colour more than one in a phylogeny

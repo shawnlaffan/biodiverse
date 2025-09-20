@@ -850,18 +850,18 @@ sub set_phylogeny_options_sensitive {
     #  Leaving code as a reminder, but returning early.
     return;
 
-    my $page = $self->{xmlPage};
-
-    for my $widget (
-        qw /
-            phylogeny_plot_length
-            phylogeny_plot_depth
-            highlight_groups_on_map_labels_tab
-            use_highlight_path_changed1
-            menuitem_labels_set_tree_line_widths
-        /) { #/
-        $page->get_object($widget)->set_sensitive($enabled);
-    }
+    # my $page = $self->{xmlPage};
+    #
+    # for my $widget (
+    #     qw /
+    #         phylogeny_plot_length
+    #         phylogeny_plot_depth
+    #         highlight_groups_on_map_labels_tab
+    #         use_highlight_path_changed1
+    #         menuitem_labels_set_tree_line_widths
+    #     /) { #/
+    #     $page->get_object($widget)->set_sensitive($enabled);
+    # }
 }
 
 sub on_selected_phylogeny_changed {

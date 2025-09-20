@@ -399,7 +399,7 @@ sub _on_button_release {
 sub _select_while_not_selecting {
     my ($self, $widget, $x, $y) = @_;
 
-    if ($self->get_show_slider && $self->{selecting}) {
+    if ($self->get_show_slider && $self->selecting) {
         my $slider = $self->get_slider_coords;
         \my @b = $slider->{bounds};
         if ($x >= $b[0] && $x < $b[2] && $y >= $b[1] && $y < $b[3]) {
@@ -431,6 +431,12 @@ sub _select_while_not_selecting {
     }
 
     return FALSE;
+}
+
+sub draw_selection_rect {
+    my ($self, @args) = @_;
+    return if $self->sliding;
+    $self->SUPER::draw_selection_rect(@args);
 }
 
 sub _on_ctl_click {

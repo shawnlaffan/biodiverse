@@ -315,6 +315,17 @@ sub hotkey_handler {
         my ($self) = @_;
         (Time::HiRes::time - $self->get_last_hotkey_event_time) < 0.01;
     }
+
+    state $last_hotkey_cache_key = 'last_hot_key_time';
+    sub get_last_hot_key {
+        my ($self) = @_;
+        $self->{$last_hotkey_cache_key};
+    }
+
+    sub set_last_hot_key {
+        my ($self, $key) = @_;
+        $self->{$last_hotkey_cache_key} = $key;
+    }
 }
 
 ######################################
@@ -351,6 +362,12 @@ sub on_bare_key {
     #  early return if key presses are too quick
     return if $self->check_hot_key_double_pump;
 
+    my $last_hotkey = $self->get_last_hot_key;
+    $self->set_last_hot_key (uc $key);
+    my $double_key
+        = (Time::HiRes::time - $self->get_last_hotkey_event_time)
+        < 0.3;
+
     $self->set_last_hotkey_event_time;
 
     # Immediate actions without changing the current tool.
@@ -371,6 +388,9 @@ sub on_bare_key {
         Down  => 'do_pan_down',
         V     => 'do_zoom_fit',
     );
+    state %double_key_methods = (
+        V     => 'do_zoom_fit',
+    );
 
     my $inst_meth  = $instant_key_methods{$key}
         // ($self->{tool} =~ /Zoom/ and $instant_zoom_methods{$key});
@@ -380,8 +400,24 @@ sub on_bare_key {
     }
     else {
         # TODO: Add other tools and stop requiring upper case
-        my $tool = $key_tool_map{uc $key};
-        $self->choose_tool($tool) if defined $tool;
+        $key = uc $key;
+        if (my $tool = $key_tool_map{$key}) {
+            my $prev_tool = $self->{previous_tool} //= 'Select';
+            if (   $double_key
+                && $key eq $last_hotkey
+                && $double_key_methods{$key}
+                && $instant_key_methods{$key}
+            ) {
+                #  user double tapped on the key
+                my $meth = $double_key_methods{$key};
+                $active_pane->$meth;
+                #  leave tool as it was before double tap
+                $self->choose_tool($prev_tool);
+            }
+            else {
+                $self->choose_tool($tool);
+            }
+        }
     }
 
     return 1;
@@ -419,7 +455,8 @@ sub choose_tool {
 
     return if !$tool;
 
-    my $old_tool = $self->{tool};
+    my $old_tool = $self->{tool} //= 'Select';
+    $self->{previous_tool} = $old_tool;
 
     if ($old_tool) {
         #  should really edit the ui files so they use the same names

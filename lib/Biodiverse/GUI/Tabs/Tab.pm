@@ -344,12 +344,12 @@ sub on_overlays {
 }
 
 my %key_tool_map = (
-    Z => 'ZoomIn',
-    X => 'ZoomOut',
-    C => 'Pan',
-    V => 'ZoomFit',
-    B => 'Select',
-    S => 'Select',
+    z => 'ZoomIn',
+    x => 'ZoomOut',
+    c => 'Pan',
+    v => 'ZoomFit',
+    b => 'Select',
+    s => 'Select',
 );
 
 # Default for tabs that don't implement on_bare_key
@@ -410,8 +410,7 @@ sub on_bare_key {
         #  leave tool as it was before double tap
         $self->choose_tool($self->{previous_tool} //= 'Select');
     }
-    elsif (my $tool = $key_tool_map{uc $key}) {
-        # TODO: Stop requiring upper case
+    elsif (my $tool = $key_tool_map{$key}) {
         $self->choose_tool($tool);
     }
 

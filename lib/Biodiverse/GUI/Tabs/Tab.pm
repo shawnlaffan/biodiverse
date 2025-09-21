@@ -363,7 +363,7 @@ sub on_bare_key {
     return if $self->check_hot_key_double_pump;
 
     my $last_hotkey = $self->get_last_hot_key;
-    $self->set_last_hot_key (uc $key);
+    $self->set_last_hot_key ($key);
     my $double_key
         = (Time::HiRes::time - $self->get_last_hotkey_event_time)
         < 0.3;
@@ -389,9 +389,9 @@ sub on_bare_key {
         V     => 'do_zoom_fit',
     );
     state %double_key_methods = (
-        V     => 'do_zoom_fit',
-        Z     => 'do_zoom_in_centre',
-        X     => 'do_zoom_out_centre',
+        v     => 'do_zoom_fit',
+        z     => 'do_zoom_in_centre',
+        x     => 'do_zoom_out_centre',
     );
 
     my $inst_meth  = $instant_key_methods{$key}
@@ -400,25 +400,19 @@ sub on_bare_key {
     if ($inst_meth) {
         $active_pane->$inst_meth;
     }
-    else {
-        # TODO: Add other tools and stop requiring upper case
-        $key = uc $key;
-        if (my $tool = $key_tool_map{$key}) {
-            my $prev_tool = $self->{previous_tool} //= 'Select';
-            if (   $double_key
-                && $key eq $last_hotkey
-                && $double_key_methods{$key}
-            ) {
-                #  user double tapped on the key
-                my $meth = $double_key_methods{$key};
-                $active_pane->$meth;
-                #  leave tool as it was before double tap
-                $self->choose_tool($prev_tool);
-            }
-            else {
-                $self->choose_tool($tool);
-            }
-        }
+    elsif (   $double_key
+           && $key eq $last_hotkey
+           && $double_key_methods{$key}
+        ) {
+        #  user double tapped on the key
+        my $meth = $double_key_methods{$key};
+        $active_pane->$meth;
+        #  leave tool as it was before double tap
+        $self->choose_tool($self->{previous_tool} //= 'Select');
+    }
+    elsif (my $tool = $key_tool_map{uc $key}) {
+        # TODO: Stop requiring upper case
+        $self->choose_tool($tool);
     }
 
     return 1;

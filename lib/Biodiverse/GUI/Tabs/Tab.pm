@@ -384,7 +384,7 @@ sub on_bare_key {
         $self->choose_tool($tool) if defined $tool;
     }
 
-    return;
+    return 1;
 }
 
 #  a default list

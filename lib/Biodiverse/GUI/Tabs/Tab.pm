@@ -343,15 +343,6 @@ sub on_overlays {
     return;
 }
 
-my %key_tool_map = (
-    z => 'ZoomIn',
-    x => 'ZoomOut',
-    c => 'Pan',
-    v => 'ZoomFit',
-    b => 'Select',
-    s => 'Select',
-);
-
 # Default for tabs that don't implement on_bare_key
 sub on_bare_key {
     my ($self, $key, $event) = @_;
@@ -370,8 +361,16 @@ sub on_bare_key {
 
     $self->set_last_hotkey_event_time;
 
-    # Immediate actions without changing the current tool.
+    state %key_tool_map = (
+        z => 'ZoomIn',
+        x => 'ZoomOut',
+        c => 'Pan',
+        v => 'ZoomFit',
+        b => 'Select',
+        s => 'Select',
+    );
 
+    # Immediate actions without changing the current tool.
     #  these only apply in zoom mode, and are redundant now we use the +/-/= keys
     state %instant_zoom_methods = (
         # i => 'do_zoom_in_centre',

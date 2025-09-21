@@ -313,7 +313,18 @@ sub hotkey_handler {
 
     sub check_hot_key_double_pump {
         my ($self) = @_;
-        (Time::HiRes::time - $self->get_last_hotkey_event_time) < 0.1;
+        (Time::HiRes::time - $self->get_last_hotkey_event_time) < 0.01;
+    }
+
+    state $last_hotkey_cache_key = 'last_hot_key_time';
+    sub get_last_hot_key {
+        my ($self) = @_;
+        $self->{$last_hotkey_cache_key};
+    }
+
+    sub set_last_hot_key {
+        my ($self, $key) = @_;
+        $self->{$last_hotkey_cache_key} = $key;
     }
 }
 
@@ -332,15 +343,6 @@ sub on_overlays {
     return;
 }
 
-my %key_tool_map = (
-    Z => 'ZoomIn',
-    X => 'ZoomOut',
-    C => 'Pan',
-    V => 'ZoomFit',
-    B => 'Select',
-    S => 'Select',
-);
-
 # Default for tabs that don't implement on_bare_key
 sub on_bare_key {
     my ($self, $key, $event) = @_;
@@ -351,10 +353,24 @@ sub on_bare_key {
     #  early return if key presses are too quick
     return if $self->check_hot_key_double_pump;
 
+    my $last_hotkey = $self->get_last_hot_key;
+    $self->set_last_hot_key ($key);
+    my $double_key
+        = (Time::HiRes::time - $self->get_last_hotkey_event_time)
+        < 0.3;
+
     $self->set_last_hotkey_event_time;
 
-    # Immediate actions without changing the current tool.
+    state %key_tool_map = (
+        z => 'ZoomIn',
+        x => 'ZoomOut',
+        c => 'Pan',
+        v => 'ZoomFit',
+        b => 'Select',
+        s => 'Select',
+    );
 
+    # Immediate actions without changing the current tool.
     #  these only apply in zoom mode, and are redundant now we use the +/-/= keys
     state %instant_zoom_methods = (
         # i => 'do_zoom_in_centre',
@@ -370,6 +386,13 @@ sub on_bare_key {
         Up    => 'do_pan_up',
         Down  => 'do_pan_down',
         V     => 'do_zoom_fit',
+        Z     => 'do_zoom_in_centre',
+        X     => 'do_zoom_out_centre',
+    );
+    state %double_key_methods = (
+        v     => 'do_zoom_fit',
+        z     => 'do_zoom_in_centre',
+        x     => 'do_zoom_out_centre',
     );
 
     my $inst_meth  = $instant_key_methods{$key}
@@ -378,13 +401,21 @@ sub on_bare_key {
     if ($inst_meth) {
         $active_pane->$inst_meth;
     }
-    else {
-        # TODO: Add other tools and stop requiring upper case
-        my $tool = $key_tool_map{uc $key};
-        $self->choose_tool($tool) if defined $tool;
+    elsif (   $double_key
+           && $key eq $last_hotkey
+           && $double_key_methods{$key}
+        ) {
+        #  user double tapped on the key
+        my $meth = $double_key_methods{$key};
+        $active_pane->$meth;
+        #  leave tool as it was before double tap
+        $self->choose_tool($self->{previous_tool} //= 'Select');
+    }
+    elsif (my $tool = $key_tool_map{$key}) {
+        $self->choose_tool($tool);
     }
 
-    return;
+    return 1;
 }
 
 #  a default list
@@ -419,7 +450,8 @@ sub choose_tool {
 
     return if !$tool;
 
-    my $old_tool = $self->{tool};
+    my $old_tool = $self->{tool} //= 'Select';
+    $self->{previous_tool} = $old_tool;
 
     if ($old_tool) {
         #  should really edit the ui files so they use the same names

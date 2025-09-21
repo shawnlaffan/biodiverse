@@ -386,6 +386,8 @@ sub on_bare_key {
         Up    => 'do_pan_up',
         Down  => 'do_pan_down',
         V     => 'do_zoom_fit',
+        Z     => 'do_zoom_in_centre',
+        X     => 'do_zoom_out_centre',
     );
     state %double_key_methods = (
         v     => 'do_zoom_fit',

@@ -390,6 +390,8 @@ sub on_bare_key {
     );
     state %double_key_methods = (
         V     => 'do_zoom_fit',
+        Z     => 'do_zoom_in_centre',
+        X     => 'do_zoom_out_centre',
     );
 
     my $inst_meth  = $instant_key_methods{$key}
@@ -406,7 +408,6 @@ sub on_bare_key {
             if (   $double_key
                 && $key eq $last_hotkey
                 && $double_key_methods{$key}
-                && $instant_key_methods{$key}
             ) {
                 #  user double tapped on the key
                 my $meth = $double_key_methods{$key};

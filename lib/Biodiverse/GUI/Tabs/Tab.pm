@@ -313,7 +313,7 @@ sub hotkey_handler {
 
     sub check_hot_key_double_pump {
         my ($self) = @_;
-        (Time::HiRes::time - $self->get_last_hotkey_event_time) < 0.1;
+        (Time::HiRes::time - $self->get_last_hotkey_event_time) < 0.01;
     }
 }
 

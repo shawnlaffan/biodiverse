@@ -135,11 +135,11 @@ sub new {
         comboIndices   => { changed   => \&on_active_index_changed },
 
         #  need to refactor common elements with Spatial.pm
-        btnSelectToolSP  => {clicked => \&on_select_tool},
-        btnPanToolSP     => {clicked => \&on_pan_tool},
-        btnZoomInToolSP  => {clicked => \&on_zoom_in_tool},
-        btnZoomOutToolSP => {clicked => \&on_zoom_out_tool},
-        btnZoomFitToolSP => {clicked => \&on_zoom_fit_tool},
+        btnSelectTool    => {clicked => \&on_select_tool},
+        btnPanTool       => {clicked => \&on_pan_tool},
+        btnZoomInTool    => {clicked => \&on_zoom_in_tool},
+        btnZoomOutTool   => {clicked => \&on_zoom_out_tool},
+        btnZoomFitTool   => {clicked => \&on_zoom_fit_tool},
 
         menuitem_spatial_overlays => {activate => \&on_overlays},
 

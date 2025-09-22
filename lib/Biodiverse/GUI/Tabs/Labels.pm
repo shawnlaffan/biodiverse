@@ -185,15 +185,15 @@ sub new {
         );
     };
 
-    $sig_clicked->('btnSelectToolVL',  \&on_select_tool);
-    $sig_clicked->('btnPanToolVL',     \&on_pan_tool);
-    $sig_clicked->('btnZoomInToolVL',  \&on_zoom_in_tool);
-    $sig_clicked->('btnZoomOutToolVL', \&on_zoom_out_tool);
-    $sig_clicked->('btnZoomFitToolVL', \&on_zoom_fit_tool);
+    $sig_clicked->('btnSelectTool',  \&on_select_tool);
+    $sig_clicked->('btnPanTool',     \&on_pan_tool);
+    $sig_clicked->('btnZoomInTool',  \&on_zoom_in_tool);
+    $sig_clicked->('btnZoomOutTool', \&on_zoom_out_tool);
+    $sig_clicked->('btnZoomFitTool', \&on_zoom_fit_tool);
 
     $self->get_xmlpage_object('menuitem_labels_overlays')->signal_connect_swapped(activate => \&on_overlays, $self);
 
-    $self->get_xmlpage_object('btnSelectToolVL')->set_active(1);
+    $self->get_xmlpage_object('btnSelectTool')->set_active(1);
 
     $self->get_xmlpage_object('menuitem_labels_show_legend')->signal_connect_swapped(
         toggled => \&on_show_hide_legend,

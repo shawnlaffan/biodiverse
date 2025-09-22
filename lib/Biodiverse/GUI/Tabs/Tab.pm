@@ -454,20 +454,10 @@ sub choose_tool {
     $self->{previous_tool} = $old_tool;
 
     if ($old_tool) {
-        #  should really edit the ui files so they use the same names
-        state %widget_suffixes = (
-            'Biodiverse::GUI::Tabs::Labels'        => 'VL',
-            'Biodiverse::GUI::Tabs::Clustering'    => 'CL',
-            'Biodiverse::GUI::Tabs::Spatial'       => 'SP',
-            'Biodiverse::GUI::Tabs::SpatialMatrix' => 'SP',
-        );
-        my $class = blessed $self;
-        my $suffix = $widget_suffixes{$class} // die "Unknown tab class $class";
-
         $self->{ignore_tool_click} = 1;
-        my $widget = $self->get_xmlpage_object("btn${old_tool}Tool${suffix}");
+        my $widget = $self->get_xmlpage_object("btn${old_tool}Tool");
         $widget->set_active(0);
-        my $new_widget = $self->get_xmlpage_object("btn${tool}Tool${suffix}");
+        my $new_widget = $self->get_xmlpage_object("btn${tool}Tool");
         $new_widget->set_active(1);
         $self->{ignore_tool_click} = 0;
     }

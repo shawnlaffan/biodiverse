@@ -267,11 +267,11 @@ sub new {
         comboLists      => {changed => \&on_active_list_changed},
         comboIndices    => {changed => \&on_active_index_changed},
 
-        btnSelectToolSP  => {clicked => \&on_select_tool},
-        btnPanToolSP     => {clicked => \&on_pan_tool},
-        btnZoomInToolSP  => {clicked => \&on_zoom_in_tool},
-        btnZoomOutToolSP => {clicked => \&on_zoom_out_tool},
-        btnZoomFitToolSP => {clicked => \&on_zoom_fit_tool},
+        btnSelectTool    => {clicked => \&on_select_tool},
+        btnPanTool       => {clicked => \&on_pan_tool},
+        btnZoomInTool    => {clicked => \&on_zoom_in_tool},
+        btnZoomOutTool   => {clicked => \&on_zoom_out_tool},
+        btnZoomFitTool   => {clicked => \&on_zoom_fit_tool},
 
         menuitem_spatial_overlays => {activate => \&on_overlays},
         menuitem_spatial_colour_mode_hue  => {toggled  => \&on_colour_mode_changed},

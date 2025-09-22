@@ -271,11 +271,11 @@ sub new {
         menuitem_cluster_overlays => {activate => \&on_overlays},
         spinClusters        => {'value-changed' => \&on_clusters_changed},
 
-        btnSelectToolCL     => {clicked => \&on_select_tool},
-        btnPanToolCL        => {clicked => \&on_pan_tool},
-        btnZoomInToolCL     => {clicked => \&on_zoom_in_tool},
-        btnZoomOutToolCL    => {clicked => \&on_zoom_out_tool},
-        btnZoomFitToolCL    => {clicked => \&on_zoom_fit_tool},
+        btnSelectTool       => {clicked => \&on_select_tool},
+        btnPanTool          => {clicked => \&on_pan_tool},
+        btnZoomInTool       => {clicked => \&on_zoom_in_tool},
+        btnZoomOutTool      => {clicked => \&on_zoom_out_tool},
+        btnZoomFitTool      => {clicked => \&on_zoom_fit_tool},
 
         menuitem_cluster_colour_mode_hue  => {toggled  => \&on_colour_mode_changed},
         menuitem_cluster_colour_mode_sat  => {activate => \&on_colour_mode_changed},

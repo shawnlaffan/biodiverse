@@ -28,7 +28,7 @@
             <property name="has-tooltip">True</property>
             <property name="tooltip-text" translatable="yes">Select (S or B)</property>
             <child>
-              <object class="GtkToggleButton" id="btnSelectToolSP">
+              <object class="GtkToggleButton" id="btnSelectTool">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
@@ -56,7 +56,7 @@
             <property name="has-tooltip">True</property>
             <property name="tooltip-text" translatable="yes">Pan (C)</property>
             <child>
-              <object class="GtkToggleButton" id="btnPanToolSP">
+              <object class="GtkToggleButton" id="btnPanTool">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
@@ -83,7 +83,7 @@
             <property name="can-focus">False</property>
             <property name="tooltip-text" translatable="yes">Zoom In (Z)</property>
             <child>
-              <object class="GtkToggleButton" id="btnZoomInToolSP">
+              <object class="GtkToggleButton" id="btnZoomInTool">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
@@ -110,7 +110,7 @@
             <property name="can-focus">False</property>
             <property name="tooltip-text" translatable="yes">Zoom Out (X)</property>
             <child>
-              <object class="GtkToggleButton" id="btnZoomOutToolSP">
+              <object class="GtkToggleButton" id="btnZoomOutTool">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
@@ -137,7 +137,7 @@
             <property name="can-focus">False</property>
             <property name="tooltip-text" translatable="yes">Zoom to Fit (V)</property>
             <child>
-              <object class="GtkToggleButton" id="btnZoomFitToolSP">
+              <object class="GtkToggleButton" id="btnZoomFitTool">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>

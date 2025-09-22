@@ -10,6 +10,7 @@ use experimental qw/refaliasing/;
 
 use Path::Tiny;
 use Geo::GDAL::FFI;
+use Ref::Util qw /is_arrayref/;
 
 use Biodiverse::GUI::Overlays::Geometry;
 
@@ -67,15 +68,19 @@ sub load_data {
     foreach my $id (@$id_array) {
         my $feature  = $layer->GetFeature($id + $fid_base);
         my $geom     = $feature->GetGeomField();
+        #  get type at the geom  level as
+        #  shapefile layers don't flag as multi
+        my $type     = $geom->GetType;
         my $item = $features[$id] //= Biodiverse::GUI::Overlays::Geometry->new (
             extent => [@{$geom->GetEnvelope}[0,2,1,3]],  #  x1,y1,x2,y2
             id     => $id,
-            type   => $self->{type},
+            type   => $type,
         );
         if (!($lazy_load && $item->{geometry})) {
             my $g = $geom->GetPoints (0, 0);  #  no Z or M
+            $is_multi_type = $item->{type} =~ /Multi/;
             #  this way we have one structure for the plotting to handle
-            $item->{geometry} = $is_multi_type ? $g : [$g];
+            $item->{geometry} = $is_multi_type ? $g : [ $g ];
         }
     }
 

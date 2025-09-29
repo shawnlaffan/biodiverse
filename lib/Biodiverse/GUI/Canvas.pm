@@ -63,7 +63,13 @@ sub new {
     $drawable->signal_connect(button_press_event => sub {$self->on_button_press (@_)});
     $drawable->signal_connect(button_release_event => sub {$self->on_button_release (@_)});
     $drawable->signal_connect(
-        leave_notify_event => sub {$self->get_parent_tab->set_active_pane('')}
+        leave_notify_event => sub {
+            if (my $g = $self->{end_hover_func}) {
+                $g->();
+                $self->queue_draw;
+            }
+            $self->get_parent_tab->set_active_pane('')
+        }
     );
     $drawable->signal_connect(
         enter_notify_event => sub {$self->get_parent_tab->set_active_pane($self)}

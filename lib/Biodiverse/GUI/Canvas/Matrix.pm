@@ -41,10 +41,14 @@ sub new {
     $self->{ncells_y} = $size;
     $self->{size}     = $size;
 
+    $self->init_legend(%args, parent => $self);
+    $self->get_legend->set_visible(1);
+
     $self->{callbacks} = {
         map        => sub {shift->draw_cells_cb(@_)},
         highlight  => sub {shift->highlight_cb (@_)},
-        sel_rect   => sub {shift->draw_selection_rect (@_)}
+        sel_rect   => sub {shift->draw_selection_rect (@_)},
+        legend     => sub {shift->get_legend->draw(@_)},
     };
 
     $self->init_data;
@@ -53,7 +57,7 @@ sub new {
 }
 
 sub callback_order {
-    return ('map', 'sel_rect');
+    return ('map', 'sel_rect', 'legend');
     # return ('map', 'highlight');
 }
 
@@ -184,6 +188,7 @@ sub set_current_matrix {
     if (!$mx) {
         $self->{current_matrix} = undef;
         $self->{mx_overlaps} = undef;
+        $self->get_legend->set_visible(0);
         return;
     }
 
@@ -194,7 +199,10 @@ sub set_current_matrix {
 
     $self->{mx_overlaps} = $have_overlap;
 
-    return if !$have_overlap;
+    if (!$have_overlap) {
+        $self->get_legend->set_visible(0);
+        return;
+    }
 
     #  ensure we refresh if we now have data
     if ($have_overlap && !keys %{$self->{data} // {}}) {
@@ -208,6 +216,7 @@ sub set_current_matrix {
     $legend->set_stats ($stats);
     $legend->set_min_max ($stats->{MIN}, $stats->{MAX});
     $self->init_data;
+    $legend->set_visible(1);
 
     return;
 }

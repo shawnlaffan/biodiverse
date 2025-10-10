@@ -13,6 +13,7 @@ binmode STDERR, ":utf8";
 use JSON::PP ();
 
 use Ref::Util qw { :all };
+use Path::Tiny qw/path/;
 
 use English ( -no_match_vars );
 
@@ -79,24 +80,42 @@ BEGIN {
             unshift @PATH, @paths;
         }
     }
-    eval 'use Alien::GtkStack::Windows';
-    if (!$EVAL_ERROR) {
-        say "Added Alien::GtkStack::Windows bin dir to path";
-        say "GI_TYPELIB_PATH is now $ENV{GI_TYPELIB_PATH}"
-            if $ENV{GI_TYPELIB_PATH};
-        say "XDG_DATA_DIRS is now $ENV{XDG_DATA_DIRS}"
-            if $ENV{XDG_DATA_DIRS};
+    if ($^O =~ /mswin/i) {
+        eval 'use Alien::GtkStack::Windows';
+        if (!$EVAL_ERROR) {
+            say "Added Alien::GtkStack::Windows bin dir to path";
+            say "GI_TYPELIB_PATH is now $ENV{GI_TYPELIB_PATH}"
+                if $ENV{GI_TYPELIB_PATH};
+            say "XDG_DATA_DIRS is now $ENV{XDG_DATA_DIRS}"
+                if $ENV{XDG_DATA_DIRS};
+        }
+        if ($ENV{PAR_0}) {
+            my $base = path($ENV{PAR_TEMP}, "inc/lib/auto");
+            #say "Looking for Gtk3 stuff under $base";
+            # my @path_args;
+            foreach my $name (qw/Glib Pango Cairo Gtk3/) {
+                my $dir = $base->child($name);
+                next if !$dir->exists;
+                say "Adding $dir to path";
+                push @PATH, $dir;
+            }
+        }
     }
-    if ($ENV{PAR_0}) {
-        use Path::Tiny qw /path/;
-        my $base = path ($ENV{PAR_TEMP}, "inc/lib/auto");
-        #say "Looking for Gtk3 stuff under $base";
-        # my @path_args;
-        foreach my $name (qw /Glib Pango Cairo Gtk3/) {
-            my $dir = $base->child($name);
-            next if !$dir->exists;
-            say "Adding $dir to path";
-            push @PATH, $dir;
+    elsif ($ENV{PAR_0}) {
+        my $xdg = path ($ENV{PAR_TEMP}, 'inc', 'share');
+        if (-e $xdg) {
+            say "Setting \$ENV{XDG_DATA_DIRS} to $xdg";
+            $ENV{XDG_DATA_DIRS} = $xdg;
+        }
+        my $gir = path ($ENV{PAR_TEMP}, 'inc', 'girepository-1.0');
+        if (-e $gir) {
+            say "Setting \$ENV{GI_TYPELIB_PATH} to $gir";
+            $ENV{GI_TYPELIB_PATH} = $gir;
+        }
+        my $proj = path "$ENV{PAR_TEMP}/inc/proj";
+        if (-e $proj) {
+            say "Setting \$ENV{PROJ_DATA} to $proj";
+            $ENV{PROJ_DATA} = $proj;
         }
     }
 }
@@ -135,7 +154,7 @@ BEGIN {
         if (not eval "require $module") {
             #say $@ if $@;
             my $feedback = <<"END_FEEDBACK"
-Cannot locate the $module package.  
+Cannot locate the $module package.
 You probably need to install it using
   cpanm $module
 at the command prompt.

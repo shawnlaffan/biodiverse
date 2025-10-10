@@ -15,7 +15,7 @@ use parent qw /Biodiverse::Indices::PhylogeneticRelative::RefAlias/;
 
 use Carp;
 
-our $VERSION = '4.99_012';
+our $VERSION = '4.99_013';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 

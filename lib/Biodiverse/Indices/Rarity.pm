@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.020;
 
-our $VERSION = '4.99_012';
+our $VERSION = '4.99_013';
 
 #  we need access to one sub from Endemism.pm,
 #  but since we are loaded by Indices.pm

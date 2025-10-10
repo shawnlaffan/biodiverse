@@ -13,7 +13,7 @@ use Biodiverse::Progress;
 use List::Util 1.33 qw /any sum min max/;
 use Scalar::Util qw /blessed/;
 
-our $VERSION = '4.99_012';
+our $VERSION = '4.99_013';
 
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';

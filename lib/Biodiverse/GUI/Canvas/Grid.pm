@@ -702,13 +702,15 @@ sub set_overlay {
 
 sub _error_msg_no_shapes_in_plot_area {
     state $txt = <<~'EOL'
-        No shapes overlap the plot area.
+        No shapes overlap the plot area, file will be ignored.
 
         A common cause is that the shapefile coordinate system does
         not match that of the BaseData, for example your BaseData
         is in a UTM coordinate system but the shapefile is in
         decimal degrees.  If this is the case then your shapefile
         can be reprojected to match your spatial data using GIS software.
+
+        This message will be shown only once.
         EOL
     ;
     return $txt;
@@ -743,11 +745,12 @@ sub load_shapefile {
     if (!$shape_count_in_plot_area) {
         use Path::Tiny qw /path/;
         my $msg = $self->_error_msg_no_shapes_in_plot_area;
-        $msg = path($fname)->basename . ": $msg\n\nFile path:\n$fname";
+        $msg = path($fname)->basename . ": $msg\n\nFull file path:\n$fname";
         $gui->report_error (
             $msg,
             'No shapes overlap the plot area',
         );
+        $shape_cache->{$fname} = [];
         return;
     }
 

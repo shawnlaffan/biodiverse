@@ -741,8 +741,11 @@ sub load_shapefile {
 
     my $gui = Biodiverse::GUI::GUIManager->instance;
     if (!$shape_count_in_plot_area) {
+        use Path::Tiny qw /path/;
+        my $msg = $self->_error_msg_no_shapes_in_plot_area;
+        $msg = path($fname)->basename . ": $msg\n\nFile path:\n$fname";
         $gui->report_error (
-            $self->_error_msg_no_shapes_in_plot_area,
+            $msg,
             'No shapes overlap the plot area',
         );
         return;

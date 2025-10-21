@@ -567,7 +567,7 @@ sub on_set {
         $plot_count{$plot_position}++;
         my $name = $layer{name};
         say qq{[Overlay] Plotting "$name" as an $plot_position};
-        my $colour = $layer{rgba};
+        my $colour = $layer{rgba} // $default_colour;
         if (!is_blessed_ref $colour) {
             $colour = Gtk3::Gdk::RGBA::parse ($colour);
         }

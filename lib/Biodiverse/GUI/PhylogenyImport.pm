@@ -36,7 +36,10 @@ sub run {
     # 1. Get the name & NEXUS filename
     #########
     my $extensions =
-      [ [ 'nex', 'tre', 'nwk', 'phy', 'json' ], 'nex', 'tre', 'nwk', 'phy', 'json', '*' ];
+      [ [ 'nex', 'tre', 'nwk', 'newick', 'phy', 'json' ],
+          'nex', 'tre',
+          [ 'nwk', 'newick' ], 'phy', 'json', '*'
+      ];
     if ($use_tabular_format) {    #  override
         $extensions = [ [ 'txt', 'csv' ], 'txt', 'csv', '*', ];
     }

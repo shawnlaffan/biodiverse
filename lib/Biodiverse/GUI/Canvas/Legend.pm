@@ -258,16 +258,16 @@ sub make_data {
     }
     elsif ($self->get_zscore_mode) {
         @labels = ('<-2.58', '[-2.58,-1.96)', '[-1.96,-1.65)', '[-1.65,1.65]', '(1.65,1.96]', '(1.96,2.58]', '>2.58');
-        my @dummy_zvals = reverse (-2.6, -2, -1.7, 0, 1.7, 2, 2.6);
-        foreach my $i (0..$#dummy_zvals) {
+        my @dummy_zvals = (-2.6, -2, -1.7, 0, 1.7, 2, 2.6);
+        foreach my $i (reverse 0..$#dummy_zvals) {
             my $colour = $self->get_colour_zscore ($dummy_zvals[$i]);
             push @colours, [ $self->rgba_to_cairo($colour) ];
         }
     }
     elsif ($self->get_prank_mode) {
-        @labels = ('<0.01', '<0.025', '<0.05', '[0.05,0.95]', '>0.95', '>0.975', '>0.99');
-        my @dummy_vals = reverse (0.001, 0.02, 0.04, 0.5, 0.951, 0.978, 0.991);
-        foreach my $i (0..$#dummy_vals) {
+        @labels = reverse ('<0.01', '<0.025', '<0.05', '[0.05,0.95]', '>0.95', '>0.975', '>0.99');
+        my @dummy_vals = (0.001, 0.02, 0.04, 0.5, 0.951, 0.978, 0.991);
+        foreach my $i (reverse 0..$#dummy_vals) {
             my $colour = $self->get_colour_prank ($dummy_vals[$i]);
             push @colours, [ $self->rgba_to_cairo($colour) ];
         }

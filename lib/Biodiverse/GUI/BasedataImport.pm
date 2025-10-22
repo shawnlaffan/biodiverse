@@ -459,20 +459,26 @@ sub run {
             $s_dlgxml->add_from_file(
                 $gui->get_gtk_ui_file('dlgImportParameters.ui') );
             $dlg = $s_dlgxml->get_object('dlgImportParameters');
-            my $table = $s_dlgxml->get_object('tableImportParameters');
+            my $spreadsheet_params_table = $s_dlgxml->get_object('tableImportParameters');
 
      # (passing $dlgxml because generateFile uses existing widget on the dialog)
             my $parameters_table = Biodiverse::GUI::ParametersTable->new;
-            my $extractors =
-              $parameters_table->fill( [$param], $table, $s_dlgxml );
+            my $extractors = $parameters_table->fill(
+                [$param],
+                $spreadsheet_params_table,
+                $s_dlgxml
+            );
 
             $dlg->show_all;
             $response = $dlg->run;
+
+            #  harvest before dlg destruction
+            my $chosen_params = $parameters_table->extract($extractors);
+
             $dlg->destroy;
 
             return if $response ne 'ok';
 
-            my $chosen_params = $parameters_table->extract($extractors);
             my %chosen_params = @$chosen_params;
             $spreadsheet_sheet_id = $sheets->{ $chosen_params{'sheet_id'} };
 

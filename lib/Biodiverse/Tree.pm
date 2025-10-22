@@ -2760,7 +2760,7 @@ sub trim {
         $progress->close_off;
 
         $deleted_internal_count = scalar keys %deleted_hash;
-        say "[TREE] Deleted $deleted_internal_count internal nodes"
+        say "[TREE] Deleted $deleted_internal_count internal nodes "
            . "with no named descendents";
     }
     

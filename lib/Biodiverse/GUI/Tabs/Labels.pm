@@ -1655,10 +1655,11 @@ sub show_phylogeny_labels {
     my $elements = $node_ref->get_terminal_elements;
     my $model = Gtk3::ListStore->new('Glib::String', 'Glib::Int');
 
+    use Ref::Util qw /is_scalarref/;
     foreach my $element (natsort keys %{$elements}) {
         my $count = $elements->{$element};
         my $iter = $model->append;
-        $model->set($iter, 0,$element,  1, $count);
+        $model->set($iter, 0,$element,  1, is_scalarref($count) ? $$count : $count);
     }
 
     $popup->set_list_model($model);

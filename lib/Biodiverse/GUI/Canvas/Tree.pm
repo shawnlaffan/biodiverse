@@ -613,7 +613,7 @@ sub get_vertical_line_width {
 }
 
 sub x_scale {
-    1 / $_[0]->{data}{widest_path}
+    1 / ($_[0]->{data}{widest_path} || 1)
 }
 
 sub y_scale {
@@ -819,7 +819,7 @@ sub init_plot_coords {
     my $x_scale  = $self->x_scale;
     my $y_scale  = $self->y_scale;
 
-    $root->{x_r} //= $data->{longest_path} / $data->{widest_path};
+    $root->{x_r} //= $data->{longest_path} / ($data->{widest_path} || 1);
 
     while (my $branch = shift @branches) {
         $branch->{y} = $branch->{_y} * $y_scale;

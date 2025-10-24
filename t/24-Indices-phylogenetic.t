@@ -49,6 +49,7 @@ my @calcs = qw/
     calc_phylo_corrected_weighted_endemism
     calc_phylo_corrected_weighted_rarity
     calc_phylo_abundance
+    calc_rwibald
 /;
 
 use Devel::Symdump;
@@ -561,11 +562,289 @@ sub test_neg_branch_lengths {
 }
 
 
-done_testing;
+sub test_rwibald_all_cells {
+    #  these indices should sum to PD when all groups are used in the analysis
+    #  some lists should also sum to 1 - need to change the subroutine name
+
+    my @calcs = qw/calc_rwibald/;
+
+    my $cell_sizes = [200000, 200000];
+    my $bd   = get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
+    my $tree = get_tree_object_from_sample_data();
+
+    my $sp = $bd->add_spatial_output (name => 'RWiBaLD, select_all');
+    $sp->run_analysis (
+        calculations       => [@calcs],
+        spatial_conditions => ['sp_select_all()'],
+        tree_ref           => $tree,
+    );
+
+    my $elts = $sp->get_element_list;
+    my $elt_to_check = $elts->[0];  #  they will all be the same value
+    my $results = {};
+    my $list_names = $sp->get_list_names_across_elements;
+    foreach my $listname (grep {/^RWIBALD/} sort keys %$list_names) {
+        my $results_list = $sp->get_list_ref(
+            list    => $listname,
+            element => $elt_to_check,
+        );
+        $results->{$listname} = $results_list;
+    }
+
+    # use Data::Dumper;
+    #
+    # local $Data::Dumper::Purity    = 1;
+    # local $Data::Dumper::Terse     = 1;
+    # local $Data::Dumper::Sortkeys  = 1;
+    # local $Data::Dumper::Indent    = 1;
+    # local $Data::Dumper::Quotekeys = 0;
+    # #say '#' x 20;
+    #
+    # my $source_string = Dumper($results);
+    # say STDERR $source_string;
+
+    use Data::Section::Simple qw(get_data_section);
+
+    my $expected = get_data_section('RWIBALD_SP_SELECT_ALL');
+    $expected = eval $expected;
+
+    _set_precision_recursive($expected);
+    _set_precision_recursive($results);
+
+    is $results, $expected, 'RWiBaLD correct for sp_select_all()';
+
+
+}
+
+sub _set_precision_recursive {
+    my ($data, $precision) = @_;
+    use Ref::Util qw /is_ref is_hashref is_arrayref is_scalarref/;
+    if (is_hashref $data) {
+        foreach my $val (values %$data) {
+            $val = _set_precision_recursive($val);
+        }
+    }
+    elsif (is_arrayref $data) {
+        foreach my $val (@$data) {
+            $val = _set_precision_recursive($val);
+        }
+    }
+
+    return
+        !defined $data   ? undef
+        : is_ref ($data) ? $data
+        : Biodiverse::Common->round_to_precision_aa($data, $precision);
+}
+
+done_testing();
 
 1;
 
 __DATA__
+
+@@ RWIBALD_SP_SELECT_ALL
+{
+  RWIBALD_CODES => {
+    '30___' => 0,
+    '31___' => 0,
+    '32___' => 0,
+    '33___' => 0,
+    '34___' => 0,
+    '35___' => 0,
+    '36___' => 0,
+    '37___' => 0,
+    '38___' => 0,
+    '39___' => 0,
+    '40___' => 0,
+    '41___' => 0,
+    '42___' => 0,
+    '43___' => 3,
+    '44___' => 0,
+    '45___' => 0,
+    '46___' => 0,
+    '47___' => 1,
+    '48___' => 0,
+    '49___' => 0,
+    '50___' => 0,
+    '51___' => 2,
+    '52___' => 0,
+    '53___' => 0,
+    '54___' => 0,
+    '55___' => 0,
+    '56___' => 0,
+    '57___' => 0,
+    '58___' => 0,
+    '59___' => 0,
+    'Genus:sp1' => 0,
+    'Genus:sp10' => 0,
+    'Genus:sp11' => 0,
+    'Genus:sp12' => 0,
+    'Genus:sp13' => 3,
+    'Genus:sp14' => 2,
+    'Genus:sp15' => 0,
+    'Genus:sp16' => 2,
+    'Genus:sp17' => 0,
+    'Genus:sp18' => 0,
+    'Genus:sp19' => 2,
+    'Genus:sp2' => 0,
+    'Genus:sp20' => 0,
+    'Genus:sp21' => 0,
+    'Genus:sp22' => 3,
+    'Genus:sp23' => 0,
+    'Genus:sp24' => 1,
+    'Genus:sp25' => 1,
+    'Genus:sp26' => 2,
+    'Genus:sp27' => 0,
+    'Genus:sp28' => 2,
+    'Genus:sp29' => 0,
+    'Genus:sp3' => 0,
+    'Genus:sp30' => 0,
+    'Genus:sp31' => 2,
+    'Genus:sp4' => 0,
+    'Genus:sp5' => 0,
+    'Genus:sp6' => 1,
+    'Genus:sp7' => 1,
+    'Genus:sp8' => 3,
+    'Genus:sp9' => 0
+  },
+  RWIBALD_CODE_COUNTS => {
+    0 => 45,
+    1 => 5,
+    2 => 7,
+    3 => 4
+  },
+  RWIBALD_DIFFS => {
+    '30___' => '-0.0319498590312259',
+    '31___' => '-0.0156762411589463',
+    '32___' => '-0.0152065053293616',
+    '33___' => '-0.0128406233964909',
+    '34___' => '-0.00595303637730463',
+    '35___' => '-0.0138423624726151',
+    '36___' => '-0.0209262194359092',
+    '37___' => '-0.00972001213342352',
+    '38___' => '-0.0129989565668292',
+    '39___' => '-0.00663844056147943',
+    '40___' => '-0.0011174154235685',
+    '41___' => '-0.00876798201059495',
+    '42___' => '-0.00683813299483619',
+    '43___' => '0.301455597723295',
+    '44___' => '-0.0199978716799065',
+    '45___' => '-0.0075292067921123',
+    '46___' => '-0.0253891102360247',
+    '47___' => '-0.0214724727165735',
+    '48___' => '-0.0307719579228199',
+    '49___' => '-0.0074952996589391',
+    '50___' => '-0.00758324646910416',
+    '51___' => '0.121572198207999',
+    '52___' => '-0.00754791548829191',
+    '53___' => '-0.0204900790986036',
+    '54___' => '0.0224927509714399',
+    '55___' => '-0.0263355806715034',
+    '56___' => '-0.00972944858549532',
+    '57___' => '-0.0307207123114725',
+    '58___' => '-0.00696628680876215',
+    '59___' => '0',
+    'Genus:sp1' => '0.0133585187173551',
+    'Genus:sp10' => '0.0299394105045137',
+    'Genus:sp11' => '0.00503705488154227',
+    'Genus:sp12' => '0.0162886418023241',
+    'Genus:sp13' => '0.590344486612184',
+    'Genus:sp14' => '0.0782629770188761',
+    'Genus:sp15' => '0.0305337570682402',
+    'Genus:sp16' => '0.117394465528314',
+    'Genus:sp17' => '0.122700271239525',
+    'Genus:sp18' => '0.00893343856020835',
+    'Genus:sp19' => '0.0782629770188761',
+    'Genus:sp2' => '0.0137610560850129',
+    'Genus:sp20' => '0.0336972327641571',
+    'Genus:sp21' => '0.00525496385894609',
+    'Genus:sp22' => '0.627558161825859',
+    'Genus:sp23' => '0.00695715397522805',
+    'Genus:sp24' => '-0.0384036896477905',
+    'Genus:sp25' => '-0.0576055344716858',
+    'Genus:sp26' => '0.0673944655283142',
+    'Genus:sp27' => '0.0602911195446591',
+    'Genus:sp28' => '0',
+    'Genus:sp29' => '0.0466760141262749',
+    'Genus:sp3' => '0.0107030436216767',
+    'Genus:sp30' => '0.00579762831269004',
+    'Genus:sp31' => '0',
+    'Genus:sp4' => '0.0830393380273151',
+    'Genus:sp5' => '0.026087659006292',
+    'Genus:sp6' => '-0.0661814674255682',
+    'Genus:sp7' => '-0.0661814674255682',
+    'Genus:sp8' => '0.141420871755718',
+    'Genus:sp9' => '0.0471402905852394'
+  },
+  RWIBALD_METADATA => {
+    neg_len_thresh => '-0.0214724727165735',
+    pos_len_thresh => '0.141420871755718',
+    range_thresh => '0.333333333333333'
+  },
+  RWIBALD_RR_DIFFS => {
+    '30___' => undef,
+    '31___' => undef,
+    '32___' => undef,
+    '33___' => undef,
+    '34___' => undef,
+    '35___' => undef,
+    '36___' => undef,
+    '37___' => undef,
+    '38___' => undef,
+    '39___' => undef,
+    '40___' => undef,
+    '41___' => undef,
+    '42___' => undef,
+    '43___' => '0.301455597723295',
+    '44___' => undef,
+    '45___' => undef,
+    '46___' => undef,
+    '47___' => '-0.0214724727165735',
+    '48___' => undef,
+    '49___' => undef,
+    '50___' => undef,
+    '51___' => '0.121572198207999',
+    '52___' => undef,
+    '53___' => undef,
+    '54___' => undef,
+    '55___' => undef,
+    '56___' => undef,
+    '57___' => undef,
+    '58___' => undef,
+    '59___' => undef,
+    'Genus:sp1' => undef,
+    'Genus:sp10' => undef,
+    'Genus:sp11' => undef,
+    'Genus:sp12' => undef,
+    'Genus:sp13' => '0.590344486612184',
+    'Genus:sp14' => '0.0782629770188761',
+    'Genus:sp15' => undef,
+    'Genus:sp16' => '0.117394465528314',
+    'Genus:sp17' => undef,
+    'Genus:sp18' => undef,
+    'Genus:sp19' => '0.0782629770188761',
+    'Genus:sp2' => undef,
+    'Genus:sp20' => undef,
+    'Genus:sp21' => undef,
+    'Genus:sp22' => '0.627558161825859',
+    'Genus:sp23' => undef,
+    'Genus:sp24' => '-0.0384036896477905',
+    'Genus:sp25' => '-0.0576055344716858',
+    'Genus:sp26' => '0.0673944655283142',
+    'Genus:sp27' => undef,
+    'Genus:sp28' => '0',
+    'Genus:sp29' => undef,
+    'Genus:sp3' => undef,
+    'Genus:sp30' => undef,
+    'Genus:sp31' => '0',
+    'Genus:sp4' => undef,
+    'Genus:sp5' => undef,
+    'Genus:sp6' => '-0.0661814674255682',
+    'Genus:sp7' => '-0.0661814674255682',
+    'Genus:sp8' => '0.141420871755718',
+    'Genus:sp9' => undef
+  }
+}
 
 @@ RESULTS_2_NBR_LISTS
 {   LAST_SHARED_ANCESTOR_DEPTH        => 2,
@@ -1506,6 +1785,125 @@ __DATA__
     },
     PHYLO_LABELS_ON_TREE_COUNT => 14,
     PHYLO_RARITY_CWR           => '0.144409172195734',
+    RWIBALD_CODES              => {
+        '30___'      => 0,
+        '31___'      => 0,
+        '32___'      => 0,
+        '33___'      => 0,
+        '34___'      => 0,
+        '35___'      => 0,
+        '36___'      => 0,
+        '37___'      => 0,
+        '38___'      => 0,
+        '39___'      => 0,
+        '41___'      => 0,
+        '42___'      => 0,
+        '44___'      => 1,
+        '45___'      => 0,
+        '49___'      => 0,
+        '50___'      => 0,
+        '51___'      => 2,
+        '52___'      => 0,
+        '58___'      => 0,
+        '59___'      => 0,
+        'Genus:sp1'  => 0,
+        'Genus:sp10' => 0,
+        'Genus:sp11' => 0,
+        'Genus:sp12' => 0,
+        'Genus:sp15' => 0,
+        'Genus:sp20' => 0,
+        'Genus:sp23' => 0,
+        'Genus:sp24' => 1,
+        'Genus:sp25' => 1,
+        'Genus:sp26' => 2,
+        'Genus:sp27' => 2,
+        'Genus:sp29' => 0,
+        'Genus:sp30' => 0,
+        'Genus:sp5'  => 0
+    },
+    RWIBALD_CODE_COUNTS => {
+        0 => 28,
+        1 => 3,
+        2 => 3,
+        3 => 0
+    },
+    RWIBALD_DIFFS => {
+        '30___'      => '-0.0239623942734194',
+        '31___'      => '-0.00888320332340288',
+        '32___'      => '-0.00783365426058019',
+        '33___'      => '-0.00616349923031563',
+        '34___'      => '-0.0026457939454687',
+        '35___'      => '-0.00626823961024078',
+        '36___'      => '-0.00951191792541325',
+        '37___'      => '-0.00443368974507037',
+        '38___'      => '-0.00592934860943088',
+        '39___'      => '-0.00296176578896774',
+        '41___'      => '-0.00370953085063632',
+        '42___'      => '-0.00287585032493111',
+        '44___'      => '-0.0199978716799065',
+        '45___'      => '-0.00316648883780424',
+        '49___'      => '-0.0030784266456357',
+        '50___'      => '-0.00316518113493043',
+        '51___'      => '0.0729433189247995',
+        '52___'      => '-0.00312327537446561',
+        '58___'      => '-0.00279748525391236',
+        '59___'      => '0',
+        'Genus:sp1'  => '0.00929288258598616',
+        'Genus:sp10' => '0.0149697052522568',
+        'Genus:sp11' => '0.00246712892157173',
+        'Genus:sp12' => '0.00898683685645468',
+        'Genus:sp15' => '0.0142490866318454',
+        'Genus:sp20' => '0.014976547895181',
+        'Genus:sp23' => '0.00278286159009123',
+        'Genus:sp24' => '-0.0230422137886743',
+        'Genus:sp25' => '-0.0384036896477904',
+        'Genus:sp26' => '0.0449296436855429',
+        'Genus:sp27' => '0.0602911195446591',
+        'Genus:sp29' => '0.0194483392192812',
+        'Genus:sp30' => '0.00331293046439432',
+        'Genus:sp5'  => '0.0234788931056629'
+    },
+    RWIBALD_METADATA => {
+        neg_len_thresh => '-0.0161957673277999',
+        pos_len_thresh => '0.117394465528314',
+        range_thresh   => '0.2'
+    },
+    RWIBALD_RR_DIFFS => {
+        '30___'      => undef,
+        '31___'      => undef,
+        '32___'      => undef,
+        '33___'      => undef,
+        '34___'      => undef,
+        '35___'      => undef,
+        '36___'      => undef,
+        '37___'      => undef,
+        '38___'      => undef,
+        '39___'      => undef,
+        '41___'      => undef,
+        '42___'      => undef,
+        '44___'      => '-0.0199978716799065',
+        '45___'      => undef,
+        '49___'      => undef,
+        '50___'      => undef,
+        '51___'      => '0.0729433189247995',
+        '52___'      => undef,
+        '58___'      => undef,
+        '59___'      => undef,
+        'Genus:sp1'  => undef,
+        'Genus:sp10' => undef,
+        'Genus:sp11' => undef,
+        'Genus:sp12' => undef,
+        'Genus:sp15' => undef,
+        'Genus:sp20' => undef,
+        'Genus:sp23' => undef,
+        'Genus:sp24' => '-0.0230422137886743',
+        'Genus:sp25' => '-0.0384036896477904',
+        'Genus:sp26' => '0.0449296436855429',
+        'Genus:sp27' => '0.0602911195446591',
+        'Genus:sp29' => undef,
+        'Genus:sp30' => undef,
+        'Genus:sp5'  => undef
+    }
 }
 
 
@@ -1881,6 +2279,56 @@ __DATA__
     },
     PHYLO_LABELS_ON_TREE_COUNT => 2,
     PHYLO_RARITY_CWR           => '0.175683424689984',
+    RWIBALD_CODES              => {
+        '34___'      => 0,
+        '35___'      => 0,
+        '42___'      => 0,
+        '45___'      => 0,
+        '49___'      => 0,
+        '50___'      => 0,
+        '52___'      => 0,
+        '58___'      => 0,
+        '59___'      => 0,
+        'Genus:sp20' => 0,
+        'Genus:sp26' => 2
+    },
+    RWIBALD_CODE_COUNTS => {
+        0 => 10,
+        1 => 0,
+        2 => 1,
+        3 => 0
+    },
+    RWIBALD_DIFFS => {
+        '34___'      => '-0.0026457939454687',
+        '35___'      => '-0.00626823961024078',
+        '42___'      => '-0.00287585032493111',
+        '45___'      => '-0.00316648883780424',
+        '49___'      => '-0.0030784266456357',
+        '50___'      => '-0.00316518113493043',
+        '52___'      => '-0.00312327537446561',
+        '58___'      => '-0.00279748525391236',
+        '59___'      => '0',
+        'Genus:sp20' => '0.014976547895181',
+        'Genus:sp26' => '0.0449296436855429'
+    },
+    RWIBALD_METADATA => {
+        neg_len_thresh => '-0.0161957673277999',
+        pos_len_thresh => '0.117394465528314',
+        range_thresh   => '0.2'
+    },
+    RWIBALD_RR_DIFFS => {
+        '34___'      => undef,
+        '35___'      => undef,
+        '42___'      => undef,
+        '45___'      => undef,
+        '49___'      => undef,
+        '50___'      => undef,
+        '52___'      => undef,
+        '58___'      => undef,
+        '59___'      => undef,
+        'Genus:sp20' => undef,
+        'Genus:sp26' => '0.0449296436855429'
+    }
 }
 
 

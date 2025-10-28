@@ -143,7 +143,7 @@ if ( defined $filename ) {
 }
 
 #  hack for exe building under github actions
-if (!($^O eq 'darwin' && $ENV{BDV_PP_BUILDING})) {
+if (!$ENV{BDV_PP_BUILDING}) {
     # Go!
     Gtk3->main;
 }

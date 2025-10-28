@@ -1156,7 +1156,7 @@ sub on_selected_labels_changed {
     # otherwise incorrect nodes are selected.
     $self->set_selected_list_cols ($selection, $rowcol);
 
-    $grid->queue_draw;
+    $self->queue_draw;
 
     return;
 }

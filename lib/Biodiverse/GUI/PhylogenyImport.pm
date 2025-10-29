@@ -465,9 +465,9 @@ sub add_column {
     $label->set_use_markup(1);
 
     # type radio button
-    my $radio1 = Gtk3::RadioButton->new( undef,   '' );    # ignore
-    my $radio2 = Gtk3::RadioButton->new( $radio1, '' );    # in
-    my $radio3 = Gtk3::RadioButton->new( $radio2, '' );    # out
+    my $radio1 = Gtk3::RadioButton->new( undef );      # ignore
+    my $radio2 = Gtk3::RadioButton->new( $radio1 );    # in
+    my $radio3 = Gtk3::RadioButton->new( $radio2 );    # out
     $radio1->set( 'can-focus', 0 );
     $radio2->set( 'can-focus', 0 );
     $radio3->set( 'can-focus', 0 );

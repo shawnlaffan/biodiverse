@@ -17,7 +17,6 @@ use App::PP::Autolink 2.07;
 
 use Config;
 use File::Copy;
-use Path::Class;
 use Path::Tiny qw /path/;
 use Cwd;
 use File::Basename;
@@ -79,12 +78,12 @@ else {
     $out_folder = $out_folder->parent;
 }
 
-my $root_dir = Path::Class::file ($script)->dir->parent;
+my $root_dir = path ($script)->parent->parent;
 
 #  assume bin folder is at parent folder level
-my $bin_folder = Path::Class::dir ($root_dir, 'bin');
+my $bin_folder = path ($root_dir, 'bin');
 say $bin_folder;
-my $icon_file  = $opt->icon_file // Path::Class::file ($bin_folder, 'Biodiverse_icon.ico')->absolute;
+my $icon_file  = $opt->icon_file // path ($bin_folder, 'Biodiverse_icon.ico')->absolute;
 
 my $script_fullname = path($script)->absolute;
 
@@ -102,14 +101,14 @@ my @ui_arg = ();
 my @gtk_path_arg = ();
 my @linkers;
 if ($script =~ 'BiodiverseGUI.pl') {
-    my $ui_dir = Path::Class::dir ($bin_folder, 'ui')->absolute;
+    my $ui_dir = path ($bin_folder, 'ui')->absolute;
     @ui_arg = ('-a', "$ui_dir;ui");
 }
 
 my $icon_file_base = $icon_file ? basename ($icon_file) : '';
 my @icon_file_arg  = $icon_file ? ('-a', "$icon_file;$icon_file_base") : ();
 
-my $output_binary_fullpath = Path::Class::file ($out_folder, $output_binary)->absolute;
+my $output_binary_fullpath = path ($out_folder, $output_binary)->absolute;
 
 $ENV{BDV_PP_BUILDING}              = 1;
 $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;

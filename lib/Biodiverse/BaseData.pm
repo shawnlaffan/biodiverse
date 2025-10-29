@@ -532,29 +532,15 @@ sub transpose {
     my $self = shift;
     my %args = @_;
 
-    #  create the new object.         retain the the current params
-    my $params = $self->clone(    #  but clone to avoid ref clash problems
-        data => scalar $self->get_params_hash
-    );
+    my $new = $self->clone(no_outputs => 1);
 
-    my $new = Biodiverse::BaseData->new(%$params);
-    my $name = $args{name} // ( $new->get_param('NAME') . "_T" );
-
-    $new->set_param( NAME => $name );
-
-    #  get refs for the current object
-    my $groups = $self->get_groups_ref->clone;
-    my $labels = $self->get_labels_ref->clone;
-
-    #  assign the transposed groups and labels
-    #  no need to worry about parent refs, as they don't have any (yet)
-    $new->{GROUPS} = $labels;
-    $new->{LABELS} = $groups;
+    #  transpose groups and labels
+    @$new{qw /GROUPS LABELS/} = @$new{qw /LABELS GROUPS/};
 
     #  set the correct cell sizes.
     #  The default is just in case, and may cause trouble later on
-    my $cell_sizes = $labels->get_param('CELL_SIZES') || [-1];
-    $new->set_param( CELL_SIZES => [@$cell_sizes] );    #  make sure it's a copy
+    my @cell_sizes = $self->get_labels_ref->get_cell_sizes || (-1);
+    $new->set_param( CELL_SIZES => [@cell_sizes] );    #  make sure it's a copy
 
     return $new;
 }

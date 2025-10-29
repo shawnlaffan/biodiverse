@@ -309,9 +309,9 @@ sub add_column {
     $label->set_padding( 2, 0 );
 
     # Type radio button
-    my $radio1 = Gtk3::RadioButton->new( undef,   '' );    # Ignore
-    my $radio2 = Gtk3::RadioButton->new( $radio1, '' );    # Label
-    my $radio3 = Gtk3::RadioButton->new( $radio2, '' );    # Matrix start
+    my $radio1 = Gtk3::RadioButton->new( undef );    # Ignore
+    my $radio2 = Gtk3::RadioButton->new( $radio1 );    # Label
+    my $radio3 = Gtk3::RadioButton->new( $radio2 );    # Matrix start
     $radio1->set( 'can-focus', 0 );
     $radio2->set( 'can-focus', 0 );
     $radio3->set( 'can-focus', 0 );

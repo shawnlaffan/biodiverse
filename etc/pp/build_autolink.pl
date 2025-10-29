@@ -18,6 +18,7 @@ use App::PP::Autolink 2.07;
 use Config;
 use File::Copy;
 use Path::Class;
+use Path::Tiny qw /path/;
 use Cwd;
 use File::Basename;
 use File::Find::Rule;
@@ -41,12 +42,12 @@ use Getopt::Long::Descriptive;
 
 my ($opt, $usage) = describe_options(
   '%c <arguments>',
-  [ 'script|s=s',             'The input script', { required => 1 } ],
-  [ 'out_folder|out_dir|o=s', 'The output directory where the binary will be written'],
-  [ 'icon_file|i=s',          'The location of the icon file to use'],
-  [ 'verbose|v!',             'Verbose building?', ],
-  [ 'execute|x!',             'Execute the script to find dependencies?', {default => 1} ],
-  #[ 'gd!',                    'We are packing GD, get the relevant dlls'],
+  [ 'script|s=s',     'The input script', { required => 1 } ],
+  [ 'outfile|o=s',    'The name of the output binary or the directory where it will be written with a default name'],
+  [ 'icon_file|i=s',  'The location of the icon file to use'],
+  [ 'verbose|v!',     'Verbose building?', ],
+  [ 'execute|x!',     'Execute the script to find dependencies?', {default => 1} ],
+  #[ 'gd!',            'We are packing GD, get the relevant dlls'],
   [ '-', 'Any arguments after this will be passed through to pp'],
   [],
   [ 'help|?',       "print usage message and exit" ],
@@ -58,7 +59,7 @@ if ($opt->help) {
 }
 
 my $script     = $opt->script;
-my $out_folder = $opt->out_folder // cwd();
+my $output_binary = $opt->outfile // cwd();
 my $verbose    = $opt->verbose ? $opt->verbose : q{};
 my $execute    = $opt->execute ? '-x' : q{};
 #my $PACKING_GD = $opt->gd;
@@ -66,7 +67,17 @@ my @rest_of_pp_args = @ARGV;
 
 die "Script file $script does not exist or is unreadable" if !-r $script;
 
-my $RE_DLL_EXT = qr/\.dll/i;
+my $out_folder = path ($output_binary);
+if ($out_folder->is_dir) {
+    $output_binary = path ($script)->basename ('.pl', qr/\.[^.]*$/);
+    my $contents = path($script)->slurp;
+    if ($contents =~ /^our\s+\$VERSION\s*=\s*['](.+)['];\s*$/m) {
+        $output_binary .= "_$1";
+    }
+}
+else {
+    $out_folder = $out_folder->parent;
+}
 
 my $root_dir = Path::Class::file ($script)->dir->parent;
 
@@ -74,30 +85,14 @@ my $root_dir = Path::Class::file ($script)->dir->parent;
 my $bin_folder = Path::Class::dir ($root_dir, 'bin');
 say $bin_folder;
 my $icon_file  = $opt->icon_file // Path::Class::file ($bin_folder, 'Biodiverse_icon.ico')->absolute;
-#$icon_file = undef;  #  DEBUG
 
-my $perlpath     = $EXECUTABLE_NAME;
-my $bits         = $Config{archname} =~ /x(86_64|64)/ ? 64 : 32;
-my $using_64_bit = $bits == 64;
-
-my $script_fullname = Path::Class::file($script)->absolute;
-
-my $output_binary = basename ($script_fullname, '.pl', qr/\.[^.]*$/);
-#$output_binary .= "_x$bits";
-
+my $script_fullname = path($script)->absolute;
 
 if (!-d $out_folder) {
     die "$out_folder does not exist or is not a directory";
 }
 
-
-my @links;
-
-if ($OSNAME eq 'MSWin32') {
-
-    #@links = map {('--link' => $_)}
-    #    get_autolink_list ($script_fullname);
-
+if ($OSNAME eq 'MSWin32' && $output_binary !~ /\.exe$/ ) {
     $output_binary .= '.exe';
 }
 

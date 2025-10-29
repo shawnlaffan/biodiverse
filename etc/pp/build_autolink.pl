@@ -25,7 +25,7 @@ my ($opt, $usage) = describe_options(
   [ 'verbose|v!',     'Verbose building?', ],
   [ 'execute|x!',     'Execute the script to find dependencies?', {default => 1} ],
   #[ 'gd!',            'We are packing GD, get the relevant dlls'],
-  [ '-', 'Any arguments after this will be passed through to pp'],
+  [ '-', 'Any arguments after this will be passed through to pp_autolink'],
   [],
   [ 'help|?',       "print usage message and exit" ],
 );
@@ -39,7 +39,6 @@ my $script     = $opt->script;
 my $output_binary = $opt->outfile // cwd();
 my $verbose    = $opt->verbose ? $opt->verbose : q{};
 my $execute    = $opt->execute ? '-x' : q{};
-#my $PACKING_GD = $opt->gd;
 my @rest_of_pp_args = @ARGV;
 
 die "Script file $script does not exist or is unreadable" if !-r $script;
@@ -129,6 +128,3 @@ if (0 && $OSNAME eq 'MSWin32' && $icon_file) {
     say join ' ', @embed_icon_args;
     system @embed_icon_args;
 }
-
-
-

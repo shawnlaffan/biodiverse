@@ -1,41 +1,19 @@
 #  Build a Biodiverse related executable
 
-use 5.010;
-use strict;
+use 5.020;
 use warnings;
+use strict;
+#use Carp;
 use English qw { -no_match_vars };
 
 #  make sure we get all the Strawberry libs
 #  and pack Gtk3 libs
-use PAR::Packer 1.036;    
 use Module::ScanDeps 1.23;
-BEGIN {
-    eval 'use Win32::Exe' if $OSNAME eq 'MSWin32';
-}
 
 use App::PP::Autolink 2.07;
 
-use Config;
-use File::Copy;
 use Path::Tiny qw /path/;
 use Cwd;
-use File::Basename;
-use File::Find::Rule;
-
-use FindBin qw /$Bin/;
-
-use 5.020;
-use warnings;
-use strict;
-use Carp;
-
-use Data::Dump       qw/ dd /;
-use File::Which      qw( which );
-use Capture::Tiny    qw/ capture /;
-use List::Util       qw( uniq );
-use File::Find::Rule qw/ rule find /;
-use Path::Tiny       qw/ path /;
-use Module::ScanDeps;
 
 use Getopt::Long::Descriptive;
 
@@ -105,7 +83,7 @@ if ($script =~ 'BiodiverseGUI.pl') {
     @ui_arg = ('-a', "$ui_dir;ui");
 }
 
-my $icon_file_base = $icon_file ? basename ($icon_file) : '';
+my $icon_file_base = $icon_file ? (path ($icon_file)->basename) : '';
 my @icon_file_arg  = $icon_file ? ('-a', "$icon_file;$icon_file_base") : ();
 
 my $output_binary_fullpath = path ($out_folder, $output_binary)->absolute;
@@ -115,8 +93,6 @@ $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 $ENV{BD_NO_GUI_DEV_WARN}           = 1;
 
 my @cmd = (
-    #$^X,
-    #"$Bin/pp_autolink.pl",
     'pp_autolink',
     @linkers,
     ($verbose ? '-v' : ()),
@@ -143,7 +119,7 @@ system @cmd;
 
 #  skip for now - exe_update.pl does not play nicely with PAR executables
 if (0 && $OSNAME eq 'MSWin32' && $icon_file) {
-    
+    require 'Win32::Exe';
     ###  ADD SOME OTHER OPTIONS:
     ###  Comments        CompanyName     FileDescription FileVersion
     #### InternalName    LegalCopyright  LegalTrademarks OriginalFilename

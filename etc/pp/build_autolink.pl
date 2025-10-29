@@ -24,7 +24,6 @@ my ($opt, $usage) = describe_options(
   [ 'icon_file|i=s',  'The location of the icon file to use'],
   [ 'verbose|v!',     'Verbose building?', ],
   [ 'execute|x!',     'Execute the script to find dependencies?', {default => 1} ],
-  #[ 'gd!',            'We are packing GD, get the relevant dlls'],
   [ '-', 'Any arguments after this will be passed through to pp_autolink'],
   [],
   [ 'help|?',       "print usage message and exit" ],

@@ -1798,6 +1798,26 @@ sub test_coords_near_zero {
     
 }
 
+sub test_transpose {
+    use Scalar::Util qw /refaddr/;
+
+    my $bd = get_basedata_object_from_site_data(
+        CELL_SIZES => [100000, 100000],
+    );
+    my $t = $bd->transpose;
+
+    isnt (refaddr $bd->get_groups_ref->get_basedata_ref, refaddr $t->get_labels_ref->get_basedata_ref);
+    isnt (refaddr $t->get_groups_ref->get_basedata_ref, refaddr $bd->get_labels_ref->get_basedata_ref);
+
+    is (refaddr $bd->get_groups_ref->get_basedata_ref, refaddr $bd->get_labels_ref->get_basedata_ref, 'bd basedata refs');
+    is (refaddr $t->get_groups_ref->get_basedata_ref,  refaddr $t->get_labels_ref->get_basedata_ref,  't basedata refs');
+
+    is $bd->get_group_count, $t->get_label_count, 'transposed lb count same as orig gp count';
+    is $bd->get_label_count, $t->get_group_count, 'transposed gp count same as orig lb count';
+
+}
+
+
 
 #  need to test multidimensional data import, including text axes
 sub test_multidimensional_import {

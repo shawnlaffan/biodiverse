@@ -1,0 +1,5102 @@
+{
+   "_meta" : {
+      "title" : "Biodiverse calculations and indices",
+      "version" : "5.0"
+   },
+   "calculations" : {
+      "calc_abc_counts" : {
+         "description" : "Counts of labels in neighbour sets 1 and 2.\nThese form the basis for the Taxonomic Dissimilarity and Comparison indices.",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "ABC_A" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Count of labels common to both neighbour sets",
+               "lumper" : 1
+            },
+            "ABC_ABC" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Total label count across both neighbour sets (same as RICHNESS_ALL)",
+               "lumper" : 1
+            },
+            "ABC_B" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Count of labels unique to neighbour set 1",
+               "lumper" : 1
+            },
+            "ABC_C" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Count of labels unique to neighbour set 2",
+               "lumper" : 1
+            }
+         },
+         "name" : "Label counts",
+         "pre_calc" : [
+            "_calc_abc_any"
+         ],
+         "type" : "Lists and Counts",
+         "uses_nbr_lists" : 2
+      },
+      "calc_ace" : {
+         "description" : "Abundance Coverage-based Estimator os species richness",
+         "indices" : {
+            "ACE_CI_LOWER" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "ACE lower confidence interval estimate"
+            },
+            "ACE_CI_UPPER" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "ACE upper confidence interval estimate"
+            },
+            "ACE_ESTIMATE" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "ACE score"
+            },
+            "ACE_ESTIMATE_USED_CHAO" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Set to 1 when ACE cannot be calculated and so Chao1 estimate is used"
+            },
+            "ACE_INFREQUENT_COUNT" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Count of infrequent species"
+            },
+            "ACE_SE" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "ACE standard error"
+            },
+            "ACE_UNDETECTED" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Estimated number of undetected species"
+            },
+            "ACE_VARIANCE" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "ACE variance"
+            }
+         },
+         "name" : "ACE",
+         "pre_calc" : "calc_abc3",
+         "reference" : "needed",
+         "type" : "Richness estimators",
+         "uses_nbr_lists" : 1
+      },
+      "calc_beta_diversity" : {
+         "description" : "Beta diversity between neighbour sets 1 and 2.\n",
+         "indices" : {
+            "BETA_2" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "cluster" : 1,
+               "description" : "The other beta",
+               "distribution" : "unit_interval",
+               "formula" : [
+                  "= \\frac{A + B + C}{max((A+B), (A+C))} - 1",
+                  " where ",
+                  "A",
+                  "is the count of labels found in both neighbour sets, ",
+                  "B",
+                  " is the count unique to neighbour set 1, and ",
+                  "C",
+                  " is the count unique to neighbour set 2. Use the 'Label counts' calculation to derive these directly."
+               ]
+            }
+         },
+         "name" : "Beta diversity",
+         "pre_calc" : [
+            "_calc_abc_any"
+         ],
+         "type" : "Taxonomic Dissimilarity and Comparison",
+         "uses_nbr_lists" : 2
+      },
+      "calc_bray_curtis" : {
+         "description" : "Bray-Curtis dissimilarity between two sets of labels.\nReduces to the Sorenson metric for binary data (where sample counts are 1 or 0).",
+         "formula" : [
+            "= 1 - \\frac{2W}{A + B}",
+            "where ",
+            "A",
+            " is the sum of the sample counts in neighbour set 1, ",
+            "B",
+            " is the sum of sample counts in neighbour set 2, and ",
+            "W=\\sum^n_{i=1} min(sample\\_count\\_label_{i_{set1}},sample\\_count\\_label_{i_{set2}})",
+            " (meaning it sums the minimum of the sample counts for each of the ",
+            "n",
+            " labels across the two neighbour sets), "
+         ],
+         "indices" : {
+            "BC_A" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "The A factor used in calculations (see formula)",
+               "distribution" : "nonnegative",
+               "lumper" : 0
+            },
+            "BC_B" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "The B factor used in calculations (see formula)",
+               "distribution" : "nonnegative",
+               "lumper" : 0
+            },
+            "BC_W" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "The W factor used in calculations (see formula)",
+               "distribution" : "nonnegative",
+               "lumper" : 1
+            },
+            "BRAY_CURTIS" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "cluster" : 1,
+               "description" : "Bray Curtis dissimilarity",
+               "distribution" : "unit_interval",
+               "lumper" : 0
+            }
+         },
+         "name" : "Bray-Curtis non-metric",
+         "pre_calc" : "calc_abc3",
+         "type" : "Taxonomic Dissimilarity and Comparison",
+         "uses_nbr_lists" : 2
+      },
+      "calc_bray_curtis_norm_by_gp_counts" : {
+         "description" : "Bray-Curtis dissimilarity between two neighbourhoods, \nwhere the counts in each neighbourhood are divided \nby the number of groups in each neighbourhood to correct\nfor unbalanced sizes.\n",
+         "formula" : [
+            "= 1 - \\frac{2W}{A + B}",
+            "where ",
+            "A",
+            " is the sum of the sample counts in neighbour set 1 normalised (divided) by the number of groups, ",
+            "B",
+            " is the sum of the sample counts in neighbour set 2 normalised by the number of groups, and ",
+            "W = \\sum^n_{i=1} min(sample\\_count\\_label_{i_{set1}},sample\\_count\\_label_{i_{set2}})",
+            " (meaning it sums the minimum of the normalised sample counts for each of the ",
+            "n",
+            " labels across the two neighbour sets), "
+         ],
+         "indices" : {
+            "BCN_A" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "The A factor used in calculations (see formula)",
+               "distribution" : "nonnegative",
+               "lumper" : 0
+            },
+            "BCN_B" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "The B factor used in calculations (see formula)",
+               "distribution" : "nonnegative",
+               "lumper" : 0
+            },
+            "BCN_W" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "The W factor used in calculations (see formula)",
+               "distribution" : "nonnegative",
+               "lumper" : 1
+            },
+            "BRAY_CURTIS_NORM" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "cluster" : 1,
+               "description" : "Bray Curtis dissimilarity normalised by groups",
+               "distribution" : "unit_interval"
+            }
+         },
+         "name" : "Bray-Curtis non-metric, group count normalised",
+         "pre_calc" : [
+            "calc_abc3",
+            "calc_elements_used"
+         ],
+         "type" : "Taxonomic Dissimilarity and Comparison",
+         "uses_nbr_lists" : 2
+      },
+      "calc_chao1" : {
+         "description" : "Chao1 species richness estimator (abundance based)",
+         "indices" : {
+            "CHAO1_CI_LOWER" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Lower confidence interval for the Chao1 estimate"
+            },
+            "CHAO1_CI_UPPER" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Upper confidence interval for the Chao1 estimate"
+            },
+            "CHAO1_ESTIMATE" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Chao1 index",
+               "formula" : [],
+               "reference" : "NEEDED"
+            },
+            "CHAO1_F1_COUNT" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Number of singletons in the sample"
+            },
+            "CHAO1_F2_COUNT" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Number of doubletons in the sample"
+            },
+            "CHAO1_META" : {
+               "bounds" : [],
+               "colours" : {
+                  "0" : "#A6CEE3",
+                  "13" : "#E31A1C",
+                  "14" : "#FDBF6F",
+                  "2" : "#1F78B4",
+                  "6" : "#B2DF8A",
+                  "7" : "#33A02C",
+                  "8" : "#FB9A99"
+               },
+               "description" : "Metadata indicating which formulae were used in the calculations. Numbers refer to EstimateS equations at http://viceroy.eeb.uconn.edu/EstimateS/EstimateSPages/EstSUsersGuide/EstimateSUsersGuide.htm",
+               "distribution" : "categorical",
+               "labels" : {
+                  "0" : "eqn 0",
+                  "13" : "eqn 13",
+                  "14" : "eqn 14",
+                  "2" : "eqn 2",
+                  "6" : "eqn 6",
+                  "7" : "eqn 7",
+                  "8" : "eqn 8"
+               },
+               "type" : "list"
+            },
+            "CHAO1_SE" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Standard error of the Chao1 estimator [= sqrt(variance)]"
+            },
+            "CHAO1_UNDETECTED" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Estimated number of undetected species"
+            },
+            "CHAO1_VARIANCE" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Variance of the Chao1 estimator"
+            }
+         },
+         "name" : "Chao1",
+         "pre_calc" : "calc_abc3",
+         "type" : "Richness estimators",
+         "uses_nbr_lists" : 1
+      },
+      "calc_chao2" : {
+         "description" : "Chao2 species richness estimator (incidence based)",
+         "indices" : {
+            "CHAO2_CI_LOWER" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Lower confidence interval for the Chao2 estimate"
+            },
+            "CHAO2_CI_UPPER" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Upper confidence interval for the Chao2 estimate"
+            },
+            "CHAO2_ESTIMATE" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Chao2 index",
+               "formula" : [],
+               "reference" : "NEEDED"
+            },
+            "CHAO2_META" : {
+               "bounds" : [],
+               "colours" : {
+                  "0" : "#A6CEE3",
+                  "10" : "#B2DF8A",
+                  "11" : "#33A02C",
+                  "12" : "#FB9A99",
+                  "13" : "#E31A1C",
+                  "14" : "#FDBF6F",
+                  "4" : "#1F78B4"
+               },
+               "description" : "Metadata indicating which formulae were used in the calculations. Numbers refer to EstimateS equations at http://viceroy.eeb.uconn.edu/EstimateS/EstimateSPages/EstSUsersGuide/EstimateSUsersGuide.htm",
+               "distribution" : "categorical",
+               "labels" : {
+                  "0" : "eqn 0",
+                  "10" : "eqn 10",
+                  "11" : "eqn 11",
+                  "12" : "eqn 12",
+                  "13" : "eqn 13",
+                  "14" : "eqn 14",
+                  "4" : "eqn 4"
+               },
+               "type" : "list"
+            },
+            "CHAO2_Q1_COUNT" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Number of uniques in the sample"
+            },
+            "CHAO2_Q2_COUNT" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Number of duplicates in the sample"
+            },
+            "CHAO2_SE" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Standard error of the Chao2 estimator [= sqrt (variance)]"
+            },
+            "CHAO2_UNDETECTED" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Estimated number of undetected species"
+            },
+            "CHAO2_VARIANCE" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Variance of the Chao2 estimator"
+            }
+         },
+         "name" : "Chao2",
+         "pre_calc" : "calc_abc2",
+         "type" : "Richness estimators",
+         "uses_nbr_lists" : 1
+      },
+      "calc_compare_dissim_matrix_values" : {
+         "description" : "Compare the set of labels in one neighbour set with those in another using their matrix values. Labels not in the matrix are ignored. This calculation assumes a matrix of dissimilarities and uses 0 as identical, so take care).",
+         "indices" : {
+            "MXD_COUNT" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Count of comparisons used."
+            },
+            "MXD_LIST1" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of the labels used from neighbour set 1 (those in the matrix).\nThe list values are the number of times each label was used in the calculations.\nThis will always be 1 for labels in neighbour set 1.",
+               "type" : "list"
+            },
+            "MXD_LIST2" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of the labels used from neighbour set 2 (those in the matrix).\nThe list values are the number of times each label was used in the calculations.\nThis will equal the number of labels used from neighbour set 1.",
+               "type" : "list"
+            },
+            "MXD_MEAN" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "cluster" : 1,
+               "description" : "Mean dissimilarity of labels in set 1 to those in set 2."
+            },
+            "MXD_VARIANCE" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "cluster" : 1,
+               "description" : "Variance of the dissimilarity values, set 1 vs set 2."
+            }
+         },
+         "name" : "Compare dissimilarity matrix values",
+         "pre_calc" : "_calc_abc_any",
+         "required_args" : [
+            "matrix_ref"
+         ],
+         "type" : "Matrix",
+         "uses_nbr_lists" : 2
+      },
+      "calc_count_labels_on_tree" : {
+         "description" : "Count the number of labels that are on the tree",
+         "indices" : {
+            "PHYLO_LABELS_ON_TREE_COUNT" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "The number of labels that are found on the tree, across both neighbour sets",
+               "distribution" : "nonnegative"
+            }
+         },
+         "name" : "Count labels on tree",
+         "pre_calc" : [
+            "calc_labels_on_tree"
+         ],
+         "type" : "Phylogenetic Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_d" : {
+         "description" : "Count of basedata labels not in either neighbour set (shared absence)\nUsed in some of the dissimilarity metrics.",
+         "indices" : {
+            "ABC_D" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Count of labels not in either neighbour set (D score)",
+               "distribution" : "nonnegative"
+            }
+         },
+         "name" : "Label counts not in sample",
+         "pre_calc" : [
+            "_calc_abc_any"
+         ],
+         "type" : "Lists and Counts",
+         "uses_nbr_lists" : 1
+      },
+      "calc_element_lists_used" : {
+         "description" : "[DEPRECATED] Lists of elements used in neighbour sets 1 and 2.\nThese form the basis for all the spatial calculations. The return types are inconsistent. New code should use calc_element_lists_used_as_arrays",
+         "indices" : {
+            "EL_LIST_ALL" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of elements in both neighour sets",
+               "type" : "list",
+               "uses_nbr_lists" : 2
+            },
+            "EL_LIST_SET1" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of elements in neighbour set 1",
+               "type" : "list"
+            },
+            "EL_LIST_SET2" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of elements in neighbour set 2",
+               "type" : "list",
+               "uses_nbr_lists" : 2
+            }
+         },
+         "name" : "Element lists",
+         "pre_calc" : [
+            "_calc_abc_any"
+         ],
+         "type" : "Lists and Counts",
+         "uses_nbr_lists" : 1
+      },
+      "calc_element_lists_used_as_arrays" : {
+         "description" : "Arrays of elements used in neighbour sets 1 and 2.\nThese form the basis for all the spatial calculations.",
+         "indices" : {
+            "EL_ARRAY_ALL" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Array of elements in both neighbour sets",
+               "type" : "list",
+               "uses_nbr_lists" : 2
+            },
+            "EL_ARRAY_SET1" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Array of elements in neighbour set 1",
+               "type" : "list"
+            },
+            "EL_ARRAY_SET2" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Array of elements in neighbour set 2",
+               "type" : "list",
+               "uses_nbr_lists" : 2
+            }
+         },
+         "name" : "Element arrays",
+         "pre_calc" : [
+            "_calc_abc_any"
+         ],
+         "type" : "Lists and Counts",
+         "uses_nbr_lists" : 1
+      },
+      "calc_elements_used" : {
+         "description" : "Counts of elements used in neighbour sets 1 and 2.\n",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "EL_COUNT_ALL" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Count of elements in both neighbour sets",
+               "lumper" : 1,
+               "uses_nbr_lists" : 1
+            },
+            "EL_COUNT_SET1" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Count of elements in neighbour set 1",
+               "lumper" : 0
+            },
+            "EL_COUNT_SET2" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Count of elements in neighbour set 2",
+               "lumper" : 0,
+               "uses_nbr_lists" : 2
+            }
+         },
+         "name" : "Element counts",
+         "pre_calc" : [
+            "_calc_abc_any"
+         ],
+         "type" : "Lists and Counts",
+         "uses_nbr_lists" : 1
+      },
+      "calc_endemism_absolute" : {
+         "description" : "Absolute endemism scores.\n",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "END_ABS1" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Count of labels entirely endemic to neighbour set 1"
+            },
+            "END_ABS1_P" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "Proportion of labels entirely endemic to neighbour set 1",
+               "distribution" : "unit_interval"
+            },
+            "END_ABS2" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Count of labels entirely endemic to neighbour set 2"
+            },
+            "END_ABS2_P" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "Proportion of labels entirely endemic to neighbour set 2",
+               "distribution" : "unit_interval"
+            },
+            "END_ABS_ALL" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Count of labels entirely endemic to neighbour sets 1 and 2 combined"
+            },
+            "END_ABS_ALL_P" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "Proportion of labels entirely endemic to neighbour sets 1 and 2 combined",
+               "distribution" : "unit_interval"
+            }
+         },
+         "name" : "Absolute endemism",
+         "pre_calc" : [
+            "_calc_endemism_absolute"
+         ],
+         "type" : "Endemism",
+         "uses_nbr_lists" : 1
+      },
+      "calc_endemism_absolute_lists" : {
+         "description" : "Lists underlying the absolute endemism scores.\n",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "END_ABS1_LIST" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "List of labels entirely endemic to neighbour set 1",
+               "type" : "list"
+            },
+            "END_ABS2_LIST" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "List of labels entirely endemic to neighbour set 1",
+               "type" : "list"
+            },
+            "END_ABS_ALL_LIST" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "List of labels entirely endemic to neighbour sets 1 and 2 combined",
+               "type" : "list"
+            }
+         },
+         "name" : "Absolute endemism lists",
+         "pre_calc" : [
+            "_calc_endemism_absolute"
+         ],
+         "type" : "Endemism",
+         "uses_nbr_lists" : 1
+      },
+      "calc_endemism_central" : {
+         "description" : "Calculate endemism for labels only in neighbour set 1, but with local ranges calculated using both neighbour sets",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "ENDC_CWE" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "Corrected weighted endemism",
+               "distribution" : "unit_interval",
+               "formula" : [
+                  "= \\frac{ENDC\\_WE}{ENDC\\_RICHNESS}"
+               ],
+               "lumper" : 0
+            },
+            "ENDC_RICHNESS" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Richness used in ENDC_CWE (same as index RICHNESS_SET1)",
+               "lumper" : 0
+            },
+            "ENDC_SINGLE" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Endemism unweighted by the number of neighbours. Counts each label only once, regardless of how many groups in the neighbourhood it is found in.  \nUseful if your data have sampling biases and best applied with a small window.",
+               "formula" : [
+                  "= \\sum_{t \\in T} \\frac {1} {R_t}",
+                  " where ",
+                  "t",
+                  " is a label (taxon) in the set of labels (taxa) ",
+                  "T",
+                  " in neighbour set 1, and ",
+                  "R_t",
+                  " is the global range of label ",
+                  "t",
+                  " across the data set (the number of groups it is found in, unless the range is specified at import)."
+               ],
+               "lumper" : 0,
+               "reference" : "Slatyer et al. (2007) J. Biogeog https://doi.org/10.1111/j.1365-2699.2006.01647.x"
+            },
+            "ENDC_WE" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Weighted endemism",
+               "formula" : [
+                  "= \\sum_{t \\in T} \\frac {r_t} {R_t}",
+                  " where ",
+                  "t",
+                  " is a label (taxon) in the set of labels (taxa) ",
+                  "T",
+                  " in neighbour set 1, ",
+                  "r_t",
+                  " is the local range (the number of elements containing label ",
+                  "t",
+                  " within neighbour sets 1 & 2, this is also its value in list ABC2_LABELS_ALL), and ",
+                  "R_t",
+                  " is the global range of label ",
+                  "t",
+                  " across the data set (the number of groups it is found in, unless the range is specified at import)."
+               ],
+               "lumper" : 0
+            }
+         },
+         "name" : "Endemism central",
+         "pre_calc" : [
+            "_calc_endemism_central"
+         ],
+         "reference" : "Crisp et al. (2001) J Biogeog. https://doi.org/10.1046/j.1365-2699.2001.00524.x ; Laffan and Crisp (2003) J Biogeog. http://www3.interscience.wiley.com/journal/118882020/abstract",
+         "type" : "Endemism",
+         "uses_nbr_lists" : 1
+      },
+      "calc_endemism_central_hier_part" : {
+         "description" : "Partition the endemism central results based on the taxonomic hierarchy inferred from the label axes. (Level 0 is the highest).",
+         "formula" : null,
+         "indices" : {
+            "ENDC_HPART_0" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of the proportional contribution of labels to the endemism central calculations, hierarchical level 0",
+               "type" : "list"
+            },
+            "ENDC_HPART_1" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of the proportional contribution of labels to the endemism central calculations, hierarchical level 1",
+               "type" : "list"
+            },
+            "ENDC_HPART_C_0" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of the proportional count of labels to the endemism central calculations (equivalent to richness per hierarchical grouping), hierarchical level 0",
+               "type" : "list"
+            },
+            "ENDC_HPART_C_1" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of the proportional count of labels to the endemism central calculations (equivalent to richness per hierarchical grouping), hierarchical level 1",
+               "type" : "list"
+            },
+            "ENDC_HPART_E_0" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of the expected proportional contribution of labels to the endemism central calculations (richness per hierarchical grouping divided by overall richness), hierarchical level 0",
+               "type" : "list"
+            },
+            "ENDC_HPART_E_1" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of the expected proportional contribution of labels to the endemism central calculations (richness per hierarchical grouping divided by overall richness), hierarchical level 1",
+               "type" : "list"
+            },
+            "ENDC_HPART_OME_0" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of the observed minus expected proportional contribution of labels to the endemism central calculations , hierarchical level 0",
+               "type" : "list"
+            },
+            "ENDC_HPART_OME_1" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of the observed minus expected proportional contribution of labels to the endemism central calculations , hierarchical level 1",
+               "type" : "list"
+            }
+         },
+         "name" : "Endemism central hierarchical partition",
+         "pre_calc" : [
+            "_calc_endemism_central",
+            "calc_abc2"
+         ],
+         "pre_calc_global" : "get_basedata_labels_as_tree",
+         "reference" : "Laffan et al. (2013) J Biogeog. https://doi.org/10.1111/jbi.12001",
+         "type" : "Endemism",
+         "uses_nbr_lists" : 1
+      },
+      "calc_endemism_central_lists" : {
+         "description" : "Lists used in endemism central calculations",
+         "indices" : {
+            "ENDC_RANGELIST" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of ranges for each label used in the endemism central calculations",
+               "items_invariant" : 1,
+               "type" : "list"
+            },
+            "ENDC_WTLIST" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of weights for each label used in the endemism central calculations",
+               "type" : "list"
+            }
+         },
+         "name" : "Endemism central lists",
+         "pre_calc" : "_calc_endemism_central",
+         "type" : "Endemism",
+         "uses_nbr_lists" : 1
+      },
+      "calc_endemism_central_normalised" : {
+         "description" : "Normalise the WE and CWE scores by the neighbourhood size.\n(The number of groups used to determine the local ranges).\n",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "ENDC_CWE_NORM" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Corrected weighted endemism normalised by groups",
+               "formula" : [
+                  "= \\frac{ENDC\\_CWE}{EL\\_COUNT\\_ALL}"
+               ],
+               "lumper" : 0
+            },
+            "ENDC_WE_NORM" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Weighted endemism normalised by groups",
+               "formula" : [
+                  "= \\frac{ENDC\\_WE}{EL\\_COUNT\\_ALL}"
+               ],
+               "lumper" : 0
+            }
+         },
+         "name" : "Endemism central normalised",
+         "pre_calc" : [
+            "_calc_endemism_central",
+            "calc_elements_used"
+         ],
+         "type" : "Endemism",
+         "uses_nbr_lists" : 1
+      },
+      "calc_endemism_whole" : {
+         "description" : "Calculate endemism using all labels found in both neighbour sets",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "ENDW_CWE" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "Corrected weighted endemism",
+               "distribution" : "unit_interval",
+               "formula" : [
+                  "= \\frac{ENDW\\_WE}{ENDW\\_RICHNESS}"
+               ]
+            },
+            "ENDW_RICHNESS" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Richness used in ENDW_CWE (same as index RICHNESS_ALL)"
+            },
+            "ENDW_SINGLE" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Endemism unweighted by the number of neighbours. Counts each label only once, regardless of how many groups in the neighbourhood it is found in.  \nUseful if your data have sampling biases and best applied with a small window.",
+               "formula" : [
+                  "= \\sum_{t \\in T} \\frac {1} {R_t}",
+                  " where ",
+                  "t",
+                  " is a label (taxon) in the set of labels (taxa) ",
+                  "T",
+                  " across neighbour sets 1 & 2, and ",
+                  "R_t",
+                  " is the global range of label ",
+                  "t",
+                  " across the data set (the number of groups it is found in, unless the range is specified at import)."
+               ],
+               "reference" : "Slatyer et al. (2007) J. Biogeog https://doi.org/10.1111/j.1365-2699.2006.01647.x"
+            },
+            "ENDW_WE" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Weighted endemism",
+               "formula" : [
+                  "= \\sum_{t \\in T} \\frac {r_t} {R_t}",
+                  " where ",
+                  "t",
+                  " is a label (taxon) in the set of labels (taxa) ",
+                  "T",
+                  " across both neighbour sets, ",
+                  "r_t",
+                  " is the local range (the number of elements containing label ",
+                  "t",
+                  " within neighbour sets 1 & 2, this is also its value in list ABC2_LABELS_ALL), and ",
+                  "R_t",
+                  " is the global range of label ",
+                  "t",
+                  " across the data set (the number of groups it is found in, unless the range is specified at import)."
+               ]
+            }
+         },
+         "name" : "Endemism whole",
+         "pre_calc" : "_calc_endemism_whole",
+         "type" : "Endemism",
+         "uses_nbr_lists" : 1
+      },
+      "calc_endemism_whole_hier_part" : {
+         "description" : "Partition the endemism whole results based on the taxonomic hierarchy inferred from the label axes. (Level 0 is the highest).",
+         "formula" : null,
+         "indices" : {
+            "ENDW_HPART_0" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of the proportional contribution of labels to the endemism whole calculations, hierarchical level 0",
+               "type" : "list"
+            },
+            "ENDW_HPART_1" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of the proportional contribution of labels to the endemism whole calculations, hierarchical level 1",
+               "type" : "list"
+            },
+            "ENDW_HPART_C_0" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of the proportional count of labels to the endemism whole calculations (equivalent to richness per hierarchical grouping), hierarchical level 0",
+               "type" : "list"
+            },
+            "ENDW_HPART_C_1" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of the proportional count of labels to the endemism whole calculations (equivalent to richness per hierarchical grouping), hierarchical level 1",
+               "type" : "list"
+            },
+            "ENDW_HPART_E_0" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of the expected proportional contribution of labels to the endemism whole calculations (richness per hierarchical grouping divided by overall richness), hierarchical level 0",
+               "type" : "list"
+            },
+            "ENDW_HPART_E_1" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of the expected proportional contribution of labels to the endemism whole calculations (richness per hierarchical grouping divided by overall richness), hierarchical level 1",
+               "type" : "list"
+            },
+            "ENDW_HPART_OME_0" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of the observed minus expected proportional contribution of labels to the endemism whole calculations , hierarchical level 0",
+               "type" : "list"
+            },
+            "ENDW_HPART_OME_1" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of the observed minus expected proportional contribution of labels to the endemism whole calculations , hierarchical level 1",
+               "type" : "list"
+            }
+         },
+         "name" : "Endemism whole hierarchical partition",
+         "pre_calc" : [
+            "_calc_endemism_whole",
+            "calc_abc2"
+         ],
+         "pre_calc_global" : "get_basedata_labels_as_tree",
+         "reference" : "Laffan et al. (2013) J Biogeog. https://doi.org/10.1111/jbi.12001",
+         "type" : "Endemism",
+         "uses_nbr_lists" : 1
+      },
+      "calc_endemism_whole_lists" : {
+         "description" : "Lists used in the endemism whole calculations",
+         "indices" : {
+            "ENDW_RANGELIST" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of ranges for each label used in the endemism whole calculations",
+               "items_invariant" : 1,
+               "type" : "list"
+            },
+            "ENDW_WTLIST" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of weights for each label used in the endemism whole calculations",
+               "type" : "list"
+            }
+         },
+         "name" : "Endemism whole lists",
+         "pre_calc" : "_calc_endemism_whole",
+         "type" : "Endemism",
+         "uses_nbr_lists" : 1
+      },
+      "calc_endemism_whole_normalised" : {
+         "description" : "Normalise the WE and CWE scores by the neighbourhood size.\n(The number of groups used to determine the local ranges). \n",
+         "indices" : {
+            "ENDW_CWE_NORM" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "Corrected weighted endemism normalised by groups",
+               "distribution" : "unit_interval",
+               "formula" : [
+                  "= \\frac{ENDW\\_CWE}{EL\\_COUNT\\_ALL}"
+               ]
+            },
+            "ENDW_WE_NORM" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Weighted endemism normalised by groups",
+               "distribution" : "nonnegative",
+               "formula" : [
+                  "= \\frac{ENDW\\_WE}{EL\\_COUNT\\_ALL}"
+               ]
+            }
+         },
+         "name" : "Endemism whole normalised",
+         "pre_calc" : [
+            "_calc_endemism_whole",
+            "calc_elements_used"
+         ],
+         "type" : "Endemism",
+         "uses_nbr_lists" : 1
+      },
+      "calc_gpprop_gistar" : {
+         "description" : "List of Getis-Ord Gi* statistics for each group property across both neighbour sets",
+         "indices" : {
+            "GPPROP_GISTAR_LIST" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of Gi* scores",
+               "distribution" : "zscore",
+               "type" : "list"
+            }
+         },
+         "name" : "Group property Gi* statistics",
+         "pre_calc" : [
+            "get_gpp_stats_objects"
+         ],
+         "pre_calc_global" : [
+            "_get_gpprop_global_summary_stats"
+         ],
+         "pre_conditions" : [
+            "basedata_has_group_properties"
+         ],
+         "reference" : "Getis and Ord (1992) Geographical Analysis. https://doi.org/10.1111/j.1538-4632.1992.tb00261.x",
+         "type" : "Element Properties",
+         "uses_nbr_lists" : 1
+      },
+      "calc_gpprop_hashes" : {
+         "description" : "Hashes of the groups and their property values used in the group properties calculations. Hash keys are the property values, hash values are the property value frequencies.",
+         "indices" : {},
+         "name" : "Group property hashes",
+         "pre_calc" : [
+            "get_gpp_stats_objects"
+         ],
+         "type" : "Element Properties",
+         "uses_nbr_lists" : 1
+      },
+      "calc_gpprop_lists" : {
+         "description" : "Lists of the groups and their property values used in the group properties calculations",
+         "indices" : {},
+         "name" : "Group property data",
+         "pre_calc" : [
+            "get_gpp_stats_objects"
+         ],
+         "type" : "Element Properties",
+         "uses_nbr_lists" : 1
+      },
+      "calc_gpprop_quantiles" : {
+         "description" : "Quantiles for each group property across both neighbour sets",
+         "indices" : {
+            "GPPROP_QUANTILE_LIST" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of quantiles for the label properties (05 10 20 30 40 50 60 70 80 90 95)",
+               "type" : "list"
+            }
+         },
+         "name" : "Group property quantiles",
+         "pre_calc" : [
+            "get_gpp_stats_objects"
+         ],
+         "pre_conditions" : [
+            "basedata_has_group_properties"
+         ],
+         "type" : "Element Properties",
+         "uses_nbr_lists" : 1
+      },
+      "calc_gpprop_stats" : {
+         "description" : "List of summary statistics for each group property across both neighbour sets",
+         "indices" : {
+            "GPPROP_STATS_LIST" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of summary statistics (count mean min max median sum sd iqr)",
+               "type" : "list"
+            }
+         },
+         "name" : "Group property summary stats",
+         "pre_calc" : [
+            "get_gpp_stats_objects"
+         ],
+         "pre_conditions" : [
+            "basedata_has_group_properties"
+         ],
+         "type" : "Element Properties",
+         "uses_nbr_lists" : 1
+      },
+      "calc_hierarchical_label_ratios" : {
+         "description" : "Analyse the diversity of labels using their hierarchical levels.\nThe A, B and C scores are the same as in the Label Counts analysis (calc_label_counts)\nbut calculated for each hierarchical level, e.g. for three axes one could have\nA0 as the Family level, A1 for the Family:Genus level,\nand A2 for the Family:Genus:Species level.\nThe number of list elements generated depends on how many axes are used in the labels.\nAxes are order from zero as the highest level in the hierarchy,\nso index 0 is the top level of the hierarchy.\n\nNote that this calculation produces lists since version 4.99_002\nso one can no longer use the SUMRAT indices for clustering.\nThis can be re-enabled if there is a need.\n",
+         "indices" : {
+            "HIER_A" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "A score for each level",
+               "type" : "list"
+            },
+            "HIER_ARAT" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Ratio of A scores between adjacent levels",
+               "is_ratio" : 1,
+               "type" : "list"
+            },
+            "HIER_ASUM" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Sum of shared label sample counts",
+               "type" : "list"
+            },
+            "HIER_ASUMRAT" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "1 - Ratio of shared label sample counts between adjacent levels",
+               "is_ratio" : 1,
+               "type" : "list"
+            },
+            "HIER_B" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "B score  for each level",
+               "type" : "list"
+            },
+            "HIER_BRAT" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Ratio of B scores between adjacent levels",
+               "is_ratio" : 1,
+               "type" : "list"
+            },
+            "HIER_C" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "C score for each level",
+               "type" : "list"
+            },
+            "HIER_CRAT" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Ratio of C scores between adjacent levels",
+               "is_ratio" : 1,
+               "type" : "list"
+            }
+         },
+         "name" : "Ratios of hierarchical labels",
+         "pre_calc_global" : "get_basedatas_by_label_hierarchy",
+         "reference" : "Jones and Laffan (2008) Trans Philol Soc https://doi.org/10.1111/j.1467-968X.2008.00209.x",
+         "type" : "Hierarchical Labels",
+         "uses_nbr_lists" : 2
+      },
+      "calc_hurlbert_es" : {
+         "description" : "Hurlbert estimated species richness scores for given number of samples.\n",
+         "indices" : {
+            "HURLBERT_ES" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of Hurlbert estimated species richness scores for given number of samples",
+               "type" : "list"
+            }
+         },
+         "name" : "Hurlbert richness estimation",
+         "pre_calc" : "calc_abc3",
+         "reference" : "Hurlbert, S.H. (1971) https://doi.org/10.2307/1934145",
+         "type" : "Richness estimators",
+         "uses_nbr_lists" : 1
+      },
+      "calc_ice" : {
+         "description" : "Incidence Coverage-based Estimator of species richness",
+         "indices" : {
+            "ICE_CI_LOWER" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "ICE lower confidence interval estimate"
+            },
+            "ICE_CI_UPPER" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "ICE upper confidence interval estimate"
+            },
+            "ICE_ESTIMATE" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "ICE score"
+            },
+            "ICE_ESTIMATE_USED_CHAO" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Set to 1 when ICE cannot be calculated and so Chao2 estimate is used"
+            },
+            "ICE_INFREQUENT_COUNT" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Count of infrequent species"
+            },
+            "ICE_SE" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "ICE standard error"
+            },
+            "ICE_UNDETECTED" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Estimated number of undetected species"
+            },
+            "ICE_VARIANCE" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "ICE variance"
+            }
+         },
+         "name" : "ICE",
+         "pre_calc" : [
+            "calc_abc2",
+            "calc_nonempty_elements_used"
+         ],
+         "type" : "Richness estimators",
+         "uses_nbr_lists" : 1
+      },
+      "calc_jaccard" : {
+         "description" : "Jaccard dissimilarity between the labels in neighbour sets 1 and 2.",
+         "formula" : [
+            "= 1 - \\frac{A}{A + B + C}",
+            " where ",
+            "A",
+            "is the count of labels found in both neighbour sets, ",
+            "B",
+            " is the count unique to neighbour set 1, and ",
+            "C",
+            " is the count unique to neighbour set 2. Use the 'Label counts' calculation to derive these directly."
+         ],
+         "indices" : {
+            "JACCARD" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "cluster" : 1,
+               "cluster_can_lump_zeroes" : 1,
+               "description" : "Jaccard value, 0 is identical, 1 is completely dissimilar",
+               "distribution" : "unit_interval"
+            }
+         },
+         "name" : "Jaccard",
+         "pre_calc" : [
+            "_calc_abc_any",
+            "is_dissimilarity_valid"
+         ],
+         "type" : "Taxonomic Dissimilarity and Comparison",
+         "uses_nbr_lists" : 2
+      },
+      "calc_kulczynski2" : {
+         "description" : "Kulczynski 2 dissimilarity between two sets of labels.\n",
+         "formula" : [
+            "= 1 - 0.5 * (\\frac{A}{A + B} + \\frac{A}{A + C})",
+            " where ",
+            "A",
+            "is the count of labels found in both neighbour sets, ",
+            "B",
+            " is the count unique to neighbour set 1, and ",
+            "C",
+            " is the count unique to neighbour set 2. Use the 'Label counts' calculation to derive these directly."
+         ],
+         "indices" : {
+            "KULCZYNSKI2" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "cluster" : 1,
+               "description" : "Kulczynski 2 index",
+               "distribution" : "unit_interval"
+            }
+         },
+         "name" : "Kulczynski 2",
+         "pre_calc" : [
+            "_calc_abc_any",
+            "is_dissimilarity_valid"
+         ],
+         "type" : "Taxonomic Dissimilarity and Comparison",
+         "uses_nbr_lists" : 2
+      },
+      "calc_label_count_quantile_position" : {
+         "description" : "Find the per-group percentile rank of all labels across both neighbour sets,  relative to the processing group. An absence is treated as a sample count of zero.",
+         "indices" : {
+            "LABEL_COUNT_RANK_PCT" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of percentile ranks for each label's sample count",
+               "type" : "list"
+            }
+         },
+         "name" : "Rank relative sample counts per label",
+         "pre_calc" : [
+            "calc_element_lists_used",
+            "_calc_abc_any"
+         ],
+         "required_args" : [
+            "processing_element"
+         ],
+         "type" : "Lists and Counts",
+         "uses_nbr_lists" : 1
+      },
+      "calc_labels_not_on_tree" : {
+         "description" : "Create a hash of the labels that are not on the tree",
+         "indices" : {
+            "PHYLO_LABELS_NOT_ON_TREE" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "A hash of labels that are not found on the tree, across both neighbour sets",
+               "type" : "list"
+            },
+            "PHYLO_LABELS_NOT_ON_TREE_N" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Number of labels not on the tree",
+               "distribution" : "nonnegative"
+            },
+            "PHYLO_LABELS_NOT_ON_TREE_P" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "Proportion of labels not on the tree",
+               "distribution" : "unit_interval"
+            }
+         },
+         "name" : "Labels not on tree",
+         "pre_calc" : [
+            "_calc_abc_any"
+         ],
+         "pre_calc_global" : [
+            "get_labels_not_on_tree"
+         ],
+         "required_args" : [
+            "tree_ref"
+         ],
+         "type" : "Phylogenetic Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_labels_not_on_trimmed_tree" : {
+         "description" : "Create a hash of the labels that are not on the trimmed tree",
+         "indices" : {
+            "PHYLO_LABELS_NOT_ON_TRIMMED_TREE" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "A hash of labels that are not found on the tree after it has been trimmed to the basedata, across both neighbour sets",
+               "type" : "list"
+            },
+            "PHYLO_LABELS_NOT_ON_TRIMMED_TREE_N" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Number of labels not on the trimmed tree"
+            },
+            "PHYLO_LABELS_NOT_ON_TRIMMED_TREE_P" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Proportion of labels not on the trimmed tree"
+            }
+         },
+         "name" : "Labels not on trimmed tree",
+         "pre_calc" : [
+            "_calc_abc_any"
+         ],
+         "pre_calc_global" : [
+            "get_labels_not_on_trimmed_tree"
+         ],
+         "type" : "Phylogenetic Indices (relative)",
+         "uses_nbr_lists" : 1
+      },
+      "calc_labels_on_tree" : {
+         "description" : "Create a hash of the labels that are on the tree",
+         "indices" : {
+            "PHYLO_LABELS_ON_TREE" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "A hash of labels that are found on the tree, across both neighbour sets",
+               "type" : "list"
+            }
+         },
+         "name" : "Labels on tree",
+         "pre_calc" : [
+            "calc_abc"
+         ],
+         "pre_calc_global" : [
+            "get_labels_not_on_tree"
+         ],
+         "required_args" : [
+            "tree_ref"
+         ],
+         "type" : "Phylogenetic Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_labels_on_trimmed_tree" : {
+         "description" : "Create a hash of the labels that are on the trimmed tree",
+         "indices" : {
+            "PHYLO_LABELS_ON_TRIMMED_TREE" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "A hash of labels that are found on the tree after it has been trimmed to match the basedata, across both neighbour sets",
+               "type" : "list"
+            }
+         },
+         "name" : "Labels on trimmed tree",
+         "pre_calc" : [
+            "calc_abc"
+         ],
+         "pre_calc_global" : [
+            "get_trimmed_tree",
+            "get_labels_not_on_trimmed_tree"
+         ],
+         "type" : "Phylogenetic Indices (relative)",
+         "uses_nbr_lists" : 1
+      },
+      "calc_last_shared_ancestor_props" : {
+         "description" : "Properties of the last shared ancestor of an assemblage.\nUses labels in both neighbourhoods.",
+         "indices" : {
+            "LAST_SHARED_ANCESTOR_DEPTH" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Depth of last shared ancestor from the root.\nThe root has a depth of zero."
+            },
+            "LAST_SHARED_ANCESTOR_DIST_TO_ROOT" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Distance along the tree from the last shared ancestor to the root.  \nIncludes the shared ancestor's length."
+            },
+            "LAST_SHARED_ANCESTOR_DIST_TO_TIP" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Distance along the tree from the last shared ancestor to the furthest tip in the sample.\nThis is calculated from the point at which the lineages merge, which is the branch end further from the root"
+            },
+            "LAST_SHARED_ANCESTOR_LENGTH" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Branch length of last shared ancestor"
+            },
+            "LAST_SHARED_ANCESTOR_POS_REL" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Relative position of the last shared ancestor.\nValue is the fraction of the distance from the root to the furthest terminal.This uses the point at which the lineages merge, and is the branch end further from the root"
+            }
+         },
+         "name" : "Last shared ancestor properties",
+         "pre_calc" : [
+            "_calc_abc_any",
+            "get_sub_tree_as_hash",
+            "get_last_shared_ancestor_from_subtree"
+         ],
+         "required_args" : [
+            "tree_ref"
+         ],
+         "type" : "Phylogenetic Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_lbprop_data" : {
+         "description" : "Lists of the labels and their property values used in the label properties calculations",
+         "indices" : {},
+         "name" : "Label property data",
+         "pre_calc" : [
+            "get_lbp_stats_objects"
+         ],
+         "type" : "Element Properties",
+         "uses_nbr_lists" : 1
+      },
+      "calc_lbprop_gistar" : {
+         "description" : "List of Getis-Ord Gi* statistic for each label property across both neighbour sets",
+         "indices" : {
+            "LBPROP_GISTAR_LIST" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of Gi* scores",
+               "distribution" : "zscore",
+               "type" : "list"
+            }
+         },
+         "name" : "Label property Gi* statistics",
+         "pre_calc" : [
+            "get_lbp_stats_objects"
+         ],
+         "pre_calc_global" : [
+            "_get_lbprop_global_summary_stats"
+         ],
+         "reference" : "Getis and Ord (1992) Geographical Analysis. https://doi.org/10.1111/j.1538-4632.1992.tb00261.x",
+         "type" : "Element Properties",
+         "uses_nbr_lists" : 1
+      },
+      "calc_lbprop_gistar_abc2" : {
+         "description" : "List of Getis-Ord Gi* statistic for each label property across both neighbour sets (local range weighted)",
+         "indices" : {
+            "LBPROP_GISTAR_LIST_ABC2" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of Gi* scores",
+               "distribution" : "zscore",
+               "type" : "list"
+            }
+         },
+         "name" : "Label property Gi* statistics (local range weighted)",
+         "pre_calc" : [
+            "get_lbp_stats_objects_abc2"
+         ],
+         "pre_calc_global" : [
+            "_get_lbprop_global_summary_stats_range_weighted"
+         ],
+         "pre_conditions" : [
+            "basedata_has_label_properties"
+         ],
+         "reference" : "Getis and Ord (1992) Geographical Analysis. https://doi.org/10.1111/j.1538-4632.1992.tb00261.x",
+         "type" : "Element Properties",
+         "uses_nbr_lists" : 1
+      },
+      "calc_lbprop_hashes" : {
+         "description" : "Hashes of the labels and their property values used in the label properties calculations. Hash keys are the property values, hash values are the property value frequencies.",
+         "indices" : {},
+         "name" : "Label property hashes",
+         "pre_calc" : [
+            "get_lbp_stats_objects"
+         ],
+         "type" : "Element Properties",
+         "uses_nbr_lists" : 1
+      },
+      "calc_lbprop_hashes_abc2" : {
+         "description" : "Hashes of the labels and their property values\nused in the local range weighted label properties calculations.\nHash keys are the property values,\nhash values are the property value frequencies.\n",
+         "indices" : {},
+         "name" : "Label property hashes (local range weighted)",
+         "pre_calc" : [
+            "get_lbp_stats_objects_abc2"
+         ],
+         "type" : "Element Properties",
+         "uses_nbr_lists" : 1
+      },
+      "calc_lbprop_lists" : {
+         "description" : "Lists of the labels and their property values within the neighbour sets",
+         "indices" : {},
+         "name" : "Label property lists",
+         "pre_calc" : [
+            "_calc_abc_any"
+         ],
+         "type" : "Element Properties",
+         "uses_nbr_lists" : 1
+      },
+      "calc_lbprop_quantiles" : {
+         "description" : "List of quantiles for each label property across both neighbour sets\n",
+         "indices" : {
+            "LBPROP_QUANTILES" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of quantiles for the label properties: (05 10 20 30 40 50 60 70 80 90 95)",
+               "type" : "list"
+            }
+         },
+         "name" : "Label property quantiles",
+         "pre_calc" : [
+            "get_lbp_stats_objects"
+         ],
+         "type" : "Element Properties",
+         "uses_nbr_lists" : 1
+      },
+      "calc_lbprop_quantiles_abc2" : {
+         "description" : "List of quantiles for each label property across both neighbour sets (local range weighted)\n",
+         "indices" : {
+            "LBPROP_QUANTILES_ABC2" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of quantiles for the label properties: (05 10 20 30 40 50 60 70 80 90 95)",
+               "type" : "list"
+            }
+         },
+         "name" : "Label property quantiles (local range weighted)",
+         "pre_calc" : [
+            "get_lbp_stats_objects_abc2"
+         ],
+         "pre_conditions" : [
+            "basedata_has_label_properties"
+         ],
+         "type" : "Element Properties",
+         "uses_nbr_lists" : 1
+      },
+      "calc_lbprop_stats" : {
+         "description" : "List of summary statistics for each label property across both neighbour sets\n",
+         "indices" : {
+            "LBPROP_STATS" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of summary statistics (count mean min max median sum skewness kurtosis sd iqr)",
+               "type" : "list"
+            }
+         },
+         "name" : "Label property summary stats",
+         "pre_calc" : [
+            "get_lbp_stats_objects"
+         ],
+         "type" : "Element Properties",
+         "uses_nbr_lists" : 1
+      },
+      "calc_lbprop_stats_abc2" : {
+         "description" : "List of summary statistics for each label property across both neighbour sets, weighted by local ranges\n",
+         "indices" : {
+            "LBPROP_STATS_ABC2" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of summary statistics (count mean min max median sum skewness kurtosis sd iqr)",
+               "type" : "list"
+            }
+         },
+         "name" : "Label property summary stats (local range weighted)",
+         "pre_calc" : [
+            "get_lbp_stats_objects_abc2"
+         ],
+         "pre_conditions" : [
+            "basedata_has_label_properties"
+         ],
+         "type" : "Element Properties",
+         "uses_nbr_lists" : 1
+      },
+      "calc_local_range_lists" : {
+         "description" : "Lists of labels with their local ranges as values. \nThe local ranges are the number of elements in which each label is found in each neighour set.",
+         "indices" : {
+            "ABC2_LABELS_ALL" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of labels in both neighbour sets",
+               "type" : "list",
+               "uses_nbr_lists" : 2
+            },
+            "ABC2_LABELS_SET1" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of labels in neighbour set 1",
+               "type" : "list"
+            },
+            "ABC2_LABELS_SET2" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of labels in neighbour set 2",
+               "type" : "list",
+               "uses_nbr_lists" : 2
+            }
+         },
+         "name" : "Local range lists",
+         "pre_calc" : "calc_abc2",
+         "type" : "Lists and Counts",
+         "uses_nbr_lists" : 1
+      },
+      "calc_local_range_stats" : {
+         "description" : "Summary stats of the local ranges within neighour sets.",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "ABC2_MEAN_ALL" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Mean label range in both element sets",
+               "lumper" : 1
+            },
+            "ABC2_MEAN_SET1" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Mean label range in neighbour set 1",
+               "lumper" : 0
+            },
+            "ABC2_MEAN_SET2" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Mean label range in neighbour set 2",
+               "lumper" : 0,
+               "uses_nbr_lists" : 2
+            },
+            "ABC2_SD_ALL" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Standard deviation of label ranges in both element sets",
+               "lumper" : 1,
+               "uses_nbr_lists" : 2
+            },
+            "ABC2_SD_SET1" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Standard deviation of label ranges in neighbour set 1",
+               "lumper" : 0
+            },
+            "ABC2_SD_SET2" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Standard deviation of label ranges in neighbour set 2",
+               "lumper" : 0,
+               "uses_nbr_lists" : 2
+            }
+         },
+         "name" : "Local range summary statistics",
+         "pre_calc" : "calc_abc2",
+         "type" : "Lists and Counts",
+         "uses_nbr_lists" : 1
+      },
+      "calc_local_sample_count_lists" : {
+         "description" : "Lists of sample counts for each label within the neighbour sets.\nThese form the basis of the sample indices.",
+         "indices" : {
+            "ABC3_LABELS_ALL" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of labels in both neighbour sets with their sample counts as the values.",
+               "type" : "list",
+               "uses_nbr_lists" : 2
+            },
+            "ABC3_LABELS_SET1" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of labels in neighbour set 1. Values are the sample counts.  ",
+               "type" : "list"
+            },
+            "ABC3_LABELS_SET2" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of labels in neighbour set 2. Values are the sample counts.",
+               "type" : "list",
+               "uses_nbr_lists" : 2
+            }
+         },
+         "name" : "Sample count lists",
+         "pre_calc" : "calc_abc3",
+         "type" : "Lists and Counts",
+         "uses_nbr_lists" : 1
+      },
+      "calc_local_sample_count_quantiles" : {
+         "description" : "Quantiles of the sample counts across the neighbour sets.\n",
+         "indices" : {
+            "ABC3_QUANTILES_ALL" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of quantiles for both neighbour sets",
+               "type" : "list",
+               "uses_nbr_lists" : 2
+            },
+            "ABC3_QUANTILES_SET1" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of quantiles for neighbour set 1",
+               "type" : "list",
+               "uses_nbr_lists" : 1
+            },
+            "ABC3_QUANTILES_SET2" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of quantiles for neighbour set 2",
+               "type" : "list",
+               "uses_nbr_lists" : 2
+            }
+         },
+         "name" : "Sample count quantiles",
+         "pre_calc" : "calc_abc3",
+         "type" : "Lists and Counts",
+         "uses_nbr_lists" : 1
+      },
+      "calc_local_sample_count_stats" : {
+         "description" : "Summary stats of the sample counts across the neighbour sets.\n",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "ABC3_MEAN_ALL" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Mean of label sample counts across both element sets.",
+               "lumper" : 1,
+               "uses_nbr_lists" : 2
+            },
+            "ABC3_MEAN_SET1" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Mean of label sample counts in neighbour set1.",
+               "lumper" : 0
+            },
+            "ABC3_MEAN_SET2" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Mean of label sample counts in neighbour set 2.",
+               "lumper" : 0,
+               "uses_nbr_lists" : 2
+            },
+            "ABC3_SD_ALL" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Standard deviation of label sample counts in both element sets.",
+               "lumper" : 1,
+               "uses_nbr_lists" : 2
+            },
+            "ABC3_SD_SET1" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Standard deviation of sample counts in neighbour set 1.",
+               "lumper" : 0
+            },
+            "ABC3_SD_SET2" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Standard deviation of label sample counts in neighbour set 2.",
+               "lumper" : 0,
+               "uses_nbr_lists" : 2
+            },
+            "ABC3_SUM_ALL" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Sum of the label sample counts across both neighbour sets.",
+               "lumper" : 1,
+               "uses_nbr_lists" : 2
+            },
+            "ABC3_SUM_SET1" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Sum of the label sample counts across both neighbour sets.",
+               "lumper" : 0
+            },
+            "ABC3_SUM_SET2" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Sum of the label sample counts in neighbour set2.",
+               "lumper" : 0,
+               "uses_nbr_lists" : 2
+            }
+         },
+         "name" : "Sample count summary stats",
+         "pre_calc" : "calc_abc3",
+         "type" : "Lists and Counts",
+         "uses_nbr_lists" : 1
+      },
+      "calc_matrix_stats" : {
+         "description" : "Calculate summary statistics of matrix elements in the selected matrix for labels found across both neighbour sets.\nLabels not in the matrix are ignored.",
+         "indices" : {
+            "MX_KURT" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Kurtosis"
+            },
+            "MX_LABELS" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of the matrix labels in the neighbour sets",
+               "type" : "list"
+            },
+            "MX_MAXVALUE" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Maximum value"
+            },
+            "MX_MEAN" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Mean"
+            },
+            "MX_MEDIAN" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Median"
+            },
+            "MX_MINVALUE" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Minimum value"
+            },
+            "MX_N" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Number of samples (matrix elements, not labels)",
+               "distribution" : "nonnegative"
+            },
+            "MX_PCT05" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "5th percentile value"
+            },
+            "MX_PCT25" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "First quartile (25th percentile)"
+            },
+            "MX_PCT75" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Third quartile (75th percentile)"
+            },
+            "MX_PCT95" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "95th percentile value"
+            },
+            "MX_RANGE" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Range (max-min)",
+               "distribution" : "nonnegative"
+            },
+            "MX_SD" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Standard deviation"
+            },
+            "MX_SKEW" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Skewness"
+            },
+            "MX_VALUES" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of the matrix values",
+               "type" : "list"
+            }
+         },
+         "name" : "Matrix statistics",
+         "pre_calc" : [
+            "calc_abc"
+         ],
+         "required_args" : {
+            "matrix_ref" : 1
+         },
+         "type" : "Matrix",
+         "uses_nbr_lists" : 1
+      },
+      "calc_mx_rao_qe" : {
+         "description" : "Calculate Rao's quadratic entropy for a matrix weights scheme.\nBaseData labels not in the matrix are ignored",
+         "formula" : [
+            "= \\sum_{i \\in L} \\sum_{j \\in L} d_{ij} p_i p_j",
+            " where ",
+            "p_i",
+            " and ",
+            "p_j",
+            " are the sample counts for the i'th and j'th labels, ",
+            "d_{ij}",
+            " is the matrix value for the pair of labels ",
+            "ij",
+            " and ",
+            "L",
+            " is the set of labels across both neighbour sets that occur in the matrix."
+         ],
+         "indices" : {
+            "MX_RAO_QE" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "Matrix weighted quadratic entropy",
+               "distribution" : "unit_interval"
+            },
+            "MX_RAO_TLABELS" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of labels and values used in the MX_RAO_QE calculations",
+               "type" : "list"
+            },
+            "MX_RAO_TN" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Count of comparisons used to calculate MX_RAO_QE",
+               "distribution" : "nonnegative"
+            }
+         },
+         "name" : "Rao's quadratic entropy, matrix weighted",
+         "pre_calc" : "calc_abc3",
+         "required_args" : [
+            "matrix_ref"
+         ],
+         "type" : "Matrix",
+         "uses_nbr_lists" : 1
+      },
+      "calc_nestedness_resultant" : {
+         "description" : "Nestedness-resultant index between the labels in neighbour sets 1 and 2. ",
+         "formula" : [
+            "=\\frac{ \\left | B - C \\right | }{ 2A + B + C } \\times \\frac { A }{ A + min (B, C) }= SORENSON - S2",
+            " where ",
+            "A",
+            "is the count of labels found in both neighbour sets, ",
+            "B",
+            " is the count unique to neighbour set 1, and ",
+            "C",
+            " is the count unique to neighbour set 2. Use the 'Label counts' calculation to derive these directly."
+         ],
+         "indices" : {
+            "NEST_RESULTANT" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "cluster" : 1,
+               "description" : "Nestedness-resultant index",
+               "distribution" : "unit_interval"
+            }
+         },
+         "name" : "Nestedness-resultant",
+         "pre_calc" : [
+            "_calc_abc_any"
+         ],
+         "reference" : "Baselga (2010) Glob Ecol Biogeog.  https://doi.org/10.1111/j.1466-8238.2009.00490.x",
+         "type" : "Taxonomic Dissimilarity and Comparison",
+         "uses_nbr_lists" : 2
+      },
+      "calc_net_vpd" : {
+         "description" : "Z-score of VPD calculated using NRI/NTI resampling Not weighted by sample counts, so each label counts once only.",
+         "indices" : {
+            "PHYLO_NET_VPD" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Net variance of pair-wise phylogenetic distances, unweighted",
+               "distribution" : "zscore"
+            }
+         },
+         "name" : "Net variance of pair-wise phylogenetic distances, unweighted",
+         "pre_calc" : [
+            "calc_vpd_expected_values",
+            "calc_phylo_mpd_mntd1"
+         ],
+         "pre_calc_global" : [
+            "set_mpd_mntd_sample_variance_flag"
+         ],
+         "type" : "PhyloCom Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_nonempty_elements_used" : {
+         "description" : "Counts of non-empty elements in neighbour sets 1 and 2.\n",
+         "indices" : {
+            "EL_COUNT_NONEMPTY_ALL" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Count of non-empty elements in both neighbour sets",
+               "lumper" : 1,
+               "uses_nbr_lists" : 1
+            },
+            "EL_COUNT_NONEMPTY_SET1" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Count of non-empty elements in neighbour set 1",
+               "lumper" : 0
+            },
+            "EL_COUNT_NONEMPTY_SET2" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Count of non-empty elements in neighbour set 2",
+               "lumper" : 0,
+               "uses_nbr_lists" : 2
+            }
+         },
+         "name" : "Non-empty element counts",
+         "type" : "Lists and Counts",
+         "uses_nbr_lists" : 1
+      },
+      "calc_nri_nti1" : {
+         "description" : "NRI and NTI for the set of labels\non the tree in the sample. This\nversion is -1* the Phylocom implementation,\nso values >0 have longer branches than expected.\n Not weighted by sample counts, so each label counts once only.",
+         "indices" : {
+            "PHYLO_NRI1" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Net Relatedness Index, unweighted",
+               "distribution" : "zscore",
+               "formula" : [
+                  "NRI = \\frac{MPD_{obs} - mean(MPD_{rand})}{sd(MPD_{rand})}"
+               ]
+            },
+            "PHYLO_NTI1" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Nearest Taxon Index, unweighted",
+               "distribution" : "zscore",
+               "formula" : [
+                  "NTI = \\frac{MNTD_{obs} - mean(MNTD_{rand})}{sd(MNTD_{rand})}"
+               ]
+            }
+         },
+         "name" : "NRI and NTI, unweighted",
+         "pre_calc" : [
+            "calc_nri_nti_expected_values",
+            "calc_phylo_mpd_mntd1"
+         ],
+         "type" : "PhyloCom Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_nri_nti2" : {
+         "description" : "NRI and NTI for the set of labels\non the tree in the sample. This\nversion is -1* the Phylocom implementation,\nso values >0 have longer branches than expected.\n Local range weighted.",
+         "indices" : {
+            "PHYLO_NRI2" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Net Relatedness Index, local range weighted",
+               "distribution" : "zscore",
+               "formula" : []
+            },
+            "PHYLO_NTI2" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Nearest Taxon Index, local range weighted",
+               "distribution" : "zscore",
+               "formula" : []
+            }
+         },
+         "name" : "NRI and NTI, local range weighted",
+         "pre_calc" : [
+            "calc_nri_nti_expected_values",
+            "calc_phylo_mpd_mntd2"
+         ],
+         "type" : "PhyloCom Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_nri_nti3" : {
+         "description" : "NRI and NTI for the set of labels\non the tree in the sample. This\nversion is -1* the Phylocom implementation,\nso values >0 have longer branches than expected.\n Abundance weighted.",
+         "indices" : {
+            "PHYLO_NRI3" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Net Relatedness Index, abundance weighted",
+               "distribution" : "zscore",
+               "formula" : []
+            },
+            "PHYLO_NTI3" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Nearest Taxon Index, abundance weighted",
+               "distribution" : "zscore",
+               "formula" : []
+            }
+         },
+         "name" : "NRI and NTI, abundance weighted",
+         "pre_calc" : [
+            "calc_nri_nti_expected_values",
+            "calc_phylo_mpd_mntd3"
+         ],
+         "type" : "PhyloCom Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_nri_nti_expected_values" : {
+         "description" : "Expected values used in the NRI and NTI calculations. \nDerived using a null model without resampling where \neach label has an equal probability of being selected\n(a null model of even distrbution).\nThe expected mean and SD are the same for each unique number\nof labels across all neighbour sets.  This means if you have\nthree neighbour sets, each with three labels, then the expected\nvalues will be identical for each, even if the labels are\ncompletely different.\n",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "PHYLO_NRI_NTI_SAMPLE_N" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Number of random resamples used",
+               "formula" : []
+            },
+            "PHYLO_NRI_SAMPLE_MEAN" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Expected mean of pair-wise distances",
+               "formula" : []
+            },
+            "PHYLO_NRI_SAMPLE_SD" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Expected standard deviation of pair-wise distances",
+               "formula" : []
+            },
+            "PHYLO_NTI_SAMPLE_MEAN" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Expected mean of nearest taxon distances",
+               "formula" : []
+            },
+            "PHYLO_NTI_SAMPLE_SD" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Expected standard deviation of nearest taxon distances",
+               "formula" : []
+            }
+         },
+         "name" : "NRI and NTI expected values",
+         "pre_calc" : [
+            "_calc_nri_nti_expected_values"
+         ],
+         "reference" : "Webb et al. (2008) https://doi.org/10.1093/bioinformatics/btn358, Tsirogiannis et al. (2012) https://doi.org/10.1007/978-3-642-33122-0_3",
+         "required_args" : "tree_ref",
+         "type" : "PhyloCom Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_num_labels_gistar" : {
+         "description" : "Getis-Ord Gi* statistic for numeric labels across both neighbour sets",
+         "indices" : {
+            "NUM_GISTAR" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of Gi* scores",
+               "distribution" : "zscore",
+               "lumper" : 1
+            }
+         },
+         "name" : "Numeric labels Gi* statistic",
+         "pre_calc" : [
+            "get_numeric_label_stats_object"
+         ],
+         "pre_calc_global" : [
+            "_get_num_label_global_summary_stats"
+         ],
+         "reference" : "Getis and Ord (1992) Geographical Analysis. https://doi.org/10.1111/j.1538-4632.1992.tb00261.x",
+         "type" : "Numeric Labels",
+         "uses_nbr_lists" : 1
+      },
+      "calc_numeric_label_data" : {
+         "description" : "The underlying data used for the numeric labels stats, as an array.\nFor the hash form, use the ABC3_LABELS_ALL index from the 'Sample count lists' calculation.",
+         "indices" : {
+            "NUM_DATA_ARRAY" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Numeric label data in array form.  Multiple occurrences are repeated based on their sample counts.",
+               "type" : "list"
+            }
+         },
+         "name" : "Numeric label data",
+         "pre_calc" : [
+            "get_numeric_label_stats_object"
+         ],
+         "type" : "Numeric Labels",
+         "uses_nbr_lists" : 1
+      },
+      "calc_numeric_label_dissimilarity" : {
+         "description" : "Compare the set of numeric labels in one neighbour set with those in another. ",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "NUMD_ABSMEAN" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "cluster" : 1,
+               "description" : "Mean absolute dissimilarity of labels in set 1 to those in set 2.",
+               "formula" : [
+                  "= \\frac{\\sum_{l_{1i} \\in L_1} \\sum_{l_{2j} \\in L_2} abs (l_{1i} - l_{2j})(w_{1i} \\times w_{2j})}{n_1 \\times n_2}",
+                  "where",
+                  "L1",
+                  " and ",
+                  "L2",
+                  " are the labels in neighbour sets 1 and 2 respectively, and ",
+                  "n1",
+                  " and ",
+                  "n2",
+                  " are the sample counts in neighbour sets 1 and 2"
+               ]
+            },
+            "NUMD_COUNT" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Count of comparisons used.",
+               "formula" : [
+                  "= n1 * n2",
+                  "where values are as for ",
+                  "NUMD\\_ABSMEAN"
+               ]
+            },
+            "NUMD_VARIANCE" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "cluster" : 1,
+               "description" : "Variance of the dissimilarity values (mean squared deviation), set 1 vs set 2.",
+               "formula" : [
+                  "= \\frac{\\sum_{l_{1i} \\in L_1} \\sum_{l_{2j} \\in L_2} (l_{1i} - l_{2j})^2(w_{1i} \\times w_{2j})}{n_1 \\times n_2}",
+                  "where values are as for ",
+                  "NUMD\\_ABSMEAN"
+               ]
+            }
+         },
+         "name" : "Numeric label dissimilarity",
+         "pre_calc" : "calc_abc3",
+         "pre_conditions" : [
+            "labels_are_numeric"
+         ],
+         "type" : "Numeric Labels",
+         "uses_nbr_lists" : 2
+      },
+      "calc_numeric_label_other_means" : {
+         "description" : "Calculate geometric and harmonic means for a set of numeric labels.\n",
+         "indices" : {
+            "NUM_GMEAN" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Geometric mean"
+            },
+            "NUM_HMEAN" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Harmonic mean"
+            }
+         },
+         "name" : "Numeric label harmonic and geometric means",
+         "pre_calc" : [
+            "get_numeric_label_stats_object"
+         ],
+         "type" : "Numeric Labels",
+         "uses_nbr_lists" : 1
+      },
+      "calc_numeric_label_quantiles" : {
+         "description" : "Calculate quantiles from a set of numeric labels.\nWeights by samples so multiple occurrences are accounted for.\n",
+         "indices" : {
+            "NUM_Q005" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "5th percentile"
+            },
+            "NUM_Q010" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "10th percentile"
+            },
+            "NUM_Q015" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "15th percentile"
+            },
+            "NUM_Q020" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "20th percentile"
+            },
+            "NUM_Q025" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "25th percentile"
+            },
+            "NUM_Q030" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "30th percentile"
+            },
+            "NUM_Q035" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "35th percentile"
+            },
+            "NUM_Q040" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "40th percentile"
+            },
+            "NUM_Q045" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "45th percentile"
+            },
+            "NUM_Q050" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "50th percentile"
+            },
+            "NUM_Q055" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "55th percentile"
+            },
+            "NUM_Q060" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "60th percentile"
+            },
+            "NUM_Q065" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "65th percentile"
+            },
+            "NUM_Q070" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "70th percentile"
+            },
+            "NUM_Q075" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "75th percentile"
+            },
+            "NUM_Q080" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "80th percentile"
+            },
+            "NUM_Q085" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "85th percentile"
+            },
+            "NUM_Q090" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "90th percentile"
+            },
+            "NUM_Q095" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "95th percentile"
+            }
+         },
+         "name" : "Numeric label quantiles",
+         "pre_calc" : [
+            "get_numeric_label_stats_object"
+         ],
+         "type" : "Numeric Labels",
+         "uses_nbr_lists" : 1
+      },
+      "calc_numeric_label_stats" : {
+         "description" : "Calculate summary statistics from a set of numeric labels.\nWeights by samples so multiple occurrences are accounted for.\n",
+         "indices" : {
+            "NUM_CV" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Coefficient of variation (NUM_SD / NUM_MEAN)"
+            },
+            "NUM_KURT" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Kurtosis"
+            },
+            "NUM_MAX" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Maximum value (100th quantile)"
+            },
+            "NUM_MEAN" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Mean"
+            },
+            "NUM_MIN" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Minimum value (zero quantile)"
+            },
+            "NUM_N" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Number of samples",
+               "distribution" : "nonnegative"
+            },
+            "NUM_RANGE" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Range (max - min)",
+               "distribution" : "nonnegative"
+            },
+            "NUM_SD" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Standard deviation"
+            },
+            "NUM_SKEW" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Skewness"
+            }
+         },
+         "name" : "Numeric label statistics",
+         "pre_calc" : [
+            "get_numeric_label_stats_object"
+         ],
+         "type" : "Numeric Labels",
+         "uses_nbr_lists" : 1
+      },
+      "calc_pd" : {
+         "description" : "Phylogenetic diversity (PD) based on branch lengths back to the root of the tree.\nUses labels in both neighbourhoods.",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "PD" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "cluster" : null,
+               "description" : "Phylogenetic diversity",
+               "formula" : [
+                  "= \\sum_{c \\in C} L_c",
+                  " where ",
+                  "C",
+                  "is the set of branches in the minimum spanning path joining the labels in both neighbour sets to the root of the tree,",
+                  "c",
+                  " is a branch (a single segment between two nodes) in the spanning path ",
+                  "C",
+                  ", and ",
+                  "L_c",
+                  " is the length of branch ",
+                  "c",
+                  "."
+               ],
+               "reference" : "Faith (1992) Biol. Cons. https://doi.org/10.1016/0006-3207(92)91201-3"
+            },
+            "PD_P" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "cluster" : null,
+               "description" : "Phylogenetic diversity as a proportion of total tree length",
+               "distribution" : "unit_interval",
+               "formula" : [
+                  "= \\frac { PD }{ \\sum_{c \\in C} L_c }",
+                  " where terms are the same as for PD, but ",
+                  "c",
+                  ", ",
+                  "C",
+                  " and ",
+                  "L_c",
+                  " are calculated for all nodes in the tree."
+               ]
+            },
+            "PD_P_per_taxon" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "cluster" : null,
+               "description" : "Phylogenetic diversity per taxon as a proportion of total tree length",
+               "formula" : [
+                  "= \\frac { PD\\_P }{ RICHNESS\\_ALL }"
+               ]
+            },
+            "PD_per_taxon" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "cluster" : null,
+               "description" : "Phylogenetic diversity per taxon",
+               "formula" : [
+                  "= \\frac { PD }{ RICHNESS\\_ALL }"
+               ]
+            }
+         },
+         "name" : "Phylogenetic Diversity",
+         "pre_calc" : "_calc_pd",
+         "type" : "Phylogenetic Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_pd_clade_contributions" : {
+         "description" : "Contribution of each node and its descendents to the Phylogenetic diversity (PD) calculation.",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "PD_CLADE_CONTR" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "List of node (clade) contributions to the PD calculation",
+               "type" : "list"
+            },
+            "PD_CLADE_CONTR_P" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "List of node (clade) contributions to the PD calculation, proportional to the entire tree",
+               "distribution" : "unit_interval",
+               "type" : "list"
+            },
+            "PD_CLADE_SCORE" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "List of PD scores for each node (clade), being the sum of all descendent branch lengths",
+               "type" : "list"
+            }
+         },
+         "name" : "PD clade contributions",
+         "pre_calc" : [
+            "calc_pd",
+            "calc_pd_node_list",
+            "get_sub_tree_as_hash"
+         ],
+         "reference" : "",
+         "type" : "Phylogenetic Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_pd_clade_loss" : {
+         "description" : "How much of the PD would be lost if a clade were to be removed? Calculates the clade PD below the last ancestral node in the neighbour set which would still be in the neighbour set.",
+         "indices" : {
+            "PD_CLADE_LOSS_CONTR" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of the proportion of the PD score which would be lost if each clade were removed.",
+               "type" : "list"
+            },
+            "PD_CLADE_LOSS_CONTR_P" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "As per PD_CLADE_LOSS but proportional to the entire tree",
+               "type" : "list"
+            },
+            "PD_CLADE_LOSS_SCORE" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of how much PD would be lost if each clade were removed.",
+               "type" : "list"
+            }
+         },
+         "name" : "PD clade loss",
+         "pre_calc" : [
+            "calc_pd_clade_contributions",
+            "get_sub_tree_as_hash"
+         ],
+         "reference" : "",
+         "type" : "Phylogenetic Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_pd_clade_loss_ancestral" : {
+         "description" : "How much of the PD clade loss is due to the ancestral branches? The score is zero when there is no ancestral loss.",
+         "indices" : {
+            "PD_CLADE_LOSS_ANC" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of how much ancestral PE would be lost if each clade were removed.  The value is 0 when no ancestral PD is lost.",
+               "type" : "list"
+            },
+            "PD_CLADE_LOSS_ANC_P" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "List of the proportion of the clade's PD loss that is due to the ancestral branches.",
+               "distribution" : "unit_interval",
+               "type" : "list"
+            }
+         },
+         "name" : "PD clade loss (ancestral component)",
+         "pre_calc" : [
+            "calc_pd_clade_contributions",
+            "calc_pd_clade_loss"
+         ],
+         "reference" : "",
+         "type" : "Phylogenetic Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_pd_endemism" : {
+         "description" : "Absolute endemism analogue of PE.  It is the sum of the branch lengths restricted to the neighbour sets.",
+         "indices" : {
+            "PD_ENDEMISM" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Phylogenetic Diversity Endemism"
+            },
+            "PD_ENDEMISM_P" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "Phylogenetic Diversity Endemism, as a proportion of the whole tree",
+               "distribution" : "unit_interval"
+            },
+            "PD_ENDEMISM_WTS" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Phylogenetic Diversity Endemism weights per node found only in the neighbour set",
+               "type" : "list"
+            }
+         },
+         "name" : "PD-Endemism",
+         "pre_calc" : [
+            "calc_pe_lists"
+         ],
+         "pre_calc_global" : [
+            "get_trimmed_tree"
+         ],
+         "reference" : "See Faith (2004) Cons Biol.  https://doi.org/10.1111/j.1523-1739.2004.00330.x",
+         "type" : "Phylogenetic Endemism Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_pd_local" : {
+         "description" : "Phylogenetic diversity (PD) based on branch lengths back to the last shared ancestor.\nUses labels in both neighbourhoods.",
+         "indices" : {
+            "PD_LOCAL" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Phylogenetic diversity calculated to last shared ancestor",
+               "formula" : [
+                  "= \\sum_{c \\in C} L_c",
+                  " where ",
+                  "C",
+                  "is the set of branches in the minimum spanning path joining the labels in both neighbour sets to the last shared ancestor,",
+                  "c",
+                  " is a branch (a single segment between two nodes) in the spanning path ",
+                  "C",
+                  ", and ",
+                  "L_c",
+                  " is the length of branch ",
+                  "c",
+                  "."
+               ]
+            },
+            "PD_LOCAL_P" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "Phylogenetic diversity as a proportion of total tree length",
+               "distribution" : "unit_interval",
+               "formula" : [
+                  "= \\frac { PD }{ \\sum_{c \\in C} L_c }",
+                  " where terms are the same as for PD, but ",
+                  "c",
+                  ", ",
+                  "C",
+                  " and ",
+                  "L_c",
+                  " are calculated for all nodes in the tree."
+               ]
+            }
+         },
+         "name" : "Phylogenetic Diversity (local)",
+         "pre_calc" : [
+            "calc_pd",
+            "get_last_shared_ancestor_from_subtree"
+         ],
+         "required_args" : [
+            "tree_ref"
+         ],
+         "type" : "Phylogenetic Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_pd_node_list" : {
+         "description" : "Phylogenetic diversity (PD) nodes used.",
+         "indices" : {
+            "PD_INCLUDED_NODE_LIST" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of tree nodes included in the PD calculations",
+               "type" : "list"
+            }
+         },
+         "name" : "Phylogenetic Diversity node list",
+         "pre_calc" : "_calc_pd",
+         "type" : "Phylogenetic Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_pd_terminal_node_count" : {
+         "description" : "Number of terminal nodes in neighbour sets 1 and 2.",
+         "indices" : {
+            "PD_INCLUDED_TERMINAL_NODE_COUNT" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Count of tree terminal nodes included in the PD calculations",
+               "distribution" : "nonnegative"
+            }
+         },
+         "name" : "Phylogenetic Diversity terminal node count",
+         "pre_calc" : "calc_pd_terminal_node_list",
+         "type" : "Phylogenetic Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_pd_terminal_node_list" : {
+         "description" : "Phylogenetic diversity (PD) terminal nodes used.",
+         "indices" : {
+            "PD_INCLUDED_TERMINAL_NODE_LIST" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of tree terminal nodes included in the PD calculations",
+               "type" : "list"
+            }
+         },
+         "name" : "Phylogenetic Diversity terminal node list",
+         "pre_calc" : "_calc_pd",
+         "required_args" : {
+            "tree_ref" : 1
+         },
+         "type" : "Phylogenetic Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_pe" : {
+         "description" : "Phylogenetic endemism (PE). Uses labels across both neighbourhoods and trims the tree to exclude labels not in the BaseData object.",
+         "formula" : [
+            "PE = \\sum_{\\lambda \\in \\Lambda } L_{\\lambda}\\frac{r_\\lambda}{R_\\lambda}",
+            " where ",
+            "\\Lambda",
+            " is the set of branches found across neighbour sets 1 and 2, ",
+            "L_\\lambda",
+            " is the length of branch ",
+            "\\lambda",
+            ", ",
+            "r_\\lambda",
+            " is the local range of branch ",
+            "\\lambda",
+            "(the number of groups in neighbour sets 1 and 2 containing it), and ",
+            "R_\\lambda",
+            " is the global range of branch ",
+            "\\lambda",
+            " (the number of groups across the entire data set containing it)."
+         ],
+         "indices" : {
+            "PE_WE" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Phylogenetic endemism"
+            },
+            "PE_WE_P" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "Phylogenetic weighted endemism as a proportion of the total tree length",
+               "distribution" : "unit_interval",
+               "formula" : [
+                  "PE\\_WE / L",
+                  " where L is the sum of all branch lengths in the trimmed tree"
+               ]
+            }
+         },
+         "name" : "Phylogenetic Endemism",
+         "pre_calc" : [
+            "_calc_pe"
+         ],
+         "pre_conditions" : [
+            "tree_branches_are_nonnegative"
+         ],
+         "reference" : "Rosauer et al (2009) Mol. Ecol. https://doi.org/10.1111/j.1365-294X.2009.04311.x; Laity et al. (2015) https://doi.org/10.1016/j.scitotenv.2015.04.113; Laffan et al. (2016) https://doi.org/10.1111/2041-210X.12513",
+         "type" : "Phylogenetic Endemism Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_pe_central" : {
+         "description" : "A variant of Phylogenetic endemism (PE) that uses labels\nfrom neighbour set 1 but local ranges from across\nboth neighbour sets 1 and 2.  Identical to PE if only\none neighbour set is specified.\n",
+         "formula" : [
+            "PEC = \\sum_{\\lambda \\in \\Lambda } L_{\\lambda}\\frac{r_\\lambda}{R_\\lambda}",
+            " where ",
+            "\\Lambda",
+            " is the set of branches found across neighbour set 1 only, ",
+            "L_\\lambda",
+            " is the length of branch ",
+            "\\lambda",
+            ", ",
+            "r_\\lambda",
+            " is the local range of branch ",
+            "\\lambda",
+            "(the number of groups in neighbour sets 1 and 2 containing it), and ",
+            "R_\\lambda",
+            " is the global range of branch ",
+            "\\lambda",
+            " (the number of groups across the entire data set containing it)."
+         ],
+         "indices" : {
+            "PEC_WE" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Phylogenetic endemism, central variant",
+               "distribution" : "nonnegative"
+            },
+            "PEC_WE_P" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "Phylogenetic weighted endemism as a proportion of the total tree length, central variant",
+               "distribution" : "unit_interval"
+            }
+         },
+         "name" : "Phylogenetic Endemism central",
+         "pre_calc" : [
+            "_calc_pe",
+            "_calc_pe_lists",
+            "_calc_phylo_abc_lists"
+         ],
+         "pre_calc_global" : [
+            "get_trimmed_tree"
+         ],
+         "reference" : "Rosauer et al (2009) Mol. Ecol. https://doi.org/10.1111/j.1365-294X.2009.04311.x",
+         "type" : "Phylogenetic Endemism Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_pe_central_cwe" : {
+         "description" : "What proportion of the PD in neighbour set 1 is range-restricted to neighbour sets 1 and 2?",
+         "indices" : {
+            "PEC_CWE" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "Corrected weighted phylogenetic endemism, central variant",
+               "distribution" : "unit_interval"
+            },
+            "PEC_CWE_PD" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "PD used in the PEC_CWE index.",
+               "distribution" : "nonnegative"
+            }
+         },
+         "name" : "Corrected weighted phylogenetic endemism, central variant",
+         "pre_calc" : [
+            "calc_pe_central",
+            "calc_pe_central_lists",
+            "calc_pd_node_list"
+         ],
+         "reference" : "",
+         "type" : "Phylogenetic Endemism Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_pe_central_lists" : {
+         "description" : "Lists underlying the phylogenetic endemism central indices.\nUses labels from neighbour set one but local ranges from across\nboth neighbour sets.\n",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "PEC_LOCAL_RANGELIST" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Phylogenetic endemism local range lists, central variant",
+               "type" : "list"
+            },
+            "PEC_RANGELIST" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Phylogenetic endemism global range lists, central variant",
+               "type" : "list"
+            },
+            "PEC_WTLIST" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Phylogenetic endemism weights, central variant",
+               "type" : "list"
+            }
+         },
+         "name" : "Phylogenetic Endemism central lists",
+         "pre_calc" : [
+            "_calc_pe",
+            "calc_pe_lists",
+            "_calc_phylo_abc_lists"
+         ],
+         "reference" : "Rosauer et al (2009) Mol. Ecol. https://doi.org/10.1111/j.1365-294X.2009.04311.x",
+         "type" : "Phylogenetic Endemism Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_pe_clade_contributions" : {
+         "description" : "Contribution of each node and its descendents to the Phylogenetic endemism (PE) calculation.",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "PE_CLADE_CONTR" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "List of node (clade) contributions to the PE calculation",
+               "type" : "list"
+            },
+            "PE_CLADE_CONTR_P" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "List of node (clade) contributions to the PE calculation, proportional to the entire tree",
+               "distribution" : "unit_interval",
+               "type" : "list"
+            },
+            "PE_CLADE_SCORE" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "List of PE scores for each node (clade), being the sum of all descendent PE weights",
+               "type" : "list"
+            }
+         },
+         "name" : "PE clade contributions",
+         "pre_calc" : [
+            "_calc_pe",
+            "_calc_pe_lists",
+            "get_sub_tree_as_hash"
+         ],
+         "pre_calc_global" : [
+            "get_trimmed_tree"
+         ],
+         "reference" : "",
+         "type" : "Phylogenetic Endemism Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_pe_clade_loss" : {
+         "description" : "How much of the PE would be lost if a clade were to be removed? Calculates the clade PE below the last ancestral node in the neighbour set which would still be in the neighbour set.",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "PE_CLADE_LOSS_CONTR" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "List of the proportion of the PE score which would be lost if each clade were removed.",
+               "type" : "list"
+            },
+            "PE_CLADE_LOSS_CONTR_P" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "As per PE_CLADE_LOSS but proportional to the entire tree",
+               "distribution" : "unit_interval",
+               "type" : "list"
+            },
+            "PE_CLADE_LOSS_SCORE" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "List of how much PE would be lost if each clade were removed.",
+               "type" : "list"
+            }
+         },
+         "name" : "PE clade loss",
+         "pre_calc" : [
+            "calc_pe_clade_contributions",
+            "get_sub_tree_as_hash"
+         ],
+         "reference" : "",
+         "type" : "Phylogenetic Endemism Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_pe_clade_loss_ancestral" : {
+         "description" : "How much of the PE clade loss is due to the ancestral branches? The score is zero when there is no ancestral loss.",
+         "indices" : {
+            "PE_CLADE_LOSS_ANC" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "List of how much ancestral PE would be lost if each clade were removed.  The value is 0 when no ancestral PE is lost.",
+               "distribution" : "nonnegative",
+               "type" : "list"
+            },
+            "PE_CLADE_LOSS_ANC_P" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "List of the proportion of the clade's PE loss that is due to the ancestral branches.",
+               "distribution" : "unit_interval",
+               "type" : "list"
+            }
+         },
+         "name" : "PE clade loss (ancestral component)",
+         "pre_calc" : [
+            "calc_pe_clade_contributions",
+            "calc_pe_clade_loss"
+         ],
+         "reference" : "",
+         "type" : "Phylogenetic Endemism Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_pe_lists" : {
+         "description" : "Lists used in the Phylogenetic endemism (PE) calculations.",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "PE_LOCAL_RANGELIST" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Local node ranges used in PE calculations (number of groups in which a node is found)",
+               "type" : "list"
+            },
+            "PE_RANGELIST" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Node ranges used in PE calculations",
+               "type" : "list"
+            },
+            "PE_WTLIST" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Node weights used in PE calculations",
+               "type" : "list"
+            }
+         },
+         "name" : "Phylogenetic Endemism lists",
+         "pre_calc" : [
+            "_calc_pe_lists"
+         ],
+         "pre_calc_global" : [
+            "get_node_range_hash"
+         ],
+         "reference" : "Rosauer et al (2009) Mol. Ecol. https://doi.org/10.1111/j.1365-294X.2009.04311.x",
+         "type" : "Phylogenetic Endemism Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_pe_single" : {
+         "description" : "PE scores, but not weighted by local ranges.\nThis is the strict interpretation of the formula given in\nRosauer et al. (2009), although the approach has always been\nimplemented as the fraction of each branch's geographic range\nthat is found in the sample window (see formula for PE_WE).\n",
+         "indices" : {
+            "PE_WE_SINGLE" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Phylogenetic endemism unweighted by the number of neighbours.\nCounts each label only once, regardless of how many groups in the neighbourhood it is found in.\nUseful if your data have sampling biases. Better with small sample windows.",
+               "distribution" : "nonnegative"
+            },
+            "PE_WE_SINGLE_P" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "Phylogenetic endemism unweighted by the number of neighbours as a proportion of the total tree length.\nCounts each label only once, regardless of how many groups in the neighbourhood it is found.\nUseful if your data have sampling biases.",
+               "distribution" : "unit_interval"
+            }
+         },
+         "name" : "Phylogenetic Endemism single",
+         "pre_calc" : [
+            "_calc_pe",
+            "calc_pe_lists"
+         ],
+         "pre_calc_global" : [
+            "get_trimmed_tree"
+         ],
+         "reference" : "Rosauer et al (2009) Mol. Ecol. https://doi.org/10.1111/j.1365-294X.2009.04311.x",
+         "type" : "Phylogenetic Endemism Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_phylo_abc" : {
+         "description" : "Calculate the shared and not shared branch lengths between two sets of labels",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "PHYLO_A" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Sum of branch lengths shared by labels in nbr sets 1 and 2",
+               "lumper" : 1
+            },
+            "PHYLO_ABC" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Sum of branch lengths associated with labels in nbr sets 1 and 2",
+               "lumper" : 1
+            },
+            "PHYLO_B" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Sum of branch lengths unique to labels in nbr set 1",
+               "lumper" : 0
+            },
+            "PHYLO_C" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Sum of branch lengths unique to labels in nbr set 2",
+               "lumper" : 0
+            }
+         },
+         "name" : "Phylogenetic ABC",
+         "pre_calc" : [
+            "_calc_abc_any"
+         ],
+         "pre_calc_global" : [
+            "get_trimmed_tree",
+            "get_path_length_cache",
+            "set_path_length_cache_by_group_flag"
+         ],
+         "type" : "Phylogenetic Turnover",
+         "uses_nbr_lists" : 2
+      },
+      "calc_phylo_abundance" : {
+         "description" : "Phylogenetic abundance based on branch lengths back to the root of the tree.\nUses labels in both neighbourhoods.",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "PHYLO_ABUNDANCE" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "cluster" : null,
+               "description" : "Phylogenetic abundance",
+               "formula" : [
+                  "= \\sum_{c \\in C} A \\times L_c",
+                  " where ",
+                  "C",
+                  "is the set of branches in the minimum spanning path joining the labels in both neighbour sets to the root of the tree,",
+                  "c",
+                  " is a branch (a single segment between two nodes) in the spanning path ",
+                  "C",
+                  ", and ",
+                  "L_c",
+                  " is the length of branch ",
+                  "c",
+                  ", and ",
+                  "A",
+                  " is the abundance of that branch (the sum of its descendant label abundances)."
+               ],
+               "reference" : ""
+            },
+            "PHYLO_ABUNDANCE_BRANCH_HASH" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "cluster" : null,
+               "description" : "Phylogenetic abundance per branch",
+               "reference" : "",
+               "type" : "list"
+            }
+         },
+         "name" : "Phylogenetic Abundance",
+         "pre_calc" : [
+            "_calc_pd",
+            "calc_abc3",
+            "calc_labels_on_tree"
+         ],
+         "pre_calc_global" : [
+            "get_trimmed_tree",
+            "get_global_node_abundance_hash"
+         ],
+         "type" : "Phylogenetic Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_phylo_aed" : {
+         "description" : "Evolutionary distinctiveness metrics (AED, ED, ES)\nLabel values are constant for all neighbourhoods in which each label is found. ",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "PHYLO_AED_LIST" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Abundance weighted ED per terminal label",
+               "reference" : "Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x",
+               "type" : "list"
+            },
+            "PHYLO_ED_LIST" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "\"Fair proportion\" partitioning of PD per terminal label",
+               "reference" : "Isaac et al. (2007) https://doi.org/10.1371/journal.pone.0000296",
+               "type" : "list"
+            },
+            "PHYLO_ES_LIST" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Equal splits partitioning of PD per terminal label",
+               "reference" : "Redding & Mooers (2006) https://doi.org/10.1111%2Fj.1523-1739.2006.00555.x",
+               "type" : "list"
+            }
+         },
+         "name" : "Evolutionary distinctiveness",
+         "pre_calc" : [
+            "_calc_abc_any"
+         ],
+         "pre_calc_global" : [
+            "get_aed_scores"
+         ],
+         "reference" : "Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x",
+         "type" : "Phylogenetic Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_phylo_aed_t" : {
+         "description" : "Site level evolutionary distinctiveness",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "PHYLO_AED_T" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Abundance weighted ED_t (sum of values in PHYLO_AED_LIST times their abundances). This is equivalent to a phylogenetic rarity score (see phylogenetic endemism)",
+               "reference" : "Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x"
+            }
+         },
+         "name" : "Evolutionary distinctiveness per site",
+         "pre_calc" : [
+            "_calc_phylo_aed_t"
+         ],
+         "reference" : "Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x",
+         "type" : "Phylogenetic Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_phylo_aed_t_wtlists" : {
+         "description" : "Site level evolutionary distinctiveness per terminal taxon",
+         "indices" : {
+            "PHYLO_AED_T_WTLIST" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Abundance weighted ED per terminal taxon (the AED score of each taxon multiplied by its abundance in the sample)",
+               "distribution" : "nonnegative",
+               "reference" : "Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x",
+               "type" : "list"
+            },
+            "PHYLO_AED_T_WTLIST_P" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "Proportional contribution of each terminal taxon to the AED_T score",
+               "distribution" : "unit_interval",
+               "reference" : "Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x",
+               "type" : "list"
+            }
+         },
+         "name" : "Evolutionary distinctiveness per terminal taxon per site",
+         "pre_calc" : [
+            "_calc_phylo_aed_t"
+         ],
+         "reference" : "Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x",
+         "type" : "Phylogenetic Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_phylo_corrected_weighted_endemism" : {
+         "description" : "What proportion of the PD is range-restricted to this neighbour set?",
+         "indices" : {
+            "PE_CWE" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "Corrected weighted endemism.  This is the phylogenetic analogue of corrected weighted endemism.",
+               "distribution" : "unit_interval",
+               "formula" : [
+                  "PE\\_WE / PD"
+               ],
+               "reference" : ""
+            }
+         },
+         "name" : "Corrected weighted phylogenetic endemism",
+         "pre_calc" : [
+            "calc_pe",
+            "calc_pd"
+         ],
+         "reference" : "",
+         "type" : "Phylogenetic Endemism Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_phylo_corrected_weighted_rarity" : {
+         "description" : "What proportion of the PD is abundance-restricted to this neighbour set?",
+         "indices" : {
+            "PHYLO_RARITY_CWR" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "Corrected weighted phylogenetic rarity.  This is the phylogenetic rarity analogue of corrected weighted endemism.",
+               "distribution" : "unit_interval",
+               "formula" : [
+                  "AED_T / PD"
+               ],
+               "reference" : ""
+            }
+         },
+         "name" : "Corrected weighted phylogenetic rarity",
+         "pre_calc" : [
+            "_calc_phylo_aed_t",
+            "calc_pd"
+         ],
+         "reference" : "",
+         "type" : "Phylogenetic Endemism Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_phylo_jaccard" : {
+         "description" : "Jaccard phylogenetic dissimilarity between two sets of taxa, represented by spanning sets of branches\n",
+         "indices" : {
+            "PHYLO_JACCARD" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "cluster" : "NO_CACHE_ABC",
+               "cluster_can_lump_zeroes" : 1,
+               "description" : "Phylo Jaccard score",
+               "distribution" : "unit_interval",
+               "formula" : [
+                  "= 1 - (A / (A + B + C))",
+                  " where A is the length of shared branches, and B and C are the length of branches found only in neighbour sets 1 and 2"
+               ]
+            }
+         },
+         "name" : "Phylo Jaccard",
+         "pre_calc" : "calc_phylo_abc",
+         "pre_conditions" : [
+            "tree_branches_are_nonnegative"
+         ],
+         "reference" : "Lozupone and Knight (2005) https://doi.org/10.1128/AEM.71.12.8228-8235.2005",
+         "required_args" : {
+            "tree_ref" : 1
+         },
+         "type" : "Phylogenetic Turnover",
+         "uses_nbr_lists" : 2
+      },
+      "calc_phylo_mpd_mntd1" : {
+         "description" : "Distance stats from each label to the nearest label along the tree.  Compares with all other labels across both neighbour sets. ",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "PMPD1_MAX" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Maximum of pairwise phylogenetic distances",
+               "distribution" : "nonnegative"
+            },
+            "PMPD1_MEAN" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Mean of pairwise phylogenetic distances",
+               "formula" : [
+                  "MPD = \\frac {\\sum_{t_i = 1}^{n_t-1} \\sum_{t_j = 1}^{n_t} d_{t_i \\leftrightarrow t_j}}{(n_t-1)^2}, i \\neq j",
+                  "where ",
+                  "d_{t_i \\leftrightarrow t_j} = \\sum_{b \\in B_{t_i \\leftrightarrow t_j}} L_b",
+                  "is the sum of the branch lengths along the path connecting ",
+                  "t_i",
+                  "and",
+                  "t_j",
+                  "such that ",
+                  "L_b",
+                  "is the length of each branch in the set of branches",
+                  "B"
+               ]
+            },
+            "PMPD1_MIN" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Minimum of pairwise phylogenetic distances"
+            },
+            "PMPD1_N" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Count of pairwise phylogenetic distances",
+               "distribution" : "nonnegative"
+            },
+            "PMPD1_RMSD" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Root mean squared pairwise phylogenetic distances",
+               "distribution" : "nonnegative"
+            },
+            "PMPD1_VARIANCE" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Variance of pairwise phylogenetic distances,\nsimilar to Clarke and Warwick (2001; http://dx.doi.org/10.3354/meps216265) but uses tip-to-tip distances instead of tip to most recent common ancestor.",
+               "distribution" : "nonnegative"
+            },
+            "PNTD1_MAX" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Maximum of nearest taxon distances"
+            },
+            "PNTD1_MEAN" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Mean of nearest taxon distances"
+            },
+            "PNTD1_MIN" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Minimum of nearest taxon distances"
+            },
+            "PNTD1_N" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Count of nearest taxon distances",
+               "distribution" : "nonnegative"
+            },
+            "PNTD1_RMSD" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Root mean squared nearest taxon distances",
+               "distribution" : "nonnegative"
+            },
+            "PNTD1_VARIANCE" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Variance of nearest taxon distances",
+               "distribution" : "nonnegative"
+            }
+         },
+         "name" : "Phylogenetic and Nearest taxon distances, unweighted",
+         "pre_calc" : [
+            "calc_abc",
+            "calc_labels_on_tree"
+         ],
+         "pre_calc_global" : [
+            "get_phylo_mpd_mntd_matrix",
+            "get_phylo_mpd_mntd_cum_path_length_cache",
+            "get_phylo_LCA_matrix"
+         ],
+         "pre_conditions" : [
+            "tree_branches_are_nonnegative"
+         ],
+         "reference" : "Webb et al. (2008) https://doi.org/10.1093/bioinformatics/btn358\nWarwick & Clarke (2001) https://dx.doi.org/10.3354/meps216265",
+         "required_args" : "tree_ref",
+         "type" : "PhyloCom Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_phylo_mpd_mntd2" : {
+         "description" : "Distance stats from each label to the nearest label along the tree.  Compares with all other labels across both neighbour sets. Weighted by sample counts",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "PMPD2_MAX" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Maximum of pairwise phylogenetic distances",
+               "distribution" : "nonnegative"
+            },
+            "PMPD2_MEAN" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Mean of pairwise phylogenetic distances",
+               "formula" : [
+                  "MPD = \\frac {\\sum_{t_i = 1}^{n_t-1} \\sum_{t_j = 1}^{n_t} d_{t_i \\leftrightarrow t_j}}{(n_t-1)^2}, i \\neq j",
+                  "where ",
+                  "d_{t_i \\leftrightarrow t_j} = \\sum_{b \\in B_{t_i \\leftrightarrow t_j}} L_b",
+                  "is the sum of the branch lengths along the path connecting ",
+                  "t_i",
+                  "and",
+                  "t_j",
+                  "such that ",
+                  "L_b",
+                  "is the length of each branch in the set of branches",
+                  "B"
+               ]
+            },
+            "PMPD2_MIN" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Minimum of pairwise phylogenetic distances"
+            },
+            "PMPD2_N" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Count of pairwise phylogenetic distances",
+               "distribution" : "nonnegative"
+            },
+            "PMPD2_RMSD" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Root mean squared pairwise phylogenetic distances",
+               "distribution" : "nonnegative"
+            },
+            "PMPD2_VARIANCE" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Variance of pairwise phylogenetic distances,\nsimilar to Clarke and Warwick (2001; http://dx.doi.org/10.3354/meps216265) but uses tip-to-tip distances instead of tip to most recent common ancestor.",
+               "distribution" : "nonnegative"
+            },
+            "PNTD2_MAX" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Maximum of nearest taxon distances"
+            },
+            "PNTD2_MEAN" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Mean of nearest taxon distances"
+            },
+            "PNTD2_MIN" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Minimum of nearest taxon distances"
+            },
+            "PNTD2_N" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Count of nearest taxon distances",
+               "distribution" : "nonnegative"
+            },
+            "PNTD2_RMSD" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Root mean squared nearest taxon distances",
+               "distribution" : "nonnegative"
+            },
+            "PNTD2_VARIANCE" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Variance of nearest taxon distances",
+               "distribution" : "nonnegative"
+            }
+         },
+         "name" : "Phylogenetic and Nearest taxon distances, local range weighted",
+         "pre_calc" : [
+            "calc_abc2",
+            "calc_labels_on_tree"
+         ],
+         "pre_calc_global" : [
+            "get_phylo_mpd_mntd_matrix",
+            "get_phylo_mpd_mntd_cum_path_length_cache",
+            "get_phylo_LCA_matrix"
+         ],
+         "pre_conditions" : [
+            "tree_branches_are_nonnegative"
+         ],
+         "reference" : "Webb et al. (2008) https://doi.org/10.1093/bioinformatics/btn358\nWarwick & Clarke (2001) https://dx.doi.org/10.3354/meps216265",
+         "required_args" : "tree_ref",
+         "type" : "PhyloCom Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_phylo_mpd_mntd3" : {
+         "description" : "Distance stats from each label to the nearest label along the tree.  Compares with all other labels across both neighbour sets. Weighted by sample counts (which currently must be integers)",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "PMPD3_MAX" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Maximum of pairwise phylogenetic distances",
+               "distribution" : "nonnegative"
+            },
+            "PMPD3_MEAN" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Mean of pairwise phylogenetic distances",
+               "formula" : [
+                  "MPD = \\frac {\\sum_{t_i = 1}^{n_t-1} \\sum_{t_j = 1}^{n_t} d_{t_i \\leftrightarrow t_j}}{(n_t-1)^2}, i \\neq j",
+                  "where ",
+                  "d_{t_i \\leftrightarrow t_j} = \\sum_{b \\in B_{t_i \\leftrightarrow t_j}} L_b",
+                  "is the sum of the branch lengths along the path connecting ",
+                  "t_i",
+                  "and",
+                  "t_j",
+                  "such that ",
+                  "L_b",
+                  "is the length of each branch in the set of branches",
+                  "B"
+               ]
+            },
+            "PMPD3_MIN" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Minimum of pairwise phylogenetic distances"
+            },
+            "PMPD3_N" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Count of pairwise phylogenetic distances",
+               "distribution" : "nonnegative"
+            },
+            "PMPD3_RMSD" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Root mean squared pairwise phylogenetic distances",
+               "distribution" : "nonnegative"
+            },
+            "PMPD3_VARIANCE" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Variance of pairwise phylogenetic distances,\nsimilar to Clarke and Warwick (2001; http://dx.doi.org/10.3354/meps216265) but uses tip-to-tip distances instead of tip to most recent common ancestor.",
+               "distribution" : "nonnegative"
+            },
+            "PNTD3_MAX" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Maximum of nearest taxon distances"
+            },
+            "PNTD3_MEAN" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Mean of nearest taxon distances"
+            },
+            "PNTD3_MIN" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Minimum of nearest taxon distances"
+            },
+            "PNTD3_N" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Count of nearest taxon distances",
+               "distribution" : "nonnegative"
+            },
+            "PNTD3_RMSD" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Root mean squared nearest taxon distances",
+               "distribution" : "nonnegative"
+            },
+            "PNTD3_VARIANCE" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Variance of nearest taxon distances",
+               "distribution" : "nonnegative"
+            }
+         },
+         "name" : "Phylogenetic and Nearest taxon distances, abundance weighted",
+         "pre_calc" : [
+            "calc_abc3",
+            "calc_labels_on_tree"
+         ],
+         "pre_calc_global" : [
+            "get_phylo_mpd_mntd_matrix",
+            "get_phylo_mpd_mntd_cum_path_length_cache",
+            "get_phylo_LCA_matrix"
+         ],
+         "pre_conditions" : [
+            "tree_branches_are_nonnegative"
+         ],
+         "reference" : "Webb et al. (2008) https://doi.org/10.1093/bioinformatics/btn358\nWarwick & Clarke (2001) https://dx.doi.org/10.3354/meps216265",
+         "required_args" : "tree_ref",
+         "type" : "PhyloCom Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_phylo_rpd1" : {
+         "description" : "Relative Phylogenetic Diversity type 1 (RPD1).  The ratio of the tree's PD to a null model of PD evenly distributed across terminals and where ancestral nodes are collapsed to zero length.You probably want to use RPD2 instead as it uses the tree's topology.",
+         "indices" : {
+            "PHYLO_RPD1" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "RPD1",
+               "distribution" : "nonnegative_ratio"
+            },
+            "PHYLO_RPD_DIFF1" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "How much more or less PD is there than expected, in original tree units.",
+               "distribution" : "divergent",
+               "formula" : [
+                  "= tree\\_length \\times (PD\\_P - PHYLO\\_RPD\\_NULL1)"
+               ]
+            },
+            "PHYLO_RPD_NULL1" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Null model score used as the denominator in the RPD1 calculations"
+            }
+         },
+         "name" : "Relative Phylogenetic Diversity, type 1",
+         "pre_calc" : [
+            "calc_pd",
+            "calc_labels_on_tree"
+         ],
+         "required_args" : [
+            "tree_ref"
+         ],
+         "type" : "Phylogenetic Indices (relative)",
+         "uses_nbr_lists" : 1
+      },
+      "calc_phylo_rpd2" : {
+         "description" : "Relative Phylogenetic Diversity (RPD), type 2.  The ratio of the tree's PD to a null model of PD evenly distributed across all nodes (all branches are of equal length).",
+         "indices" : {
+            "PHYLO_RPD2" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "RPD2",
+               "distribution" : "nonnegative_ratio"
+            },
+            "PHYLO_RPD_DIFF2" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "How much more or less PD is there than expected, in original tree units.",
+               "distribution" : "divergent",
+               "formula" : [
+                  "= tree\\_length \\times (PD\\_P - PHYLO\\_RPD\\_NULL2)"
+               ]
+            },
+            "PHYLO_RPD_NULL2" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Null model score used as the denominator in the RPD2 calculations"
+            }
+         },
+         "name" : "Relative Phylogenetic Diversity, type 2",
+         "pre_calc" : [
+            "calc_pd",
+            "calc_pd_node_list"
+         ],
+         "pre_calc_global" : [
+            "get_tree_with_equalised_branch_lengths",
+            "get_tree_zero_length_branch_count"
+         ],
+         "reference" : "Mishler et al. (2014) https://doi.org/10.1038/ncomms5473",
+         "required_args" : [
+            "tree_ref"
+         ],
+         "type" : "Phylogenetic Indices (relative)",
+         "uses_nbr_lists" : 1
+      },
+      "calc_phylo_rpe1" : {
+         "description" : "Relative Phylogenetic Endemism, type 1 (RPE1).  The ratio of the tree's PE to a null model of PD evenly distributed across terminals, but with the same range per terminal and where ancestral nodes are of zero length (as per RPD1).You probably want to use RPE2 instead as it uses the tree's topology.",
+         "indices" : {
+            "PHYLO_RPE1" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Relative Phylogenetic Endemism score",
+               "distribution" : "nonnegative_ratio"
+            },
+            "PHYLO_RPE_DIFF1" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "How much more or less PE is there than expected, in original tree units.",
+               "distribution" : "divergent",
+               "formula" : [
+                  "= tree\\_length \\times (PE\\_WE\\_P - PHYLO\\_RPE\\_NULL1)"
+               ]
+            },
+            "PHYLO_RPE_NULL1" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Null score used as the denominator in the RPE calculations"
+            }
+         },
+         "name" : "Relative Phylogenetic Endemism, type 1",
+         "pre_calc" : [
+            "calc_pe",
+            "calc_endemism_whole_lists",
+            "calc_labels_on_trimmed_tree"
+         ],
+         "pre_calc_global" : [
+            "get_trimmed_tree"
+         ],
+         "type" : "Phylogenetic Indices (relative)",
+         "uses_nbr_lists" : 1
+      },
+      "calc_phylo_rpe2" : {
+         "description" : "Relative Phylogenetic Endemism (RPE).  The ratio of the tree's PE to a null model where PE is calculated using a tree where all non-zero branches are of equal length.",
+         "indices" : {
+            "PHYLO_RPE2" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Relative Phylogenetic Endemism score, type 2",
+               "distribution" : "nonnegative_ratio"
+            },
+            "PHYLO_RPE_DIFF2" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "How much more or less PE is there than expected, in original tree units.",
+               "distribution" : "divergent",
+               "formula" : [
+                  "= tree\\_length \\times (PE\\_WE\\_P - PHYLO\\_RPE\\_NULL2)"
+               ]
+            },
+            "PHYLO_RPE_NULL2" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Null score used as the denominator in the RPE2 calculations"
+            }
+         },
+         "name" : "Relative Phylogenetic Endemism, type 2",
+         "pre_calc" : [
+            "_calc_pe",
+            "calc_elements_used",
+            "_calc_abc_any"
+         ],
+         "pre_calc_global" : [
+            "get_trimmed_tree",
+            "get_trimmed_tree_with_equalised_branch_lengths",
+            "get_trimmed_tree_eq_branch_lengths_node_length_hash",
+            "get_trimmed_tree_range_inverse_hash_nonzero_len",
+            "get_pe_element_cache",
+            "get_rpe_element_cache"
+         ],
+         "reference" : "Mishler et al. (2014) https://doi.org/10.1038/ncomms5473",
+         "type" : "Phylogenetic Indices (relative)",
+         "uses_nbr_lists" : 1
+      },
+      "calc_phylo_rpe_central" : {
+         "description" : "Relative Phylogenetic Endemism (RPE).  The ratio of the tree's PE to a null model where PE is calculated using a tree where all branches are of equal length.  Same as RPE2 except it only uses the branches in the first neighbour set when more than one is set.",
+         "indices" : {
+            "PHYLO_RPEC" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Relative Phylogenetic Endemism score, central",
+               "distribution" : "nonnegative_ratio"
+            },
+            "PHYLO_RPE_DIFFC" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "How much more or less PE is there than expected, in original tree units.",
+               "distribution" : "divergent",
+               "formula" : [
+                  "= tree\\_length \\times (PE\\_WEC\\_P - PHYLO\\_RPE\\_NULLC)"
+               ]
+            },
+            "PHYLO_RPE_NULLC" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Null score used as the denominator in the PHYLO_RPEC calculations"
+            }
+         },
+         "name" : "Relative Phylogenetic Endemism, central",
+         "pre_calc" : [
+            "calc_pe_central",
+            "calc_pe_central_lists",
+            "calc_elements_used",
+            "_calc_abc_any"
+         ],
+         "pre_calc_global" : [
+            "get_trimmed_tree",
+            "get_trimmed_tree_with_equalised_branch_lengths",
+            "get_trimmed_tree_eq_branch_lengths_node_length_hash",
+            "get_trimmed_tree_range_inverse_hash_nonzero_len",
+            "get_pe_element_cache",
+            "get_rpe_element_cache"
+         ],
+         "reference" : "Mishler et al. (2014) https://doi.org/10.1038/ncomms5473",
+         "type" : "Phylogenetic Indices (relative)",
+         "uses_nbr_lists" : 1
+      },
+      "calc_phylo_rw_turnover" : {
+         "description" : "Phylo Range weighted Turnover",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "PHYLO_RW_TURNOVER" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "cluster" : "NO_CACHE_ABC",
+               "description" : "Range weighted turnover",
+               "distribution" : "unit_interval"
+            },
+            "PHYLO_RW_TURNOVER_A" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Range weighted turnover, shared component"
+            },
+            "PHYLO_RW_TURNOVER_B" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Range weighted turnover, component found only in nbr set 1"
+            },
+            "PHYLO_RW_TURNOVER_C" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Range weighted turnover, component found only in nbr set 2"
+            }
+         },
+         "name" : "Phylo Range weighted Turnover",
+         "pre_calc" : [
+            "_calc_pe_lists_per_element_set"
+         ],
+         "reference" : "Laffan et al. (2016) https://doi.org/10.1111/2041-210X.12513",
+         "type" : "Phylogenetic Turnover",
+         "uses_nbr_lists" : 2
+      },
+      "calc_phylo_s2" : {
+         "description" : "S2 phylogenetic dissimilarity between two sets of taxa, represented by spanning sets of branches\n",
+         "indices" : {
+            "PHYLO_S2" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "cluster" : "NO_CACHE_ABC",
+               "cluster_can_lump_zeroes" : 0,
+               "description" : "Phylo S2 score",
+               "distribution" : "unit_interval",
+               "formula" : [
+                  "= 1 - (A / (A + min (B, C)))",
+                  " where A is the sum of shared branch lengths, and B and C are the sum of branch lengths foundonly in neighbour sets 1 and 2"
+               ]
+            }
+         },
+         "name" : "Phylo S2",
+         "pre_calc" : "calc_phylo_abc",
+         "required_args" : {
+            "tree_ref" : 1
+         },
+         "type" : "Phylogenetic Turnover",
+         "uses_nbr_lists" : 2
+      },
+      "calc_phylo_sorenson" : {
+         "description" : "Sorenson phylogenetic dissimilarity between two sets of taxa, represented by spanning sets of branches\n",
+         "indices" : {
+            "PHYLO_SORENSON" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "cluster" : "NO_CACHE_ABC",
+               "cluster_can_lump_zeroes" : 1,
+               "description" : "Phylo Sorenson score",
+               "distribution" : "unit_interval",
+               "formula" : [
+                  "1 - (2A / (2A + B + C))",
+                  " where A is the length of shared branches, and B and C are the length of branches found only in neighbour sets 1 and 2"
+               ]
+            }
+         },
+         "name" : "Phylo Sorenson",
+         "pre_calc" : "calc_phylo_abc",
+         "reference" : "Bryant et al. (2008) https://doi.org/10.1073/pnas.0801920105",
+         "required_args" : {
+            "tree_ref" : 1
+         },
+         "type" : "Phylogenetic Turnover",
+         "uses_nbr_lists" : 2
+      },
+      "calc_rarity_central" : {
+         "description" : "Calculate rarity for species only in neighbour set 1, but with local sample counts calculated from both neighbour sets. \nUses the same algorithm as the endemism indices but weights by sample counts instead of by groups occupied.",
+         "indices" : {
+            "RAREC_CWE" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "Corrected weighted rarity",
+               "distribution" : "unit_interval",
+               "formula" : [
+                  "= \\frac{RAREC\\_WE}{RAREC\\_RICHNESS}"
+               ],
+               "lumper" : 0
+            },
+            "RAREC_RICHNESS" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Richness used in RAREC_CWE (same as index RICHNESS_SET1).",
+               "lumper" : 0
+            },
+            "RAREC_WE" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Weighted rarity",
+               "formula" : [
+                  "= \\sum_{t \\in T} \\frac {s_t} {S_t}",
+                  " where ",
+                  "t",
+                  " is a label (taxon) in the set of labels (taxa) ",
+                  "T",
+                  " across neighbour set 1, ",
+                  "s_t",
+                  " is sum of the sample counts for ",
+                  "t",
+                  " across the elements in neighbour sets 1 & 2 (its value in list ABC3_LABELS_ALL), and ",
+                  "S_t",
+                  " is the total number of samples across the data set for label ",
+                  "t",
+                  " (unless the total sample count is specified at import)."
+               ],
+               "lumper" : 0
+            }
+         },
+         "name" : "Rarity central",
+         "pre_calc" : "_calc_rarity_central",
+         "type" : "Rarity",
+         "uses_nbr_lists" : 1
+      },
+      "calc_rarity_central_lists" : {
+         "description" : "Lists used in rarity central calculations",
+         "indices" : {
+            "RAREC_RANGELIST" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of ranges for each label used in the rarity central calculations",
+               "type" : "list"
+            },
+            "RAREC_WTLIST" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of weights for each label used in therarity central calculations",
+               "type" : "list"
+            }
+         },
+         "name" : "Rarity central lists",
+         "pre_calc" : [
+            "_calc_rarity_central"
+         ],
+         "type" : "Rarity",
+         "uses_nbr_lists" : 1
+      },
+      "calc_rarity_whole" : {
+         "description" : "Calculate rarity using all species in both neighbour sets.\nUses the same algorithm as the endemism indices but weights \nby sample counts instead of by groups occupied.\n",
+         "indices" : {
+            "RAREW_CWE" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Corrected weighted rarity",
+               "formula" : [
+                  "= \\frac{RAREW\\_WE}{RAREW\\_RICHNESS}"
+               ]
+            },
+            "RAREW_RICHNESS" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Richness used in RAREW_CWE (same as index RICHNESS_ALL)."
+            },
+            "RAREW_WE" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Weighted rarity",
+               "formula" : [
+                  "= \\sum_{t \\in T} \\frac {s_t} {S_t}",
+                  " where ",
+                  "t",
+                  " is a label (taxon) in the set of labels (taxa) ",
+                  "T",
+                  " across both neighbour sets, ",
+                  "s_t",
+                  " is sum of the sample counts for ",
+                  "t",
+                  " across the elements in neighbour sets 1 & 2 (its value in list ABC3_LABELS_ALL), and ",
+                  "S_t",
+                  " is the total number of samples across the data set for label ",
+                  "t",
+                  " (unless the total sample count is specified at import)."
+               ]
+            }
+         },
+         "name" : "Rarity whole",
+         "pre_calc" : "_calc_rarity_whole",
+         "type" : "Rarity",
+         "uses_nbr_lists" : 1
+      },
+      "calc_rarity_whole_lists" : {
+         "description" : "Lists used in rarity whole calculations",
+         "indices" : {
+            "RAREW_RANGELIST" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of ranges for each label used in the rarity whole calculations",
+               "type" : "list"
+            },
+            "RAREW_WTLIST" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of weights for each label used in therarity whole calculations",
+               "type" : "list"
+            }
+         },
+         "name" : "Rarity whole lists",
+         "pre_calc" : "_calc_rarity_whole",
+         "type" : "Rarity",
+         "uses_nbr_lists" : 1
+      },
+      "calc_redundancy" : {
+         "description" : "Ratio of labels to samples.\nValues close to 1 are well sampled while zero means \nthere is no redundancy in the sampling\n",
+         "distribution" : "nonnegative",
+         "formula" : [
+            "= 1 - \\frac{richness}{sum\\ of\\ the\\ sample\\ counts}",
+            ""
+         ],
+         "indices" : {
+            "REDUNDANCY_ALL" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "for both neighbour sets",
+               "formula" : [
+                  "= 1 - \\frac{RICHNESS\\_ALL}{ABC3\\_SUM\\_ALL}",
+                  ""
+               ],
+               "lumper" : 1
+            },
+            "REDUNDANCY_SET1" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "for neighour set 1",
+               "formula" : [
+                  "= 1 - \\frac{RICHNESS\\_SET1}{ABC3\\_SUM\\_SET1}",
+                  ""
+               ],
+               "lumper" : 0
+            },
+            "REDUNDANCY_SET2" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "for neighour set 2",
+               "formula" : [
+                  "= 1 - \\frac{RICHNESS\\_SET2}{ABC3\\_SUM\\_SET2}",
+                  ""
+               ],
+               "lumper" : 0,
+               "uses_nbr_lists" : 2
+            }
+         },
+         "name" : "Redundancy",
+         "pre_calc" : "calc_abc3",
+         "reference" : "Garcillan et al. (2003) J Veget. Sci. https://doi.org/10.1111/j.1654-1103.2003.tb02174.x",
+         "type" : "Lists and Counts",
+         "uses_nbr_lists" : 1
+      },
+      "calc_richness" : {
+         "description" : "Count the number of labels in the neighbour sets",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "RICHNESS_ALL" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "for both sets of neighbours"
+            },
+            "RICHNESS_SET1" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "for neighbour set 1",
+               "lumper" : 0
+            },
+            "RICHNESS_SET2" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "for neighbour set 2",
+               "lumper" : 0,
+               "uses_nbr_lists" : 2
+            }
+         },
+         "name" : "Richness",
+         "pre_calc" : [
+            "_calc_abc_any"
+         ],
+         "type" : "Lists and Counts",
+         "uses_nbr_lists" : 1
+      },
+      "calc_rw_turnover" : {
+         "description" : "Range weighted Sorenson",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "RW_TURNOVER" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "cluster" : "NO_CACHE_ABC",
+               "description" : "Range weighted turnover",
+               "distribution" : "unit_interval"
+            },
+            "RW_TURNOVER_A" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Range weighted turnover, shared component"
+            },
+            "RW_TURNOVER_B" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Range weighted turnover, component found only in nbr set 1"
+            },
+            "RW_TURNOVER_C" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Range weighted turnover, component found only in nbr set 2"
+            }
+         },
+         "name" : "Range weighted Sorenson",
+         "pre_calc" : [
+            "calc_endemism_whole_lists",
+            "calc_abc2"
+         ],
+         "reference" : "Laffan et al. (2016) https://doi.org/10.1111/2041-210X.12513",
+         "type" : "Taxonomic Dissimilarity and Comparison",
+         "uses_nbr_lists" : 2
+      },
+      "calc_rwibald" : {
+         "description" : "Range weighted branch length differences.\nValues are spatially constant, only the subsets change",
+         "indices" : {
+            "RWIBALD_CODES" : {
+               "bounds" : [],
+               "colours" : {
+                  "0" : "Bisque3",
+                  "1" : "red",
+                  "2" : "Chartreuse4",
+                  "3" : "royalblue1"
+               },
+               "description" : "RWiBaLD codes, 1=palaeo, 2=neo, 3=meso",
+               "distribution" : "categorical",
+               "labels" : {
+                  "0" : "other",
+                  "1" : "neo",
+                  "2" : "meso",
+                  "3" : "palaeo"
+               },
+               "type" : "list"
+            },
+            "RWIBALD_CODE_COUNTS" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "Counts of branches in each RWiBaLD category",
+               "type" : "list"
+            },
+            "RWIBALD_DIFFS" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "RWiBaLD scores (continuous differences)",
+               "distribution" : "divergent",
+               "type" : "list"
+            },
+            "RWIBALD_METADATA" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "General metadata for the RWiBaLD calculations",
+               "type" : "list"
+            },
+            "RWIBALD_RR_DIFFS" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "RWiBaLD scores for the range restricted subset (continuous differences)",
+               "distribution" : "divergent",
+               "type" : "list"
+            }
+         },
+         "name" : "RWiBaLD",
+         "pre_calc" : [
+            "calc_pd_node_list"
+         ],
+         "pre_calc_global" : [
+            "get_rwibald_global_lists"
+         ],
+         "reference" : "Mishler et al. (in review)",
+         "type" : "Phylogenetic Endemism Indices",
+         "uses_nbr_lists" : 1
+      },
+      "calc_s2" : {
+         "description" : "S2 dissimilarity between two sets of labels\n",
+         "formula" : [
+            "= 1 - \\frac{A}{A + min(B, C)}",
+            " where ",
+            "A",
+            "is the count of labels found in both neighbour sets, ",
+            "B",
+            " is the count unique to neighbour set 1, and ",
+            "C",
+            " is the count unique to neighbour set 2. Use the 'Label counts' calculation to derive these directly."
+         ],
+         "indices" : {
+            "S2" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "cluster" : 1,
+               "cluster_can_lump_zeroes" : 0,
+               "description" : "S2 dissimilarity index",
+               "distribution" : "unit_interval"
+            }
+         },
+         "name" : "S2",
+         "pre_calc" : [
+            "_calc_abc_any"
+         ],
+         "reference" : "Lennon et al. (2001) J Animal Ecol.  https://doi.org/10.1046/j.0021-8790.2001.00563.x",
+         "type" : "Taxonomic Dissimilarity and Comparison",
+         "uses_nbr_lists" : 2
+      },
+      "calc_simpson_shannon" : {
+         "description" : "Simpson and Shannon diversity metrics using samples from all neighbourhoods.\n",
+         "formula" : [
+            null,
+            "For each index formula, ",
+            "p_i",
+            "is the number of samples of the i'th label as a proportion of the total number of samples ",
+            "n",
+            "in the neighbourhoods."
+         ],
+         "indices" : {
+            "SHANNON_E" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "Shannon's evenness (H / HMAX)",
+               "distribution" : "unit_interval",
+               "formula" : [
+                  "Evenness = \\frac{H}{HMAX}"
+               ]
+            },
+            "SHANNON_H" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Shannon's H",
+               "distribution" : "nonnegative",
+               "formula" : [
+                  "H = - \\sum^n_{i=1} (p_i \\cdot ln (p_i))"
+               ]
+            },
+            "SHANNON_HMAX" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "maximum possible value of Shannon's H",
+               "distribution" : "nonnegative",
+               "formula" : [
+                  "HMAX = ln(richness)"
+               ]
+            },
+            "SIMPSON_D" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "Simpson's D. A score of zero is more similar.",
+               "distribution" : "unit_interval",
+               "formula" : [
+                  "D = 1 - \\sum^n_{i=1} p_i^2"
+               ]
+            }
+         },
+         "name" : "Simpson and Shannon",
+         "pre_calc" : "calc_abc3",
+         "type" : "Taxonomic Dissimilarity and Comparison",
+         "uses_nbr_lists" : 1
+      },
+      "calc_sorenson" : {
+         "description" : "Sorenson dissimilarity between two sets of labels.\nIt is the complement of the (unimplemented) Czechanowski index, and numerically the same as Whittaker's beta.",
+         "formula" : [
+            "= 1 - \\frac{2A}{2A + B + C}",
+            " where ",
+            "A",
+            "is the count of labels found in both neighbour sets, ",
+            "B",
+            " is the count unique to neighbour set 1, and ",
+            "C",
+            " is the count unique to neighbour set 2. Use the 'Label counts' calculation to derive these directly."
+         ],
+         "indices" : {
+            "SORENSON" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "cluster" : 1,
+               "cluster_can_lump_zeroes" : 1,
+               "description" : "Sorenson index",
+               "distribution" : "unit_interval"
+            }
+         },
+         "name" : "Sorenson",
+         "pre_calc" : [
+            "_calc_abc_any",
+            "is_dissimilarity_valid"
+         ],
+         "type" : "Taxonomic Dissimilarity and Comparison",
+         "uses_nbr_lists" : 2
+      },
+      "calc_tx_rao_qe" : {
+         "description" : "Calculate Rao's quadratic entropy for a taxonomic weights scheme.\nShould collapse to be the Simpson index for presence/absence data.",
+         "formula" : [
+            "= \\sum_{i \\in L} \\sum_{j \\in L} d_{ij} p_i p_j",
+            " where ",
+            "p_i",
+            " and ",
+            "p_j",
+            " are the sample counts for the i'th and j'th labels, ",
+            "d_{ij}",
+            " is a value of zero if ",
+            "i = j",
+            ", and a value of 1 otherwise. ",
+            "L",
+            " is the set of labels across both neighbour sets."
+         ],
+         "indices" : {
+            "TX_RAO_QE" : {
+               "bounds" : [
+                  0,
+                  1
+               ],
+               "description" : "Taxonomically weighted quadratic entropy",
+               "distribution" : "unit_interval"
+            },
+            "TX_RAO_TLABELS" : {
+               "bounds" : [
+                  "-Inf",
+                  "Inf"
+               ],
+               "description" : "List of labels and values used in the TX_RAO_QE calculations",
+               "type" : "list"
+            },
+            "TX_RAO_TN" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Count of comparisons used to calculate TX_RAO_QE",
+               "distribution" : "nonnegative"
+            }
+         },
+         "name" : "Rao's quadratic entropy, taxonomically weighted",
+         "pre_calc" : "calc_abc3",
+         "type" : "Taxonomic Dissimilarity and Comparison",
+         "uses_nbr_lists" : 1
+      },
+      "calc_vpd_expected_values" : {
+         "description" : "Expected values for VPD, analogous to the NRI/NTI results",
+         "distribution" : "nonnegative",
+         "indices" : {
+            "PHYLO_NET_VPD_SAMPLE_MEAN" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Expected mean of pair-wise variance (VPD)",
+               "formula" : []
+            },
+            "PHYLO_NET_VPD_SAMPLE_N" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Number of random resamples used to calculate expected pair-wise variance scores(will equal PHYLO_NRI_NTI_SAMPLE_N for non-ultrametric trees)",
+               "formula" : []
+            },
+            "PHYLO_NET_VPD_SAMPLE_SD" : {
+               "bounds" : [
+                  0,
+                  "Inf"
+               ],
+               "description" : "Expected standard deviation of pair-wise variance (VPD)",
+               "formula" : []
+            }
+         },
+         "name" : "Net VPD expected values",
+         "pre_calc" : [
+            "_calc_nri_nti_expected_values"
+         ],
+         "pre_calc_global" : [
+            "set_mpd_mntd_sample_variance_flag"
+         ],
+         "reference" : "Warwick & Clarke (2001) https://dx.doi.org/10.3354/meps216265",
+         "required_args" : "tree_ref",
+         "type" : "PhyloCom Indices",
+         "uses_nbr_lists" : 1
+      }
+   }
+}
+

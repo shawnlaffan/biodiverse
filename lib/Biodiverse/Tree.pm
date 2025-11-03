@@ -20,7 +20,7 @@ use experimental qw/refaliasing for_list/;
 
 use English qw ( -no_match_vars );
 
-our $VERSION = '4.99_013';
+our $VERSION = '5.0';
 
 our $AUTOLOAD;
 

@@ -44,7 +44,7 @@ BEGIN {
 #no warnings 'redefine';
 no warnings 'once';
 use English qw { -no_match_vars };
-our $VERSION = '4.99_013';
+our $VERSION = '5.0';
 
 local $OUTPUT_AUTOFLUSH = 1;
 

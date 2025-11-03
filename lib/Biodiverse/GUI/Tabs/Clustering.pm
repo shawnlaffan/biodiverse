@@ -24,7 +24,7 @@ use Biodiverse::GUI::Canvas::Tree;
 use Biodiverse::Indices;
 use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
 
-our $VERSION = '4.99_013';
+our $VERSION = '5.0';
 
 use Biodiverse::Cluster;
 use Biodiverse::RegionGrower;

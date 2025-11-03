@@ -8,7 +8,7 @@ use Carp;
 
 use Gtk3;
 
-our $VERSION = '4.99_013';
+our $VERSION = '5.0';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::ParametersTable;

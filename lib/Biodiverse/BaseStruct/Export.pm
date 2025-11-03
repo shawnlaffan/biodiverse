@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use 5.022;
 
-our $VERSION = '4.99_013';
+our $VERSION = '5.0';
 
 use Carp;
 use English ( -no_match_vars );

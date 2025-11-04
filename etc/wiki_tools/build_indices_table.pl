@@ -97,8 +97,8 @@ Most of the headings are self-explanatory.  For the others:
   * *Grouping?* states whether or not the index can be used to define the grouping for a cluster or region grower analysis.  A blank value means it cannot be used for either.
   * The *Minimum number of neighbour sets* dictates whether or not a calculation or index will be run.  If you specify only one neighbour set then all those calculations that require two sets will be dropped from the analysis.  (This is always the case for calculations applied to cluster nodes as there is only one neighbour set, defined by the set of groups linked to the terminal nodes below a cluster node).  Note that many of the calculations lump neighbour sets 1 and 2 together.  See the [SpatialConditions](SpatialConditions.md) page for more details on neighbour sets.
 
-Note that calculations can provide different numbers of indices depending on the nature of the BaseData set used.
-This currently applies to the hierarchically partitioned endemism calculations (both [central](#endemism-central-hierarchical-partition) and [whole](#endemism-whole-hierarchical-partition)) and [hierarchical labels](#hierarchical-labels).
+Note that some calculations can provide different numbers of indices depending on the nature of the BaseData set used.
+This currently applies to the hierarchically partitioned endemism calculations (both [central](#endemism-central-hierarchical-partition) and [whole](#endemism-whole-hierarchical-partition)).
 
 
 END_OF_INTRO

@@ -16,6 +16,7 @@ env:
   #PERL_MM_OPT: INSTALL_BASE=/home/runner/perl5
   #LC_NUMERIC: de_DE.iso88591
   #LC_CTYPE: de_DE.iso88591
+  MAKEFLAGS: -j4
 
 jobs:
   perl:
@@ -111,7 +112,6 @@ jobs:
           eval "$(perl -Mlocal::lib=${HOME}/perl5)"
           cpanm --notest Pango
           cpanm --notest Gtk3
-          cpanm --notest GooCanvas2
       
       - name: Run matrix tests
         run: |

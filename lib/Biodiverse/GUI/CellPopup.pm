@@ -11,7 +11,7 @@ use Sort::Key::Natural qw /natsort/;
 use Ref::Util qw /is_ref is_arrayref is_hashref/;
 use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
 
-our $VERSION = '4.99_013';
+our $VERSION = '5.0';
 
 use Gtk3;
 

@@ -14,7 +14,7 @@ use Ref::Util qw /is_arrayref is_hashref/;
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '4.99_013';
+our $VERSION = '5.0';
 
 sub new {
     my $class = shift;

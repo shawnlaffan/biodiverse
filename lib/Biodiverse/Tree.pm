@@ -2810,6 +2810,7 @@ sub trim_to_last_common_ancestor {
     #  reset the tree node 
     $self->{TREE} = $root;
     $self->delete_all_cached_values;
+    $self->unset_all_depths;
     
     my $check = $self->get_root_node;
 
@@ -2817,6 +2818,14 @@ sub trim_to_last_common_ancestor {
     return;
 }
 
+#  they get recalculated on demand
+sub unset_all_depths {
+    my $self = shift;
+    foreach my $ref ($self->get_node_refs) {
+        $ref->set_depth_aa(undef);
+    }
+    return;
+}
 
 #  merge any single-child nodes with their children
 sub merge_knuckle_nodes {

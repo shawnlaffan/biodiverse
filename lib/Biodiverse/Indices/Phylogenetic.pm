@@ -1075,7 +1075,9 @@ sub _calc_pd_pe_clade_contributions {
 
   DEPTH:
     foreach my $name_arr (reverse @names_by_depth) {
-
+        #  the depths might not have been updated when the
+        #  tree was trimmed to the LCA
+        last DEPTH if !defined $name_arr;
       NODE_NAME:
         foreach my $node_name (@$name_arr) {
 
@@ -1097,7 +1099,7 @@ sub _calc_pd_pe_clade_contributions {
             $clade_score{$node_name} = $wt_sum;
         }
     }
-
+say 'x';
     my %results = (
         "${res_pfx}CLADE_SCORE"   => \%clade_score,
         "${res_pfx}CLADE_CONTR"   => \%contr,

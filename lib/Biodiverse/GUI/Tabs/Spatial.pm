@@ -1621,20 +1621,22 @@ sub on_grid_hover {
     my $bd_ref = $output_ref->get_basedata_ref || $output_ref;
 
     #  sometimes the selected_list or analysis is undefined
-    if (defined $element && defined $self->{selected_list} && defined $self->{selected_index}) {
+    if (defined $element && defined $self->{selected_list}) {
         my $elts = $output_ref->get_element_hash();
 
-        # Update the Value label
-        my $val = $elts->{$element}{ $self->{selected_list} }{$self->{selected_index}};
+        if (defined $self->{selected_index}) {
+            # Update the Value label
+            my $val = $elts->{$element}{ $self->{selected_list} }{$self->{selected_index}};
 
-        $text .= sprintf '<b>%s, Output - %s: </b>',
-            $element,
-            $self->{selected_index};
-        $text .= defined $val
-            ? $self->format_number_for_display (number => $val)
-            : 'value is undefined';
+            $text .= sprintf '<b>%s, Output - %s: </b>',
+                $element,
+                $self->{selected_index};
+            $text .= defined $val
+                ? $self->format_number_for_display(number => $val)
+                : 'value is undefined';
 
-        $self->get_xmlpage_object('lblOutput')->set_markup($text);
+            $self->get_xmlpage_object('lblOutput')->set_markup($text);
+        }
 
         # Mark out neighbours
         my $highlight_nbrs = $self->{hover_neighbours};

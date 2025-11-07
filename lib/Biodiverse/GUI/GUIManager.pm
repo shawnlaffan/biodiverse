@@ -603,7 +603,7 @@ sub open {
 
     my $object;
 
-    if ( $self->close_project() ) {
+    if ( $filename =~ /bps$/ && $self->close_project() ) {
         print "[GUI] Loading Biodiverse data from $filename...\n";
 
         #  using generalised load method
@@ -619,6 +619,32 @@ sub open {
 
             $self->update_title_bar;
         }
+    }
+    elsif ( defined $filename && $self->file_exists_aa ($filename) ) {
+        state %methods = (
+            bds => {
+                class => 'Biodiverse::BaseData',
+                meth  => 'add_base_data',
+            },
+            bts => {
+                class => 'Biodiverse::Tree',
+                meth  => 'add_phylogeny',
+            },
+            bms => {
+                class => 'Biodiverse::Matrix',
+                meth  => 'add_matrix',
+            }
+        );
+        if ($filename =~ /\.(.+$)/) {
+            my $suffix = $1;
+            my $m = $methods{$suffix};
+            my ($class, $method) = @$m{qw/class meth/};
+            say STDERR "loading data from $filename";
+            $object = $class->new(file => $filename);
+            $self->{project}->$method($object);
+        }
+        croak "Unable to load object from $filename"
+            if !defined $object;
     }
 
     return $object;

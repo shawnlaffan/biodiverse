@@ -57,6 +57,24 @@ say '@INC: ', join q{ }, @INC;
 #  load up the user defined libs and settings
 use Biodiverse::Config;
 
+use Getopt::Long::Descriptive;
+my ($opt, $usage) = describe_options(
+    '%c <arguments>',
+    [],
+    [ 'version|v',   'Print version and exit', ],
+    [ 'help',        'Print usage message and exit' ],
+);
+
+if ($opt->help) {
+    print($usage->text);
+    exit;
+}
+
+if ($opt->version) {
+    say $Biodiverse::Config::VERSION;
+    exit;
+}
+
 say "\n\nUsing Biodiverse engine version $Biodiverse::Config::VERSION";
 
 #  load Gtk
@@ -73,24 +91,12 @@ Gtk3->init;
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Callbacks;
 
-# Load filename specified in the arguments
-my $numargs = scalar @ARGV;
-my $filename;
 my $caller_dir = cwd;    #  could cause drive problems
 
-if ( $numargs == 1 ) {
-    $filename = $ARGV[0];
-    if ( $filename eq '--help' || $filename eq '-h' || $filename eq '/?' ) {
-        usage();
-        exit;
-    }
-    elsif ( not( -e $filename and -r $filename ) ) {
-        warn "  Error: Cannot read $filename\n";
-        $filename = undef;
-    }
-}
-elsif ( $numargs > 1 ) {
-    usage();
+my @filenames = grep {-r $_} @ARGV;
+if (@filenames != @ARGV) {
+    my @notfound = grep {!-r $_} @filenames;
+    say STDERR "  Error: cannot read these files: " . join ' ', @notfound;
 }
 
 ## query the locale
@@ -137,7 +143,7 @@ $gui->set_glade_xml($builder);
 
 $gui->init();
 
-if ( defined $filename ) {
+foreach my $filename ( @filenames ) {
     $filename = path ($filename)->absolute->stringify;
     $gui->open($filename);
 }

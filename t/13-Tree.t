@@ -420,6 +420,10 @@ sub test_trim_tree_to_lca {
             }
         }
     }
+
+    my $orig_root = $tree->get_root_node;
+    is ($orig_root->get_depth, 0, 'orig root depth is zero');
+
     #  add some dangling parents
     my $root = $tree->get_root_node;
     for my $uppers (qw /a b c/) {
@@ -428,11 +432,25 @@ sub test_trim_tree_to_lca {
         $root = $node;
     }
 
+    #  clear the depths
+    foreach my $node ($tree->get_node_refs) {
+        $node->set_depth_aa(undef);
+    }
+    #  recalculate depths - these will include the dangling parents
+    foreach my $node ($tree->get_node_refs) {
+        my $d = $node->get_depth;
+        say $d;
+    }
+
+    is ($orig_root->get_depth, 3, 'orig root depth has changed');
+
     #  nasty test as it knows too much
     is ($tree->get_tree_ref->get_name, 'c', 'initial root node has correct name');
 
     $tree->trim_to_last_common_ancestor;
-    
+
+    is ($orig_root->get_depth, 0, 'orig root depth is back to zero');
+
     foreach my $should_not_exist (qw /a b c/) {
         ok (
             !$tree->exists_node (name => $should_not_exist),

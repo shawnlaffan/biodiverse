@@ -1560,7 +1560,7 @@ sub run_dependencies {
 
     foreach my $calc (@$calc_list) {
         my $calc_results;
-say ":: $calc";
+
         #  if already cached then just grab it - should never happen now?
         if ( exists $as_results_from{$calc} ) {
             $calc_results = $as_results_from{$calc};

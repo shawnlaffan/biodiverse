@@ -422,15 +422,19 @@ sub on_cell_selected {
         #  clear any highlights
         $self->{grid}->clear_marks;
         $self->{dendrogram}->clear_highlights;
+        $self->queue_draw;
         return;
     }
 
     return if $element eq $self->{selected_element};
-    return if ! $self->{output_ref}->element_is_in_matrix_aa ($element);
-
-    #print "Element selected: $element\n";
 
     $self->{selected_element} = $element;
+
+    $self->set_plot_min_max_values;
+    $self->recolour();
+    $self->queue_draw;
+    return;
+
 
     my $combo = $self->get_xmlpage_object('comboIndices');
     $combo->set_model($self->{output_indices_model});  #  already have this?

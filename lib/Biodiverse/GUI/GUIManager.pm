@@ -603,21 +603,23 @@ sub open {
 
     my $object;
 
-    if ( $filename =~ /bps$/ && $self->close_project() ) {
-        print "[GUI] Loading Biodiverse data from $filename...\n";
+    if ( $filename =~ /bps$/) {
+        if ($self->close_project() ) {
+            print "[GUI] Loading Biodiverse data from $filename...\n";
 
-        #  using generalised load method
-        $object = $self->{project} =
-          eval { Biodiverse::GUI::Project->new( file => $filename ) };
-        croak $EVAL_ERROR if $EVAL_ERROR;
+            #  using generalised load method
+            $object = $self->{project} =
+                eval {Biodiverse::GUI::Project->new(file => $filename)};
+            croak $EVAL_ERROR if $EVAL_ERROR;
 
-        # Must do this separately from new_from_xml because it'll otherwise
-        # call the GUIManager but the {project} key won't be set yet
-        #$self->{project}->init_models();
-        if ( blessed $object eq 'Biodiverse::GUI::Project' ) {
-            $self->{filename} = $filename;
+            # Must do this separately from new_from_xml because it'll otherwise
+            # call the GUIManager but the {project} key won't be set yet
+            #$self->{project}->init_models();
+            if (blessed $object eq 'Biodiverse::GUI::Project') {
+                $self->{filename} = $filename;
 
-            $self->update_title_bar;
+                $self->update_title_bar;
+            }
         }
     }
     elsif ( defined $filename && $self->file_exists_aa ($filename) ) {

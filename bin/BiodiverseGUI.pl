@@ -162,7 +162,7 @@ $gui->init();
 foreach my $filename ( @filenames ) {
     $filename = path ($filename)->absolute->stringify;
     my $object = $gui->open($filename);
-    if ($object->isa('Biodiverse::BaseData')) {
+    if ($object && $object->isa('Biodiverse::BaseData')) {
         if ($opt->extract_trees) {
             foreach my $ref ($object->get_embedded_trees) {
                 $gui->do_open_phylogeny($ref);

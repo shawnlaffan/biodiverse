@@ -60,6 +60,8 @@ use Biodiverse::Config;
 use Getopt::Long::Descriptive;
 my ($opt, $usage) = describe_options(
     '%c <arguments>',
+    ['extract_trees|et',    'Extract embedded trees from basedatas'],
+    ['extract_matrices|em', 'Extract embedded matrices from basedatas'],
     [],
     [ 'version|v',   'Print version and exit', ],
     [ 'help',        'Print usage message and exit' ],
@@ -145,7 +147,19 @@ $gui->init();
 
 foreach my $filename ( @filenames ) {
     $filename = path ($filename)->absolute->stringify;
-    $gui->open($filename);
+    my $object = $gui->open($filename);
+    if ($object->isa('Biodiverse::BaseData')) {
+        if ($opt->extract_trees) {
+            foreach my $ref ($object->get_embedded_trees) {
+                $gui->do_open_phylogeny($ref);
+            }
+        }
+        if ($opt->extract_matrices) {
+            foreach my $ref ($object->get_embedded_matrices) {
+                $gui->do_open_matrix($ref);
+            }
+        }
+    }
 }
 
 #  hack for exe building under github actions

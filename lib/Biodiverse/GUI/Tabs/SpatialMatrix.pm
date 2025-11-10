@@ -93,7 +93,7 @@ sub new {
 
     my $elements = $groups_ref->get_element_list_sorted;
     $self->set_cached_value (ELEMENT_LIST_SORTED => $elements);
-    $self->{selected_element} = $elements->[0];
+    $self->{selected_element} = $elements->[-1];
 
     say "[SpatialMatrix tab] Existing matrix output - "
         . $self->{output_name}
@@ -132,7 +132,7 @@ sub new {
     my %widgets_and_signals = (
         btnSpatialRun  => { clicked => \&on_run },
         txtSpatialName => { changed => \&on_name_changed },
-        comboIndices   => { changed   => \&on_active_index_changed },
+        # comboIndices   => { changed   => \&on_active_index_changed },
 
         #  need to refactor common elements with Spatial.pm
         btnSelectTool    => {clicked => \&on_select_tool},
@@ -178,6 +178,7 @@ sub new {
 
     #  do some hiding
     my @to_hide = qw /
+        comboIndices
         comboLists
         comboNeighbours
         label_spatial_neighbours_combo
@@ -199,7 +200,15 @@ sub new {
     my $combo_label_widget = $self->get_xmlpage_object('label_spatial_combos');
     $combo_label_widget->set_text ('Index group:  ');
 
-    $self->init_output_indices_combo();
+    my $box = $self->get_xmlpage_object('hbox_spatial_tab_bottom');
+    my $element_label = Gtk3::Label->new('label goes here');
+    $element_label->set_use_markup(1);
+    $box->pack_start($element_label, 0, 0, 10);
+    $box->reorder_child($element_label, 2);  #  hard coded is flaky
+    $self->{element_label} = $element_label;
+    $element_label->show;
+
+    # $self->init_output_indices_combo();
 
     $self->{drag_modes} = {
         Select  => 'select',
@@ -221,6 +230,9 @@ sub new {
 
     #  debug stuff
     $self->{selected_list} = 'SUBELEMENTS';
+
+    #  awkward but this gets the initial plot
+    $self->on_cell_selected ([$self->{selected_element}], 'replot');
 
     return $self;
 }
@@ -402,7 +414,7 @@ sub on_run {
 ##################################################
 
 sub on_cell_selected {
-    my ($self, $data) = @_;
+    my ($self, $data, $replot) = @_;
 
     my $element;
     if (scalar @$data == 1) {
@@ -417,8 +429,9 @@ sub on_cell_selected {
         }
     }
 
-    #  clicked on the background area
+    #  clicked on the background area, don't change anything
     if (!defined $element) {
+        # $self->{element_label}->set_markup('<i>_none_</i>');
         #  clear any highlights
         $self->{grid}->clear_marks;
         $self->{dendrogram}->clear_highlights;
@@ -426,38 +439,14 @@ sub on_cell_selected {
         return;
     }
 
-    return if $element eq $self->{selected_element};
+    return if !$replot && $element eq $self->{selected_element};
 
     $self->{selected_element} = $element;
 
+    $self->{element_label}->set_text($element);
     $self->set_plot_min_max_values;
     $self->recolour();
     $self->queue_draw;
-    return;
-
-
-    my $combo = $self->get_xmlpage_object('comboIndices');
-    $combo->set_model($self->{output_indices_model});  #  already have this?
-
-    # Select the previous analysis (or the first one)
-    my $iter = $self->{output_indices_model}->get_iter_first();
-    my $selected = $iter;
-
-  BY_ITER:
-    while ($iter) {
-        my ($analysis) = $self->{output_indices_model}->get($iter, 0);
-        if ($analysis eq ($self->{selected_element} // '')) {
-            $selected = $iter;
-            last BY_ITER; # break loop
-        }
-        last if !$self->{output_indices_model}->iter_next($iter);
-    }
-
-    if ($selected) {
-        $combo->set_active_iter($selected);
-    }
-    $self->on_active_index_changed($combo);
-
     return;
 }
 
@@ -541,6 +530,8 @@ sub show_analysis {
 }
 
 sub on_active_index_changed {
+    return;
+
     my $self  = shift;
     my $combo = shift
               ||  $self->get_xmlpage_object('comboIndices');

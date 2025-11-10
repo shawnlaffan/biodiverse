@@ -635,7 +635,7 @@ sub open {
                 meth  => 'add_matrix',
             }
         );
-        if ($filename =~ /\.(.+$)/) {
+        if ($filename =~ /\.([^.]+)$/) {
             my $suffix = $1;
             my $m = $methods{$suffix};
             my ($class, $method) = @$m{qw/class meth/};

@@ -60,6 +60,8 @@ use Biodiverse::Config;
 use Getopt::Long::Descriptive;
 my ($opt, $usage) = describe_options(
     '%c <arguments>',
+    ['extract_trees|et',    'Extract embedded trees from basedatas'],
+    ['extract_matrices|em', 'Extract embedded matrices from basedatas'],
     [],
     [ 'version|v',   'Print version and exit', ],
     [ 'help',        'Print usage message and exit' ],
@@ -93,8 +95,22 @@ use Biodiverse::GUI::Callbacks;
 
 my $caller_dir = cwd;    #  could cause drive problems
 
-my @filenames = grep {-r $_} @ARGV;
-if (@filenames != @ARGV) {
+my @fnames = @ARGV;
+my @globbed_fnames;
+while (my $fname = shift @fnames) {
+    my @f = $fname;
+    #  surely there is a generic check for a glob?
+    if ($fname =~ /[\Q?*{}[]\E]/) {
+        @f = glob $fname;
+        if (!@f) {
+            say "Warning: Glob pattern $fname did not match any files"
+        }
+    }
+    push @globbed_fnames, @f;
+}
+
+my @filenames = grep {-r $_} @globbed_fnames;
+if (@filenames != @globbed_fnames) {
     my @notfound = grep {!-r $_} @filenames;
     say STDERR "  Error: cannot read these files: " . join ' ', @notfound;
 }
@@ -145,7 +161,19 @@ $gui->init();
 
 foreach my $filename ( @filenames ) {
     $filename = path ($filename)->absolute->stringify;
-    $gui->open($filename);
+    my $object = $gui->open($filename);
+    if ($object && $object->isa('Biodiverse::BaseData')) {
+        if ($opt->extract_trees) {
+            foreach my $ref ($object->get_embedded_trees) {
+                $gui->do_open_phylogeny($ref);
+            }
+        }
+        if ($opt->extract_matrices) {
+            foreach my $ref ($object->get_embedded_matrices) {
+                $gui->do_open_matrix($ref);
+            }
+        }
+    }
 }
 
 #  hack for exe building under github actions

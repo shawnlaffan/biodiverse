@@ -2238,6 +2238,7 @@ sub do_matrix_changed {
     {
         #warn $text . "\n";
         $self->{project}->select_matrix_iter($iter);
+        $self->get_active_tab->queue_draw;
     }
 
     return;
@@ -2260,6 +2261,7 @@ sub do_phylogeny_changed {
         $self->{active_phylogeny} )
     {
         $self->{project}->select_phylogeny_iter($iter);
+        $self->get_active_tab->queue_draw;
     }
 
     return;

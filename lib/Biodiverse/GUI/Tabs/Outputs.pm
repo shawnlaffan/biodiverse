@@ -103,6 +103,10 @@ sub get_type { return 'outputs'; }
 
 sub get_removable { return 0; } # output tab cannot be closed
 
+sub get_canvas_list {
+    return ();
+}
+
 # Get lots of information about currently selected row
 sub get_selection {
     my $self = shift;

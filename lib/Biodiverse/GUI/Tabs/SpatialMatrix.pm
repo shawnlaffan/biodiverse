@@ -132,7 +132,6 @@ sub new {
     my %widgets_and_signals = (
         btnSpatialRun  => { clicked => \&on_run },
         txtSpatialName => { changed => \&on_name_changed },
-        # comboIndices   => { changed   => \&on_active_index_changed },
 
         #  need to refactor common elements with Spatial.pm
         btnSelectTool    => {clicked => \&on_select_tool},
@@ -238,9 +237,7 @@ sub new {
 }
 
 sub on_show_hide_parameters {
-    my $self = shift;
     return;
-
 }
 
 sub get_tree_menu_items {
@@ -308,85 +305,12 @@ sub init_grid {
 }
 
 sub init_lists_combo {
-    my $self = shift;
     return;
-
 }
 
 sub update_lists_combo {
-    my $self = shift;
     return;
 }
-
-# Generates array with analyses
-# (Jaccard, Endemism, CMP_XXXX) that can be shown on the grid
-sub make_output_indices_array {
-    my $self = shift;
-
-    my $matrix_ref = $self->{output_ref};
-    my $element_array = $matrix_ref->get_elements_as_array;
-    my $groups_ref = $self->{groups_ref};
-
-# Make array
-#     my @array = ();
-#     foreach my $x (reverse $groups_ref->get_element_list_sorted(list => $element_array)) {
-# #print ($model->get($iter, 0), "\n") if defined $model->get($iter, 0);    #debug
-#         push(@array, $x);
-# #print ($model->get($iter, 0), "\n") if defined $model->get($iter, 0);      #debug
-#     }
-
-    my $array = reverse $groups_ref->get_element_list_sorted(list => $element_array);
-
-    return $array;
-}
-
-# Generates ComboBox model with analyses
-# (Jaccard, Endemism, CMP_XXXX) that can be shown on the grid
-sub make_output_indices_model {
-    my $self = shift;
-
-    my $matrix_ref = $self->{output_ref};
-    my $element_array = $matrix_ref->get_elements_as_array;
-    my $groups_ref = $self->{groups_ref};
-
-    # Make model for combobox
-    my $model = Gtk3::ListStore->new('Glib::String');
-
-    #  get the list
-    my $list = $self->get_cached_value ('ELEMENT_LIST_SORTED');
-    if (!$list) {
-        $list = $groups_ref->get_element_list_sorted(list => $element_array);
-        $self->set_cached_value (ELEMENT_LIST_SORTED => $list);
-    }
-
-    foreach my $x (reverse @$list) {
-        my $iter = $model->append;
-        #print ($model->get($iter, 0), "\n") if defined $model->get($iter, 0);    #debug
-        $model->set($iter, 0, $x);
-        #print ($model->get($iter, 0), "\n") if defined $model->get($iter, 0);      #debug
-    }
-
-    return $model;
-}
-
-# Generates ComboBox model with analyses
-#  hidden
-sub make_lists_model {
-    my $self = shift;
-    my $output_ref = $self->{output_ref};
-
-    my $lists = ('$elements_list_name');
-
-# Make model for combobox
-    my $model = Gtk3::ListStore->new('Glib::String');
-    foreach my $x (sort @$lists) {
-        my $iter = $model->append;
-        $model->set($iter, 0, $x);
-    }
-
-    return $model;
-}
-
 
 ##################################################
 # Misc interaction with rest of GUI
@@ -489,8 +413,6 @@ sub on_grid_hover {
         my $group = $element; # is this the same?
         return if ! defined $group;
 
-        my $tree = $self->get_current_tree;
-
         # get labels in the hovered and selected groups
         my ($labels1, $labels2);
 
@@ -515,38 +437,10 @@ sub on_grid_hover {
 
 # Called by output tab to make us show some analysis
 sub show_analysis {
-    my $self = shift;
-    my $name = shift;
-
-    # Reinitialising is a cheap way of showing
-    # the SPATIAL_RESULTS list (the default), and
-    # selecting what we want
-
-    #$self->{selected_element} = $name;
-    #$self->update_lists_combo();
-    $self->update_output_calculations_combo();
-
     return;
 }
 
 sub on_active_index_changed {
-    return;
-
-    my $self  = shift;
-    my $combo = shift
-              ||  $self->get_xmlpage_object('comboIndices');
-
-    my $iter = $combo->get_active_iter() || return;
-    my $element = $self->{output_indices_model}->get($iter, 0);
-
-    $self->{selected_element} = $element;
-
-    #  This is redundant when only changing the element,
-    #  but doesn't take long and makes stretch changes easier.
-    $self->set_plot_min_max_values;
-
-    $self->recolour();
-
     return;
 }
 
@@ -627,7 +521,6 @@ sub recolour {
 
 
 sub on_neighbours_changed {
-    my $self = shift;
     return;
 }
 

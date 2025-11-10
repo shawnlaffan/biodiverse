@@ -95,8 +95,22 @@ use Biodiverse::GUI::Callbacks;
 
 my $caller_dir = cwd;    #  could cause drive problems
 
-my @filenames = grep {-r $_} @ARGV;
-if (@filenames != @ARGV) {
+my @fnames = @ARGV;
+my @globbed_fnames;
+while (my $fname = shift @fnames) {
+    my @f = $fname;
+    #  surely there is a generic check for a glob?
+    if ($fname =~ /[\Q?*{}[]\E]/) {
+        @f = glob $fname;
+        if (!@f) {
+            say "Warning: Glob pattern $fname did not match any files"
+        }
+    }
+    push @globbed_fnames, @f;
+}
+
+my @filenames = grep {-r $_} @globbed_fnames;
+if (@filenames != @globbed_fnames) {
     my @notfound = grep {!-r $_} @filenames;
     say STDERR "  Error: cannot read these files: " . join ' ', @notfound;
 }

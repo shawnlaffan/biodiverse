@@ -50,6 +50,7 @@ use parent qw {
     Biodiverse::BaseData::Import
     Biodiverse::BaseData::ManageOutputs
     Biodiverse::BaseData::Exclusions
+    Biodiverse::BaseData::LabelRanges
 };
 
 our $EMPTY_STRING = q{};

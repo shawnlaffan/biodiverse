@@ -56,11 +56,14 @@ sub test_label_range_convex_hull {
         'POLYGON ((3400000 1800000,3400000 2400000,3600000 2400000,3800000 2000000,3800000 1800000,3400000 1800000))',
     );
 
-    my $i = -1;
-    foreach my $label (@target_labels) {
-        $i++;
-        my $hull = $bd->get_label_range_convex_hull (label => $label, as_wkt => 1);
-        is $hull, $expected[$i];
+    # second pass uses cached version
+    for my $cached (0, 1) {
+        my $i = -1;
+        foreach my $label (@target_labels) {
+            $i++;
+            my $hull = $bd->get_label_range_convex_hull(label => $label, as_wkt => 1);
+            is $hull, $expected[$i], "convex hull for $label, " . ($cached ? '' : 'not ') . 'cached';
+        }
     }
 
 }

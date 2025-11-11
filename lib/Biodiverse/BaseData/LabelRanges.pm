@@ -28,30 +28,43 @@ sub get_label_range_convex_hull {
 
     my $elements = $self->get_groups_with_label_as_hash_aa($label);
 
-    # my $lb = $self->get_labels_ref;
     my $gp = $self->get_groups_ref;
 
     my $c1 = $res[0] / 2;
     my $c2 = $res[1] / 2;
 
-    # my $pts = '';
-    my $wkt = "MULTIPOLYGON (";
-    foreach my $el (keys %$elements) {
-        my $coords = $gp->get_element_name_as_array_aa($el);
-        my ($x, $y) = @$coords[@axes];
-        my ($x1, $x2) = ($x - $c1, $x + $c1);
-        my ($y1, $y2) = ($y - $c2, $y + $c2);
-        $wkt .= "(($x1 $y1, $x1 $y2, $x2 $y2, $x2 $y1, $x1 $y1)), ";
-        # $pts .= "($x $y), ";
+    my $cache_key = 'LABEL_RANGE_CONVEX_HULL_' . join ':', @axes;
+
+    my $cache = $self->get_cached_value_dor_set_default_href ($cache_key);
+
+    my $hull;
+
+    #  cache as wkt for now
+    if (my $cached_wkt = $cache->{$label}) {
+        return $cached_wkt if $args{as_wkt};
+        $hull = Geo::GDAL::FFI::Geometry->new(WKT => $cached_wkt);
     }
-    $wkt =~ s/, $//;
-    $wkt .= ')';
+    else {
+        my $wkt = "MULTIPOLYGON (";
+        foreach my $el (keys %$elements) {
+            my $coords = $gp->get_element_name_as_array_aa($el);
+            my ($x, $y) = @$coords[@axes];
+            my ($x1, $x2) = ($x - $c1, $x + $c1);
+            my ($y1, $y2) = ($y - $c2, $y + $c2);
+            $wkt .= "(($x1 $y1, $x1 $y2, $x2 $y2, $x2 $y1, $x1 $y1)), ";
+        }
+        $wkt =~ s/, $//;
+        $wkt .= ')';
 
-    my $g = Geo::GDAL::FFI::Geometry->new(WKT => $wkt);
-    my $hull = $g->ConvexHull;
+        my $g = Geo::GDAL::FFI::Geometry->new(WKT => $wkt);
+        $hull = $g->ConvexHull;
+        $cache->{$label} = $hull->ExportToWKT;
 
-    # say STDERR $pts;
-    # say STDERR $wkt;
+        #  save double conversion
+        if ($args{as_wkt}) {
+            return $cache->{$label};
+        }
+    }
 
     return $args{as_wkt} ? $hull->ExportToWKT : $args{as_json} ? $hull->ExportToJSON : $hull;
 }

@@ -50,7 +50,7 @@ sub _create_polygon_file {
 
     my $driver = $drivers{$type} // croak "invalid type $type";
     $file //= (path (tempdir(), 'sp_points_in_poly_shape_tester') . time() . '.' . $extensions{$type});
-diag $file;
+
     my $layer = Geo::GDAL::FFI::GetDriver($driver)
         ->Create($file)
         ->CreateLayer({

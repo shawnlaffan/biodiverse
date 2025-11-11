@@ -1574,7 +1574,7 @@ sub sp_points_in_same_poly_shape {
     my $cached_results     = $self->get_cache_sp_points_in_same_poly_shape(%args);
 
     my $point_string1 = join (':', $x_coord1, $y_coord1, $x_coord2, $y_coord2);
-    my $point_string2 = join (':', $x_coord2, $y_coord2, $x_coord1, $y_coord1);    
+    my $point_string2 = join (':', $x_coord2, $y_coord2, $x_coord1, $y_coord1);
     if (!$no_cache) {
         for my $point_string ($point_string1, $point_string2) {
             return $cached_results->{$point_string}
@@ -1591,21 +1591,23 @@ sub sp_points_in_same_poly_shape {
     my $bd = $h->{basedata};
     my @cell_sizes = $bd->get_cell_sizes;
     my ($cell_x, $cell_y) = ($cell_sizes[$axes->[0]], $cell_sizes[$axes->[1]]);
-    
+
+    #  smaller rectangles than the cells so we don't overlap with nbrs - that causes grief later on
+    my ($dx, $dy) = ($cell_x / 4, $cell_y / 4);
     my @rect1 = (
-        $x_coord1 - $cell_x / 2,
-        $y_coord1 - $cell_y / 2,
-        $x_coord1 + $cell_x / 2,
-        $y_coord1 + $cell_y / 2,
+        $x_coord1 - $dx,
+        $y_coord1 - $dy,
+        $x_coord1 + $dx,
+        $y_coord1 + $dy,
     );
     my $rtree_polys1 = [];
     $rtree->query_partly_within_rect(@rect1, $rtree_polys1);
 
     my @rect2 = (
-        $x_coord2 - $cell_x / 2,
-        $y_coord2 - $cell_y / 2,
-        $x_coord2 + $cell_x / 2,
-        $y_coord2 + $cell_y / 2,
+        $x_coord2 - $dx,
+        $y_coord2 - $dy,
+        $x_coord2 + $dx,
+        $y_coord2 + $dy,
     );
     my $rtree_polys2 = [];
     $rtree->query_partly_within_rect(@rect2, $rtree_polys2);
@@ -1624,7 +1626,6 @@ sub sp_points_in_same_poly_shape {
         List::MoreUtils::any {$_ eq $check} @$rtree_polys2
     } @$rtree_polys1;
 
-    my ($i, $target) = (1, scalar @$rtree_polys1);
     my $point1_str = join ':', $x_coord1, $y_coord1;
     my $point2_str = join ':', $x_coord2, $y_coord2;
 
@@ -1633,17 +1634,11 @@ sub sp_points_in_same_poly_shape {
     foreach my $poly (@rtree_polys_common) {
         my $poly_id     = $poly->shape_id();
 
-        my $pt1_in_poly = $cached_pts_in_poly->{$poly_id}{$point1_str};
-        if (!defined $pt1_in_poly) {
-            $pt1_in_poly = $poly->contains_point($pointshape1, 0);
-            $cached_pts_in_poly->{$poly_id}{$point1_str} = $pt1_in_poly ? 1 : 0;
-        }
+        my $pt1_in_poly = $cached_pts_in_poly->{$poly_id}{$point1_str}
+          //= $poly->contains_point($pointshape1, 0);
 
-        my $pt2_in_poly = $cached_pts_in_poly->{$poly_id}{$point2_str};
-        if (!defined $pt2_in_poly) {
-            $pt2_in_poly = $poly->contains_point($pointshape2, 0);
-            $cached_pts_in_poly->{$poly_id}{$point2_str} = $pt2_in_poly ? 1 : 0;
-        }
+        my $pt2_in_poly = $cached_pts_in_poly->{$poly_id}{$point2_str}
+          //= $poly->contains_point($pointshape2, 0);
 
         if ($pt1_in_poly || $pt2_in_poly) {
             my $result = $pt1_in_poly && $pt2_in_poly;
@@ -1702,7 +1697,7 @@ sub get_cache_sp_points_in_same_poly_shape {
     my $self = shift;
     my %args = @_;
     my $cache_name = $self->get_cache_name_sp_points_in_same_poly_shape(%args);
-    my $cache = $self->get_cached_value_dor_set_default_aa($cache_name, {});
+    my $cache = $self->get_cached_value_dor_set_default_href($cache_name);
     return $cache;
 }
 

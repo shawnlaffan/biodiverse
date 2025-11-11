@@ -50,7 +50,7 @@ sub _create_polygon_file {
 
     my $driver = $drivers{$type} // croak "invalid type $type";
     $file //= (path (tempdir(), 'sp_points_in_poly_shape_tester') . time() . '.' . $extensions{$type});
-diag $file;
+
     my $layer = Geo::GDAL::FFI::GetDriver($driver)
         ->Create($file)
         ->CreateLayer({
@@ -94,7 +94,7 @@ sub test_points_in_same_poly {
         }
     }
 
-    my $bounds = [[0, 0, 2, 2], [2, 0, 5, 2], [0, 2, 4, 3], [4, 3, 10, 10]];
+    my $bounds = [[0, 0, 2, 2.4], [2, 0, 5, 2.4], [0, 2.4, 4, 3.4], [4, 3.4, 10, 10]];
     my $polygon_file = _create_polygon_file('shp', $bounds);
 
     my %expected_nbrs = (

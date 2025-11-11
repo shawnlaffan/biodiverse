@@ -1593,7 +1593,9 @@ sub sp_points_in_same_poly_shape {
     my ($cell_x, $cell_y) = ($cell_sizes[$axes->[0]], $cell_sizes[$axes->[1]]);
 
     #  smaller rectangles than the cells so we don't overlap with nbrs - that causes grief later on
-    my ($dx, $dy) = ($cell_x / 4, $cell_y / 4);
+    # my ($dx, $dy) = ($cell_x / 4, $cell_y / 4);
+    #  actually, we only search for centroids so pass a "point"-rect
+    my ($dx, $dy) = (0,0);
     my @rect1 = (
         $x_coord1 - $dx,
         $y_coord1 - $dy,

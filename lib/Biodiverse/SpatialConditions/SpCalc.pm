@@ -1887,24 +1887,66 @@ sub sp_in_label_range {
 
     my $label = $args{label} // croak "argument label not defined\n";
 
-    my $type = $args{type};
-    $type ||= eval {$self->is_def_query()} ? 'proc' : 'nbr';
+    my $type = $args{type} // eval {$self->is_def_query()} ? 'proc' : 'nbr';
+    croak "Invalid type arg $type" if !($type eq 'proc' || $type eq 'nbr');
 
-    my $group;
-    if ( $type eq 'proc' ) {
-        $group = $h->{coord_id1};
-    }
-    elsif ( $type eq 'nbr' ) {
-        $group = $h->{coord_id2};
-    }
+    my $group = $type eq 'proc'
+        ? $h->{coord_id1}
+        : $h->{coord_id2};
 
-    my $bd  = $h->{basedata};
+    my $labels_in_group = $h->{basedata}->get_labels_in_group_as_hash_aa ($group);
 
-    my $labels_in_group = $bd->get_labels_in_group_as_hash_aa ($group);
+    return exists $labels_in_group->{$label};
+}
 
-    my $exists = exists $labels_in_group->{$label};
 
-    return $exists;
+sub get_metadata_sp_in_label_range_convex_hull {
+    my $self = shift;
+
+    my $example = <<~'EOEX'
+      # Are we in the convex hull spanning the range of a label called Genus:Sp1?
+      sp_in_label_range_convex_hull (label => 'Genus:Sp1')
+      # The type argument determines if the
+      # processing or neighbour group is assessed
+      EOEX
+    ;
+
+    my %metadata = (
+        description   => "Is a group within the convex hull spanning a label's range?",
+        required_args => ['label'],
+        optional_args => [
+            'type',  #  nbr or proc to control use of nbr or processing groups
+        ],
+        result_type   => 'always_same',
+        index_no_use  => 1,  #  turn index off since this doesn't cooperate with the search method
+        example       => $example,
+    );
+
+    return $self->metadata_class->new (\%metadata);
+}
+
+
+sub sp_in_label_range_convex_hull {
+    my $self = shift;
+    my %args = @_;
+
+    my $h = $self->get_param('CURRENT_ARGS');
+
+    my $label = $args{label} // croak "argument label not defined\n";
+
+    my $type = $args{type} // eval {$self->is_def_query()} ? 'proc' : 'nbr';
+    croak "Invalid type arg $type" if !($type eq 'proc' || $type eq 'nbr');
+
+    my $group = $type eq 'proc'
+        ? $h->{coord_id1}
+        : $h->{coord_id2};
+
+    my $groups = $h->{basedata}->get_groups_in_label_range_convex_hull (
+        label => $label,
+        axes  => $args{axes} // $h->{axes},
+    );
+
+    return $groups->{$group};
 }
 
 sub get_example_sp_get_spatial_output_list_value {

@@ -947,6 +947,16 @@ sub get_shape_type {
     return $self->get_param('SHAPE_TYPES') // '';
 }
 
+#  some conditions can use a label, and some analyses can set the one to process
+sub set_current_label {
+    my ($self, $label) = @_;
+    $self->set_param(CURRENT_LABEL => $label);
+}
+
+sub get_current_label {
+    my ($self) = @_;
+    return $self->get_param('CURRENT_LABEL');
+}
 
 sub get_conditions_metadata_as_markdown {
     my $self = shift;

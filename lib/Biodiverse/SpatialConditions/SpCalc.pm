@@ -1911,10 +1911,19 @@ sub get_metadata_sp_in_label_range_convex_hull {
       EOEX
     ;
 
+    my $description = <<~EOD
+      Is a group within the convex hull spanning a label's range?
+      The label arg should normally be specified but in some
+      circumstances a default is set (e.g. when a randomisation
+      seed location is set).
+      EOD
+    ;
+
     my %metadata = (
-        description   => "Is a group within the convex hull spanning a label's range?",
-        required_args => ['label'],
+        description   => $description,
+        # required_args => ['label'],
         optional_args => [
+            'label',
             'type',  #  nbr or proc to control use of nbr or processing groups
         ],
         result_type   => 'always_same',
@@ -1930,21 +1939,22 @@ sub sp_in_label_range_convex_hull {
     my $self = shift;
     my %args = @_;
 
-    my $h = $self->get_param('CURRENT_ARGS');
-
-    my $label = $args{label} // croak "argument label not defined\n";
+    my $label = $args{label} // $self->get_current_label // croak "argument label not defined\n";
 
     my $type = $args{type} // eval {$self->is_def_query()} ? 'proc' : 'nbr';
     croak "Invalid type arg $type" if !($type eq 'proc' || $type eq 'nbr');
 
-    my $group = $type eq 'proc'
-        ? $h->{coord_id1}
-        : $h->{coord_id2};
+    my $h = $self->get_param('CURRENT_ARGS');
+    my $bd = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
 
-    my $groups = $h->{basedata}->get_groups_in_label_range_convex_hull (
+    my $groups = $bd->get_groups_in_label_range_convex_hull (
         label => $label,
         axes  => $args{axes} // $h->{axes},
     );
+
+    my $group = $type eq 'proc'
+        ? $h->{coord_id1}
+        : $h->{coord_id2};
 
     return $groups->{$group};
 }

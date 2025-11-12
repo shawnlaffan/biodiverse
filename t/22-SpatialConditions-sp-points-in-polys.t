@@ -20,7 +20,7 @@ use Biodiverse::TestHelpers qw {:spatial_conditions};
 use Biodiverse::BaseData;
 use Biodiverse::SpatialConditions;
 
-BEGIN {$ENV{PERL_TEST_TEMPDIR_TINY_NOCLEANUP} = 1}
+# BEGIN {$ENV{PERL_TEST_TEMPDIR_TINY_NOCLEANUP} = 1}
 
 
 exit main( @ARGV );

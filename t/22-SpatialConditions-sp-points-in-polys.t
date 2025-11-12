@@ -29,6 +29,7 @@ sub main {
     my @args  = @_;
 
     test_points_in_same_poly();
+    test_sp_in_label_range_convex_hull();
 
     done_testing();
     return 0;
@@ -118,5 +119,28 @@ sub test_points_in_same_poly {
     }
 
 
+}
+
+
+sub test_sp_in_label_range_convex_hull {
+    my $bd = get_basedata_object_from_site_data (
+        CELL_SIZES => [100000, 100000],
+    );
+
+    my $cond = <<~'EOC'
+    $self->set_current_label('Genus:sp4');
+    sp_in_label_range_convex_hull();
+    EOC
+    ;
+
+    my $sp = $bd->add_spatial_output (name => 'test_1');
+    $sp->run_analysis (
+        calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
+        spatial_conditions => ['sp_self_only()'],
+        definition_query   => $cond,
+    );
+
+    is (!!$sp->group_passed_def_query_aa('3550000:1950000'), !!1, 'Loc is in convex hull');
+    is (!!$sp->group_passed_def_query_aa('2650000:850000'),  !!0, 'Loc is not in convex hull');
 }
 

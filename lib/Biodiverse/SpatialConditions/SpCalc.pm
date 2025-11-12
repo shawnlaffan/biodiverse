@@ -1887,24 +1887,16 @@ sub sp_in_label_range {
 
     my $label = $args{label} // croak "argument label not defined\n";
 
-    my $type = $args{type};
-    $type ||= eval {$self->is_def_query()} ? 'proc' : 'nbr';
+    my $type = $args{type} // eval {$self->is_def_query()} ? 'proc' : 'nbr';
+    croak "Invalid type arg $type" if !($type eq 'proc' || $type eq 'nbr');
 
-    my $group;
-    if ( $type eq 'proc' ) {
-        $group = $h->{coord_id1};
-    }
-    elsif ( $type eq 'nbr' ) {
-        $group = $h->{coord_id2};
-    }
+    my $group = $type eq 'proc'
+        ? $h->{coord_id1}
+        : $h->{coord_id2};
 
-    my $bd  = $h->{basedata};
+    my $labels_in_group = $h->{basedata}->get_labels_in_group_as_hash_aa ($group);
 
-    my $labels_in_group = $bd->get_labels_in_group_as_hash_aa ($group);
-
-    my $exists = exists $labels_in_group->{$label};
-
-    return $exists;
+    return exists $labels_in_group->{$label};
 }
 
 sub get_example_sp_get_spatial_output_list_value {

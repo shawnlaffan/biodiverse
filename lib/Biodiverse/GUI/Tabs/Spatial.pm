@@ -1676,6 +1676,8 @@ sub on_grid_hover {
         #  Some conditions select all groups, e.g. sp_select_all()
         #  in which case we can just grab the full set of labels
         #  that have ranges.
+        $nbrs_inner //= [];
+        $nbrs_outer //= [];
         if ($gp_count == @$nbrs_inner) {
             #  this caches internally
             my $labels = $bd->get_labels_with_nonzero_ranges;
@@ -1703,6 +1705,8 @@ sub on_grid_hover {
         $self->{grid}->clear_marks;
         $self->{dendrogram}->clear_highlights();
     }
+
+    $self->queue_draw;
 
     return;
 }

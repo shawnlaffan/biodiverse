@@ -38,6 +38,7 @@ sub main {
     }
 
     test_label_range_convex_hull();
+    test_elements_in_label_range_hull();
 
     done_testing;
     return 0;
@@ -63,6 +64,42 @@ sub test_label_range_convex_hull {
             $i++;
             my $hull = $bd->get_label_range_convex_hull(label => $label, as_wkt => 1);
             is $hull, $expected[$i], "convex hull for $label, " . ($cached ? '' : 'not ') . 'cached';
+        }
+    }
+
+}
+
+sub test_elements_in_label_range_hull {
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+
+    #  a range of sizes, including a single cell
+    my @target_labels = qw /Genus:sp28 Genus:sp21 Genus:sp4/;
+
+    my @expected = (
+        ['2700000:700000'],
+        [qw /
+            2100000:1100000  2100000:1300000  2300000:1100000  2300000:1300000
+            2300000:900000   2500000:1100000  2500000:1300000   2500000:700000
+            2500000:900000    2700000:700000   2700000:900000   2900000:100000
+            2900000:300000    2900000:700000   3100000:100000   3100000:300000
+            3100000:500000    3100000:700000   3100000:900000   3300000:100000
+            3300000:1100000   3300000:300000   3300000:500000   3300000:700000
+            3300000:900000   3500000:1100000   3500000:700000   3500000:900000
+        /],
+        [qw /
+            3500000:1900000 3500000:2100000 3500000:2300000 3700000:1900000 3700000:2100000
+        /],
+    );
+
+    # second pass uses cached version
+    for my $cached (0, 1) {
+        my $i = -1;
+        foreach my $label (@target_labels) {
+            $i++;
+            my $gps = $bd->get_groups_in_label_range_convex_hull(label => $label);
+            # diag $gps;
+            my $exp = $expected[$i];
+            is [sort keys %$gps], [sort @$exp], "gps in convex hull for $label, " . ($cached ? '' : 'not ') . 'cached';
         }
     }
 

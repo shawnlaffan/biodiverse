@@ -34,7 +34,6 @@ sub get_label_range_convex_hull {
     my $c2 = $res[1] / 2;
 
     my $cache_key = 'LABEL_RANGE_CONVEX_HULL_' . join ':', @axes;
-
     my $cache = $self->get_cached_value_dor_set_default_href ($cache_key);
 
     my $hull;
@@ -69,6 +68,49 @@ sub get_label_range_convex_hull {
     return $args{as_wkt} ? $hull->ExportToWKT : $args{as_json} ? $hull->ExportToJSON : $hull;
 }
 
+#  could do the whole thing in GDAL if we created an in-memory geopackage
+sub get_groups_in_label_range_convex_hull {
+    my ($self, %args) = @_;
+    my $label = $args{label};
+    \my @axes  = $args{axes} // [0,1];
+
+    my $cache_key = 'GROUPS_IN_LABEL_RANGE_CONVEX_HULL_' . join ':', @axes;
+    my $cache = $self->get_cached_value_dor_set_default_href ($cache_key);
+
+
+    #  cache as wkt for now
+    if (my $cached = $cache->{$label}) {
+        return wantarray ? %$cached : $cached;
+    }
+
+    #  get_label_range_convex_hull will croak if axes etc are invalid,
+    #  so no need to check here
+    my $hull = $self->get_label_range_convex_hull(%args, as_wkt => undef, as_json => undef);
+    my $bbox = $hull->GetEnvelope;
+    my ($xmin, $xmax, $ymin, $ymax) = @$bbox;
+
+    my $gp = $self->get_groups_ref;
+
+    my %in_hull;
+    \my @groups = $self->get_groups;
+    GP:
+    foreach my $group (@groups) {
+        my $coords = $gp->get_element_name_as_array_aa($group);
+        my ($x, $y) = @$coords[@axes];
+
+        next GP if $x < $xmin || $x > $xmax || $y < $ymin || $y > $ymax;
+
+        my $wkt = "POINT($x $y)";
+        my $point = Geo::GDAL::FFI::Geometry->new(WKT => $wkt);
+        if ($point->Intersects($hull)) {
+            $in_hull{$group}++;
+        }
+    }
+
+    $cache->{$label} = \%in_hull;
+
+    return wantarray ? %in_hull : \%in_hull;
+}
 
 
 1;

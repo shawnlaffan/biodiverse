@@ -1205,6 +1205,26 @@ sub get_spatial_allocation_sp_condition_metadata {
     return $spatial_condition_param;
 }
 
+sub get_seed_location_sp_condition_metadata {
+    my $self = shift;
+
+    my $tooltip = <<~EOT
+    Label allocation will start from a group that satisfies the condition.
+    Leave blank to allow any group.
+    EOT
+    ;
+
+    my $spatial_condition_param = bless {
+        name       => 'spatial_conditions_for_seed_location',
+        label_text => "Spatial condition\nto define seed locations",
+        default    => '',
+        type       => 'spatial_conditions',
+        tooltip    => $tooltip,
+    }, $parameter_rand_metadata_class;
+
+    return $spatial_condition_param;
+}
+
 sub get_random_walk_backtracking_metadata {
     my $self = shift;
 
@@ -1546,7 +1566,7 @@ sub get_metadata_rand_spatially_structured {
         default    => 0,
         type       => 'choice',
         choices    => [qw /diffusion random_walk random proximity/],
-        tooltip    => 'The order label occurrencess will be allocated within the neighbourhoods '
+        tooltip    => 'The order label occurrences will be allocated within the neighbourhoods '
                     . 'after first being allocated to the seed group.',
         box_group  => 'Spatial allocations',
     }, $parameter_rand_metadata_class;
@@ -1554,7 +1574,9 @@ sub get_metadata_rand_spatially_structured {
     my $backtracking = $self->get_random_walk_backtracking_metadata;
     my $reseed       = $self->get_spatial_allocation_reseed_metadata;
 
-    push @parameters, ($spatial_allocation_order, $backtracking, $reseed);
+    my $seed_condition = $self->get_seed_location_sp_condition_metadata;
+
+    push @parameters, ($spatial_allocation_order, $backtracking, $seed_condition, $reseed);
 
     my %metadata = (
         parameters  => \@parameters,

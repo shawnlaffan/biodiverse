@@ -1958,8 +1958,6 @@ sub rand_structured {
                 # my $count = $tmp_gp_hash{$from_group};
                 my $count = delete $tmp_gp_hash{$from_group};
 
-#say "Grabbing $label from $from_group with count $count";
-
                 #  profiling suggests we get many $to_groups that
                 #  are not in the array list so avoid some sub calls
                 #  to save time.

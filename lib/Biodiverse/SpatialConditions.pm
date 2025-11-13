@@ -519,8 +519,11 @@ sub verify {
     if ($valid) {
         my $bd = $self->get_basedata_ref // $args{basedata};
 
-        my $basedata = $bd;  #  should use this for the distances
-        #my $bd = $args{basedata};
+        my $clear_label;
+        if (!defined $self->get_current_label) {
+            $self->set_current_label('a');
+            $clear_label = 1;
+        }
 
         $self->set_param( VERIFYING => 1 );
 
@@ -578,6 +581,9 @@ sub verify {
         }
 
         $self->set_param( VERIFYING => undef );
+        if ($clear_label) {
+            $self->set_current_label();
+        }
     }
 
     my %hash = (

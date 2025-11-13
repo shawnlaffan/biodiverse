@@ -275,6 +275,13 @@ __DATA__
                 "3750000:2050000",
             ],
           },
+        'sp_in_label_range_convex_hull (label => "not in data set")' =>
+          {
+            'count' => 0,
+            'excludes' => [],
+            'includes' => [
+            ],
+          },
     ],
 }
 

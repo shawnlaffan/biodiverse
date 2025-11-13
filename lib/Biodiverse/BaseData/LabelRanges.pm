@@ -44,20 +44,27 @@ sub get_label_range_convex_hull {
         $hull = Geo::GDAL::FFI::Geometry->new(WKT => $cached_wkt);
     }
     else {
-        my $wkt = "MULTIPOLYGON (";
-        foreach my $el (keys %$elements) {
-            my $coords = $gp->get_element_name_as_array_aa($el);
-            my ($x, $y) = @$coords[@axes];
-            my ($x1, $x2) = ($x - $c1, $x + $c1);
-            my ($y1, $y2) = ($y - $c2, $y + $c2);
-            $wkt .= "(($x1 $y1, $x1 $y2, $x2 $y2, $x2 $y1, $x1 $y1)), ";
+        my $wkt;
+        if (!%$elements) {
+            $wkt = "POLYGON EMPTY";
+            $hull = Geo::GDAL::FFI::Geometry->new(WKT => $wkt);
+            $cache->{$label} = $wkt;
         }
-        $wkt =~ s/, $//;
-        $wkt .= ')';
-
-        my $g = Geo::GDAL::FFI::Geometry->new(WKT => $wkt);
-        $hull = $g->ConvexHull;
-        $cache->{$label} = $hull->ExportToWKT;
+        else {
+            $wkt = "MULTIPOLYGON (";
+            foreach my $el (keys %$elements) {
+                my $coords = $gp->get_element_name_as_array_aa($el);
+                my ($x, $y) = @$coords[@axes];
+                my ($x1, $x2) = ($x - $c1, $x + $c1);
+                my ($y1, $y2) = ($y - $c2, $y + $c2);
+                $wkt .= "(($x1 $y1, $x1 $y2, $x2 $y2, $x2 $y1, $x1 $y1)), ";
+            }
+            $wkt =~ s/, $//;
+            $wkt .= ')';
+            my $g = Geo::GDAL::FFI::Geometry->new(WKT => $wkt);
+            $hull = $g->ConvexHull;
+            $cache->{$label} = $hull->ExportToWKT;
+        }
 
         #  save double conversion
         if ($args{as_wkt}) {

@@ -3150,7 +3150,7 @@ sub get_tree_shuffle_metadata {
     my $tree = Biodiverse::Tree->new;
     my @choices = sort keys %{$tree->get_subs_with_prefix (prefix => 'shuffle')};
     my $default = first_index {$_ =~ 'no_change$'} @choices;
-    @choices = map {(my $x = $_) =~ s/^shuffle_//; $x} @choices;  #  strip the shuffle_ off the front
+    @choices = map {s/^shuffle_//r} @choices;  #  strip the shuffle_ off the front
 
     my $metadata = {
         name => 'randomise_trees_by',

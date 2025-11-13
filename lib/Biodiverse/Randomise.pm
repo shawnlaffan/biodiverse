@@ -22,7 +22,7 @@ use Time::HiRes qw { time gettimeofday tv_interval };
 use Scalar::Util qw { blessed looks_like_number };
 use List::Util qw /any all none minstr max pairmap/;
 use List::MoreUtils::XS;  #  paranoia to ensure we have this loaded
-use List::MoreUtils 0.425 qw /first_index uniq binsert bremove/;
+use List::MoreUtils 0.425 qw /first_index uniq binsert bremove bsearchidx/;
 use Ref::Util qw /is_ref is_arrayref is_hashref/;
 #use List::BinarySearch::XS;  #  make sure we have the XS version available via PAR::Packer executables
 #use List::BinarySearch qw /binsearch  binsearch_pos/;
@@ -1426,6 +1426,36 @@ sub rand_csr_by_group {
 }
 
 
+sub get_spatial_condition_for_seeding {
+    my ($self, %args) = @_;
+
+    my $param_name = 'SPATIAL_CONDITION_FOR_SEEDING';
+
+    my $cond = $self->get_param($param_name);
+
+    return $cond if $cond || (!$cond && $self->exists_param($param_name));
+
+    my $cond_string = $args{spatial_conditions_for_seed_location};
+
+    return if !defined $cond_string;
+
+    my $bd = $args{basedata_ref} || $self->get_basedata_ref || $self->get_param ('BASEDATA_REF');
+
+    $cond = Biodiverse::SpatialConditions::DefQuery->new (
+        conditions   => $cond_string,
+        basedata_ref => $bd,
+    );
+
+    #  override any always-false conditions
+    if ($cond->get_param('RESULT_TYPE') eq 'always_false') {
+        $cond = undef;
+    }
+
+    $self->set_param($param_name => $cond);
+
+    return $cond;
+}
+
 sub get_spatial_output_to_track_allocations {
     my ($self, %args) = @_;
 
@@ -1695,6 +1725,8 @@ sub rand_structured {
 
     my $sp_for_label_allocation = $self->get_spatial_output_for_label_allocation (%args);
 
+    my $sp_cond_for_seeding = $self->get_spatial_condition_for_seeding (%args);
+
     my $spatial_allocation_order = $args{spatial_allocation_order} // '';
     my $label_alloc_backtracking = $args{label_allocation_backtracking} // '';
     #  currently only for debugging as basedata merging does not support outputs
@@ -1772,6 +1804,7 @@ sub rand_structured {
     #  make sure we randomly select from the same set of groups each time
     my @sorted_groups = sort $bd->get_groups;
     #  make sure shuffle does not work on the original data
+    #  this is no longer used but we need to update the tests if we remove it
     my $rand_gp_order = $rand->shuffle ([@sorted_groups]);
 
     my @sorted_labels = sort $bd->get_labels;
@@ -1896,8 +1929,49 @@ sub rand_structured {
                 @to_groups = ();  #  clear any existing
                 $use_new_seed_group = 0;  #  reset
 
+                my $j;  #  the index of the target group we will work on
+
+                #  are we seeding from a condition?
+                if (!!$sp_cond_for_seeding) {
+                    state $cache_name = 'sp_cond_for_seeding_results';
+                    my $cache = $self->get_cached_value_dor_set_default_href($cache_name);
+                    my $seed_groups = $cache->{$label};
+                    if (!$seed_groups) {
+                        $sp_cond_for_seeding->set_current_label($label);
+                        my $defq_progress = Biodiverse::Progress->new(text => 'def query');
+                        #  don't pass an exclude list as we cache across rand iterations
+                        $seed_groups = $cache->{$label} = $bd->get_neighbours(
+                            element            => $target_groups[0],
+                            spatial_conditions => $sp_cond_for_seeding,
+                            is_def_query       => 1,
+                            progress           => $defq_progress,
+                        );
+                    }
+
+                    delete local @{$seed_groups}{keys %filled_groups}
+                        if %filled_groups;
+                    my @seed_targets = sort keys %$seed_groups;
+
+                    my $seed_gp;
+                    while (!defined $seed_gp && scalar @seed_targets) {
+                        #  go looking
+                        my $jj = int($rand->rand(scalar @seed_targets));
+                        $seed_gp = splice @seed_targets, $jj, 1;
+                        no autovivification;  #  just in case
+                        #  try again if it is already full
+                        $seed_gp = undef if $new_bd_gp_lb_hash{$seed_gp}{$label};
+                    }
+
+                    #  use a binary search if we have a seed group,
+                    #  otherwise fall back to the full set lower down
+                    if (defined $seed_gp) {
+                        $j = bsearchidx {$_ cmp $seed_gp} @target_groups
+                    }
+                }
+
                 #  select a group at random to assign to
-                my $j = int ($rand->rand (scalar @target_groups));
+                $j //= int($rand->rand(scalar @target_groups));
+
                 push @to_groups, $target_groups[$j];
 
                 #  make sure we don't select this group again

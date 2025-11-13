@@ -1060,6 +1060,14 @@ sub get_common_rand_metadata {
     my $group_props_parameters  = $self->get_group_prop_metadata;
     my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
 
+    my $tooltip_savecp = <<~'EOT'
+        Any iteration ending in this number will be saved to disk as a bds file.
+        Useful to check convergence if the randomisations are very slow or
+        to restart from a known point if the system crashes due to lack of memory.
+        Set to -1 to not use it.
+        EOT
+    ;
+
     my @common = (
          bless ({
             name       => 'save_checkpoint',
@@ -1068,10 +1076,7 @@ sub get_common_rand_metadata {
             default    => -1,
             min        => -1,
             increment  =>  1,
-            tooltip    => 'Any iteration ending in this number will be saved to disk as a bds file.  '
-                        . 'Useful to check convergence if the randomisations are very slow or '
-                        . 'to restart from a known point if the system crashes due to lack of memory. '
-                        . 'Set to -1 to not use it.',
+            tooltip    => $tooltip_savecp,
             mutable    => 1,
             box_group  => 'Debug',
         }, $parameter_metadata_class),
@@ -1123,21 +1128,21 @@ sub get_common_rand_metadata {
 sub get_common_rand_structured_metadata {
     my $self = shift;
 
-    my $tooltip_mult =<<'END_TOOLTIP_MULT'
-The target richness of each group in the randomised
-basedata will be its original richness multiplied
-by this value.
-END_TOOLTIP_MULT
-;
+    my $tooltip_mult =<<~'END_TOOLTIP_MULT'
+        The target richness of each group in the randomised
+        basedata will be its original richness multiplied
+        by this value.
+        END_TOOLTIP_MULT
+    ;
 
-    my $tooltip_addn =<<'END_TOOLTIP_ADDN'
-The target richness of each group in the randomised
-basedata will be its original richness plus this value.
+    my $tooltip_addn =<<~'END_TOOLTIP_ADDN'
+        The target richness of each group in the randomised
+        basedata will be its original richness plus this value.
 
-This is applied after the multiplier parameter so you have:
-    target_richness = orig_richness * multiplier + addition.
-END_TOOLTIP_ADDN
-;
+        This is applied after the multiplier parameter so you have:
+            target_richness = orig_richness * multiplier + addition.
+        END_TOOLTIP_ADDN
+    ;
 
     # my $subset_parameters = $self->get_metadata_get_rand_structured_subset;
     # my $group_props_parameters  = $self->get_group_prop_metadata;
@@ -1169,16 +1174,21 @@ END_TOOLTIP_ADDN
         bless $_, $parameter_rand_metadata_class;
     }
     
-    
+    my $tooltip_alloc = <<~'EOT'
+        Allows one to see the order in which labels were assigned to groups.
+        Negative values were swapped out after allocation,
+        zero values were assigned via the swapping process used to reach the richness targets.
+
+        Has no effect if a subset spatial condition is used (see issue #588 for details).
+        EOT
+    ;
+
     my $track_label_allocation_order = bless {
         name       => 'track_label_allocation_order',
         label_text => "Track label allocation order?",
         default    => 0,
         type       => 'boolean',
-        tooltip    => 'Allows one to see the order in which labels were assigned to groups. '
-                    . 'Negative values were swapped out after allocation, '
-                    . "zero values were assigned via the swapping process used to reach the richness targets.\n"
-                    . 'Has no effect if a subset spatial condition is used (see issue #588 for details).',
+        tooltip    => $tooltip_alloc,
         mutable    => 1,
         box_group  => 'Debug',
     }, $parameter_rand_metadata_class;
@@ -1190,16 +1200,21 @@ END_TOOLTIP_ADDN
 sub get_spatial_allocation_sp_condition_metadata {
     my $self = shift;
 
+    my $tooltip = <<~'EOT'
+        Labels will be assigned to groups within the specified
+        neighbourhood around a random seed location.
+        A new seed location is selected when there are no more
+        neighbours to select from.
+        EOT
+    ;
+
     my $spatial_condition_param = bless {
         name       => 'spatial_conditions_for_label_allocation',
         label_text => "Spatial condition\nto define target groups\naround a seed location",
         default    => 'sp_square_cell (size => 3)',
         #default    => 'sp_circle(radius => 300000)',
         type       => 'spatial_conditions',
-        tooltip    => 'Labels will be assigned to groups within the specified '
-                    . 'neighbourhood around a random seed location.  '
-                    . 'A new seed location is selected when there are no more '
-                    . 'neighbours to select from.',
+        tooltip    => $tooltip,
     }, $parameter_rand_metadata_class;
 
     return $spatial_condition_param;
@@ -1209,9 +1224,9 @@ sub get_seed_location_sp_condition_metadata {
     my $self = shift;
 
     my $tooltip = <<~EOT
-    Label allocation will start from a group that satisfies the condition.
-    Leave blank to allow any group.
-    EOT
+        Label allocation will start from a group that satisfies the condition.
+        Leave blank to allow any group.
+        EOT
     ;
 
     my $spatial_condition_param = bless {
@@ -1228,15 +1243,15 @@ sub get_seed_location_sp_condition_metadata {
 sub get_random_walk_backtracking_metadata {
     my $self = shift;
 
-    my $bk_text = <<'EOB'
-The spatially structured models will go back to a previously
-assigned group when no neighbours of the current group can be assigned to. 
-"from_end" goes back in reverse order of assignment, 
-"from_start" goes back to the start of the sequence and works
-forward, while "random" selects randomly from the previously assigned groups.
-Has no effect on the proximity allocation model.
-EOB
-  ;
+    my $bk_text = <<~'EOB'
+        The spatially structured models will go back to a previously
+        assigned group when no neighbours of the current group can be assigned to.
+        "from_end" goes back in reverse order of assignment, 
+        "from_start" goes back to the start of the sequence and works
+        forward, while "random" selects randomly from the previously assigned groups.
+        Has no effect on the proximity allocation model.
+        EOB
+    ;
 
     my $backtracking = bless {
         name       => 'label_allocation_backtracking',
@@ -1252,7 +1267,15 @@ EOB
 }
 
 sub get_spatial_allocation_reseed_metadata {
-    
+
+    my $toolip = <<~'EOT'
+        Probability of restarting the allocation process from a new seed location.
+        Evaluated after each label occurrence allocation,
+        with values drawn from a uniform random distribution.
+        Leave as 0 for it to have no effect.
+        EOT
+    ;
+
     my $reseed = bless {
         name       => 'spatial_allocation_reseed_prob',
         label_text => "Reseed probability",
@@ -1262,10 +1285,7 @@ sub get_spatial_allocation_reseed_metadata {
         max        => 1,
         increment  => 0.001,
         digits     => 4,
-        tooltip    => 'Probability of restarting the allocation process from a new seed location. '
-                    . 'Evaluated after each label occurrence allocation, '
-                    . 'with values drawn from a uniform random distribution. '
-                    . 'Leave as 0 for it to have no effect.',
+        tooltip    => $toolip,
         box_group  => 'Spatial allocations',        
     }, $parameter_rand_metadata_class;
 
@@ -1708,13 +1728,13 @@ sub rand_structured {
     my $addition = $args{richness_addition} || 0;
     my $name = $self->get_param ('NAME');
 
-    my $progress_text =<<"END_PROGRESS_TEXT"
-$name
-rand_structured:
-\trichness multiplier = $multiplier,
-\trichness addition = $addition
-END_PROGRESS_TEXT
-;
+    my $progress_text =<<~"END_PROGRESS_TEXT"
+        $name
+        rand_structured:
+        \trichness multiplier = $multiplier,
+        \trichness addition = $addition
+        END_PROGRESS_TEXT
+    ;
 
     my $new_bd = blessed($bd)->new ($bd->get_params_hash);
     $new_bd->get_groups_ref->set_params ($bd->get_groups_ref->get_params_hash);
@@ -3091,13 +3111,13 @@ sub process_group_props_by_item {
     return $count; 
 }
 
-my $process_group_props_tooltip = <<'END_OF_GPPROP_TOOLTIP'
-Group properties in the randomised basedata will be assigned in these ways:
-no_change:  The same as in the original basedata. 
-by_set:     All of a group's properties are assigned to a random group as a set.
-by_item:    A group's properties are randomly allocated to random groups individually.  
-END_OF_GPPROP_TOOLTIP
-  ;
+my $process_group_props_tooltip = <<~'END_OF_GPPROP_TOOLTIP'
+    Group properties in the randomised basedata will be assigned in these ways:
+    no_change:  The same as in the original basedata.
+    by_set:     All of a group's properties are assigned to a random group as a set.
+    by_item:    A group's properties are randomly allocated to random groups individually.
+    END_OF_GPPROP_TOOLTIP
+;
 
 sub get_group_prop_metadata {
     my $self = shift;
@@ -3116,12 +3136,12 @@ sub get_group_prop_metadata {
 }
 
 #  should build this from metadata
-my $randomise_trees_tooltip = <<"END_RANDOMISE_TREES_TOOLTIP"
-Trees used as arguments in the analyses will be randomised in these ways:
-shuffle_no_change:  Trees will be unchanged. 
-shuffle_terminal_names:  Terminal node names will be randomly re-assigned within each tree.
-END_RANDOMISE_TREES_TOOLTIP
-  ;
+my $randomise_trees_tooltip = <<~"END_RANDOMISE_TREES_TOOLTIP"
+    Trees used as arguments in the analyses will be randomised in these ways:
+    shuffle_no_change:  Trees will be unchanged.
+    shuffle_terminal_names:  Terminal node names will be randomly re-assigned within each tree.
+    END_RANDOMISE_TREES_TOOLTIP
+;
 
 sub get_tree_shuffle_metadata {
     my $self = shift;

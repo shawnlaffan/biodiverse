@@ -16,6 +16,7 @@ use Biodiverse::SpatialConditions;
 
 
 test_metadata();
+test_defq_label_arg();
 
 done_testing();
 
@@ -76,6 +77,47 @@ sub check_duplicates {
             diag "Source calcs for $null_key are: " . join ' ', sort keys %{$hashref->{$null_key}};
         }
     }    
+    
+}
+
+#  some methods have args optional for def queries, but required for standard conditions
+sub test_defq_label_arg {
+    my $bd = Biodiverse::BaseData->new(CELL_SIZES => [1,1]);
+
+    my $sp_cond = Biodiverse::SpatialConditions->new(
+        BASEDATA_REF => $bd,
+        conditions => 'sp_select_all()',
+    );
+    my $defq    = Biodiverse::SpatialConditions::DefQuery->new(
+        BASEDATA_REF => $bd,
+        conditions => 'sp_select_all()',
+    );
+
+    # no need to test all such methods as we want the functionality to work
+    for my $method (qw /sp_in_label_range sp_in_label_range_convex_hull/) {
+        my $m = "get_metadata_${method}";
+        my $spc_metadata = $sp_cond->$m;
+        my $dfq_metadata = $defq->$m;
+
+        is (!!(List::Util::any {$_ eq 'label'} @{$spc_metadata->get_required_args}),
+            !!1,
+            "'label' is a required arg for sp cond, $method"
+        );
+        is (!!(List::Util::any {$_ eq 'label'} @{$spc_metadata->get_optional_args}),
+            !!0,
+            "'label' is not an optional arg for sp cond, $method"
+        );
+
+        is (!!(List::Util::any {$_ eq 'label'} @{$dfq_metadata->get_required_args}),
+            !!0,
+            "'label' is not a required arg for defq, $method"
+        );
+        is (!!(List::Util::any {$_ eq 'label'} @{$dfq_metadata->get_optional_args}),
+            !!1,
+            "'label' is an optional arg for defq, $method"
+        );
+
+    }
     
 }
 

@@ -1858,12 +1858,13 @@ sub sp_group_not_empty {
 sub get_metadata_sp_in_label_range {
     my $self = shift;
 
-    my %args = @_;
-
     my %metadata = (
         description   => "Is a group within a label's range?",
-        required_args => ['label'],
+        required_args => [
+            $self->is_def_query ? () : 'label',
+        ],
         optional_args => [
+            $self->is_def_query ? 'label' : (),
             'type',  #  nbr or proc to control use of nbr or processing groups
         ],
         result_type   => 'always_same',
@@ -1921,9 +1922,11 @@ sub get_metadata_sp_in_label_range_convex_hull {
 
     my %metadata = (
         description   => $description,
-        # required_args => ['label'],
+        required_args => [
+            $self->is_def_query ? () : 'label',
+        ],
         optional_args => [
-            'label',
+            $self->is_def_query ? 'label' : (),
             'type',  #  nbr or proc to control use of nbr or processing groups
         ],
         result_type   => 'always_same',

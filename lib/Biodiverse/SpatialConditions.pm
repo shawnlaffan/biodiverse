@@ -97,6 +97,8 @@ sub new {
 
 sub get_type {return 'spatial conditions'};
 
+sub is_def_query {return}
+
 sub metadata_class {
     return $metadata_class;
 }

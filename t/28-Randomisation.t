@@ -383,6 +383,85 @@ sub test_rand_spatially_structured {
 }
 
 
+sub test_rand_spatially_structured_seeded {
+    my $c  = 1;
+    my $c3 = $c * 1;
+    my $c6 = $c * 2;
+    my $c9 = $c * 3;
+    my $bd_size = 21;
+
+    my $prng_seed = 2345;
+
+    #my $prng = Math::Random::MT::Auto->new;
+
+    my $bd = Biodiverse::BaseData->new (
+        NAME => 'test_rand_spatially_structured_seeded',
+        CELL_SIZES => [$c, $c],
+        CELL_ORIGINS => [$c/2, $c/2],
+    );
+
+    my @labels = qw /a b c d/;
+    my $k = 0;
+    foreach my $i (0 .. $bd_size) {
+        foreach my $j (0 .. $bd_size) {
+            my $group = "$i:$j";
+            $bd->add_element (group => $group);
+            my $label = $labels[int ($i / ($bd_size / 3))];
+            $bd->add_element (group => $group, label => $label, count => $k);
+            $k++;
+        }
+    }
+
+    $bd->build_spatial_index(resolutions => [$c, $c]);
+
+    my $sp = $bd->add_spatial_output (name => 'sp');
+
+    $sp->run_analysis (
+        spatial_conditions => ['sp_square (size => 3)'],
+        calculations => [qw /calc_local_range_lists/],
+    );
+
+    my $rand_name = 'rand_spatially_structured';
+
+    my $rand = $bd->add_randomisation_output (name => $rand_name);
+    my $rand_bd_array = $rand->run_analysis (
+        function                                => 'rand_spatially_structured',
+        spatial_allocation_order                => 'random',
+        iterations                              => 1, #  reset to 3 later
+        seed                                    => $prng_seed,
+        richness_addition                       => 30, #  make sure we can put our three labels anywhere
+        richness_multiplier                     => 1,
+        spatial_conditions_for_label_allocation => "sp_circle(radius => $c6)",
+        spatial_conditions_for_seed_location    => 'sp_in_label_range_convex_hull()',
+        return_rand_bd_array                    => 1,
+        retain_outputs                          => 1,
+        track_label_allocation_order            => 1,
+    );
+
+    is ($rand->get_param('SWAP_OUT_COUNT'), 0,
+        'Did not swap out in spatially structured rand',
+    );
+    is ($rand->get_param('SWAP_INSERT_COUNT'), 0,
+        'Did not swap insert in spatially structured rand',
+    );
+
+    my $rbd = $rand_bd_array->[0];
+    my @refs = $rbd->get_output_refs;
+    my $rsp = (grep {$_->get_name =~ /track_allocations/} @refs)[0];
+    my %label_ranges = map {$_ => scalar $bd->get_groups_with_label_as_hash_aa($_)} @labels;
+    foreach my $gp ($rsp->get_element_list) {
+        my $list = $rsp->get_list_ref_aa($gp, 'ALLOCATION_ORDER');
+        foreach my $label (sort keys %$list ) {
+            my $alloc = $list->{$label};
+            #  seeds end in 0.01 - check is not future proof
+            next if (abs ($alloc) - int (abs ($alloc))) == 0;
+            is (!!exists $label_ranges{$label}{$gp}, !!1, "Seed loc $gp is in range of $label, alloc is $alloc");
+        }
+    }
+
+    return;
+}
+
 #  When the spatial constraint does
 #  not span the whole basedata then
 #  we need to handle the leftovers
@@ -563,17 +642,15 @@ sub test_random_propagation {
                 );
               LABEL:
                 foreach my $label (sort @$labels) {
-                    my $alloc_num = $alloc_list->{$label};
+                    #  int is to handle seeds being marked with 0.01 increment
+                    my $alloc_num = int $alloc_list->{$label};
                     next LABEL if $alloc_num == $bd->get_range(element => $label);
                     my @alloc_nbrs;
                   NBR:
                     foreach my $nbr (keys %$el_list) {
                         next if $group eq $nbr;
-                        my $nbr_alloc_list = $alloc_output->get_list_ref (
-                            element => $nbr,
-                            list    => 'ALLOCATION_ORDER',
-                        );
-                        my $nbr_alloc_num = $nbr_alloc_list->{$label} // -1;
+                        my $nbr_alloc_list = $alloc_output->get_list_ref_aa ($nbr, 'ALLOCATION_ORDER');
+                        my $nbr_alloc_num = int ($nbr_alloc_list->{$label} // -1);
                         push @alloc_nbrs, $nbr_alloc_num;
                     }
                     my $count_one_higher = grep {($_-1) == $alloc_num} @alloc_nbrs;

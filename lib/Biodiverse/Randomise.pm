@@ -1872,6 +1872,7 @@ sub rand_structured {
     my %new_bd_richness;
     my $last_filled     = $EMPTY_STRING;
     $i = 0;
+    my $seed_group_flag;
     $total_to_do = scalar @$rand_label_order;
     say "[RANDOMISE] Target is $total_to_do.  Running.";
 
@@ -1928,6 +1929,7 @@ sub rand_structured {
             if (!scalar @to_groups || $use_new_seed_group) {
                 @to_groups = ();  #  clear any existing
                 $use_new_seed_group = 0;  #  reset
+                $seed_group_flag = 1;
 
                 my $j;  #  the index of the target group we will work on
 
@@ -2053,6 +2055,13 @@ sub rand_structured {
                 # book-keeping for debug, also an optional output
                 if ($track_label_allocation_order) {
                     $alloc_iter_hash{$label}++;
+                    if (!!$seed_group_flag) {
+                        $alloc_iter_hash{$label} += 0.01;  #  clunky way of flagging a seed location
+                        $seed_group_flag = 0;
+                    }
+                    else {
+                        $alloc_iter_hash{$label} = int ($alloc_iter_hash{$label});
+                    }
                     $sp_to_track_label_allocation_order->add_to_lists (
                         element          =>  $to_group,
                         ALLOCATION_ORDER => {$label => $alloc_iter_hash{$label}},

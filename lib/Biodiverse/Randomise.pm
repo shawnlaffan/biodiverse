@@ -22,7 +22,7 @@ use Time::HiRes qw { time gettimeofday tv_interval };
 use Scalar::Util qw { blessed looks_like_number };
 use List::Util qw /any all none minstr max pairmap/;
 use List::MoreUtils::XS;  #  paranoia to ensure we have this loaded
-use List::MoreUtils 0.425 qw /first_index uniq binsert bremove/;
+use List::MoreUtils 0.425 qw /first_index uniq binsert bremove bsearchidx/;
 use Ref::Util qw /is_ref is_arrayref is_hashref/;
 #use List::BinarySearch::XS;  #  make sure we have the XS version available via PAR::Packer executables
 #use List::BinarySearch qw /binsearch  binsearch_pos/;
@@ -1060,6 +1060,14 @@ sub get_common_rand_metadata {
     my $group_props_parameters  = $self->get_group_prop_metadata;
     my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
 
+    my $tooltip_savecp = <<~'EOT'
+        Any iteration ending in this number will be saved to disk as a bds file.
+        Useful to check convergence if the randomisations are very slow or
+        to restart from a known point if the system crashes due to lack of memory.
+        Set to -1 to not use it.
+        EOT
+    ;
+
     my @common = (
          bless ({
             name       => 'save_checkpoint',
@@ -1068,10 +1076,7 @@ sub get_common_rand_metadata {
             default    => -1,
             min        => -1,
             increment  =>  1,
-            tooltip    => 'Any iteration ending in this number will be saved to disk as a bds file.  '
-                        . 'Useful to check convergence if the randomisations are very slow or '
-                        . 'to restart from a known point if the system crashes due to lack of memory. '
-                        . 'Set to -1 to not use it.',
+            tooltip    => $tooltip_savecp,
             mutable    => 1,
             box_group  => 'Debug',
         }, $parameter_metadata_class),
@@ -1123,21 +1128,21 @@ sub get_common_rand_metadata {
 sub get_common_rand_structured_metadata {
     my $self = shift;
 
-    my $tooltip_mult =<<'END_TOOLTIP_MULT'
-The target richness of each group in the randomised
-basedata will be its original richness multiplied
-by this value.
-END_TOOLTIP_MULT
-;
+    my $tooltip_mult =<<~'END_TOOLTIP_MULT'
+        The target richness of each group in the randomised
+        basedata will be its original richness multiplied
+        by this value.
+        END_TOOLTIP_MULT
+    ;
 
-    my $tooltip_addn =<<'END_TOOLTIP_ADDN'
-The target richness of each group in the randomised
-basedata will be its original richness plus this value.
+    my $tooltip_addn =<<~'END_TOOLTIP_ADDN'
+        The target richness of each group in the randomised
+        basedata will be its original richness plus this value.
 
-This is applied after the multiplier parameter so you have:
-    target_richness = orig_richness * multiplier + addition.
-END_TOOLTIP_ADDN
-;
+        This is applied after the multiplier parameter so you have:
+            target_richness = orig_richness * multiplier + addition.
+        END_TOOLTIP_ADDN
+    ;
 
     # my $subset_parameters = $self->get_metadata_get_rand_structured_subset;
     # my $group_props_parameters  = $self->get_group_prop_metadata;
@@ -1169,16 +1174,21 @@ END_TOOLTIP_ADDN
         bless $_, $parameter_rand_metadata_class;
     }
     
-    
+    my $tooltip_alloc = <<~'EOT'
+        Allows one to see the order in which labels were assigned to groups.
+        Negative values were swapped out after allocation,
+        zero values were assigned via the swapping process used to reach the richness targets.
+
+        Has no effect if a subset spatial condition is used (see issue #588 for details).
+        EOT
+    ;
+
     my $track_label_allocation_order = bless {
         name       => 'track_label_allocation_order',
         label_text => "Track label allocation order?",
         default    => 0,
         type       => 'boolean',
-        tooltip    => 'Allows one to see the order in which labels were assigned to groups. '
-                    . 'Negative values were swapped out after allocation, '
-                    . "zero values were assigned via the swapping process used to reach the richness targets.\n"
-                    . 'Has no effect if a subset spatial condition is used (see issue #588 for details).',
+        tooltip    => $tooltip_alloc,
         mutable    => 1,
         box_group  => 'Debug',
     }, $parameter_rand_metadata_class;
@@ -1190,16 +1200,41 @@ END_TOOLTIP_ADDN
 sub get_spatial_allocation_sp_condition_metadata {
     my $self = shift;
 
+    my $tooltip = <<~'EOT'
+        Labels will be assigned to groups within the specified
+        neighbourhood around a random seed location.
+        A new seed location is selected when there are no more
+        neighbours to select from.
+        EOT
+    ;
+
     my $spatial_condition_param = bless {
         name       => 'spatial_conditions_for_label_allocation',
         label_text => "Spatial condition\nto define target groups\naround a seed location",
         default    => 'sp_square_cell (size => 3)',
         #default    => 'sp_circle(radius => 300000)',
         type       => 'spatial_conditions',
-        tooltip    => 'Labels will be assigned to groups within the specified '
-                    . 'neighbourhood around a random seed location.  '
-                    . 'A new seed location is selected when there are no more '
-                    . 'neighbours to select from.',
+        tooltip    => $tooltip,
+    }, $parameter_rand_metadata_class;
+
+    return $spatial_condition_param;
+}
+
+sub get_seed_location_sp_condition_metadata {
+    my $self = shift;
+
+    my $tooltip = <<~EOT
+        Label allocation will start from a group that satisfies the condition.
+        Leave blank to allow any group.
+        EOT
+    ;
+
+    my $spatial_condition_param = bless {
+        name       => 'spatial_conditions_for_seed_location',
+        label_text => "Spatial condition\nto define seed locations",
+        default    => '',
+        type       => 'spatial_conditions',
+        tooltip    => $tooltip,
     }, $parameter_rand_metadata_class;
 
     return $spatial_condition_param;
@@ -1208,15 +1243,15 @@ sub get_spatial_allocation_sp_condition_metadata {
 sub get_random_walk_backtracking_metadata {
     my $self = shift;
 
-    my $bk_text = <<'EOB'
-The spatially structured models will go back to a previously
-assigned group when no neighbours of the current group can be assigned to. 
-"from_end" goes back in reverse order of assignment, 
-"from_start" goes back to the start of the sequence and works
-forward, while "random" selects randomly from the previously assigned groups.
-Has no effect on the proximity allocation model.
-EOB
-  ;
+    my $bk_text = <<~'EOB'
+        The spatially structured models will go back to a previously
+        assigned group when no neighbours of the current group can be assigned to.
+        "from_end" goes back in reverse order of assignment, 
+        "from_start" goes back to the start of the sequence and works
+        forward, while "random" selects randomly from the previously assigned groups.
+        Has no effect on the proximity allocation model.
+        EOB
+    ;
 
     my $backtracking = bless {
         name       => 'label_allocation_backtracking',
@@ -1232,7 +1267,15 @@ EOB
 }
 
 sub get_spatial_allocation_reseed_metadata {
-    
+
+    my $toolip = <<~'EOT'
+        Probability of restarting the allocation process from a new seed location.
+        Evaluated after each label occurrence allocation,
+        with values drawn from a uniform random distribution.
+        Leave as 0 for it to have no effect.
+        EOT
+    ;
+
     my $reseed = bless {
         name       => 'spatial_allocation_reseed_prob',
         label_text => "Reseed probability",
@@ -1242,10 +1285,7 @@ sub get_spatial_allocation_reseed_metadata {
         max        => 1,
         increment  => 0.001,
         digits     => 4,
-        tooltip    => 'Probability of restarting the allocation process from a new seed location. '
-                    . 'Evaluated after each label occurrence allocation, '
-                    . 'with values drawn from a uniform random distribution. '
-                    . 'Leave as 0 for it to have no effect.',
+        tooltip    => $toolip,
         box_group  => 'Spatial allocations',        
     }, $parameter_rand_metadata_class;
 
@@ -1385,6 +1425,36 @@ sub rand_csr_by_group {
     return $new_bd;
 }
 
+
+sub get_spatial_condition_for_seeding {
+    my ($self, %args) = @_;
+
+    my $param_name = 'SPATIAL_CONDITION_FOR_SEEDING';
+
+    my $cond = $self->get_param($param_name);
+
+    return $cond if $cond || (!$cond && $self->exists_param($param_name));
+
+    my $cond_string = $args{spatial_conditions_for_seed_location};
+
+    return if !defined $cond_string;
+
+    my $bd = $args{basedata_ref} || $self->get_basedata_ref || $self->get_param ('BASEDATA_REF');
+
+    $cond = Biodiverse::SpatialConditions::DefQuery->new (
+        conditions   => $cond_string,
+        basedata_ref => $bd,
+    );
+
+    #  override any always-false conditions
+    if ($cond->get_param('RESULT_TYPE') eq 'always_false') {
+        $cond = undef;
+    }
+
+    $self->set_param($param_name => $cond);
+
+    return $cond;
+}
 
 sub get_spatial_output_to_track_allocations {
     my ($self, %args) = @_;
@@ -1546,7 +1616,7 @@ sub get_metadata_rand_spatially_structured {
         default    => 0,
         type       => 'choice',
         choices    => [qw /diffusion random_walk random proximity/],
-        tooltip    => 'The order label occurrencess will be allocated within the neighbourhoods '
+        tooltip    => 'The order label occurrences will be allocated within the neighbourhoods '
                     . 'after first being allocated to the seed group.',
         box_group  => 'Spatial allocations',
     }, $parameter_rand_metadata_class;
@@ -1554,7 +1624,9 @@ sub get_metadata_rand_spatially_structured {
     my $backtracking = $self->get_random_walk_backtracking_metadata;
     my $reseed       = $self->get_spatial_allocation_reseed_metadata;
 
-    push @parameters, ($spatial_allocation_order, $backtracking, $reseed);
+    my $seed_condition = $self->get_seed_location_sp_condition_metadata;
+
+    push @parameters, ($spatial_allocation_order, $backtracking, $seed_condition, $reseed);
 
     my %metadata = (
         parameters  => \@parameters,
@@ -1653,6 +1725,8 @@ sub rand_structured {
 
     my $sp_for_label_allocation = $self->get_spatial_output_for_label_allocation (%args);
 
+    my $sp_cond_for_seeding = $self->get_spatial_condition_for_seeding (%args);
+
     my $spatial_allocation_order = $args{spatial_allocation_order} // '';
     my $label_alloc_backtracking = $args{label_allocation_backtracking} // '';
     #  currently only for debugging as basedata merging does not support outputs
@@ -1686,13 +1760,13 @@ sub rand_structured {
     my $addition = $args{richness_addition} || 0;
     my $name = $self->get_param ('NAME');
 
-    my $progress_text =<<"END_PROGRESS_TEXT"
-$name
-rand_structured:
-\trichness multiplier = $multiplier,
-\trichness addition = $addition
-END_PROGRESS_TEXT
-;
+    my $progress_text =<<~"END_PROGRESS_TEXT"
+        $name
+        rand_structured:
+        \trichness multiplier = $multiplier,
+        \trichness addition = $addition
+        END_PROGRESS_TEXT
+    ;
 
     my $new_bd = blessed($bd)->new ($bd->get_params_hash);
     $new_bd->get_groups_ref->set_params ($bd->get_groups_ref->get_params_hash);
@@ -1730,6 +1804,7 @@ END_PROGRESS_TEXT
     #  make sure we randomly select from the same set of groups each time
     my @sorted_groups = sort $bd->get_groups;
     #  make sure shuffle does not work on the original data
+    #  this is no longer used but we need to update the tests if we remove it
     my $rand_gp_order = $rand->shuffle ([@sorted_groups]);
 
     my @sorted_labels = sort $bd->get_labels;
@@ -1797,6 +1872,7 @@ END_PROGRESS_TEXT
     my %new_bd_richness;
     my $last_filled     = $EMPTY_STRING;
     $i = 0;
+    my $seed_group_flag;
     $total_to_do = scalar @$rand_label_order;
     say "[RANDOMISE] Target is $total_to_do.  Running.";
 
@@ -1853,9 +1929,51 @@ END_PROGRESS_TEXT
             if (!scalar @to_groups || $use_new_seed_group) {
                 @to_groups = ();  #  clear any existing
                 $use_new_seed_group = 0;  #  reset
+                $seed_group_flag = 1;
+
+                my $j;  #  the index of the target group we will work on
+
+                #  are we seeding from a condition?
+                if (!!$sp_cond_for_seeding) {
+                    state $cache_name = 'sp_cond_for_seeding_results';
+                    my $cache = $self->get_cached_value_dor_set_default_href($cache_name);
+                    my $seed_groups = $cache->{$label};
+                    if (!$seed_groups) {
+                        $sp_cond_for_seeding->set_current_label($label);
+                        my $defq_progress = Biodiverse::Progress->new(text => 'def query');
+                        #  don't pass an exclude list as we cache across rand iterations
+                        $seed_groups = $cache->{$label} = $bd->get_neighbours(
+                            element            => $target_groups[0],
+                            spatial_conditions => $sp_cond_for_seeding,
+                            is_def_query       => 1,
+                            progress           => $defq_progress,
+                        );
+                    }
+
+                    delete local @{$seed_groups}{keys %filled_groups}
+                        if %filled_groups;
+                    my @seed_targets = sort keys %$seed_groups;
+
+                    my $seed_gp;
+                    while (!defined $seed_gp && scalar @seed_targets) {
+                        #  go looking
+                        my $jj = int($rand->rand(scalar @seed_targets));
+                        $seed_gp = splice @seed_targets, $jj, 1;
+                        no autovivification;  #  just in case
+                        #  try again if it is already full
+                        $seed_gp = undef if $new_bd_gp_lb_hash{$seed_gp}{$label};
+                    }
+
+                    #  use a binary search if we have a seed group,
+                    #  otherwise fall back to the full set lower down
+                    if (defined $seed_gp) {
+                        $j = bsearchidx {$_ cmp $seed_gp} @target_groups
+                    }
+                }
 
                 #  select a group at random to assign to
-                my $j = int ($rand->rand (scalar @target_groups));
+                $j //= int($rand->rand(scalar @target_groups));
+
                 push @to_groups, $target_groups[$j];
 
                 #  make sure we don't select this group again
@@ -1916,8 +2034,6 @@ END_PROGRESS_TEXT
                 # my $count = $tmp_gp_hash{$from_group};
                 my $count = delete $tmp_gp_hash{$from_group};
 
-#say "Grabbing $label from $from_group with count $count";
-
                 #  profiling suggests we get many $to_groups that
                 #  are not in the array list so avoid some sub calls
                 #  to save time.
@@ -1939,6 +2055,13 @@ END_PROGRESS_TEXT
                 # book-keeping for debug, also an optional output
                 if ($track_label_allocation_order) {
                     $alloc_iter_hash{$label}++;
+                    if (!!$seed_group_flag) {
+                        $alloc_iter_hash{$label} += 0.01;  #  clunky way of flagging a seed location
+                        $seed_group_flag = 0;
+                    }
+                    else {
+                        $alloc_iter_hash{$label} = int ($alloc_iter_hash{$label});
+                    }
                     $sp_to_track_label_allocation_order->add_to_lists (
                         element          =>  $to_group,
                         ALLOCATION_ORDER => {$label => $alloc_iter_hash{$label}},
@@ -3069,13 +3192,13 @@ sub process_group_props_by_item {
     return $count; 
 }
 
-my $process_group_props_tooltip = <<'END_OF_GPPROP_TOOLTIP'
-Group properties in the randomised basedata will be assigned in these ways:
-no_change:  The same as in the original basedata. 
-by_set:     All of a group's properties are assigned to a random group as a set.
-by_item:    A group's properties are randomly allocated to random groups individually.  
-END_OF_GPPROP_TOOLTIP
-  ;
+my $process_group_props_tooltip = <<~'END_OF_GPPROP_TOOLTIP'
+    Group properties in the randomised basedata will be assigned in these ways:
+    no_change:  The same as in the original basedata.
+    by_set:     All of a group's properties are assigned to a random group as a set.
+    by_item:    A group's properties are randomly allocated to random groups individually.
+    END_OF_GPPROP_TOOLTIP
+;
 
 sub get_group_prop_metadata {
     my $self = shift;
@@ -3094,12 +3217,12 @@ sub get_group_prop_metadata {
 }
 
 #  should build this from metadata
-my $randomise_trees_tooltip = <<"END_RANDOMISE_TREES_TOOLTIP"
-Trees used as arguments in the analyses will be randomised in these ways:
-shuffle_no_change:  Trees will be unchanged. 
-shuffle_terminal_names:  Terminal node names will be randomly re-assigned within each tree.
-END_RANDOMISE_TREES_TOOLTIP
-  ;
+my $randomise_trees_tooltip = <<~"END_RANDOMISE_TREES_TOOLTIP"
+    Trees used as arguments in the analyses will be randomised in these ways:
+    shuffle_no_change:  Trees will be unchanged.
+    shuffle_terminal_names:  Terminal node names will be randomly re-assigned within each tree.
+    END_RANDOMISE_TREES_TOOLTIP
+;
 
 sub get_tree_shuffle_metadata {
     my $self = shift;
@@ -3108,7 +3231,7 @@ sub get_tree_shuffle_metadata {
     my $tree = Biodiverse::Tree->new;
     my @choices = sort keys %{$tree->get_subs_with_prefix (prefix => 'shuffle')};
     my $default = first_index {$_ =~ 'no_change$'} @choices;
-    @choices = map {(my $x = $_) =~ s/^shuffle_//; $x} @choices;  #  strip the shuffle_ off the front
+    @choices = map {s/^shuffle_//r} @choices;  #  strip the shuffle_ off the front
 
     my $metadata = {
         name => 'randomise_trees_by',

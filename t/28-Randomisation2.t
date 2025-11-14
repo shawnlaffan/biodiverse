@@ -166,6 +166,15 @@ sub test_same_results_given_same_prng_seed {
 
     check_same_results_given_same_prng_seed (
         bd => $bd,
+        function => 'rand_spatially_structured',
+        spatial_allocation_order => 'diffusion',
+        spatial_conditions_for_label_allocation => [$r_spatially_structured_cond],
+        spatial_conditions_for_seed_location => 'sp_in_label_range_convex_hull ()',
+        prefix => 'rand_spatially_structured diffusion with seeds',
+    );
+
+    check_same_results_given_same_prng_seed (
+        bd => $bd,
         function => 'rand_random_walk',
         spatial_conditions_for_label_allocation => [$r_spatially_structured_cond],
         prefix => 'rand_random_walk',
@@ -191,15 +200,15 @@ sub check_same_results_given_same_prng_seed {
     my %args = @_;
 
     my $rand_function = $args{function} // croak "function argument not passed";
-    my $prefix = $args{prefix} // $rand_function;
+    my $prefix = $args{prefix} // ($rand_function . time());
 
     my $bd = $args{bd} // get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
     my $sp = $bd->get_spatial_output_ref (name => 'sp');
 
     my $prng_seed = 2345;
 
-    my $rand_name_2in1 = $prefix . "_2in1";
-    my $rand_name_1x1  = $prefix . "_1x1";
+    my $rand_name_2in1 = $prefix . "_2in1 ";
+    my $rand_name_1x1  = $prefix . "_1x1 ";
 
     my $rand_2in1 = $bd->add_randomisation_output (name => $rand_name_2in1);
     $rand_2in1->run_analysis (

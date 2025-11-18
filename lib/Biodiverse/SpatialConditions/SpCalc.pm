@@ -39,20 +39,25 @@ sub get_metadata_sp_circle {
     my $self = shift;
     my %args = @_;
 
-    my $example = <<'END_CIRC_EX'
-#  A circle of radius 1000 across all axes
-sp_circle (radius => 1000)
+    my $example = <<~'END_CIRC_EX'
+        #  A circle of radius 1000 across all axes
+        sp_circle (radius => 1000)
 
-#  use only axes 0 and 3
-sp_circle (radius => 1000, axes => [0, 3])
-END_CIRC_EX
-  ;
+        #  use only axes 0 and 3
+        sp_circle (radius => 1000, axes => [0, 3])
+        END_CIRC_EX
+    ;
+
+    my $descr = <<~'EOD'
+        A circle.  Assessed against all dimensions by default
+        (more properly called a hypersphere)
+        but you can use the optional "axes => []" arg to specify a subset.
+        Uses group (map) distances.
+        EOD
+    ;
 
     my %metadata = (
-        description =>
-            "A circle.  Assessed against all dimensions by default (more properly called a hypersphere)\n"
-            . "but use the optional \"axes => []\" arg to specify a subset.\n"
-            . 'Uses group (map) distances.',
+        description => $descr,
         use_abs_euc_distances => ($args{axes} // []),
         #  don't need $D if we're using a subset
         use_euc_distance      => !$args{axes},
@@ -104,20 +109,25 @@ sub get_metadata_sp_circle_cell {
     my $self = shift;
     my %args = @_;
 
-    my $example = <<'END_CIRC_CELL_EX'
-#  A circle of radius 3 cells across all axes
-sp_circle (radius => 3)
+    my $example = <<~'END_CIRC_CELL_EX'
+        #  A circle of radius 3 cells across all axes
+        sp_circle (radius => 3)
 
-#  use only axes 0 and 3
-sp_circle_cell (radius => 3, axes => [0, 3])
-END_CIRC_CELL_EX
-  ;
+        #  use only axes 0 and 3
+        sp_circle_cell (radius => 3, axes => [0, 3])
+        END_CIRC_CELL_EX
+    ;
+
+    my $descr = <<~'EOD'
+        A circle.  Assessed against all dimensions by default
+        (more properly called a hypersphere)
+        but you can use the optional "axes => []" arg to specify a subset.
+        Uses cell (map) distances.
+        EOD
+    ;
 
     my %metadata = (
-        description =>
-            "A circle.  Assessed against all dimensions by default (more properly called a hypersphere)\n"
-            . "but use the optional \"axes => []\" arg to specify a subset.\n"
-            . 'Uses cell distances.',
+        description => $descr,
         use_abs_cell_distances => ($args{axes} // []),
         #  don't need $C if we're using a subset
         use_cell_distance      => !$args{axes},    
@@ -158,22 +168,22 @@ sub sp_circle_cell {
 }
 
 
-my $rectangle_example = <<'END_RECTANGLE_EXAMPLE'
-#  A rectangle of equal size on the first two axes,
-#  and 100 on the third.
-sp_rectangle (sizes => [100000, 100000, 100])
+my $rectangle_example = <<~'END_RECTANGLE_EXAMPLE'
+    #  A rectangle of equal size on the first two axes,
+    #  and 100 on the third.
+    sp_rectangle (sizes => [100000, 100000, 100])
 
-#  The same, but with the axes reordered
-#  (an example of using the axes argument)
-sp_rectangle (
-    sizes => [100000, 100, 100000],
-    axes  => [0, 2, 1],
-)
+    #  The same, but with the axes reordered
+    #  (an example of using the axes argument)
+    sp_rectangle (
+        sizes => [100000, 100, 100000],
+        axes  => [0, 2, 1],
+    )
 
-#  Use only the first an third axes
-sp_rectangle (sizes => [100000, 100000], axes => [0,2])
-END_RECTANGLE_EXAMPLE
-  ;
+    #  Use only the first an third axes
+    sp_rectangle (sizes => [100000, 100000], axes => [0,2])
+    END_RECTANGLE_EXAMPLE
+;
 
 sub get_metadata_sp_rectangle {
     my $self = shift;
@@ -195,12 +205,16 @@ sub get_metadata_sp_rectangle {
         $shape_type = 'square';
     }
 
+    my $descr = <<~'EOD'
+        A rectangle.  Assessed against all dimensions by default
+        (more properly called a hyperbox)
+        but use the optional "axes => []" arg to specify a subset.
+        Uses group (map) distances.
+        EOD
+    ;
+
     my %metadata = (
-        description =>
-              'A rectangle.  Assessed against all dimensions by default '
-            . "(more properly called a hyperbox)\n"
-            . "but use the optional \"axes => []\" arg to specify a subset.\n"
-            . 'Uses group (map) distances.',
+        description => $descr,
         use_euc_distance => 1,
         required_args => ['sizes'],
         optional_args => [qw /axes/],
@@ -248,23 +262,32 @@ sub get_metadata_sp_annulus {
     my $self = shift;
     my %args = @_;
 
+    my $descr = <<~'EOD'
+        An annulus.  Assessed against all dimensions by default
+        but use the optional "axes => []" arg to specify a subset.
+        Uses group (map) distances.
+        EOD
+    ;
+
+    my $example = <<~'EOEX'
+        #  an annulus assessed against all axes
+        sp_annulus (inner_radius => 2000000, outer_radius => 4000000)
+        #  an annulus assessed against axes 0 and 1
+        sp_annulus (inner_radius => 2000000, outer_radius => 4000000, axes => [0,1])
+        EOEX
+    ;
+
     my %metadata = (
-        description =>
-            "An annulus.  Assessed against all dimensions by default\n"
-            . "but use the optional \"axes => []\" arg to specify a subset.\n"
-            . 'Uses group (map) distances.',
+        description => $descr,
+        #  don't need $D if we're using a subset
         use_abs_euc_distances => ($args{axes} // []),
-            #  don't need $D if we're using a subset
-        use_euc_distance  => $args{axes} ? undef : 1,    
-            #  flag index dist if easy to determine
-        index_max_dist => $args{outer_radius},
+        #  flag index dist if easy to determine
+        use_euc_distance   => $args{axes} ? undef : 1,
+        index_max_dist     => $args{outer_radius},
         required_args      => [ 'inner_radius', 'outer_radius' ],
         optional_args      => [qw /axes/],
         result_type        => 'circle',
-        example            => "#  an annulus assessed against all axes\n"
-            . qq{sp_annulus (inner_radius => 2000000, outer_radius => 4000000)\n}
-            . "#  an annulus assessed against axes 0 and 1\n"
-            . q{sp_annulus (inner_radius => 2000000, outer_radius => 4000000, axes => [0,1])},
+        example            => $example,
     );
 
     return $self->metadata_class->new (\%metadata);
@@ -307,14 +330,14 @@ sub get_metadata_sp_square {
     my $self = shift;
     my %args = @_;
     
-    my $example = <<'END_SQR_EX'
-#  An overlapping square, cube or hypercube
-#  depending on the number of axes
-#   Note - you cannot yet specify which axes to use
-#   so it will be square on all sides
-sp_square (size => 300000)
-END_SQR_EX
-  ;
+    my $example = <<~'END_SQR_EX'
+        #  An overlapping square, cube or hypercube
+        #  depending on the number of axes
+        #   Note - you cannot yet specify which axes to use
+        #   so it will be square on all sides
+        sp_square (size => 300000)
+        END_SQR_EX
+    ;
 
     my %metadata = (
         description =>
@@ -489,16 +512,16 @@ sub get_metadata_sp_ellipse {
         q{A two dimensional ellipse.  Use the 'axes' argument to control }
       . q{which are used (default is [0,1]).  The default rotate_angle is 0, }
       . q{such that the major axis is east-west.};
-    my $example = <<'END_ELLIPSE_EX'
-# North-south aligned ellipse
-sp_ellipse (
-    major_radius => 300000,
-    minor_radius => 100000,
-    axes => [0,1],
-    rotate_angle => 1.5714,
-)
-END_ELLIPSE_EX
-  ;
+    my $example = <<~'END_ELLIPSE_EX'
+        # North-south aligned ellipse
+        sp_ellipse (
+            major_radius => 300000,
+            minor_radius => 100000,
+            axes         => [0,1],
+            rotate_angle => 1.5714,
+        )
+        END_ELLIPSE_EX
+    ;
 
     my %metadata = (
         description => $description,
@@ -623,12 +646,12 @@ sub sp_self_only {
 sub get_metadata_sp_select_element {
     my $self = shift;
 
-    my $example =<<'END_SP_SELECT_ELEMENT'
-# match where the whole coordinate ID (element name)
-# is 'Biome1:savannah forest'
-sp_select_element (element => 'Biome1:savannah forest')
-END_SP_SELECT_ELEMENT
-  ;
+    my $example =<<~'END_SP_SELECT_ELEMENT'
+        # match where the whole coordinate ID (element name)
+        # is 'Biome1:savannah forest'
+        sp_select_element (element => 'Biome1:savannah forest')
+        END_SP_SELECT_ELEMENT
+    ;
 
     my %metadata = (
         description => 'Select a specific element.  Basically the same as sp_match_text, but with optimisations enabled',
@@ -663,25 +686,25 @@ sub sp_select_element {
 sub get_metadata_sp_match_text {
     my $self = shift;
 
-    my $example =<<'END_SP_MT_EX'
-#  use any neighbour where the first axis has value of "type1"
-sp_match_text (text => 'type1', axis => 0, type => 'nbr')
+    my $example =<<~'END_SP_MT_EX'
+        #  use any neighbour where the first axis has value of "type1"
+        sp_match_text (text => 'type1', axis => 0, type => 'nbr')
 
-# match only when the third neighbour axis is the same
-#   as the processing group's second axis
-sp_match_text (text => $coord[2], axis => 2, type => 'nbr')
+        # match only when the third neighbour axis is the same
+        #   as the processing group's second axis
+        sp_match_text (text => $coord[2], axis => 2, type => 'nbr')
 
-# match where the whole coordinate ID (element name)
-# is 'Biome1:savannah forest'
-sp_match_text (text => 'Biome1:savannah forest')
+        # match where the whole coordinate ID (element name)
+        # is 'Biome1:savannah forest'
+        sp_match_text (text => 'Biome1:savannah forest')
 
-# Set a definition query to only use groups with 'NK' in the third axis
-sp_match_text (text => 'NK', axis => 2, type => 'proc')
-END_SP_MT_EX
-  ;
+        # Set a definition query to only use groups with 'NK' in the third axis
+        sp_match_text (text => 'NK', axis => 2, type => 'proc')
+        END_SP_MT_EX
+    ;
 
     my %metadata = (
-        description        => 'Select all neighbours matching a text string',
+        description    => 'Select all neighbours matching a text string',
         index_max_dist => undef,
 
         #required_args => ['axis'],
@@ -712,27 +735,27 @@ sub sp_match_text {
 sub get_metadata_sp_match_regex {
     my $self = shift;
 
-    my $example = <<'END_RE_EXAMPLE'
-#  use any neighbour where the first axis includes the text "type1"
-sp_match_regex (re => qr'type1', axis => 0, type => 'nbr')
+    my $example = <<~'END_RE_EXAMPLE'
+        #  use any neighbour where the first axis includes the text "type1"
+        sp_match_regex (re => qr'type1', axis => 0, type => 'nbr')
 
-# match only when the third neighbour axis starts with
-# the processing group's second axis
-sp_match_regex (re => qr/^$coord[2]/, axis => 2, type => 'nbr')
+        # match only when the third neighbour axis starts with
+        # the processing group's second axis
+        sp_match_regex (re => qr/^$coord[2]/, axis => 2, type => 'nbr')
 
-# match the whole coordinate ID (element name)
-# where Biome can be 1 or 2 and the rest of the name contains "dry"
-sp_match_regex (re => qr/^Biome[12]:.+dry/)
+        # match the whole coordinate ID (element name)
+        # where Biome can be 1 or 2 and the rest of the name contains "dry"
+        sp_match_regex (re => qr/^Biome[12]:.+dry/)
 
-# Set a definition query to only use groups where the
-# third axis ends in 'park' (case insensitive)
-sp_match_regex (text => qr{park$}i, axis => 2, type => 'proc')
+        # Set a definition query to only use groups where the
+        # third axis ends in 'park' (case insensitive)
+        sp_match_regex (text => qr{park$}i, axis => 2, type => 'proc')
 
-END_RE_EXAMPLE
+        END_RE_EXAMPLE
     ;
 
-    my $description = 'Select all neighbours with an axis matching '
-        . 'a regular expresion';
+    my $description
+        = 'Select all neighbours with an axis matching a regular expression';
 
     my %metadata = (
         description        => $description,
@@ -811,10 +834,11 @@ sub get_metadata_sp_is_left_of {
         $axes = [ 0, 1 ];
     }
 
-    my $description =
-        q{Are we to the left of a vector radiating out from the processing cell? }
-      . q{Use the 'axes' argument to control }
-      . q{which are used (default is [0,1])};
+    my $description =<<~'EOD'
+        Are we to the left of a vector radiating out from the processing cell?
+        Use the 'axes' argument to control which are used (default is [0,1]).
+        EOD
+    ;
 
     my %metadata = (
         description => $description,
@@ -848,20 +872,19 @@ sub get_metadata_sp_is_right_of {
         $axes = [ 0, 1 ];
     }
 
-    my $description =
-        q{Are we to the right of a vector radiating out from the processing cell? }
-      . q{Use the 'axes' argument to control }
-      . q{which are used (default is [0,1])};
+    my $description =<<~'EOD'
+        Are we to the right of a vector radiating out from the processing cell?
+        Use the 'axes' argument to control which are used (default is [0,1]).
+        EOD
+    ;
 
     my %metadata = (
         description => $description,
-
         #  flag the index dist if easy to determine
         index_max_dist => undef,
         optional_args => [qw /axes vector_angle vector_angle_deg/],
         result_type   => 'side',
-        example       =>
-              'sp_is_right_of (vector_angle => 1.5714)',
+        example       => 'sp_is_right_of (vector_angle => 1.5714)',
     );
 
     return $self->metadata_class->new (\%metadata);
@@ -885,20 +908,19 @@ sub get_metadata_sp_in_line_with {
         $axes = [ 0, 1 ];
     }
 
-    my $description =
-        q{Are we in line with a vector radiating out from the processing cell? }
-      . q{Use the 'axes' argument to control }
-      . q{which are used (default is [0,1])};
+    my $description =<<~'EOD'
+        Are we in line with a vector radiating out from the processing cell?
+        Use the 'axes' argument to control which are used (default is [0,1]).
+        EOD
+    ;
 
     my %metadata = (
         description => $description,
-
         #  flag the index dist if easy to determine
         index_max_dist => undef,
         optional_args => [qw /axes vector_angle vector_angle_deg/],
         result_type   => 'side',
-        example       =>
-              'sp_in_line_with (vector_angle => Math::Trig::pip2) #  pi/2 = 90 degree angle',
+        example       => 'sp_in_line_with (vector_angle => Math::Trig::pip2) #  pi/2 = 90 degree angle',
     );
 
     return $self->metadata_class->new (\%metadata);
@@ -983,32 +1005,31 @@ sub _sp_side {
 sub get_metadata_sp_select_sequence {
     my $self = shift;
 
-    my $example = <<'END_SEL_SEQ_EX'
-# Select every tenth group (groups are sorted alphabetically)
-sp_select_sequence (frequency => 10)
+    my $example = <<~'END_SEL_SEQ_EX'
+        # Select every tenth group (groups are sorted alphabetically)
+        sp_select_sequence (frequency => 10)
 
-#  Select every tenth group, starting from the third
-sp_select_sequence (frequency => 10, first_offset => 2)
+        #  Select every tenth group, starting from the third
+        sp_select_sequence (frequency => 10, first_offset => 2)
 
-#  Select every tenth group, starting from the third last 
-#  and working backwards
-sp_select_sequence (
-    frequency     => 10,
-    first_offset  =>  2,
-    reverse_order =>  1,
-)
-END_SEL_SEQ_EX
-  ;
+        #  Select every tenth group, starting from the third last
+        #  and working backwards
+        sp_select_sequence (
+            frequency     => 10,
+            first_offset  =>  2,
+            reverse_order =>  1,
+        )
+        END_SEL_SEQ_EX
+    ;
 
     my %metadata = (
         description =>
             'Select a subset of all available neighbours based on a sample sequence '
             . '(note that groups are sorted south-west to north-east)',
-
         #  flag index dist if easy to determine
         index_max_dist => undef,
-        required_args      => [qw /frequency/]
-        ,    #  frequency is how many groups apart they should be
+        #  frequency is how many groups apart they should be
+        required_args      => [qw /frequency/],
         optional_args => [
             'first_offset',     #  the first offset, defaults to 0
             'use_cache',        #  a boolean flag, defaults to 1
@@ -1185,29 +1206,27 @@ sub get_metadata_sp_select_block {
     my $self = shift;
     my %args = @_;
     
-    my $example = <<'END_SPSB_EX'
-# Select up to two groups per block with each block being 5 groups
-on a side where the group size is 100
-sp_select_block (size => 500, count => 2)
+    my $example = <<~'END_SPSB_EX'
+        # Select up to two groups per block with each block being 5 groups
+        on a side where the group size is 100
+        sp_select_block (size => 500, count => 2)
 
-#  Now do it non-randomly and start from the lower right
-sp_select_block (size => 500, count => 10, random => 0, reverse => 1)
+        #  Now do it non-randomly and start from the lower right
+        sp_select_block (size => 500, count => 10, random => 0, reverse => 1)
 
-#  Rectangular block with user specified PRNG starting seed
-sp_select_block (size => [300, 500], count => 1, prng_seed => 454678)
+        #  Rectangular block with user specified PRNG starting seed
+        sp_select_block (size => [300, 500], count => 1, prng_seed => 454678)
 
-# Lower memory footprint (but longer running times for neighbour searches)
-sp_select_block (size => 500, count => 2, clear_cache => 1)
-END_SPSB_EX
-  ;
+        # Lower memory footprint (but longer running times for neighbour searches)
+        sp_select_block (size => 500, count => 2, clear_cache => 1)
+        END_SPSB_EX
+    ;
 
     my %metadata = (
         description =>
             'Select a subset of all available neighbours based on a block sample sequence',
-
         #  flag index dist if easy to determine
-        index_max_dist =>
-            ( looks_like_number $args{size} ? $args{size} : undef ),
+        index_max_dist => ( looks_like_number $args{size} ? $args{size} : undef ),
         required_args      => [
             'size',           #  size of the block
         ],    
@@ -1341,15 +1360,15 @@ sub get_metadata_sp_point_in_poly {
     
     my %args = @_;
     
-    my $example = <<'END_SP_PINPOLY'
-# Is the neighbour coord in a square polygon?
-sp_point_in_poly (
-    polygon => [[0,0],[0,1],[1,1],[1,0],[0,0]],
-    point   => \@nbrcoord,
-)
+    my $example = <<~'END_SP_PINPOLY'
+        # Is the neighbour coord in a square polygon?
+        sp_point_in_poly (
+            polygon => [[0,0],[0,1],[1,1],[1,0],[0,0]],
+            point   => \@nbrcoord,
+        )
 
-END_SP_PINPOLY
-  ;
+        END_SP_PINPOLY
+    ;
 
     my %metadata = (
         description =>
@@ -1387,27 +1406,27 @@ sub sp_point_in_poly {
 }
 
 sub _get_shp_examples {
-        my $examples = <<'END_OF_SHP_EXAMPLES'
-# Is the neighbour coord in a shapefile?
-sp_point_in_poly_shape (
-    file  => 'c:\biodiverse\data\coastline_lamberts',
-    point => \@nbrcoord,
-);
-# Is the neighbour coord in a shapefile's second polygon (counting from 1)?
-sp_point_in_poly_shape (
-    file      => 'c:\biodiverse\data\coastline_lamberts',
-    field_val => 2,
-    point     => \@nbrcoord,
-);
-# Is the neighbour coord in a polygon with value 2 in the OBJECT_ID field?
-sp_point_in_poly_shape (
-    file       => 'c:\biodiverse\data\coastline_lamberts',
-    field_name => 'OBJECT_ID',
-    field_val  => 2,
-    point      => \@nbrcoord,
-);
-END_OF_SHP_EXAMPLES
-  ;
+    my $examples = <<~'END_OF_SHP_EXAMPLES'
+        # Is the neighbour coord in a shapefile?
+        sp_point_in_poly_shape (
+            file  => 'c:\biodiverse\data\coastline_lamberts',
+            point => \@nbrcoord,
+        );
+        # Is the neighbour coord in a shapefile's second polygon (counting from 1)?
+        sp_point_in_poly_shape (
+            file      => 'c:\biodiverse\data\coastline_lamberts',
+            field_val => 2,
+            point     => \@nbrcoord,
+        );
+        # Is the neighbour coord in a polygon with value 2 in the OBJECT_ID field?
+        sp_point_in_poly_shape (
+            file       => 'c:\biodiverse\data\coastline_lamberts',
+            field_name => 'OBJECT_ID',
+            field_val  => 2,
+            point      => \@nbrcoord,
+        );
+        END_OF_SHP_EXAMPLES
+    ;
     return $examples;
 }
 
@@ -1510,32 +1529,32 @@ sub get_metadata_sp_points_in_same_poly_shape {
     my $self = shift;
     my %args = @_;
 
-    my $examples = <<'END_EXAMPLES';
+    my $examples = <<~'END_EXAMPLES'
+        #  define neighbour sets using a shapefile
+        sp_points_in_same_poly_shape (file => 'path/to/a/shapefile')
 
-#  define neighbour sets using a shapefile
-sp_points_in_same_poly_shape (file => 'path/to/a/shapefile')
+        #  return true when the neighbour coord is in the same
+        #  polygon as an arbitrary point
+        sp_points_in_same_poly_shape (
+            file   => 'path/to/a/shapefile',
+            point1 => [10,20],
+        )
 
-#  return true when the neighbour coord is in the same
-#  polygon as an arbitrary point
-sp_points_in_same_poly_shape (
-    file   => 'path/to/a/shapefile',
-    point1 => [10,20],  
-)
+        #  reverse the axes
+        sp_points_in_same_poly_shape (
+            file => 'path/to/a/shapefile',
+            axes => [1,0],
+        )
 
-#  reverse the axes
-sp_points_in_same_poly_shape (
-    file => 'path/to/a/shapefile',
-    axes => [1,0], 
-)
+        #  compare against the second and third axes of your data
+        #  e.g. maybe you have time as the first basedata axis
+        sp_points_in_same_poly_shape (
+            file => 'path/to/a/shapefile',
+            axes => [1,2],
+        )
 
-#  compare against the second and third axes of your data
-#  e.g. maybe you have time as the first basedata axis
-sp_points_in_same_poly_shape (
-    file => 'path/to/a/shapefile',
-    axes => [1,2], 
-)
-    
-END_EXAMPLES
+        END_EXAMPLES
+    ;
 
     my %metadata = (
         description =>
@@ -1813,18 +1832,18 @@ sub get_metadata_sp_group_not_empty {
     
     my %args = @_;
 
-    my $example = <<'END_GP_NOT_EMPTY_EX'
-# Restrict calculations to those non-empty groups.
-#  Will use the processing group if a def query,
-#  the neighbour group otherwise.
-sp_group_not_empty ()
+    my $example = <<~'END_GP_NOT_EMPTY_EX'
+        # Restrict calculations to those non-empty groups.
+        #  Will use the processing group if a def query,
+        #  the neighbour group otherwise.
+        sp_group_not_empty ()
 
-# The same as above, but being specific about which group (element) to test.
-#  This is probably best used in cases where the element
-#  to check is varied spatially.}
-sp_group_not_empty (element => '5467:9876')
-END_GP_NOT_EMPTY_EX
-  ;
+        # The same as above, but being specific about which group (element) to test.
+        #  This is probably best used in cases where the element
+        #  to check is varied spatially.}
+        sp_group_not_empty (element => '5467:9876')
+        END_GP_NOT_EMPTY_EX
+    ;
 
     my %metadata = (
         description   => 'Is a basedata group non-empty? (i.e. contains one or more labels)',
@@ -2032,25 +2051,25 @@ sub sp_in_label_range_circumcircle {
 
 sub get_example_sp_get_spatial_output_list_value {
 
-    my $ex = <<"END_EXAMPLE_GSOLV"
-#  Get the spatial results value for the current neighbour group
-# (or processing group if used as a def query)
-sp_get_spatial_output_list_value (
-    output  => 'sp1',              #  using spatial output called sp1
-    list    => 'SPATIAL_RESULTS',  #  from the SPATIAL_RESULTS list
-    index   => 'PE_WE_P',          #  get index value for PE_WE_P
-)
+    state $ex = <<~'END_EXAMPLE_GSOLV'
+        #  Get the spatial results value for the current neighbour group
+        # (or processing group if used as a def query)
+        sp_get_spatial_output_list_value (
+            output  => 'sp1',              #  using spatial output called sp1
+            list    => 'SPATIAL_RESULTS',  #  from the SPATIAL_RESULTS list
+            index   => 'PE_WE_P',          #  get index value for PE_WE_P
+        )
 
-#  Get the spatial results value for group 128:254
-#  Note that the SPATIAL_OUTPUTS list is assumed if
-#  no 'list' arg is passed. 
-sp_get_spatial_output_list_value (
-    output  => 'sp1',
-    element => '128:254',
-    index   => 'PE_WE_P',
-)
-END_EXAMPLE_GSOLV
-  ;
+        #  Get the spatial results value for group 128:254
+        #  Note that the SPATIAL_OUTPUTS list is assumed if
+        #  no 'list' arg is passed.
+        sp_get_spatial_output_list_value (
+            output  => 'sp1',
+            element => '128:254',
+            index   => 'PE_WE_P',
+        )
+        END_EXAMPLE_GSOLV
+    ;
 
     return $ex;
 }
@@ -2149,19 +2168,19 @@ sub sp_get_spatial_output_list_value {
 
 sub get_example_sp_richness_greater_than {
 
-    my $ex = <<"END_EXAMPLE_RGT"
-#  Uses the processing group for definition queries,
-#  and the neigbour group for spatial conditions. 
-sp_richness_greater_than (
-    threshold => 3, # any group with 3 or fewer labels will return false
-)
+    state $ex = <<~'END_EXAMPLE_RGT'
+        #  Uses the processing group for definition queries,
+        #  and the neigbour group for spatial conditions.
+        sp_richness_greater_than (
+            threshold => 3, # any group with 3 or fewer labels will return false
+        )
 
-sp_richness_greater_than (
-    element   => '128:254',  #  an arbitrary element
-    threshold => 4,          #  with a threshold of 4
-)
-END_EXAMPLE_RGT
-  ;
+        sp_richness_greater_than (
+            element   => '128:254',  #  an arbitrary element
+            threshold => 4,          #  with a threshold of 4
+        )
+        END_EXAMPLE_RGT
+    ;
 
     return $ex;
 }
@@ -2216,21 +2235,21 @@ sub sp_richness_greater_than {
 
 sub get_example_sp_redundancy_greater_than {
 
-    my $ex = <<"END_EXAMPLE_REDUNDGT"
-#  Uses the processing group for definition queries,
-#  and the neighbour group for spatial conditions.
-#  In this example, # any group with a redundncy
-#  score of 0.5 or fewerless will return false
-sp_redundancy_greater_than (
-    threshold => 0.5, 
-)
+    state $ex = <<~'END_EXAMPLE_REDUNDGT'
+        #  Uses the processing group for definition queries,
+        #  and the neighbour group for spatial conditions.
+        #  In this example, # any group with a redundncy
+        #  score of 0.5 or fewerless will return false
+        sp_redundancy_greater_than (
+            threshold => 0.5,
+        )
 
-sp_redundancy_greater_than (
-    element   => '128:254',  #  an arbitrary element
-    threshold => 0.2,          #  with a threshold of 0.2
-)
-END_EXAMPLE_REDUNDGT
-  ;
+        sp_redundancy_greater_than (
+            element   => '128:254',  #  an arbitrary element
+            threshold => 0.2,          #  with a threshold of 0.2
+        )
+        END_EXAMPLE_REDUNDGT
+    ;
 
     return $ex;
 }
@@ -2293,25 +2312,25 @@ sub get_metadata_sp_spatial_output_passed_defq {
         . "for a previously calculated spatial output";
 
     #my $example = $self->get_example_sp_get_spatial_output_list_value;
-    my $examples = <<"END_EX"
-#  Used for spatial or cluster type analyses:
-#  The simplest case is where the current
-#  analysis includes a def query and you
-#  want to use it in a spatial condition. 
-sp_spatial_output_passed_defq();
+    my $examples = <<~'END_EX'
+        #  Used for spatial or cluster type analyses:
+        #  The simplest case is where the current
+        #  analysis includes a def query and you
+        #  want to use it in a spatial condition.
+        sp_spatial_output_passed_defq();
 
-#  Using another output in this basedata
-#  In this case the output is called 'analysis1'
-sp_spatial_output_passed_defq(
-    output => 'analysis1',
-);
+        #  Using another output in this basedata
+        #  In this case the output is called 'analysis1'
+        sp_spatial_output_passed_defq(
+            output => 'analysis1',
+        );
 
-#  Return true if a specific element passed the def query
-sp_spatial_output_passed_defq(
-    element => '153.5:-32.5',
-);
-END_EX
-  ;
+        #  Return true if a specific element passed the def query
+        sp_spatial_output_passed_defq(
+            element => '153.5:-32.5',
+        );
+        END_EX
+    ;
 
     my %metadata = (
         description => $description,
@@ -2399,46 +2418,47 @@ sub get_metadata_sp_points_in_same_cluster {
     my $self = shift;
     my %args = @_;
 
-    my $examples = <<'END_EXAMPLES';
-#  Try to use the highest four clusters from the root.
-#  Note that the next highest number will be used
-#  if four is not possible, e.g. there are five
-#  siblings below the root.  Fewer will be returned
-#  if the tree has insufficient tips.
-sp_points_in_same_cluster (
-  output       => "some_cluster_output",
-  num_clusters => 4,
-)
+    my $examples = <<~'END_EXAMPLES'
+        #  Try to use the highest four clusters from the root.
+        #  Note that the next highest number will be used
+        #  if four is not possible, e.g. there are five
+        #  siblings below the root.  Fewer will be returned
+        #  if the tree has insufficient tips.
+        sp_points_in_same_cluster (
+          output       => "some_cluster_output",
+          num_clusters => 4,
+        )
 
-#  Cut the tree at a distance of 0.25 from the tips
-sp_points_in_same_cluster (
-  output          => "some_cluster_output",
-  target_distance => 0.25,
-)
+        #  Cut the tree at a distance of 0.25 from the tips
+        sp_points_in_same_cluster (
+          output          => "some_cluster_output",
+          target_distance => 0.25,
+        )
 
-#  Cut the tree at a depth of 3.
-#  The root is depth 1.
-sp_points_in_same_cluster (
-  output          => "some_cluster_output",
-  target_distance => 3,
-  group_by_depth  => 1,
-)
+        #  Cut the tree at a depth of 3.
+        #  The root is depth 1.
+        sp_points_in_same_cluster (
+          output          => "some_cluster_output",
+          target_distance => 3,
+          group_by_depth  => 1,
+        )
 
-#  work from an arbitrary node 
-sp_points_in_same_cluster (
-  output       => "some_cluster_output",
-  num_clusters => 4,
-  from_node    => '118___',  #  use the node's name
-)
+        #  work from an arbitrary node
+        sp_points_in_same_cluster (
+          output       => "some_cluster_output",
+          num_clusters => 4,
+          from_node    => '118___',  #  use the node's name
+        )
 
-#  target_distance is ignored if num_clusters is set 
-sp_points_in_same_cluster (
-  output          => "some_cluster_output",
-  num_clusters    => 4,
-  target_distance => 0.25,
-)
+        #  target_distance is ignored if num_clusters is set
+        sp_points_in_same_cluster (
+          output          => "some_cluster_output",
+          num_clusters    => 4,
+          target_distance => 0.25,
+        )
 
-END_EXAMPLES
+        END_EXAMPLES
+    ;
 
     my %metadata = (
         description =>
@@ -2519,30 +2539,29 @@ sub get_metadata_sp_point_in_cluster {
     my $self = shift;
     my %args = @_;
 
-    my $examples = <<'END_EXAMPLES';
+    my $examples = <<~'END_EXAMPLES';
+        #  Use any element that is a terminal in the cluster output.
+        #  This is useful if the cluster analysis was run under
+        #  a definition query and you want the same set of groups.
+        sp_point_in_cluster (
+          output       => "some_cluster_output",
+        )
 
-#  Use any element that is a terminal in the cluster output.
-#  This is useful if the cluster analysis was run under
-#  a definition query and you want the same set of groups.
-sp_point_in_cluster (
-  output       => "some_cluster_output",
-)
+        #  Now specify a cluster within the output
+        sp_point_in_cluster (
+          output       => "some_cluster_output",
+          from_node    => '118___',  #  use the node's name
+        )
 
-#  Now specify a cluster within the output
-sp_point_in_cluster (
-  output       => "some_cluster_output",
-  from_node    => '118___',  #  use the node's name
-)
+        #  Specify an element to check instead of the current
+        #  processing element.
+        sp_point_in_cluster (
+          output       => "some_cluster_output",
+          from_node    => '118___',  #  use the node's name
+          element      => '123:456', #  specify an element to check
+        )
 
-#  Specify an element to check instead of the current
-#  processing element.
-sp_point_in_cluster (
-  output       => "some_cluster_output",
-  from_node    => '118___',  #  use the node's name
-  element      => '123:456', #  specify an element to check
-)
-
-END_EXAMPLES
+        END_EXAMPLES
 
     my %metadata = (
         description =>

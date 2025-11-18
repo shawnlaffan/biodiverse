@@ -11,6 +11,69 @@ use experimental qw /refaliasing declared_refs/;
 
 use Geo::GDAL::FFI;
 
+sub get_label_range_circumcircle {
+    my ($self, %args) = @_;
+    use Biodiverse::Geometry::Circle;
+
+    my $label = $args{label} // croak 'label arg not defined';
+    my $axes  = $args{axes} // [0,1];
+
+    my $cache_key = 'LABEL_RANGE_CIRCUMCIRCLE_' . join ':', $axes;
+    my $cache = $self->get_cached_value_dor_set_default_href ($cache_key);
+
+    my $circumcircle = $cache->{$label};
+
+    return $circumcircle if defined $circumcircle;
+
+    my $hull = $self->get_label_range_convex_hull(%args);
+    my $pts  = $hull->GetPoints();
+    $circumcircle = Biodiverse::Geometry::Circle->get_circumcircle ($pts->[0]);
+
+    $cache->{$label} = $circumcircle;
+
+    return $circumcircle;
+}
+
+#  could do the whole thing in GDAL if we created an in-memory geopackage
+sub get_groups_in_label_range_circumcircle {
+    my ($self, %args) = @_;
+    my $label = $args{label};
+    \my @axes  = $args{axes} // [0,1];
+
+    my $cache_key = 'GROUPS_IN_LABEL_RANGE_CIRCUMCIRCLE_' . join ':', @axes;
+    my $cache = $self->get_cached_value_dor_set_default_href ($cache_key);
+
+    #  cache as wkt for now
+    if (my $cached = $cache->{$label}) {
+        say "Cache hit";
+        return wantarray ? %$cached : $cached;
+    }
+
+    my $circle = $self->get_label_range_circumcircle(label => $label, axes => \@axes);
+    my ($xmin, $ymin, $xmax, $ymax) = $circle->bbox;
+
+    my $gp = $self->get_groups_ref;
+
+    my %in_circumcircle;
+    \my @groups = $self->get_groups;
+    GP:
+    foreach my $group (@groups) {
+        my $coords = $gp->get_element_name_as_array_aa($group);
+        my ($x, $y) = @$coords[@axes];
+
+        next GP if $x < $xmin || $x > $xmax || $y < $ymin || $y > $ymax;
+
+        next if !$circle->contains_point([$x,$y]);
+
+        $in_circumcircle{$group}++;
+    }
+
+    $cache->{$label} = \%in_circumcircle;
+
+    return wantarray ? %in_circumcircle : \%in_circumcircle;
+}
+
+
 #  get a convex hull of the label's range
 sub get_label_range_convex_hull {
     my ($self, %args) = @_;

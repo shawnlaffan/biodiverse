@@ -16,24 +16,40 @@ use Test::TempDir::Tiny qw /tempdir/;
 
 local $| = 1;
 
-use Biodiverse::TestHelpers qw {:spatial_conditions};
+use Biodiverse::TestHelpers qw {get_basedata_object_from_site_data};
 use Biodiverse::BaseData;
 use Biodiverse::SpatialConditions;
 
 # BEGIN {$ENV{PERL_TEST_TEMPDIR_TINY_NOCLEANUP} = 1}
 
+use Devel::Symdump;
+my $obj = Devel::Symdump->rnew(__PACKAGE__);
+my @subs = grep {$_ =~ 'main::test_'} $obj->functions();
 
 exit main( @ARGV );
 
 sub main {
     my @args  = @_;
 
-    test_points_in_same_poly();
-    test_sp_in_label_range_convex_hull();
+    if (@args) {
+        for my $name (@args) {
+            die "No test method test_$name\n"
+                if not my $func = (__PACKAGE__->can( 'test_' . $name ) || __PACKAGE__->can( $name ));
+            $func->();
+        }
+        done_testing;
+        return 0;
+    }
 
-    done_testing();
+    foreach my $sub (@subs) {
+        no strict 'refs';
+        $sub->();
+    }
+
+    done_testing;
     return 0;
 }
+
 
 sub _create_polygon_file {
     my ($type, $bounds, $file) = @_;
@@ -144,3 +160,42 @@ sub test_sp_in_label_range_convex_hull {
     is (!!$sp->group_passed_def_query_aa('2650000:850000'),  !!0, 'Loc is not in convex hull');
 }
 
+sub test_sp_in_label_range_circumcircle {
+    my $bd = get_basedata_object_from_site_data (
+        CELL_SIZES => [100000, 100000],
+    );
+
+    my $cond = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_range_circumcircle();
+        EOC
+    ;
+
+    my $sp = $bd->add_spatial_output (name => 'test_1');
+    $sp->run_analysis (
+        calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
+        spatial_conditions => ['sp_self_only()'],
+        definition_query   => $cond,
+    );
+
+    is (!!$sp->group_passed_def_query_aa('3550000:1950000'), !!1, 'Loc is in circumcircle');
+    is (!!$sp->group_passed_def_query_aa('2650000:850000'),  !!0, 'Loc is not in circumcircle');
+}
+
+
+sub test_welzl_alg {
+    use Biodiverse::Geometry::Circle;
+
+    my $class = 'Biodiverse::Geometry::Circle';
+
+    my $test_points = [[5, -2], [-3, -2], [-2, 5], [1, 6], [0, 2], [28,-33.2]];
+    my $mec = $class->get_circumcircle($test_points);
+    is ($mec->centre, [13, -14.1], 'got expected centroid');
+    is ($mec->radius, 24.2860041999502, 'got expected radius');
+
+    pop @$test_points;
+    $mec = $class->get_circumcircle($test_points);
+    is ($mec->centre, [1, 1], 'got expected centroid for subset');
+    is ($mec->radius, 5,      'got expected radius for subset');
+
+}

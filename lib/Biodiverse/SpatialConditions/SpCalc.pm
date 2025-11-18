@@ -1905,19 +1905,19 @@ sub get_metadata_sp_in_label_range_convex_hull {
     my $self = shift;
 
     my $example = <<~'EOEX'
-      # Are we in the convex hull spanning the range of a label called Genus:Sp1?
-      sp_in_label_range_convex_hull (label => 'Genus:Sp1')
-      # The type argument determines if the
-      # processing or neighbour group is assessed
-      EOEX
+        # Are we in the convex hull spanning the range of a label called Genus:Sp1?
+        sp_in_label_range_convex_hull (label => 'Genus:Sp1')
+        # The type argument determines if the
+        # processing or neighbour group is assessed
+        EOEX
     ;
 
     my $description = <<~EOD
-      Is a group within the convex hull spanning a label's range?
-      The label arg should normally be specified but in some
-      circumstances a default is set (e.g. when a randomisation
-      seed location is set).
-      EOD
+        Is a group within the convex hull spanning a label's range?
+        The label arg should normally be specified but in some
+        circumstances a default is set (e.g. when a randomisation
+        seed location is set).
+        EOD
     ;
 
     my %metadata = (
@@ -1951,6 +1951,74 @@ sub sp_in_label_range_convex_hull {
     my $bd = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
 
     my $groups = $bd->get_groups_in_label_range_convex_hull (
+        label => $label,
+        axes  => $args{axes} // $h->{axes},
+    );
+
+    my $group = $type eq 'proc'
+        ? $h->{coord_id1}
+        : $h->{coord_id2};
+
+    return $groups->{$group};
+}
+
+
+sub get_metadata_sp_in_label_range_circumcircle {
+    my $self = shift;
+
+    my $example = <<~'EOEX'
+        # Are we in the circle circumscribing the range of a label called Genus:Sp1?
+        sp_in_label_range_circumcircle (label => 'Genus:Sp1')
+        # The type argument determines if the
+        # processing or neighbour group is assessed
+        EOEX
+    ;
+
+    my $description = <<~'EOD'
+        Is a group within the circle circumscribing a label's range?
+        The label arg should normally be specified but in some
+        circumstances a default is set (e.g. when used to define
+        randomisation seed locations).
+
+        The radius is calculated as the longest distance from the
+        range centroid to the perimeter of a convex hull fitted
+        to the groups.
+        EOD
+    ;
+
+    my %metadata = (
+        description   => $description,
+        required_args => [
+            $self->is_def_query ? () : 'label',
+        ],
+        optional_args => [
+            $self->is_def_query ? 'label' : (),
+            'type',  #  nbr or proc to control use of nbr or processing groups
+        ],
+        result_type   => 'always_same',
+        index_no_use  => 1,  #  turn index off since this doesn't cooperate with the search method
+        example       => $example,
+    );
+
+    return $self->metadata_class->new (\%metadata);
+}
+
+
+sub sp_in_label_range_circumcircle {
+    my $self = shift;
+    my %args = @_;
+
+    my $label = $args{label} // $self->get_current_label // croak "argument label not defined\n";
+
+    my $h = $self->get_param('CURRENT_ARGS');
+    my $bd = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
+
+    return 0 if !$bd->exists_label_aa($label);
+
+    my $type = $args{type} // eval {$self->is_def_query()} ? 'proc' : 'nbr';
+    croak "Invalid type arg $type" if !($type eq 'proc' || $type eq 'nbr');
+
+    my $groups = $bd->get_groups_in_label_range_circumcircle (
         label => $label,
         axes  => $args{axes} // $h->{axes},
     );

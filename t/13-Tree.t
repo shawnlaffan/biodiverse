@@ -473,6 +473,13 @@ sub test_trim_tree_to_lca {
     return;
 }
 
+sub test_get_terminal_node_ref_caching {
+    my $tree = get_tree_object_from_sample_data();
+    #  map to names or we get deep recursion crash with Test2
+    my $tips1 = map {$_->get_name} $tree->get_terminal_node_refs;
+    my $tips2 = map {$_->get_name} $tree->get_terminal_node_refs;
+    is ($tips1, $tips2, 'get_terminal_node_ref_caching works');
+}
 
 sub test_ladderise {
     my $tree1 = shift || get_tree_object_from_sample_data();

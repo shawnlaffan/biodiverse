@@ -1969,6 +1969,9 @@ sub sp_in_label_range_convex_hull {
     my $h = $self->get_param('CURRENT_ARGS');
     my $bd = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
 
+    croak 'Insufficient group axes for sp_in_label_range_convex_hull'
+        if scalar $bd->get_group_axis_count < 2;
+
     my $groups = $bd->get_groups_in_label_range_convex_hull (
         label => $label,
         axes  => $args{axes} // $h->{axes},
@@ -2031,6 +2034,9 @@ sub sp_in_label_range_circumcircle {
 
     my $h = $self->get_param('CURRENT_ARGS');
     my $bd = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
+
+    croak 'Insufficient group axes for sp_in_label_range_circumcircle'
+        if scalar $bd->get_group_axis_count < 2;
 
     return 0 if !$bd->exists_label_aa($label);
 

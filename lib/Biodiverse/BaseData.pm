@@ -1012,6 +1012,12 @@ sub drop_group_axis {
     );
 }
 
+sub get_group_axis_count {
+    my ($self) = @_;
+    my $c = $self->get_cell_sizes;
+    return scalar @$c;
+}
+
 
 sub drop_element_axis {
     my ($self, %args) = @_;

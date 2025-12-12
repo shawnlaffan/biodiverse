@@ -762,7 +762,7 @@ sub get_terminal_node_refs {
     state $cache_name = 'TERMINAL_NODE_REFS';
 
     my $cache = $self->get_cached_value ($cache_name);
-    return wantarray ? %$cache : $cache
+    return wantarray ? @$cache : $cache
         if $cache;
 
     my $node_hash = $self->get_node_hash;

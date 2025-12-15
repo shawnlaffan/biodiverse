@@ -168,6 +168,18 @@ sub get_ignore_spatial_index_flag {
     return $self->{ignore_spatial_index};    
 }
 
+sub set_volatile_flag {
+    my ($self, $flag) = @_;
+    return $self->{is_volatile} = $flag;
+}
+sub get_volatile_flag {
+    my ($self) = @_;
+    return $self->{is_volatile};
+}
+sub is_volatile {
+    my ($self) = @_;
+    return !!$self->{is_volatile};
+}
 
 sub get_used_dists {
     my $self = shift;

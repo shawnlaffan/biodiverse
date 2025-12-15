@@ -228,4 +228,11 @@ sub test_sp_volatile {
     is $res->{ret}, 'ok', 'Volatile condition verified';
     is !!$sp_cond->is_volatile, !!1, 'Volatile condition flagged as such';
 
+    $sp_cond->set_current_label ();
+    is $sp_cond->get_current_label, undef, 'Current label undef';
+    $sp_cond->set_promise_current_label(1);
+    $res = $sp_cond->verify;
+    is $res->{ret}, 'ok', 'Volatile condition verified';
+    is !!$sp_cond->is_volatile, !!1, 'Volatile condition flagged as such';
+
 }

@@ -405,7 +405,10 @@ sub generate_spatial_conditions {
 
     my $default = $param->get_default || '';
 
-    my $sp = Biodiverse::GUI::SpatialParams->new(initial_text => $default);
+    my $sp = Biodiverse::GUI::SpatialParams->new(
+        initial_text => $default,
+        promise_current_label => $param->{promise_current_label},
+    );
 
     my $extract = sub { return ($param->{name}, $sp->get_text); };
 

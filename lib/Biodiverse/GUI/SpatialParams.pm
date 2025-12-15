@@ -39,6 +39,7 @@ sub new {
     my $start_hidden = $args{start_hidden};
     my $is_def_query = $args{is_def_query};
     my $condition_object = $args{condition_object};
+    my $promise_current_label = $args{promise_current_label};
 
     my $hbox = Gtk3::HBox->new(0,2);
     
@@ -52,13 +53,14 @@ sub new {
     my $expander = Gtk3::Expander->new('');
 
     my $self = {
-        buffer       => $text_buffer,
-        hbox         => $hbox,
-        text_view    => $text_view,
-        is_def_query => $is_def_query,
-        expander     => $expander,
-        current_text_view => 'Frame',
-        validated_conditions => $condition_object, #  assumes it works
+        buffer                => $text_buffer,
+        hbox                  => $hbox,
+        text_view             => $text_view,
+        is_def_query          => $is_def_query,
+        expander              => $expander,
+        current_text_view     => 'Frame',
+        validated_conditions  => $condition_object, #  assumes it works
+        promise_current_label => $promise_current_label,
     };
     bless $self, $class;
 
@@ -171,8 +173,9 @@ sub on_syntax_check {
 
     my $spatial_conditions = eval {
         $class->new (
-            conditions   => $expr,
-            basedata_ref => $bd,
+            conditions            => $expr,
+            basedata_ref          => $bd,
+            promise_current_label => $self->{promise_current_label},
         );
     };
     #croak $EVAL_ERROR if $EVAL_ERROR;

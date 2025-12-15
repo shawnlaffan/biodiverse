@@ -86,6 +86,7 @@ sub new {
         NO_LOG        => $args{no_log},
         KEEP_LAST_DISTANCES => $args{keep_last_distances},
     );
+    $self->set_promise_current_label($args{promise_current_label});
 
     eval {$self->parse_distances};
     croak $EVAL_ERROR if $EVAL_ERROR;
@@ -179,6 +180,18 @@ sub get_volatile_flag {
 sub is_volatile {
     my ($self) = @_;
     return !!$self->{is_volatile};
+}
+
+#  Do we promise to set the current label when condition is evaluated?
+#  Needed for verification.
+sub get_promise_current_label {
+    my ($self) = @_;
+    return $self->{promise_current_label};
+}
+
+sub set_promise_current_label {
+    my ($self, $promise) = @_;
+    return $self->{promise_current_label} = $promise;
 }
 
 sub get_used_dists {
@@ -486,6 +499,12 @@ sub verify {
     my $msg;
     my $SPACE = q{ };    #  looks weird, but is Perl Best Practice.
 
+    my $clear_current_label;
+    if ($self->get_promise_current_label && !defined $self->get_current_label) {
+        $self->set_current_label ('a');
+        $clear_current_label = 1;
+    }
+
     my $valid = 1;
 
     $self->parse_distances;
@@ -536,10 +555,10 @@ sub verify {
         my $bd = $self->get_basedata_ref // $args{basedata};
 
         my $clear_label;
-        if (!defined $self->get_current_label) {
-            $self->set_current_label('a');
-            $clear_label = 1;
-        }
+        # if (!defined $self->get_current_label) {
+        #     $self->set_current_label('a');
+        #     $clear_label = 1;
+        # }
 
         $self->set_param( VERIFYING => 1 );
 
@@ -597,9 +616,13 @@ sub verify {
         }
 
         $self->set_param( VERIFYING => undef );
-        if ($clear_label) {
-            $self->set_current_label();
-        }
+        # if ($clear_label) {
+        #     $self->set_current_label();
+        # }
+    }
+
+    if ($clear_current_label) {
+        $self->set_current_label();
     }
 
     my %hash = (

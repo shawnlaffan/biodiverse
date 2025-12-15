@@ -1863,15 +1863,11 @@ sub sp_group_not_empty {
     my %args = @_;
     my $h = $self->get_param('CURRENT_ARGS');
     
-    my $element = $args{element};
-    if (not defined $element) {
-        $element = eval {$self->is_def_query()} ? $h->{coord_id1} : $h->{coord_id2};
-        #$element = ${$element};  #  deref it
-    }
+    my $element = $args{element} // $self->is_def_query ? $h->{coord_id1} : $h->{coord_id2};
 
-    my $bd  = $h->{basedata};
+    my $bd  = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
 
-    return $bd->get_richness (element => $element) ? 1 : 0;
+    return !!$bd->get_richness_aa ($element);
 }
 
 #  sets the volatile flag if needed

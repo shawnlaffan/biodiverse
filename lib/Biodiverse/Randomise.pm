@@ -1209,12 +1209,13 @@ sub get_spatial_allocation_sp_condition_metadata {
     ;
 
     my $spatial_condition_param = bless {
-        name       => 'spatial_conditions_for_label_allocation',
-        label_text => "Spatial condition\nto define target groups\naround a seed location",
-        default    => 'sp_square_cell (size => 3)',
+        name                  => 'spatial_conditions_for_label_allocation',
+        label_text            => "Spatial condition\nto define target groups\naround a seed location",
+        default               => 'sp_square_cell (size => 3)',
         #default    => 'sp_circle(radius => 300000)',
-        type       => 'spatial_conditions',
-        tooltip    => $tooltip,
+        type                  => 'spatial_conditions',
+        tooltip               => $tooltip,
+        promise_current_label => 1,
     }, $parameter_rand_metadata_class;
 
     return $spatial_condition_param;
@@ -1235,6 +1236,7 @@ sub get_seed_location_sp_condition_metadata {
         default    => '',
         type       => 'spatial_conditions',
         tooltip    => $tooltip,
+        promise_current_label => 1,
     }, $parameter_rand_metadata_class;
 
     return $spatial_condition_param;

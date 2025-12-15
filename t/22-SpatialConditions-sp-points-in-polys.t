@@ -199,3 +199,33 @@ sub test_welzl_alg {
     is ($mec->radius, 5,      'got expected radius for subset');
 
 }
+
+sub test_sp_volatile {
+    my $bd = get_basedata_object_from_site_data (
+        CELL_SIZES => [100000, 100000],
+    );
+
+    #  should not be volatile
+    my $sp_cond = Biodiverse::SpatialConditions->new (
+        conditions   => 'sp_in_label_range_circumcircle(label => "a")',
+        basedata_ref => $bd,
+    );
+
+    $sp_cond->set_current_label ('a');
+    my $res = $sp_cond->verify;
+    is $res->{ret}, 'ok', 'Non-volatile condition verified';
+    is !!$sp_cond->is_volatile, !!0, 'Non-volatile condition flagged as such';
+
+    #  should be volatile
+    $sp_cond = Biodiverse::SpatialConditions->new (
+        conditions   => 'sp_in_label_range_circumcircle()',
+        basedata_ref => $bd,
+    );
+
+    $sp_cond->set_current_label ('a');
+    is $sp_cond->get_current_label, 'a', 'Current label correct';
+    $res = $sp_cond->verify;
+    is $res->{ret}, 'ok', 'Volatile condition verified';
+    is !!$sp_cond->is_volatile, !!1, 'Volatile condition flagged as such';
+
+}

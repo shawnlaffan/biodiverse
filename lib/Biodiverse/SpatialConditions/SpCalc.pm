@@ -1863,27 +1863,40 @@ sub sp_group_not_empty {
     my %args = @_;
     my $h = $self->get_param('CURRENT_ARGS');
     
-    my $element = $args{element};
-    if (not defined $element) {
-        $element = eval {$self->is_def_query()} ? $h->{coord_id1} : $h->{coord_id2};
-        #$element = ${$element};  #  deref it
-    }
+    my $element = $args{element} // $self->is_def_query ? $h->{coord_id1} : $h->{coord_id2};
 
-    my $bd  = $h->{basedata};
+    my $bd  = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
 
-    return $bd->get_richness (element => $element) ? 1 : 0;
+    return !!$bd->get_richness_aa ($element);
+}
+
+#  sets the volatile flag if needed
+sub _process_label_arg {
+    my ($self, %args) = @_;
+
+    my $label = $args{label};
+
+    return $label if defined $label;
+
+    $label = $self->get_current_label
+        // croak "argument 'label' not defined and current label not set\n";
+    #  if we get here then the label arg could change per call
+    $self->set_volatile_flag(1);
+
+    return $label;
 }
 
 sub get_metadata_sp_in_label_range {
     my $self = shift;
 
+    my $bool = $self->is_def_query || defined $self->get_current_label;
     my %metadata = (
         description   => "Is a group within a label's range?",
         required_args => [
-            $self->is_def_query ? () : 'label',
+            $bool ? () : 'label',
         ],
         optional_args => [
-            $self->is_def_query ? 'label' : (),
+            $bool ? 'label' : (),
             'type',  #  nbr or proc to control use of nbr or processing groups
         ],
         result_type   => 'always_same',
@@ -1905,7 +1918,7 @@ sub sp_in_label_range {
 
     my $h = $self->get_param('CURRENT_ARGS');
 
-    my $label = $args{label} // croak "argument label not defined\n";
+    my $label = $args{label} // $self->_process_label_arg();
 
     my $type = $args{type} // eval {$self->is_def_query()} ? 'proc' : 'nbr';
     croak "Invalid type arg $type" if !($type eq 'proc' || $type eq 'nbr');
@@ -1939,13 +1952,14 @@ sub get_metadata_sp_in_label_range_convex_hull {
         EOD
     ;
 
+    my $bool = $self->is_def_query || defined $self->get_current_label;
     my %metadata = (
         description   => $description,
         required_args => [
-            $self->is_def_query ? () : 'label',
+            $bool ? () : 'label',
         ],
         optional_args => [
-            $self->is_def_query ? 'label' : (),
+            $bool ? 'label' : (),
             'type',  #  nbr or proc to control use of nbr or processing groups
         ],
         result_type   => 'always_same',
@@ -1961,7 +1975,7 @@ sub sp_in_label_range_convex_hull {
     my $self = shift;
     my %args = @_;
 
-    my $label = $args{label} // $self->get_current_label // croak "argument label not defined\n";
+    my $label = $args{label} // $self->_process_label_arg;
 
     my $type = $args{type} // eval {$self->is_def_query()} ? 'proc' : 'nbr';
     croak "Invalid type arg $type" if !($type eq 'proc' || $type eq 'nbr');
@@ -2008,13 +2022,15 @@ sub get_metadata_sp_in_label_range_circumcircle {
         EOD
     ;
 
+    my $bool = $self->is_def_query || defined $self->get_current_label;
+
     my %metadata = (
         description   => $description,
         required_args => [
-            $self->is_def_query ? () : 'label',
+            $bool ? () : 'label',
         ],
         optional_args => [
-            $self->is_def_query ? 'label' : (),
+            $bool ? 'label' : (),
             'type',  #  nbr or proc to control use of nbr or processing groups
         ],
         result_type   => 'always_same',
@@ -2030,7 +2046,7 @@ sub sp_in_label_range_circumcircle {
     my $self = shift;
     my %args = @_;
 
-    my $label = $args{label} // $self->get_current_label // croak "argument label not defined\n";
+    my $label = $args{label} // $self->_process_label_arg;
 
     my $h = $self->get_param('CURRENT_ARGS');
     my $bd = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};

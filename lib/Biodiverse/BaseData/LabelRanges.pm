@@ -43,9 +43,7 @@ sub get_groups_in_label_range_circumcircle {
     my $cache_key = 'GROUPS_IN_LABEL_RANGE_CIRCUMCIRCLE_' . join ':', @axes;
     my $cache = $self->get_cached_value_dor_set_default_href ($cache_key);
 
-    #  cache as wkt for now
     if (my $cached = $cache->{$label}) {
-        say "Cache hit";
         return wantarray ? %$cached : $cached;
     }
 
@@ -63,7 +61,7 @@ sub get_groups_in_label_range_circumcircle {
 
         next GP if $x < $xmin || $x > $xmax || $y < $ymin || $y > $ymax;
 
-        next if !$circle->contains_point([$x,$y]);
+        next GP if !$circle->contains_point([$x,$y]);
 
         $in_circumcircle{$group}++;
     }

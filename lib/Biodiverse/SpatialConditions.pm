@@ -476,6 +476,8 @@ sub verify {
 
     my $valid = 1;
 
+    $self->parse_distances;
+
     #  this needs refactoring, but watch for validity flag in opt args
     my $missing = $self->get_param('MISSING_ARGS');
     if ( $missing and scalar keys %$missing ) {

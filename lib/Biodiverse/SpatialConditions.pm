@@ -217,17 +217,6 @@ sub parse_distances {
     my $index_max_dist_off;
     my $index_no_use;
 
-    #  some default values
-    #  - inefficient as they are duplicated from sub verify
-    my $D = my $C = my $Dsqr = my $Csqr = 1;
-    my @D = my @C = (1) x 20;
-    my @d = my @c = (1) x 20;
-    my @coord = @d;
-    my ( $x, $y, $z ) = ( 1, 1, 1 );
-    my @nbrcoord = @d;
-    my ( $nbr_x, $nbr_y, $nbr_z ) = ( 1, 1, 1 );
-
-
     my @dist_scalar_flags = qw /
         use_euc_distance
         use_cell_distance

@@ -1267,6 +1267,8 @@ sub get_nbrs_for_element {
     my @nbr_list;
     my @exclude;
 
+    state $cache_name_nbrs_always_same = 'NBRS_FROM_ALWAYS_SAME';
+
     foreach my $i (0 .. $#$spatial_conditions_arr) {
         my $nbr_list_name = '_NBR_SET' . ($i+1);
         #  Useful since we can have non-overlapping neighbourhoods
@@ -1287,41 +1289,44 @@ sub get_nbrs_for_element {
                 $nbr_list[$i] = $use_nbrs_from->get_list_values (
                     element => $element,
                     list    => $nbr_list_name,
-                );
-                $nbr_list[$i] //= [];  #  use empty list if necessary
+                ) // [];  #  use empty list if necessary
             }
-            #  if $use_nbrs_from lacks the list, or we're finding the neighbours ourselves
-            if (not defined $nbr_list[$i]) {  
+            #  if we're finding the neighbours ourselves
+            if (not defined $nbr_list[$i]) {
                 my $list;
                 my $sp_cond_obj = $spatial_conditions_arr->[$i];
                 my $result_type = $sp_cond_obj->get_result_type;
-                #  get everything
-                if ($result_type eq 'always_true') {  
-                    $list = $bd->get_groups;
-                }
-                #  nothing to work with
-                elsif ($result_type eq 'always_false') {  
-                    $list = [];
-                }
                 #  no nbrs, just oneself
-                elsif ($result_type eq 'self_only') {
+                if ($result_type eq 'self_only') {
                     $list = [$element];
+                }
+                #  get everything
+                elsif ($result_type eq 'always_true') {
+                    $list = $bd->get_groups;
                 }
                 #  if nbrs are always the same
                 elsif ($result_type eq 'always_same') {
-                    my $tmp = $self->get_cached_value('NBRS_FROM_ALWAYS_SAME');
-                    if ($tmp && $tmp->[$i]) {
-                        my $nbrs = $tmp->[$i];
-                        $list = [keys %$nbrs];
+                    my $tmp
+                      = $self->get_cached_value_dor_set_default_aref($cache_name_nbrs_always_same);
+                    if ($tmp->[$i]) {
+                        $list = [keys %{$tmp->[$i]}];
                     }
+                }
+                #  nothing to work with
+                elsif ($result_type eq 'always_false') {
+                    $list = [];
                 }
 
                 if ($list) {
-                    my %tmp;  #  remove any that should not be there
-                    my $excl = [@exclude, @$elements_to_exclude];
-                    @tmp{@$list} = (1) x @$list;
-                    delete @tmp{@$excl};
-                    $nbr_list[$i] = [keys %tmp];
+                    if (@exclude || @$elements_to_exclude) {
+                        my %tmp; #  remove any that should not be there
+                        @tmp{@$list} = ();
+                        delete @tmp{@exclude, @$elements_to_exclude};
+                        $nbr_list[$i] = [ keys %tmp ];
+                    }
+                    else {
+                        $nbr_list[$i] = $list;
+                    }
                 }
                 else {    #  no nbr list thus far so go looking
 
@@ -1341,21 +1346,22 @@ sub get_nbrs_for_element {
                     my $exclude_list = [@exclude, @$elements_to_exclude];
 
                     if ($result_type eq 'always_same') {
-                        my $progr = Biodiverse::Progress->new(text => 'Neighbour comparisons for first always_same condition');
+                        my $progr = Biodiverse::Progress->new(
+                            text => 'Neighbour comparisons for first always_same condition'
+                        );
                         my $tmp = $bd->get_neighbours (
                             %args_for_nbr_list,
                             progress => $progr,
                         );
                         $progr = undef;
                         my $cached_arr
-                          = $self->get_cached_value_dor_set_default_aa(
-                              'NBRS_FROM_ALWAYS_SAME', []
-                            );
+                          = $self->get_cached_value_dor_set_default_aref($cache_name_nbrs_always_same);
 
                         $cached_arr->[$i] = $tmp;
-                        my %tmp2 = %$tmp;
-                        delete @tmp2{@$exclude_list};
-                        $nbr_list[$i] = [keys %tmp2];
+                        {
+                            delete local @$tmp{@$exclude_list};
+                            $nbr_list[$i] = [ keys %$tmp ];
+                        }
                     }
                     else {
                         #  go search

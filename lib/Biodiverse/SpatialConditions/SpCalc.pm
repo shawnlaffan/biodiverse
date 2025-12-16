@@ -1886,12 +1886,13 @@ sub _process_label_arg {
     return $label;
 }
 
-sub get_metadata_sp_in_label_range {
-    my $self = shift;
+sub get_common_metadata_in_label_range {
+    my ($self) = @_;
 
-    my $bool = $self->is_def_query || defined $self->get_current_label;
+    my $uses_current_label = defined $self->get_current_label;
+    my $bool = $self->is_def_query || $uses_current_label;
+
     my %metadata = (
-        description   => "Is a group within a label's range?",
         required_args => [
             $bool ? () : 'label',
         ],
@@ -1899,13 +1900,28 @@ sub get_metadata_sp_in_label_range {
             $bool ? 'label' : (),
             'type',  #  nbr or proc to control use of nbr or processing groups
         ],
-        result_type   => 'always_same',
+        result_type   => $uses_current_label ? 'complex' : 'always_same',
         index_no_use  => 1,  #  turn index off since this doesn't cooperate with the search method
-        example       =>
-              qq{# Are we in the range of label called Genus:Sp1?\n}
-            . qq{sp_in_label_range(label => 'Genus:Sp1')\n}
-            . qq{# The type argument determines if the \n}
-            . qq{processing or neighbour group is assessed\n}
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
+sub get_metadata_sp_in_label_range {
+    my $self = shift;
+
+    my $example = <<~'EOEX'
+         # Are we in the range of label called Genus:Sp1?
+         sp_in_label_range(label => 'Genus:Sp1')
+         # The type argument determines if the
+         # processing or neighbour group is assessed.
+         EOEX
+    ;
+
+    my %metadata = (
+        description   => "Is a group within a label's range?",
+        example       => $example,
+        $self->get_common_metadata_in_label_range,
     );
 
     return $self->metadata_class->new (\%metadata);
@@ -1952,19 +1968,10 @@ sub get_metadata_sp_in_label_range_convex_hull {
         EOD
     ;
 
-    my $bool = $self->is_def_query || defined $self->get_current_label;
     my %metadata = (
         description   => $description,
-        required_args => [
-            $bool ? () : 'label',
-        ],
-        optional_args => [
-            $bool ? 'label' : (),
-            'type',  #  nbr or proc to control use of nbr or processing groups
-        ],
-        result_type   => 'always_same',
-        index_no_use  => 1,  #  turn index off since this doesn't cooperate with the search method
         example       => $example,
+        $self->get_common_metadata_in_label_range,
     );
 
     return $self->metadata_class->new (\%metadata);
@@ -2022,20 +2029,10 @@ sub get_metadata_sp_in_label_range_circumcircle {
         EOD
     ;
 
-    my $bool = $self->is_def_query || defined $self->get_current_label;
-
     my %metadata = (
         description   => $description,
-        required_args => [
-            $bool ? () : 'label',
-        ],
-        optional_args => [
-            $bool ? 'label' : (),
-            'type',  #  nbr or proc to control use of nbr or processing groups
-        ],
-        result_type   => 'always_same',
-        index_no_use  => 1,  #  turn index off since this doesn't cooperate with the search method
         example       => $example,
+        $self->get_common_metadata_in_label_range,
     );
 
     return $self->metadata_class->new (\%metadata);

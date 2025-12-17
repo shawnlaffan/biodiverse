@@ -1881,6 +1881,7 @@ sub _process_label_arg {
     $label = $self->get_current_label
         // croak "argument 'label' not defined and current label not set\n";
     #  if we get here then the label arg could change per call
+    #  not sure it is still needed as we have a metadata process now
     $self->set_volatile_flag(1);
 
     return $label;
@@ -1889,19 +1890,25 @@ sub _process_label_arg {
 sub get_common_metadata_in_label_range {
     my ($self) = @_;
 
-    my $uses_current_label = defined $self->get_current_label;
+    my $uses_current_label = $self->get_promise_current_label;
     my $bool = $self->is_def_query || $uses_current_label;
 
+    my $is_volatile_cb = sub {
+        my ($self, %args) = @_;
+        $self->get_promise_current_label && !$args{label};
+    };
+
     my %metadata = (
-        required_args => [
+        required_args  => [
             $bool ? () : 'label',
         ],
-        optional_args => [
+        optional_args  => [
             $bool ? 'label' : (),
-            'type',  #  nbr or proc to control use of nbr or processing groups
+            'type', #  nbr or proc to control use of nbr or processing groups
         ],
-        result_type   => $uses_current_label ? 'complex' : 'always_same',
-        index_no_use  => 1,  #  turn index off since this doesn't cooperate with the search method
+        result_type    => $uses_current_label ? 'complex' : 'always_same',
+        index_no_use   => 1, #  turn index off since this doesn't cooperate with the search method
+        is_volatile_cb => $is_volatile_cb,
     );
 
     return wantarray ? %metadata : \%metadata;

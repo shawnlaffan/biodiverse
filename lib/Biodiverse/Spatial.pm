@@ -1046,10 +1046,7 @@ sub sp_calc {
         next BY_ELEMENT if not $elements_to_use{$element};  
 
         #  check the definition query to decide if we should do this one
-        if ($definition_query) {
-            my $pass = exists $pass_def_query->{$element};
-            next BY_ELEMENT if not $pass;
-        }
+        next BY_ELEMENT if $definition_query and not exists $pass_def_query->{$element};
 
         #  skip if we've already copied them across
         next if $results_are_recyclable

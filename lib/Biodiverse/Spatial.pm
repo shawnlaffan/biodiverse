@@ -1225,6 +1225,27 @@ sub get_spatial_conditions_count {
     return scalar @$arr;
 }
 
+sub get_current_label {
+    my ($self, %args) = @_;
+    $self->get_cached_value ('CURRENT_LABEL');
+}
+
+sub set_current_label {
+    my ($self, %args) = @_;
+    $self->set_current_label_aa($args{label});
+}
+
+sub set_current_label_aa {
+    my ($self, $label) = @_;
+    $self->set_cached_value (CURRENT_LABEL => $label);
+}
+
+sub spatial_conditions_are_volatile {
+    my $self = shift;
+    my $volatile = List::Util::any {$_->is_volatile} @{$self->get_spatial_conditions // []};
+    return $volatile;
+}
+
 #  assumes they have already been calculated
 sub get_calculated_nbr_lists_for_element {
     my $self = shift;
@@ -1257,7 +1278,7 @@ sub get_nbrs_for_element {
 
     my $element       = $args{element};
     my $use_nbrs_from = $args{use_nbrs_from};
-    my $elements_to_exclude = $args{elements_to_exclude};
+    my $elements_to_exclude = $args{elements_to_exclude} // [];
     my $search_blocks_arr   = $args{search_blocks_arr};
     
     my $spatial_conditions_arr = $self->get_spatial_conditions;
@@ -1268,6 +1289,8 @@ sub get_nbrs_for_element {
     my @exclude;
 
     state $cache_name_nbrs_always_same = 'NBRS_FROM_ALWAYS_SAME';
+    my $nbr_sets_are_volatile = $self->spatial_conditions_are_volatile;
+    my $current_label         = $self->get_current_label;
 
     foreach my $i (0 .. $#$spatial_conditions_arr) {
         my $nbr_list_name = '_NBR_SET' . ($i+1);
@@ -1295,6 +1318,9 @@ sub get_nbrs_for_element {
             if (not defined $nbr_list[$i]) {
                 my $list;
                 my $sp_cond_obj = $spatial_conditions_arr->[$i];
+                if (defined $current_label) {
+                    $sp_cond_obj->set_current_label($current_label);
+                }
                 my $result_type = $sp_cond_obj->get_result_type;
                 #  no nbrs, just oneself
                 if ($result_type eq 'self_only') {
@@ -1380,13 +1406,15 @@ sub get_nbrs_for_element {
                 }
             }
 
-            #  now save it 
-            $self->add_to_lists (
+            #  not if we are volatile
+            if (!$nbr_sets_are_volatile) {
+                $self->add_to_lists(
                 element        => $element,
                 $nbr_list_name => $nbr_list[$i],
                 use_ref        => 1,
             );
         }
+    }
     }
 
     return wantarray ? @nbr_list : \@nbr_list;

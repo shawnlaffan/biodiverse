@@ -116,7 +116,7 @@ sub test_def_queries {
     );
     
 
-    foreach my $def_query (keys %def_query_hash) {
+    foreach my $def_query (sort keys %def_query_hash) {
         my $def_query_text = $def_query || 'undef';
         my $expected = $def_query_hash{$def_query};
         my $count_expected_to_pass = $expected->{count};
@@ -145,7 +145,21 @@ sub test_def_queries {
         #  cleanup
         $bd->delete_output(output => $sp);
     }
-    
+
+    #  now check they get re-used where appropriate
+    my $defq = '$y > 1550000';
+    $options{definition_query} = $defq;
+
+    my $sp1 = run_analysis (%options);
+    my $sp2 = run_analysis (%options);
+    my $sp3 = run_analysis (%options);
+
+    is refaddr $sp1->get_groups_that_pass_def_query,
+        refaddr $sp2->get_groups_that_pass_def_query,
+            'defq was re-used';
+    is refaddr $sp1->get_groups_that_pass_def_query,
+        refaddr $sp3->get_groups_that_pass_def_query,
+            'defq was re-used a second time';
 }
 
 
@@ -741,7 +755,9 @@ sub run_analysis {
     my $bd = $args{basedata_ref}
       || get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
 
-    my $name = 'Spatial output for testing ' . time();
+    state $call_i = -1;
+    $call_i++;
+    my $name = "Spatial output for testing ($call_i) " . time();
     my $sp = $bd->add_spatial_output (name => $name);
     my $success = eval {
         $sp->run_analysis (

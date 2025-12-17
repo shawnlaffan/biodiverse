@@ -22,6 +22,7 @@ my %methods_and_defaults = (
     use_cell_distance      => undef,
     use_cell_distances     => [],
     use_abs_cell_distances => [],
+    is_volatile_cb         => sub{},
 );
 
 sub _get_method_default_hash {

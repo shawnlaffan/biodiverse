@@ -290,6 +290,7 @@ sub parse_distances {
     my @subs_to_check     = keys %subs_to_check;
     my $re_sub_names_text = '\b(?:' . join( q{|}, @subs_to_check ) . ')\b';
     my $re_sub_names      = qr /$re_sub_names_text/xsm;
+    my $is_volatile;
     
     my %shape_hash;
 
@@ -382,6 +383,10 @@ sub parse_distances {
                 }
             }
 
+            if (my $cb = $metadata->get_is_volatile_cb) {
+                $is_volatile ||= $self->$cb(%hash_1);
+            }
+
             #  REALLY BAD CODE - does not allow for other
             #  functions and operators
             $results_types .= ' ' . $metadata->get_result_type;
@@ -421,6 +426,7 @@ sub parse_distances {
     $self->set_param( MISSING_OPT_ARGS => \%missing_opt_args );
     $self->set_param( USES             => \%uses_distances );
     $self->set_param( SHAPE_TYPES      => join ' ', sort keys %shape_hash);
+    $self->set_volatile_flag($is_volatile);
 
     #  do we need to calculate the distances?  NEEDS A BIT MORE THOUGHT
     $self->set_param( CALC_DISTANCES => undef );

@@ -1881,31 +1881,54 @@ sub _process_label_arg {
     $label = $self->get_current_label
         // croak "argument 'label' not defined and current label not set\n";
     #  if we get here then the label arg could change per call
+    #  not sure it is still needed as we have a metadata process now
     $self->set_volatile_flag(1);
 
     return $label;
 }
 
+sub get_common_metadata_in_label_range {
+    my ($self) = @_;
+
+    my $uses_current_label = $self->get_promise_current_label;
+    my $bool = $self->is_def_query || $uses_current_label;
+
+    my $is_volatile_cb = sub {
+        my ($self, %args) = @_;
+        $self->get_promise_current_label && !$args{label};
+    };
+
+    my %metadata = (
+        required_args  => [
+            $bool ? () : 'label',
+        ],
+        optional_args  => [
+            $bool ? 'label' : (),
+            'type', #  nbr or proc to control use of nbr or processing groups
+        ],
+        result_type    => $uses_current_label ? 'complex' : 'always_same',
+        index_no_use   => 1, #  turn index off since this doesn't cooperate with the search method
+        is_volatile_cb => $is_volatile_cb,
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
 sub get_metadata_sp_in_label_range {
     my $self = shift;
 
-    my $bool = $self->is_def_query || defined $self->get_current_label;
+    my $example = <<~'EOEX'
+         # Are we in the range of label called Genus:Sp1?
+         sp_in_label_range(label => 'Genus:Sp1')
+         # The type argument determines if the
+         # processing or neighbour group is assessed.
+         EOEX
+    ;
+
     my %metadata = (
         description   => "Is a group within a label's range?",
-        required_args => [
-            $bool ? () : 'label',
-        ],
-        optional_args => [
-            $bool ? 'label' : (),
-            'type',  #  nbr or proc to control use of nbr or processing groups
-        ],
-        result_type   => 'always_same',
-        index_no_use  => 1,  #  turn index off since this doesn't cooperate with the search method
-        example       =>
-              qq{# Are we in the range of label called Genus:Sp1?\n}
-            . qq{sp_in_label_range(label => 'Genus:Sp1')\n}
-            . qq{# The type argument determines if the \n}
-            . qq{processing or neighbour group is assessed\n}
+        example       => $example,
+        $self->get_common_metadata_in_label_range,
     );
 
     return $self->metadata_class->new (\%metadata);
@@ -1952,19 +1975,10 @@ sub get_metadata_sp_in_label_range_convex_hull {
         EOD
     ;
 
-    my $bool = $self->is_def_query || defined $self->get_current_label;
     my %metadata = (
         description   => $description,
-        required_args => [
-            $bool ? () : 'label',
-        ],
-        optional_args => [
-            $bool ? 'label' : (),
-            'type',  #  nbr or proc to control use of nbr or processing groups
-        ],
-        result_type   => 'always_same',
-        index_no_use  => 1,  #  turn index off since this doesn't cooperate with the search method
         example       => $example,
+        $self->get_common_metadata_in_label_range,
     );
 
     return $self->metadata_class->new (\%metadata);
@@ -2022,20 +2036,10 @@ sub get_metadata_sp_in_label_range_circumcircle {
         EOD
     ;
 
-    my $bool = $self->is_def_query || defined $self->get_current_label;
-
     my %metadata = (
         description   => $description,
-        required_args => [
-            $bool ? () : 'label',
-        ],
-        optional_args => [
-            $bool ? 'label' : (),
-            'type',  #  nbr or proc to control use of nbr or processing groups
-        ],
-        result_type   => 'always_same',
-        index_no_use  => 1,  #  turn index off since this doesn't cooperate with the search method
         example       => $example,
+        $self->get_common_metadata_in_label_range,
     );
 
     return $self->metadata_class->new (\%metadata);

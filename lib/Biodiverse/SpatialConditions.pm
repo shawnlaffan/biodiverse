@@ -86,6 +86,7 @@ sub new {
         NO_LOG        => $args{no_log},
         KEEP_LAST_DISTANCES => $args{keep_last_distances},
     );
+    $self->set_promise_current_label($args{promise_current_label});
 
     eval {$self->parse_distances};
     croak $EVAL_ERROR if $EVAL_ERROR;
@@ -181,6 +182,18 @@ sub is_volatile {
     return !!$self->{is_volatile};
 }
 
+#  Do we promise to set the current label when condition is evaluated?
+#  Needed for verification.
+sub get_promise_current_label {
+    my ($self) = @_;
+    return $self->{promise_current_label};
+}
+
+sub set_promise_current_label {
+    my ($self, $promise) = @_;
+    return $self->{promise_current_label} = $promise;
+}
+
 sub get_used_dists {
     my $self = shift;
     return $self->get_param('USES');
@@ -203,17 +216,6 @@ sub parse_distances {
     my $index_max_dist;
     my $index_max_dist_off;
     my $index_no_use;
-
-    #  some default values
-    #  - inefficient as they are duplicated from sub verify
-    my $D = my $C = my $Dsqr = my $Csqr = 1;
-    my @D = my @C = (1) x 20;
-    my @d = my @c = (1) x 20;
-    my @coord = @d;
-    my ( $x, $y, $z ) = ( 1, 1, 1 );
-    my @nbrcoord = @d;
-    my ( $nbr_x, $nbr_y, $nbr_z ) = ( 1, 1, 1 );
-
 
     my @dist_scalar_flags = qw /
         use_euc_distance
@@ -288,6 +290,7 @@ sub parse_distances {
     my @subs_to_check     = keys %subs_to_check;
     my $re_sub_names_text = '\b(?:' . join( q{|}, @subs_to_check ) . ')\b';
     my $re_sub_names      = qr /$re_sub_names_text/xsm;
+    my $is_volatile;
     
     my %shape_hash;
 
@@ -380,6 +383,10 @@ sub parse_distances {
                 }
             }
 
+            if (my $cb = $metadata->get_is_volatile_cb) {
+                $is_volatile ||= $self->$cb(%hash_1);
+            }
+
             #  REALLY BAD CODE - does not allow for other
             #  functions and operators
             $results_types .= ' ' . $metadata->get_result_type;
@@ -419,6 +426,7 @@ sub parse_distances {
     $self->set_param( MISSING_OPT_ARGS => \%missing_opt_args );
     $self->set_param( USES             => \%uses_distances );
     $self->set_param( SHAPE_TYPES      => join ' ', sort keys %shape_hash);
+    $self->set_volatile_flag($is_volatile);
 
     #  do we need to calculate the distances?  NEEDS A BIT MORE THOUGHT
     $self->set_param( CALC_DISTANCES => undef );
@@ -486,6 +494,12 @@ sub verify {
     my $msg;
     my $SPACE = q{ };    #  looks weird, but is Perl Best Practice.
 
+    my $clear_current_label;
+    if ($self->get_promise_current_label && !defined $self->get_current_label) {
+        $self->set_current_label ('a');
+        $clear_current_label = 1;
+    }
+
     my $valid = 1;
 
     $self->parse_distances;
@@ -536,10 +550,10 @@ sub verify {
         my $bd = $self->get_basedata_ref // $args{basedata};
 
         my $clear_label;
-        if (!defined $self->get_current_label) {
-            $self->set_current_label('a');
-            $clear_label = 1;
-        }
+        # if (!defined $self->get_current_label) {
+        #     $self->set_current_label('a');
+        #     $clear_label = 1;
+        # }
 
         $self->set_param( VERIFYING => 1 );
 
@@ -597,9 +611,13 @@ sub verify {
         }
 
         $self->set_param( VERIFYING => undef );
-        if ($clear_label) {
-            $self->set_current_label();
-        }
+        # if ($clear_label) {
+        #     $self->set_current_label();
+        # }
+    }
+
+    if ($clear_current_label) {
+        $self->set_current_label();
     }
 
     my %hash = (

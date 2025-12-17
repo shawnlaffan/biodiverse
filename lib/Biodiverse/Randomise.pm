@@ -8,7 +8,7 @@ use 5.022;
 
 use English qw / -no_match_vars /;
 
-use experimental qw /refaliasing/;
+use experimental qw /refaliasing defer/;
 
 use Sort::Key::Natural qw /natkeysort/;
 use List::Unique::DeterministicOrder;
@@ -1209,12 +1209,13 @@ sub get_spatial_allocation_sp_condition_metadata {
     ;
 
     my $spatial_condition_param = bless {
-        name       => 'spatial_conditions_for_label_allocation',
-        label_text => "Spatial condition\nto define target groups\naround a seed location",
-        default    => 'sp_square_cell (size => 3)',
+        name                  => 'spatial_conditions_for_label_allocation',
+        label_text            => "Spatial condition\nto define target groups\naround a seed location",
+        default               => 'sp_square_cell (size => 3)',
         #default    => 'sp_circle(radius => 300000)',
-        type       => 'spatial_conditions',
-        tooltip    => $tooltip,
+        type                  => 'spatial_conditions',
+        tooltip               => $tooltip,
+        promise_current_label => 1,
     }, $parameter_rand_metadata_class;
 
     return $spatial_condition_param;
@@ -1235,6 +1236,7 @@ sub get_seed_location_sp_condition_metadata {
         default    => '',
         type       => 'spatial_conditions',
         tooltip    => $tooltip,
+        promise_current_label => 1,
     }, $parameter_rand_metadata_class;
 
     return $spatial_condition_param;
@@ -1520,25 +1522,48 @@ sub get_spatial_output_for_label_allocation {
     
     return $sp if $sp;
 
+    my $volatile = 0;
+    foreach my $cond (@$sp_conditions) {
+        if (blessed $cond and $cond->isa('Biodiverse::SpatialConditions')) {
+            $cond->set_promise_current_label (1);
+        }
+        else {
+            #  $cond is an alias so this updates the array directly
+            $cond = Biodiverse::SpatialConditions->new(
+                conditions            => $cond,
+                basedata_ref          => $bd,
+                promise_current_label => 1,
+            );
+        }
+        $volatile ||= $cond->is_volatile;
+    }
+
     my $time = sprintf "%.3f", time;
     $sp = $bd->add_spatial_output(name => 'spatial_output_for_label_allocation_' . $time);
 
-    #  we only want the neighbour sets
-    eval {
-        $sp->run_analysis (
-            spatial_conditions => $sp_conditions,
-            #definition_query   => $def_query,  #  do we want a def query for this?  Prob not.  
-            calculations       => [],
-            override_valid_analysis_check => 1,
-            elements_to_calc              => $args{elements_to_calc},
-            calc_only_elements_to_calc    => 1,  #  really need to rename this undocumented arg
-        );
-    };
-    my $e = $EVAL_ERROR;
-
-    $bd->delete_output (output => $sp);
-    
-    croak $e if $e;
+    #  we only want the neighbour sets if the results are not volatile
+    if (!$volatile) {
+        eval {
+            $sp->run_analysis(
+                spatial_conditions            => $sp_conditions,
+                #definition_query   => $def_query,  #  do we want a def query for this?  Prob not.
+                calculations                  => [],
+                override_valid_analysis_check => 1,
+                elements_to_calc              => $args{elements_to_calc},
+                calc_only_elements_to_calc    => 1, #  really need to rename this undocumented arg
+            );
+        };
+        my $e = $EVAL_ERROR;
+        $bd->delete_output (output => $sp);
+        croak $e if $e;
+    }
+    else {
+        $sp->create_elements;
+        $sp->set_basedata_ref_aa($bd);
+        #  triggers a few things
+        $sp->get_spatial_conditions_arr(spatial_conditions => $sp_conditions);
+        $bd->delete_output (output => $sp, delete_basedata_ref => 0);
+    }
 
     $self->set_param($param_name => $sp);
 
@@ -1982,6 +2007,7 @@ sub rand_structured {
                 $cleared_target_gps{$to_groups[-1]}++;
 
                 if ($sp_for_label_allocation) {
+                    $sp_for_label_allocation->set_current_label_aa($label);
                     my $sp_alloc_nbr_list
                       = $sp_alloc_nbr_list_cache->{$to_groups[0]}
                         // $self->get_sp_alloc_nbr_list (
@@ -2287,6 +2313,8 @@ sub get_sp_alloc_nbr_list {
     
     #  avoid double sorting as proximity does its own
     my $sort_lists = $spatial_allocation_order ne 'proximity';
+    my $volatile = $sp_for_label_allocation->spatial_conditions_are_volatile;
+
     $sp_alloc_nbr_list
       = $sp_for_label_allocation->get_calculated_nbr_lists_for_element (
         element    => $target_element,
@@ -2299,7 +2327,10 @@ sub get_sp_alloc_nbr_list {
             nbr_lists      => $sp_alloc_nbr_list,
         );
     }
-    $sp_alloc_nbr_list_cache->{$target_element} = $sp_alloc_nbr_list;                        
+    #  no cache if conditions are volatile
+    if (!$volatile) {
+        $sp_alloc_nbr_list_cache->{$target_element} = $sp_alloc_nbr_list;
+    }
 
     return $sp_alloc_nbr_list;
 }

@@ -85,14 +85,14 @@ sub get_label_range_convex_hull {
     croak "Cannot calculate convex hull on more than two axes"
         if @res > 2;
     croak "Cannot calculate convex hull on text axes"
-        if $res[0] < 0 || $res[1] < 0;
+        if $res[$axes[0]] < 0 || $res[$axes[1]] < 0;
 
     my $elements = $self->get_groups_with_label_as_hash_aa($label);
 
     my $gp = $self->get_groups_ref;
 
-    my $c1 = $res[0] / 2;
-    my $c2 = $res[1] / 2;
+    my $c1 = $res[$axes[0]] / 2;
+    my $c2 = $res[$axes[1]] / 2;
 
     my $cache_key = 'LABEL_RANGE_CONVEX_HULL_' . join ':', @axes;
     my $cache = $self->get_cached_value_dor_set_default_href ($cache_key);

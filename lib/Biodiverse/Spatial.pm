@@ -1226,7 +1226,7 @@ sub get_spatial_conditions_count {
 }
 
 sub get_current_label {
-    my ($self, %args) = @_;
+    my ($self) = @_;
     $self->get_cached_value ('CURRENT_LABEL');
 }
 
@@ -1238,11 +1238,18 @@ sub set_current_label {
 sub set_current_label_aa {
     my ($self, $label) = @_;
     $self->set_cached_value (CURRENT_LABEL => $label);
+    foreach my $cond (grep {blessed $_} @{ $self->get_spatial_conditions // [] }) {
+        $cond->set_current_label($label);
+    }
+    if (my $defq = $self->get_def_query) {
+        $defq->set_current_label($label)
+          if blessed $defq;
+    }
 }
 
 sub spatial_conditions_are_volatile {
     my $self = shift;
-    my $volatile = List::Util::any {$_->is_volatile} @{$self->get_spatial_conditions // []};
+    my $volatile = List::Util::any {$_->is_volatile} @{ $self->get_spatial_conditions_arr // [] };
     return $volatile;
 }
 
@@ -1257,15 +1264,26 @@ sub get_calculated_nbr_lists_for_element {
     my $sort_lists    = $args{sort_lists};
 
     my @nbr_list;
-    foreach my $i (0 .. $#$spatial_conditions_arr) {
-        my $nbr_list_name = '_NBR_SET' . ($i+1);
-        my $nbr_list = $self->get_list_ref (
+    if (!$self->spatial_conditions_are_volatile) {
+        foreach my $i (0 .. $#$spatial_conditions_arr) {
+            my $nbr_list_name = '_NBR_SET' . ($i + 1);
+            my $nbr_list = $self->get_list_ref(
+                element    => $element,
+                list       => $nbr_list_name,
+                autovivify => 0,
+            );
+            my $copy = $sort_lists ? [ sort @$nbr_list ] : [ @$nbr_list ];
+            push @nbr_list, $copy;
+        }
+    }
+    else {
+        my @nbrs = $self->get_nbrs_for_element(
             element => $element,
-            list    => $nbr_list_name,
-            autovivify => 0,
+            # search_blocks_arr needed?  But volatile makes condition shape complex which disables the index.
         );
-        my $copy = $sort_lists ? [sort @$nbr_list] : [@$nbr_list];
-        push @nbr_list, $copy;
+        foreach my $listref (@nbrs) {
+            push @nbr_list, $sort_lists ? [ sort @$listref ] : [ @$listref ];
+        }
     }
     
     return wantarray ? @nbr_list : \@nbr_list;

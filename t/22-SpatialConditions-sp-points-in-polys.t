@@ -218,8 +218,9 @@ sub test_sp_volatile {
 
     #  should be volatile
     $sp_cond = Biodiverse::SpatialConditions->new (
-        conditions   => 'sp_in_label_range_circumcircle()',
-        basedata_ref => $bd,
+        conditions            => 'sp_in_label_range_circumcircle()',
+        basedata_ref          => $bd,
+        promise_current_label => 1,
     );
 
     $sp_cond->set_current_label ('a');

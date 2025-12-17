@@ -588,6 +588,47 @@ sub test_sp_cond_res_always_same  {
 
 }
 
+sub test_sp_cond_volatile {
+    #  Currently any volatile condition sets the lot to be volatile.
+    #  In future we might only worry about first volatile and onwards
+    #  but the current use-case is for single condition analyses.
+    my $cell_sizes = [1, 1];
+    my $bd1 = get_basedata_object (x_max => 6, y_max => 6, CELL_SIZES => $cell_sizes);
+
+    my @calculations = qw /calc_element_lists_used/;
+    my $spatial_condition_text = 'sp_in_label_range ()';
+
+    my $sp1 = $bd1->add_spatial_output (name => 'sp1');
+    my $blessed_condition1 = Biodiverse::SpatialConditions->new (
+        conditions            => $spatial_condition_text,
+        promise_current_label => 1,
+    );
+
+    my @labels = sort $bd1->get_labels;
+    my $current_label = $labels[-1];
+    $sp1->set_current_label_aa ($current_label);
+
+    $sp1->run_analysis (
+        spatial_conditions => ['sp_self_only()', $blessed_condition1],
+        calculations => [@calculations],
+    );
+
+    is (!!$sp1->spatial_conditions_are_volatile, !!1, 'Spatial conditions are flagged volatile');
+
+    my $expected = [['1.5:1.5'],['6.5:6.5']];
+    my $res = $sp1->get_nbrs_for_element (
+        element => '1.5:1.5',
+    );
+    is $res, $expected, "Got expected NBR_SETs for volatile sp_cond";
+
+    my $nbrs = $sp1->get_list_ref_aa ('1.5:1.5', '_NBR_SET1');
+    is $nbrs, undef, "_NBR_SET1 is undef for volatile sp_cond";
+
+    $nbrs = $sp1->get_list_ref_aa ('1.5:1.5', '_NBR_SET2');
+    is $nbrs, undef, "_NBR_SET2 is undef for volatile sp_cond";
+
+}
+
 sub get_element_proximity {
     my ($el1, $el2) = @_;
     #  cheating with the split

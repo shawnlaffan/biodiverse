@@ -1794,6 +1794,15 @@ sub get_groups_that_pass_def_query {
 
     my $bd = $self->get_basedata_ref;
 
+    my @comparable = $bd->get_outputs_with_same_def_query (compare_with => $self);
+    if (@comparable) {
+        my $comp = $comparable[0];
+        say "Re-using def query results from " . $comp->get_name;
+        $passed = $comp->get_param('PASS_DEF_QUERY');
+        $self->set_param (PASS_DEF_QUERY => $passed);
+        return wantarray ? %$passed : $passed;
+    }
+
     print "Running definition query\n";
     my $elements_to_calc = $args{elements_to_calc};
     my $element = $elements_to_calc->[0];

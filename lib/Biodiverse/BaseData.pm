@@ -2714,7 +2714,7 @@ sub get_outputs_with_same_spatial_conditions {
     my %args = @_;
 
     my $compare = $args{compare_with}
-      || croak "[BASEDATA] compare_with argument not specified\n";
+        || croak "[BASEDATA] compare_with argument not specified\n";
 
     my $sp_params = $compare->get_spatial_conditions;
     my $def_query = $compare->get_def_query;
@@ -2731,7 +2731,7 @@ sub get_outputs_with_same_spatial_conditions {
 
     my @comparable_outputs;
 
-  LOOP_OUTPUTS:
+    LOOP_OUTPUTS:
     foreach my $output (@outputs) {
         next LOOP_OUTPUTS if $output eq $compare;    #  skip the one to compare
 
@@ -2744,16 +2744,16 @@ sub get_outputs_with_same_spatial_conditions {
         }
 
         next LOOP_OUTPUTS
-          if ( defined $def_query ) ne ( defined $def_query_comp );
+            if ( defined $def_query ) ne ( defined $def_query_comp );
 
         if ( defined $def_query ) {
 
             #  check their def queries match
             my $def_conditions_comp =
-              eval { $def_query_comp->get_conditions_unparsed() }
-              // $def_query_comp;
+                eval { $def_query_comp->get_conditions_unparsed() }
+                    // $def_query_comp;
             my $def_conditions_text =
-              eval { $def_query->get_conditions_unparsed() } // $def_query;
+                eval { $def_query->get_conditions_unparsed() } // $def_query;
             next LOOP_OUTPUTS if $def_conditions_comp ne $def_conditions_text;
         }
 
@@ -2765,9 +2765,69 @@ sub get_outputs_with_same_spatial_conditions {
         my $i = 0;
         foreach my $sp_obj (@$sp_params_comp) {
             next LOOP_OUTPUTS
-              if ( $sp_params->[$i]->get_param('CONDITIONS') ne
-                $sp_obj->get_conditions_unparsed() );
+                if ( $sp_params->[$i]->get_param('CONDITIONS') ne
+                    $sp_obj->get_conditions_unparsed() );
             $i++;
+        }
+
+        #  if we get this far then we have a match
+        push @comparable_outputs, $output;    #  we want to keep this one
+    }
+
+    return wantarray ? @comparable_outputs : \@comparable_outputs;
+}
+
+sub get_outputs_with_same_def_query {
+    my $self = shift;
+    my %args = @_;
+
+    my $compare = $args{compare_with}
+        || croak "[BASEDATA] compare_with argument not specified\n";
+
+    my $def_query = $compare->get_def_query;
+    if ( defined $def_query && ( length $def_query ) == 0 ) {
+        $def_query = undef;
+    }
+
+    my $def_conditions;
+    if ( blessed $def_query) {
+        $def_conditions = $def_query->get_conditions_unparsed();
+    }
+
+    #  could be more general with def queries
+    my @outputs = $self->get_output_refs_of_class( class => $compare );
+
+    my @comparable_outputs;
+
+    LOOP_OUTPUTS:
+    foreach my $output (@outputs) {
+        next LOOP_OUTPUTS if $output eq $compare;    #  skip the one to compare
+
+        my $completed = $output->get_param('COMPLETED');
+        next LOOP_OUTPUTS if defined $completed and !$completed;
+
+        my $def_query_comp = $output->get_def_query;
+        if ( defined $def_query_comp && ( length $def_query_comp ) == 0 ) {
+            $def_query_comp = undef;
+        }
+
+        next LOOP_OUTPUTS
+            if ( defined $def_query ) ne ( defined $def_query_comp );
+
+        if (!defined $def_query && !defined $def_query_comp) {
+            push @comparable_outputs, $output;
+            next LOOP_OUTPUTS;
+        }
+
+        if ( defined $def_query ) {
+
+            #  check their def queries match
+            my $def_conditions_comp =
+                eval { $def_query_comp->get_conditions_unparsed() }
+                    // $def_query_comp;
+            my $def_conditions_text =
+                eval { $def_query->get_conditions_unparsed() } // $def_query;
+            next LOOP_OUTPUTS if $def_conditions_comp ne $def_conditions_text;
         }
 
         #  if we get this far then we have a match

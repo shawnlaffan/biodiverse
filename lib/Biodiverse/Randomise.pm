@@ -1558,13 +1558,10 @@ sub get_spatial_output_for_label_allocation {
         croak $e if $e;
     }
     else {
+        $sp->create_elements;
+        $sp->set_basedata_ref_aa($bd);
         #  triggers a few things
         $sp->get_spatial_conditions_arr(spatial_conditions => $sp_conditions);
-        #  create the elements - should be an sp method
-        foreach my $element ($bd->get_groups) {
-            $sp->add_element (element => $element);
-        }
-        $sp->set_basedata_ref_aa($bd);
         $bd->delete_output (output => $sp, delete_basedata_ref => 0);
     }
 

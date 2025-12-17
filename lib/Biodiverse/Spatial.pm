@@ -1219,6 +1219,19 @@ sub sp_calc {
     return 1;
 }
 
+#  not used in run_analysis as that also accounts for def queries and the like
+sub create_elements {
+    my ($self, %args) = @_;
+
+    my $elements = $args{elements} // $self->get_basedata_ref->get_groups;
+
+    foreach my $element (@$elements) {
+        $self->add_element(element => $element);
+    }
+
+    return;
+}
+
 sub get_spatial_conditions_count {
     my $self = shift;
     my $arr  = $self->get_spatial_conditions // [];

@@ -169,7 +169,7 @@ sub test_same_results_given_same_prng_seed {
         function => 'rand_spatially_structured',
         spatial_allocation_order => 'diffusion',
         spatial_conditions_for_label_allocation => [$r_spatially_structured_cond],
-        spatial_conditions_for_seed_location => 'sp_in_label_range_convex_hull ()',
+        spatial_conditions_for_seed_location => 'sp_in_label_range(convex_hull => 1)',
         prefix => 'rand_spatially_structured diffusion with seeds',
     );
 

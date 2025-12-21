@@ -93,8 +93,9 @@ sub test_defq_label_arg {
         conditions => 'sp_select_all()',
     );
 
-    # no need to test all such methods as we want the functionality to work
-    for my $method (qw /sp_in_label_range sp_in_label_range_convex_hull/) {
+    # loop is relictual from when convex_hull and circumcircle
+    # had their own methods but keep in the event we add more that do this
+    for my $method (qw /sp_in_label_range/) {
         my $m = "get_metadata_${method}";
         my $spc_metadata = $sp_cond->$m;
         my $dfq_metadata = $defq->$m;

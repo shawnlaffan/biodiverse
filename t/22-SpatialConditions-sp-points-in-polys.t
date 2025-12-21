@@ -143,13 +143,7 @@ sub test_sp_in_label_range_convex_hull {
         CELL_SIZES => [100000, 100000],
     );
 
-    my $cond1 = <<~'EOC'
-        $self->set_current_label('Genus:sp4');
-        sp_in_label_range_convex_hull();
-        EOC
-    ;
-    #  now as an arg to sp_in_label_range
-    my $cond2 = <<~'EOC'
+    my $cond = <<~'EOC'
         $self->set_current_label('Genus:sp4');
         sp_in_label_range(convex_hull => 1);
         EOC
@@ -162,22 +156,18 @@ sub test_sp_in_label_range_convex_hull {
                 3750000:1950000 3750000:2050000
             /};
 
-    my $i = 0;
-    foreach my $cond ($cond1, $cond2) {
-        $i++;
-        my $sp = $bd->add_spatial_output(name => "test_$i");
-        $sp->run_analysis(
-            calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
-            spatial_conditions => [ 'sp_self_only()' ],
-            definition_query   => $cond,
-        );
+    my $sp = $bd->add_spatial_output(name => "test_xx");
+    $sp->run_analysis(
+        calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
+        spatial_conditions => [ 'sp_self_only()' ],
+        definition_query   => $cond,
+    );
 
-        is(!!$sp->group_passed_def_query_aa('3550000:1950000'), !!1, 'Loc is in convex hull');
-        is(!!$sp->group_passed_def_query_aa('2650000:850000'), !!0, 'Loc is not in convex hull');
+    is(!!$sp->group_passed_def_query_aa('3550000:1950000'), !!1, 'Loc is in convex hull');
+    is(!!$sp->group_passed_def_query_aa('2650000:850000'), !!0, 'Loc is not in convex hull');
 
-        my $passed = $sp->get_groups_that_pass_def_query();
-        is $passed, $exp, "Expected def query passes, $i";
-    }
+    my $passed = $sp->get_groups_that_pass_def_query();
+    is $passed, $exp, "Expected def query passes";
 
     #  check vanilla still works
     my $cond3 = <<~'EOC'
@@ -206,14 +196,7 @@ sub test_sp_in_label_range_circumcircle {
         CELL_SIZES => [100000, 100000],
     );
 
-    #  as a method
-    my $cond1 = <<~'EOC'
-        $self->set_current_label('Genus:sp4');
-        sp_in_label_range_circumcircle();
-        EOC
-    ;
-    #  as an arg
-    my $cond2 = <<~'EOC'
+    my $cond = <<~'EOC'
         $self->set_current_label('Genus:sp4');
         sp_in_label_range(circumcircle => 1);
         EOC
@@ -227,23 +210,18 @@ sub test_sp_in_label_range_circumcircle {
         3750000:2150000 3850000:1950000
     / };
 
-    my $x;
-    my $i = 0;
-    foreach my $cond ($cond1, $cond2) {
-        $i++;
-        my $sp = $bd->add_spatial_output(name => "test_$i");
-        $sp->run_analysis(
-            calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
-            spatial_conditions => [ 'sp_self_only()' ],
-            definition_query   => $cond,
-        );
+    my $sp = $bd->add_spatial_output(name => "test_1");
+    $sp->run_analysis(
+        calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
+        spatial_conditions => [ 'sp_self_only()' ],
+        definition_query   => $cond,
+    );
 
-        is(!!$sp->group_passed_def_query_aa('3550000:1950000'), !!1, 'Loc is in circumcircle');
-        is(!!$sp->group_passed_def_query_aa('2650000:850000'), !!0, 'Loc is not in circumcircle');
+    is(!!$sp->group_passed_def_query_aa('3550000:1950000'), !!1, 'Loc is in circumcircle');
+    is(!!$sp->group_passed_def_query_aa('2650000:850000'), !!0, 'Loc is not in circumcircle');
 
-        my $passed = $sp->get_groups_that_pass_def_query();
-        is $passed, $exp, 'Expected def query not same as normal range check';
-    }
+    my $passed = $sp->get_groups_that_pass_def_query();
+    is $passed, $exp, 'Expected def query not same as normal range check';
 
 }
 
@@ -272,7 +250,7 @@ sub test_sp_volatile {
 
     #  should not be volatile
     my $sp_cond = Biodiverse::SpatialConditions->new (
-        conditions   => 'sp_in_label_range_circumcircle(label => "a")',
+        conditions   => 'sp_in_label_range(circumcircle => 1, label => "a")',
         basedata_ref => $bd,
     );
 
@@ -283,7 +261,7 @@ sub test_sp_volatile {
 
     #  should be volatile
     $sp_cond = Biodiverse::SpatialConditions->new (
-        conditions            => 'sp_in_label_range_circumcircle()',
+        conditions            => 'sp_in_label_range(circumcircle => 1)',
         basedata_ref          => $bd,
         promise_current_label => 1,
     );

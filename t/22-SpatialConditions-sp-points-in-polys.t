@@ -143,21 +143,62 @@ sub test_sp_in_label_range_convex_hull {
         CELL_SIZES => [100000, 100000],
     );
 
-    my $cond = <<~'EOC'
-    $self->set_current_label('Genus:sp4');
-    sp_in_label_range_convex_hull();
-    EOC
+    my $cond1 = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_range_convex_hull();
+        EOC
+    ;
+    #  now as an arg to sp_in_label_range
+    my $cond2 = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_range(convex_hull => 1);
+        EOC
     ;
 
-    my $sp = $bd->add_spatial_output (name => 'test_1');
-    $sp->run_analysis (
+    my $exp = {
+        map {; $_ => 1}
+            qw /3550000:1950000 3550000:2050000 3550000:2150000
+                3550000:2250000 3650000:1950000 3650000:2050000
+                3750000:1950000 3750000:2050000
+            /};
+
+    my $i = 0;
+    foreach my $cond ($cond1, $cond2) {
+        $i++;
+        my $sp = $bd->add_spatial_output(name => "test_$i");
+        $sp->run_analysis(
+            calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
+            spatial_conditions => [ 'sp_self_only()' ],
+            definition_query   => $cond,
+        );
+
+        is(!!$sp->group_passed_def_query_aa('3550000:1950000'), !!1, 'Loc is in convex hull');
+        is(!!$sp->group_passed_def_query_aa('2650000:850000'), !!0, 'Loc is not in convex hull');
+
+        my $passed = $sp->get_groups_that_pass_def_query();
+        is $passed, $exp, "Expected def query passes, $i";
+    }
+
+    #  check vanilla still works
+    my $cond3 = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_range();
+        EOC
+    ;
+
+    my $sp3 = $bd->add_spatial_output (name => 'test_3');
+    $sp3->run_analysis (
         calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
         spatial_conditions => ['sp_self_only()'],
-        definition_query   => $cond,
+        definition_query   => $cond3,
     );
 
-    is (!!$sp->group_passed_def_query_aa('3550000:1950000'), !!1, 'Loc is in convex hull');
-    is (!!$sp->group_passed_def_query_aa('2650000:850000'),  !!0, 'Loc is not in convex hull');
+    is (!!$sp3->group_passed_def_query_aa('3550000:1950000'), !!1, 'Loc is in convex hull');
+    is (!!$sp3->group_passed_def_query_aa('2650000:850000'),  !!0, 'Loc is not in convex hull');
+
+    my $passed3 = $sp3->get_groups_that_pass_def_query();
+    isnt $passed3, $exp, 'Expected def query not same as normal range check';
+
 }
 
 sub test_sp_in_label_range_circumcircle {
@@ -165,21 +206,45 @@ sub test_sp_in_label_range_circumcircle {
         CELL_SIZES => [100000, 100000],
     );
 
-    my $cond = <<~'EOC'
+    #  as a method
+    my $cond1 = <<~'EOC'
         $self->set_current_label('Genus:sp4');
         sp_in_label_range_circumcircle();
         EOC
     ;
+    #  as an arg
+    my $cond2 = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_range(circumcircle => 1);
+        EOC
+    ;
 
-    my $sp = $bd->add_spatial_output (name => 'test_1');
-    $sp->run_analysis (
-        calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
-        spatial_conditions => ['sp_self_only()'],
-        definition_query   => $cond,
-    );
+    my $exp = { map {$_ => 1} qw/
+        3450000:2050000 3450000:2150000 3550000:1950000
+        3550000:2050000 3550000:2150000 3550000:2250000
+        3650000:1850000 3650000:1950000 3650000:2050000
+        3650000:2350000 3750000:1950000 3750000:2050000
+        3750000:2150000 3850000:1950000
+    / };
 
-    is (!!$sp->group_passed_def_query_aa('3550000:1950000'), !!1, 'Loc is in circumcircle');
-    is (!!$sp->group_passed_def_query_aa('2650000:850000'),  !!0, 'Loc is not in circumcircle');
+    my $x;
+    my $i = 0;
+    foreach my $cond ($cond1, $cond2) {
+        $i++;
+        my $sp = $bd->add_spatial_output(name => "test_$i");
+        $sp->run_analysis(
+            calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
+            spatial_conditions => [ 'sp_self_only()' ],
+            definition_query   => $cond,
+        );
+
+        is(!!$sp->group_passed_def_query_aa('3550000:1950000'), !!1, 'Loc is in circumcircle');
+        is(!!$sp->group_passed_def_query_aa('2650000:850000'), !!0, 'Loc is not in circumcircle');
+
+        my $passed = $sp->get_groups_that_pass_def_query();
+        is $passed, $exp, 'Expected def query not same as normal range check';
+    }
+
 }
 
 

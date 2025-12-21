@@ -1905,6 +1905,7 @@ sub get_common_metadata_in_label_range {
         optional_args  => [
             $bool ? 'label' : (),
             'type', #  nbr or proc to control use of nbr or processing groups
+            'axes',
         ],
         result_type    => $uses_current_label ? 'complex' : 'always_same',
         index_no_use   => 1, #  turn index off since this doesn't cooperate with the search method
@@ -1917,18 +1918,64 @@ sub get_common_metadata_in_label_range {
 sub get_metadata_sp_in_label_range {
     my $self = shift;
 
-    my $example = <<~'EOEX'
-         # Are we in the range of label called Genus:Sp1?
-         sp_in_label_range(label => 'Genus:Sp1')
-         # The type argument determines if the
-         # processing or neighbour group is assessed.
-         EOEX
+    my $description = <<~'EOD'
+        Is a group within a label's range?
+
+        This is by default assessed as a check of whether the
+        label is found in the processing group but can
+        be generalised by passing the convex_hull
+        or circumcircle arguments.
+
+        The type argument determines if the
+        processing or neighbour group is assessed.
+        Normally this can be left as the default.
+
+        The convex_hull returns true if the processing group
+        is within the convex hull defined by the groups that form
+        the label range.
+
+        The circumcircle returns true if the processing group
+        is within the minimum circumscribing circle that
+        includes all of the label range groups.
+
+        Both the latter two arguments use the first two axes by default
+        and will return an error if there is only one axis.
+        If you have more than two axes and wish to assess different ones
+        then pass the axes argument. (This argument is ignored for the
+        default case).
+
+        If both convex_hull and circumcircle arguments are set to true then
+        the circumcircle is used.
+    EOD
     ;
 
+    my $example = <<~'EOEX'
+        # Are we in the range of label called Genus:Sp1?
+        sp_in_label_range(label => 'Genus:Sp1')
+
+        #  Are we in the convex hull?
+        sp_in_label_range(label => 'Genus:Sp1', convex_hull => 1)
+
+        #  Are we in the circumscribing circle?
+        sp_in_label_range(label => 'Genus:Sp1', circumcircle => 1)
+
+        #  Are we in the convex hull defined using the
+        #  coordinates from the third and first axes?
+        sp_in_label_range(
+            label       => 'Genus:Sp1',
+            convex_hull => 1,
+            axes        => [2,0],
+        )
+        EOEX
+    ;
+
+    my %common = $self->get_common_metadata_in_label_range;
+    push @{$common{optional_args}}, qw /circumcircle convex_hull/;
+
     my %metadata = (
-        description   => "Is a group within a label's range?",
+        description   => $description,
         example       => $example,
-        $self->get_common_metadata_in_label_range,
+        %common,
     );
 
     return $self->metadata_class->new (\%metadata);
@@ -1936,8 +1983,12 @@ sub get_metadata_sp_in_label_range {
 
 
 sub sp_in_label_range {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
+
+    return $self->sp_in_label_range_circumcircle(%args)
+        if delete $args{circumcircle};
+    return $self->sp_in_label_range_convex_hull(%args)
+        if delete $args{convex_hull};
 
     my $h = $self->get_param('CURRENT_ARGS');
 

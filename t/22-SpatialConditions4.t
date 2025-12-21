@@ -260,7 +260,7 @@ __DATA__
                 "3650000:1150000",
             ],
           },
-        'sp_in_label_range_convex_hull (label => "Genus:sp4")' =>
+        'sp_in_label_range(convex_hull => 1, label => "Genus:sp4")' =>
           {
             'count' => 8,
             'excludes' => [],
@@ -275,14 +275,14 @@ __DATA__
                 "3750000:2050000",
             ],
           },
-        'sp_in_label_range_convex_hull (label => "not in data set")' =>
+        'sp_in_label_range (convex_hull => 1, label => "not in data set")' =>
           {
             'count' => 0,
             'excludes' => [],
             'includes' => [
             ],
           },
-          'sp_in_label_range_circumcircle (label => "Genus:sp4")' =>
+          'sp_in_label_range(circumcircle => 1, label => "Genus:sp4")' =>
           {
             'count' => 14,
             'excludes' => [],
@@ -296,7 +296,7 @@ __DATA__
                 /
             ],
           },
-        'sp_in_label_range_circumcircle (label => "not in data set")' =>
+        'sp_in_label_range(circumcircle => 1, label => "not in data set")' =>
           {
             'count' => 0,
             'excludes' => [],

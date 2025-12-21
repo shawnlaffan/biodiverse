@@ -432,7 +432,7 @@ sub test_rand_spatially_structured_seeded {
         richness_addition                       => 30, #  make sure we can put our three labels anywhere
         richness_multiplier                     => 1,
         spatial_conditions_for_label_allocation => "sp_circle(radius => $c6)",
-        spatial_conditions_for_seed_location    => 'sp_in_label_range_convex_hull()',
+        spatial_conditions_for_seed_location    => 'sp_in_label_range(convex_hull => 1)',
         return_rand_bd_array                    => 1,
         retain_outputs                          => 1,
         track_label_allocation_order            => 1,

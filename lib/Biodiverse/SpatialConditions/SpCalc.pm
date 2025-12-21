@@ -1973,13 +1973,30 @@ sub get_metadata_sp_in_label_range {
         EOEX
     ;
 
-    my %common = $self->get_common_metadata_in_label_range;
-    push @{$common{optional_args}}, qw /circumcircle convex_hull/;
+    my $uses_current_label = $self->get_promise_current_label;
+    my $bool = $self->is_def_query || $uses_current_label;
+
+    my $is_volatile_cb = sub {
+        my ($self, %args) = @_;
+        $self->get_promise_current_label && !$args{label};
+    };
 
     my %metadata = (
         description   => $description,
         example       => $example,
-        %common,
+        required_args  => [
+            $bool ? () : 'label',
+        ],
+        optional_args  => [
+            $bool ? 'label' : (),
+            'type', #  nbr or proc to control use of nbr or processing groups
+            'axes',
+            'circumcircle',
+            'convex_hull',
+        ],
+        result_type    => $uses_current_label ? 'complex' : 'always_same',
+        index_no_use   => 1, #  turn index off since this doesn't cooperate with the search method
+        is_volatile_cb => $is_volatile_cb,
     );
 
     return $self->metadata_class->new (\%metadata);
@@ -1988,11 +2005,6 @@ sub get_metadata_sp_in_label_range {
 
 sub sp_in_label_range {
     my ($self, %args) = @_;
-
-    return $self->_sp_in_label_range_circumcircle(%args)
-        if delete $args{circumcircle};
-    return $self->_sp_in_label_range_convex_hull(%args)
-        if delete $args{convex_hull};
 
     my $h = $self->get_param('CURRENT_ARGS');
 
@@ -2005,67 +2017,29 @@ sub sp_in_label_range {
         ? $h->{coord_id1}
         : $h->{coord_id2};
 
+    if ($args{convex_hull} || $args{circumcircle}) {
+        my $method = $args{convex_hull}
+          ? 'get_groups_in_label_range_convex_hull'
+          : 'get_groups_in_label_range_circumcircle';
+
+        my $bd = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
+        croak "sp_in_label_range: Insufficient group axes for $method"
+            if scalar $bd->get_group_axis_count < 2;
+
+        return 0 if !$bd->exists_label_aa($label);
+
+        my $groups = $bd->$method (
+            label => $label,
+            axes  => $args{axes} // $h->{axes},
+        );
+        return $groups->{$group};
+    }
+
     my $labels_in_group = $h->{basedata}->get_labels_in_group_as_hash_aa ($group);
 
     return exists $labels_in_group->{$label};
 }
 
-sub _sp_in_label_range_convex_hull {
-    my $self = shift;
-    my %args = @_;
-
-    my $label = $args{label} // $self->_process_label_arg;
-
-    my $type = $args{type} // eval {$self->is_def_query()} ? 'proc' : 'nbr';
-    croak "Invalid type arg $type" if !($type eq 'proc' || $type eq 'nbr');
-
-    my $h = $self->get_param('CURRENT_ARGS');
-    my $bd = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
-
-    croak 'Insufficient group axes for _sp_in_label_range_convex_hull'
-        if scalar $bd->get_group_axis_count < 2;
-
-    my $groups = $bd->get_groups_in_label_range_convex_hull (
-        label => $label,
-        axes  => $args{axes} // $h->{axes},
-    );
-
-    my $group = $type eq 'proc'
-        ? $h->{coord_id1}
-        : $h->{coord_id2};
-
-    return $groups->{$group};
-}
-
-
-sub _sp_in_label_range_circumcircle {
-    my $self = shift;
-    my %args = @_;
-
-    my $label = $args{label} // $self->_process_label_arg;
-
-    my $h = $self->get_param('CURRENT_ARGS');
-    my $bd = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
-
-    croak 'Insufficient group axes for _sp_in_label_range_circumcircle'
-        if scalar $bd->get_group_axis_count < 2;
-
-    return 0 if !$bd->exists_label_aa($label);
-
-    my $type = $args{type} // eval {$self->is_def_query()} ? 'proc' : 'nbr';
-    croak "Invalid type arg $type" if !($type eq 'proc' || $type eq 'nbr');
-
-    my $groups = $bd->get_groups_in_label_range_circumcircle (
-        label => $label,
-        axes  => $args{axes} // $h->{axes},
-    );
-
-    my $group = $type eq 'proc'
-        ? $h->{coord_id1}
-        : $h->{coord_id2};
-
-    return $groups->{$group};
-}
 
 sub get_example_sp_get_spatial_output_list_value {
 

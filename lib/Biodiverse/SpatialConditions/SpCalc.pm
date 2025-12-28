@@ -20,7 +20,7 @@ use Tree::R;
 use Biodiverse::Progress;
 use Scalar::Util qw /looks_like_number blessed/;
 use List::MoreUtils qw /uniq/;
-use List::Util qw /min max/;
+use List::Util qw /min max any/;
 use Ref::Util qw { :all };
 
 
@@ -2040,6 +2040,32 @@ sub sp_in_label_range {
     return exists $labels_in_group->{$label};
 }
 
+sub get_metadata_sp_in_label_ancestor_range {
+    my $self = shift;
+    my $meta = $self->get_metadata_sp_in_label_range;
+    push @{$meta->{required_args}}, 'dist';
+    push @{$meta->{optional_args}}, 'by_depth';
+    return wantarray ? %$meta : $meta;
+}
+
+sub sp_in_label_ancestor_range {
+    my ($self, %args) = @_;
+
+    my $label = $args{label} // $self->_process_label_arg();
+    my $tree  = $self->get_tree_ref // croak 'No tree ref available';
+
+    my $node = $tree->get_node_ref_or_undef_aa($label);
+    return 0 if !defined $node;
+
+    my $d = $args{dist} // croak 'argument "dist" not defined';
+    my $ancestor = $args{by_depth}
+        ? $node->get_ancestor_by_depth_aa($d)
+        : $node->get_ancestor_by_length_aa($d);
+
+    return List::Util::any
+        {$self->sp_in_label_range (%args, label => $_)}
+        keys %{$ancestor->get_terminal_elements};
+}
 
 sub get_example_sp_get_spatial_output_list_value {
 

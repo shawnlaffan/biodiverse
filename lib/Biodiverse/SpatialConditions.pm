@@ -87,6 +87,7 @@ sub new {
         KEEP_LAST_DISTANCES => $args{keep_last_distances},
     );
     $self->set_promise_current_label($args{promise_current_label});
+    $self->set_tree_ref($args{tree_ref});
 
     eval {$self->parse_distances};
     croak $EVAL_ERROR if $EVAL_ERROR;
@@ -107,6 +108,16 @@ sub metadata_class {
 sub get_metadata {
     my $self = shift;
     return $self->SUPER::get_metadata (@_, no_use_cache => 1);
+}
+
+sub get_tree_ref {
+    my ($self) = @_;
+    $self->get_param('TREE_REF');
+}
+
+sub set_tree_ref {
+    my ($self, $tree_ref) = @_;
+    $self->set_param(TREE_REF => $tree_ref);
 }
 
 sub get_conditions {

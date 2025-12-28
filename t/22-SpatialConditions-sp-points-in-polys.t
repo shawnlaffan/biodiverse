@@ -16,7 +16,7 @@ use Test::TempDir::Tiny qw /tempdir/;
 
 local $| = 1;
 
-use Biodiverse::TestHelpers qw {get_basedata_object_from_site_data};
+use Biodiverse::TestHelpers qw {get_basedata_object_from_site_data get_tree_object_from_sample_data};
 use Biodiverse::BaseData;
 use Biodiverse::SpatialConditions;
 
@@ -279,4 +279,95 @@ sub test_sp_volatile {
     is $res->{ret}, 'ok', 'Volatile condition verified';
     is !!$sp_cond->is_volatile, !!1, 'Volatile condition flagged as such';
 
+}
+
+sub test_sp_in_tree_ancestor_range {
+    my $bd = get_basedata_object_from_site_data (
+        CELL_SIZES => [100000, 100000],
+    );
+    my $tree = get_tree_object_from_sample_data();
+
+    my $cond = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_ancestor_range(by_depth => 2, dist => 2);
+        EOC
+    ;
+    my $defq = Biodiverse::SpatialConditions::DefQuery->new(
+        conditions   => $cond,
+        basedata_ref => $bd,
+        tree_ref     => $tree,
+        promise_current_label => 1,
+    );
+
+    my $exp = {
+        map {; $_ => 1} qw /
+            3150000:2950000 3250000:2150000 3250000:2850000
+            3250000:2950000 3350000:2050000 3350000:2150000
+            3450000:2050000 3450000:2150000 3550000:1950000
+            3550000:2050000 3550000:2150000 3550000:2250000
+            3650000:1650000 3650000:1750000 3650000:1850000
+            3650000:1950000 3650000:2050000 3750000:1650000
+            3750000:1750000 3750000:1950000 3750000:2050000
+            3850000:1450000 3850000:1550000 3850000:1750000
+            /};
+
+    my $sp_depth = $bd->add_spatial_output(name => "test_ancestor_range_depth");
+    $sp_depth->run_analysis(
+        calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
+        spatial_conditions => [ 'sp_self_only()' ],
+        definition_query   => $defq,
+    );
+
+    is ref $defq->get_tree_ref, ref $tree, 'Tree ref unchanged';
+
+    my $passed = $sp_depth->get_groups_that_pass_def_query();
+    is $passed, $exp, "Expected def query passes";
+
+    #  0.97 is the same node as for by_depth=2
+    $cond = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_ancestor_range(by_depth => 0, dist => 0.97);
+        EOC
+    ;
+    my $defq_len = Biodiverse::SpatialConditions::DefQuery->new(
+        conditions   => $cond,
+        basedata_ref => $bd,
+        tree_ref     => $tree,
+        promise_current_label => 1,
+    );
+
+    my $sp_len = $bd->add_spatial_output(name => "test_ancestor_range_length");
+    $sp_len->run_analysis(
+        calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
+        spatial_conditions => [ 'sp_self_only()' ],
+        definition_query   => $defq_len,
+    );
+
+    is ref $defq->get_tree_ref, ref $tree, 'Tree ref unchanged';
+
+    $passed = $sp_len->get_groups_that_pass_def_query();
+    is $passed, $exp, "Expected def query passes";
+
+    #  nothing should pass for not in tree
+    $cond = <<~'EOC'
+        $self->set_current_label('somelabelnotintree');
+        sp_in_label_ancestor_range(by_depth => 2, dist => 2);
+        EOC
+    ;
+    $defq = Biodiverse::SpatialConditions::DefQuery->new(
+        conditions   => $cond,
+        basedata_ref => $bd,
+        tree_ref     => $tree,
+        promise_current_label => 1,
+    );
+    my $spx = $bd->add_spatial_output(name => "test_xx_to_fail");
+    eval {
+        $spx->run_analysis(
+            calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
+            spatial_conditions => [ 'sp_self_only()' ],
+            definition_query   => $defq,
+        );
+    };
+    $passed = $spx->get_groups_that_pass_def_query();
+    is $passed, {}, "Nothing passes when label not in tree";
 }

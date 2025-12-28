@@ -128,14 +128,13 @@ sub new {
 
 
     my $expander_cb = sub {
-        my $expand = !$expander->get_expanded;
-        my $method = $expand ? 'show' : 'hide';
+        my $visible = !$expander->get_expanded;
         foreach my $widget (@$hideable_widgets) {
             if (not $widget =~ 'Button|ComboBox' and not $widget =~ $self->{current_text_view}) {
                 $widget->hide;  # hide the inactive textview regardless
             }
             else {
-                $widget->$method;
+                $widget->set_visible($visible);
             }
         }
     };
@@ -149,13 +148,13 @@ sub new {
     );
     $expander->set_expanded(!$start_hidden);
 
-    my $method = $start_hidden ? 'hide' : 'show';
+    my $visible = !$start_hidden;
     foreach my $widget (@$hideable_widgets) {
         if (not $widget =~ 'Button|ComboBox' and not $widget =~ $self->{current_text_view}) {
             $widget->hide;  # hide the inactive textview regardless
         }
         else {
-            $widget->$method;
+            $widget->set_visible($visible);
         }
     }
 

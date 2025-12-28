@@ -287,6 +287,16 @@ sub test_sp_in_tree_ancestor_range {
     );
     my $tree = get_tree_object_from_sample_data();
 
+    my %common_sp_args = (
+        calculations       => [ 'calc_element_lists_used' ],
+        spatial_conditions => [ 'sp_self_only()' ],
+    );
+    my %common_cond_args = (
+        basedata_ref => $bd,
+        tree_ref     => $tree,
+        promise_current_label => 1,
+    );
+
     my $cond = <<~'EOC'
         $self->set_current_label('Genus:sp4');
         sp_in_label_ancestor_range(by_depth => 2, dist => 2);
@@ -294,9 +304,7 @@ sub test_sp_in_tree_ancestor_range {
     ;
     my $defq = Biodiverse::SpatialConditions::DefQuery->new(
         conditions   => $cond,
-        basedata_ref => $bd,
-        tree_ref     => $tree,
-        promise_current_label => 1,
+        %common_cond_args,
     );
 
     my $exp = {
@@ -313,15 +321,14 @@ sub test_sp_in_tree_ancestor_range {
 
     my $sp_depth = $bd->add_spatial_output(name => "test_ancestor_range_depth");
     $sp_depth->run_analysis(
-        calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
-        spatial_conditions => [ 'sp_self_only()' ],
+        %common_sp_args,
         definition_query   => $defq,
     );
 
     is ref $defq->get_tree_ref, ref $tree, 'Tree ref unchanged';
 
     my $passed = $sp_depth->get_groups_that_pass_def_query();
-    is $passed, $exp, "Expected def query passes";
+    is $passed, $exp, "Expected def query passes (depth)";
 
     #  0.97 is the same node as for by_depth=2
     $cond = <<~'EOC'
@@ -331,22 +338,17 @@ sub test_sp_in_tree_ancestor_range {
     ;
     my $defq_len = Biodiverse::SpatialConditions::DefQuery->new(
         conditions   => $cond,
-        basedata_ref => $bd,
-        tree_ref     => $tree,
-        promise_current_label => 1,
+        %common_cond_args,
     );
 
     my $sp_len = $bd->add_spatial_output(name => "test_ancestor_range_length");
     $sp_len->run_analysis(
-        calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
-        spatial_conditions => [ 'sp_self_only()' ],
+        %common_sp_args,
         definition_query   => $defq_len,
     );
 
-    is ref $defq->get_tree_ref, ref $tree, 'Tree ref unchanged';
-
     $passed = $sp_len->get_groups_that_pass_def_query();
-    is $passed, $exp, "Expected def query passes";
+    is $passed, $exp, "Expected def query passes (length)";
 
     #  nothing should pass for not in tree
     $cond = <<~'EOC'
@@ -356,18 +358,72 @@ sub test_sp_in_tree_ancestor_range {
     ;
     $defq = Biodiverse::SpatialConditions::DefQuery->new(
         conditions   => $cond,
-        basedata_ref => $bd,
-        tree_ref     => $tree,
-        promise_current_label => 1,
+        %common_cond_args,
     );
     my $spx = $bd->add_spatial_output(name => "test_xx_to_fail");
     eval {
         $spx->run_analysis(
-            calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
-            spatial_conditions => [ 'sp_self_only()' ],
+            %common_sp_args,
             definition_query   => $defq,
         );
     };
     $passed = $spx->get_groups_that_pass_def_query();
     is $passed, {}, "Nothing passes when label not in tree";
+
+    #  Now the convex hull case.  We only need to check one of depth or length.
+    $cond = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_ancestor_range(by_depth => 2, dist => 2, convex_hull => 1);
+        EOC
+    ;
+    my $defq_depth_ch = Biodiverse::SpatialConditions::DefQuery->new(
+        conditions   => $cond,
+        %common_cond_args,
+    );
+
+    my $exp_ch = {%$exp};
+    $exp_ch->{$_}++ foreach qw /
+        3650000:2350000 3750000:1550000 3750000:1850000
+        3750000:2150000 3850000:1650000 3850000:1850000
+        3850000:1950000
+    /;
+    my $sp_depth_ch = $bd->add_spatial_output(name => "test_ancestor_range_depth_ch");
+    $sp_depth_ch->run_analysis(
+        %common_sp_args,
+        definition_query   => $defq_depth_ch,
+    );
+
+    $passed = $sp_depth_ch->get_groups_that_pass_def_query();
+    is $passed, $exp_ch, "Expected def query passes";
+
+    #  Now the circumcircle case.  As with the convex hull,
+    #  we only need to check one of depth or length.
+    $cond = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_ancestor_range(by_depth => 2, dist => 2, circumcircle => 1);
+        EOC
+    ;
+    my $defq_depth_cc = Biodiverse::SpatialConditions::DefQuery->new(
+        conditions   => $cond,
+        %common_cond_args,
+    );
+
+    my $exp_cc = {%$exp_ch};
+    $exp_cc->{$_}++ foreach qw /
+        3250000:3050000 3350000:1350000 3450000:1350000
+        3450000:1450000 3450000:1550000 3550000:1450000
+        3550000:1550000 3650000:1350000 3650000:1450000
+        3650000:1550000 3750000:1350000 3750000:1450000
+        3950000:1750000
+    /;
+    my $sp_depth_cc = $bd->add_spatial_output(
+        name => "test_ancestor_range_depth_cc"
+    );
+    $sp_depth_cc->run_analysis(
+        %common_sp_args,
+        definition_query   => $defq_depth_cc,
+    );
+
+    $passed = $sp_depth_cc->get_groups_that_pass_def_query();
+    is $passed, $exp_cc, "Expected def query passes";
 }

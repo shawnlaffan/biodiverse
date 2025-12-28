@@ -2042,9 +2042,77 @@ sub sp_in_label_range {
 
 sub get_metadata_sp_in_label_ancestor_range {
     my $self = shift;
+
+    my $description = <<~'EOD'
+            Is a group within the range of a label's ancestor?
+
+            Returns true if the group falls within the range of
+            any of the any of the ancestor's terminal descendant
+            ranges.
+
+            The ancestor can be defined by length (default) or
+            depth (the number of ancestors) using the by_depth
+            argument.
+
+            The dist argument determines how far up the tree
+            the ancestor is searched for.  When using length,
+            the distance is calculated from the tipwards extent
+            of the branch, so for ultrametric trees will start
+            from the same distance from the root.
+            The depth is calculated as the number of ancestors.
+
+            If called with a dist of 0 then any group within
+            the range of the branch associated with that label
+            will return true.
+
+            An internal branch can be specified as the label.
+
+            The underlying algorithm checks each of the terminal
+            ranges using sp_in_label_range().  This means the
+            search can also use the convex hull or circumcircle
+            of each terminal, as well as setting its other arguments
+            and using a default label in some circumstances.
+
+            Note that each terminal is assessed separately.
+            The ranges are not aggregated before the convex hull
+            or circumcircle is calculated.
+
+        EOD
+    ;
+
+    my $example = <<~'EOEX'
+        # Are we in the range of an ancestor of Genus:Sp1?
+        sp_in_label_ancestor_range(label => 'Genus:Sp1', dist => 0.5)
+
+        # Are we in the range of the "grandmother" of Genus:Sp1?
+        sp_in_label_ancestor_range(
+          label    => 'Genus:Sp1',
+          dist     => 2,
+          by_depth => 1,
+        )
+
+        #  Are we in the convex hull?
+        sp_in_label_ancestor_range(
+          label => 'Genus:Sp1',
+          dist  => 0.5,
+          convex_hull => 1,
+        )
+
+        #  Are we in the circumscribing circle?
+        sp_in_label_ancestor_range(
+          label => 'Genus:Sp1',
+          dist  => 0.5,
+          circumcircle => 1,
+        )
+
+        EOEX
+    ;
+
     my $meta = $self->get_metadata_sp_in_label_range;
     push @{$meta->{required_args}}, 'dist';
     push @{$meta->{optional_args}}, 'by_depth';
+    $meta->{description} = $description;
+    $meta->{example}     = $example;
     return wantarray ? %$meta : $meta;
 }
 

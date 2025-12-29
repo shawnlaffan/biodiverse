@@ -2717,17 +2717,8 @@ sub get_outputs_with_same_spatial_conditions {
         || croak "[BASEDATA] compare_with argument not specified\n";
 
     my $sp_params = $compare->get_spatial_conditions;
-    my $def_query = $compare->get_def_query;
-    if ( defined $def_query && ( length $def_query ) == 0 ) {
-        $def_query = undef;
-    }
 
-    my $def_conditions;
-    if ( blessed $def_query) {
-        $def_conditions = $def_query->get_conditions_unparsed();
-    }
-
-    my @outputs = $self->get_output_refs_of_class( class => $compare );
+    my @outputs = $self->get_outputs_with_same_def_query (%args);
 
     my @comparable_outputs;
 
@@ -2737,25 +2728,6 @@ sub get_outputs_with_same_spatial_conditions {
 
         my $completed = $output->get_param('COMPLETED');
         next LOOP_OUTPUTS if defined $completed and !$completed;
-
-        my $def_query_comp = $output->get_def_query;
-        if ( defined $def_query_comp && ( length $def_query_comp ) == 0 ) {
-            $def_query_comp = undef;
-        }
-
-        next LOOP_OUTPUTS
-            if ( defined $def_query ) ne ( defined $def_query_comp );
-
-        if ( defined $def_query ) {
-
-            #  check their def queries match
-            my $def_conditions_comp =
-                eval { $def_query_comp->get_conditions_unparsed() }
-                    // $def_query_comp;
-            my $def_conditions_text =
-                eval { $def_query->get_conditions_unparsed() } // $def_query;
-            next LOOP_OUTPUTS if $def_conditions_comp ne $def_conditions_text;
-        }
 
         my $sp_params_comp = $output->get_spatial_conditions || [];
 
@@ -2767,6 +2739,12 @@ sub get_outputs_with_same_spatial_conditions {
             next LOOP_OUTPUTS
                 if ( $sp_params->[$i]->get_param('CONDITIONS') ne
                     $sp_obj->get_conditions_unparsed() );
+
+            my $tree_ref = $sp_params->[$i]->get_tree_ref;
+            my $tree_ref_comp = $sp_obj->get_tree_ref;
+            next LOOP_OUTPUTS
+                if ($tree_ref // '') ne ($tree_ref_comp // '');
+
             $i++;
         }
 
@@ -2790,8 +2768,10 @@ sub get_outputs_with_same_def_query {
     }
 
     my $def_conditions;
+    my $tree_ref;
     if ( blessed $def_query) {
         $def_conditions = $def_query->get_conditions_unparsed();
+        $tree_ref = $def_query->get_tree_ref;
     }
 
     #  could be more general with def queries
@@ -2828,6 +2808,9 @@ sub get_outputs_with_same_def_query {
             my $def_conditions_text =
                 eval { $def_query->get_conditions_unparsed() } // $def_query;
             next LOOP_OUTPUTS if $def_conditions_comp ne $def_conditions_text;
+
+            my $tree_ref_comp = $def_query_comp->get_tree_ref;
+            next LOOP_OUTPUTS if ($tree_ref // '') ne ($tree_ref_comp // '');
         }
 
         #  if we get this far then we have a match

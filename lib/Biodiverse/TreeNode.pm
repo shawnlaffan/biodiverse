@@ -1709,21 +1709,14 @@ sub get_siblings {
     return wantarray ? @sibs : \@sibs;
 }
 
+#  negative values
 sub get_nth_ancestor {
     my ($self, $n) = @_;
-    croak "Cannot get negative ancestor $n"
-        if $n < 0;
-    if ($self->is_terminal_node) {
-        my $aref = $self->get_path_to_root_node;
-        my $ancestor = $aref->[$n];
-        return $ancestor // $aref->[-1];
-    }
-    while ($n && $self) {
-        $n--;
-        $self = $self->get_parent
-          // return $self;
-    }
-    return $self;
+
+    my $aref = $self->get_path_to_root_node // [];
+    my $ancestor = $aref->[$n];
+
+    return $ancestor // ($n < 0 ? $self : $aref->[-1]);
 }
 
 sub get_ancestor_by_depth_aa {
@@ -1732,8 +1725,10 @@ sub get_ancestor_by_depth_aa {
 
 sub get_ancestor_by_length_aa {
     my ($self, $len) = @_;
-    croak "Cannot get negative ancestor of length $len"
-        if $len < 0;
+
+    if ($len < 0) {
+        $len += $self->get_distance_to_root_node;
+    }
     while ($self) {
         $len -= $self->get_length;
         last if $len < 0;

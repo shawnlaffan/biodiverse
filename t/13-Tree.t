@@ -134,10 +134,8 @@ sub test_ancestor_by {
         "Got expected ancestor for $from_name at length above of $d";
 
     #  exceptions
-    ok dies {$from_node->get_ancestor_by_depth_aa(-1)},
-        '-ve ancestor by depth call dies';
-    ok dies {$from_node->get_ancestor_by_depth_aa(-1)},
-        '-ve ancestor by length call dies';
+    is $from_node->get_ancestor_by_depth_aa(-1)->get_name, '126___', '-ve ancestor by depth call';
+    is $from_node->get_ancestor_by_length_aa(-0.025)->get_name, '123___', '-ve ancestor by length call';
 
 }
 

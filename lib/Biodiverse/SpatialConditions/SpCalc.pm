@@ -2054,18 +2054,26 @@ sub get_metadata_sp_in_label_ancestor_range {
             depth (the number of ancestors) using the by_depth
             argument.
 
-            The dist argument determines how far up the tree
-            the ancestor is searched for.  When using length,
-            the distance is calculated from the tipwards extent
-            of the branch, so for ultrametric trees will start
-            from the same distance from the root.
-            The depth is calculated as the number of ancestors.
+            Negative dist values search from the root to the
+            specified node.
 
-            If called with a dist of 0 then any group within
-            the range of the branch associated with that label
-            will return true.
+            The dist argument determines how far up or down the tree
+            the ancestor is searched for.  When using length,
+            the distance includes the tipwards extent
+            of the branch. The depth is calculated as the number
+            of ancestors.
+
+            If the dist value exceeds the distance from the label
+            node to the root node then the root or label node
+            is returned for positive or negative dist values,
+            respectively.
 
             An internal branch can be specified as the label.
+            Specifying a dist of 0 is one means to use the
+            range of an internal node.
+
+            Returns false if the label is not associated with
+            a node on the tree.
 
             The underlying algorithm checks each of the terminal
             ranges using sp_in_label_range().  This means the
@@ -2073,7 +2081,7 @@ sub get_metadata_sp_in_label_ancestor_range {
             of each terminal, as well as setting its other arguments
             and using a default label in some circumstances.
 
-            Note that each terminal is assessed separately.
+            Note that each terminal of the ancestor is assessed separately.
             The ranges are not aggregated before the convex hull
             or circumcircle is calculated.
 

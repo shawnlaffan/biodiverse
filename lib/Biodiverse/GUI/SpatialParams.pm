@@ -219,7 +219,8 @@ sub get_validated_conditions {
     my $self = shift;
 
     my $conditions = $self->{validated_conditions};
-    croak "Conditions not yet validated\n" if !defined $conditions;
+    return if !defined $conditions;
+    # croak "Conditions not yet validated\n" if !defined $conditions;
 
     my $options = $self->get_options;
     $conditions->set_no_recycling_flag ($options->{no_recycling});
@@ -364,11 +365,10 @@ sub update_dendrogram_combo {
 
     my @combo_items;
 
-    #  CHECK CHECK
-    my $output_ref = $self->{condition_object};
+    my $output_ref = eval {$self->get_validated_conditions};
     if ($output_ref && $output_ref->can('get_tree_ref') && $output_ref->get_tree_ref) {
         my $iter = $model->append();
-        $model->set( $iter, 0 => 'analysis', 1 => 'analysis' );
+        $model->set( $iter, 0 => 'analysis', 1 =>  $output_ref->get_tree_ref);
         push @combo_items, 'analysis';
     }
 

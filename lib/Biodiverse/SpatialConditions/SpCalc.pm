@@ -2113,6 +2113,7 @@ sub get_metadata_sp_in_label_ancestor_range {
     push @{$meta->{optional_args}}, 'by_depth';
     $meta->{description} = $description;
     $meta->{example}     = $example;
+    $meta->{requires_tree_ref} = 1;
     return wantarray ? %$meta : $meta;
 }
 

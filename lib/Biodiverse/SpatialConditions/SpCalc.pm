@@ -367,17 +367,8 @@ sub sp_square {
     my $size = $args{size} / 2;
 
     my $h = $self->get_param('CURRENT_ARGS');
-
-    #my @x = @{ $h->{dists}{D_list} }; 
-    foreach my $dist (@{ $h->{dists}{D_list} }) {
-        warn "$dist, $size"
-          if    $args{size} == 0.2
-             && (abs ($size - $dist) < 0.00001)
-             && (abs ($size - $dist) > 0);
-        return 0 if $dist > $size;
-    }
-
-    return 1;  #  if we get this far then we are OK.
+    my $aref = $h->{dists}{D_list} // [];
+    return List::Util::all {$_ <= $size} @$aref;
 }
 
 sub get_metadata_sp_square_cell {
@@ -418,14 +409,8 @@ sub sp_square_cell {
     my $size = $args{size} / 2;
 
     my $h = $self->get_param('CURRENT_ARGS');
-
-    #my @x = @{ $h->{dists}{C_list} };
-    foreach my $dist (@{ $h->{dists}{C_list} }) {
-        return 0 if $dist > $size;
-    }
-
-    #  if we get this far then we are OK.
-    return 1;
+    my $aref = $h->{dists}{C_list} // [];
+    return List::Util::all {$_ <= $size} @$aref;
 }
 
 sub get_metadata_sp_block {

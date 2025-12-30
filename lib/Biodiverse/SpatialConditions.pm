@@ -117,6 +117,10 @@ sub get_tree_ref {
 
 sub set_tree_ref {
     my ($self, $tree_ref) = @_;
+    if (my $old_tree = $self->get_tree_ref) {
+        $self->delete_cached_values
+          if ref $tree_ref ne ref $old_tree;
+    }
     $self->set_param(TREE_REF => $tree_ref);
 }
 

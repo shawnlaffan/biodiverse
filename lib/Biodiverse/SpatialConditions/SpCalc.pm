@@ -24,7 +24,6 @@ use List::Util qw /min max any/;
 use Ref::Util qw { :all };
 
 
-my $metadata_class = 'Biodiverse::Metadata::SpatialConditions';
 use Biodiverse::Metadata::SpatialConditions;
 
 our $NULL_STRING = q{};
@@ -602,7 +601,6 @@ sub sp_ellipse {
 
 sub get_metadata_sp_select_all {
     my $self = shift;
-    my %args = @_;
 
     my %metadata = (
         description    => 'Select all elements as neighbours',
@@ -615,9 +613,6 @@ sub get_metadata_sp_select_all {
 }
 
 sub sp_select_all {
-    my $self = shift;
-    #my %args = @_;
-
     return 1;    #  always returns true
 }
 
@@ -636,7 +631,6 @@ sub get_metadata_sp_self_only {
 
 sub sp_self_only {
     my $self = shift;
-    my %args = @_;
 
     my $h = $self->get_param('CURRENT_ARGS');
 
@@ -1183,7 +1177,6 @@ sub get_cached_subset_nbrs {
 
 sub clear_cached_subset_nbrs {
     my $self = shift;
-    my %args = @_;
 
     my $clear = $self->get_param('SP_SELECT_SEQUENCE_CLEAR_CACHE');
     return if ! $clear;
@@ -1255,13 +1248,13 @@ sub sp_select_block {
     my $coord_id1 = $h->{coord_id1};
     my $coord_id2 = $h->{coord_id2};
 
-    my $verifying = $self->get_param('VERIFYING');
+    # my $verifying = $self->get_param('VERIFYING');
 
     my $frequency    = $args{count} // 1;
     my $size         = $args{size}; #  should be a function of cellsizes
     my $prng_seed    = $args{prng_seed};
     my $random       = $args{random} // 1;
-    my $use_cache    = $args{use_cache} // 1;
+    # my $use_cache    = $args{use_cache} // 1;
 
     if ($args{clear_cache}) {
         $self->set_param(SP_SELECT_BLOCK_CLEAR_CACHE => 1);
@@ -1358,8 +1351,6 @@ sub get_spatial_output_sp_select_block {
 sub get_metadata_sp_point_in_poly {
     my $self = shift;
     
-    my %args = @_;
-    
     my $example = <<~'END_SP_PINPOLY'
         # Is the neighbour coord in a square polygon?
         sp_point_in_poly (
@@ -1432,7 +1423,6 @@ sub _get_shp_examples {
 
 sub get_metadata_sp_point_in_poly_shape {
     my $self = shift;
-    my %args = @_;
     
     my $examples = $self->_get_shp_examples;
 
@@ -1501,7 +1491,7 @@ sub sp_point_in_poly_shape {
 
     #  need a progress dialogue for involved searches
     #my $progress = Biodiverse::Progress->new(text => 'Point in poly search');
-    my ($i, $target) = (1, scalar @$rtree_polys);
+    # my ($i, $target) = (1, scalar @$rtree_polys);
 
     foreach my $poly (@$rtree_polys) {
         #$progress->update(
@@ -1527,7 +1517,6 @@ sub sp_point_in_poly_shape {
 
 sub get_metadata_sp_points_in_same_poly_shape {
     my $self = shift;
-    my %args = @_;
 
     my $examples = <<~'END_EXAMPLES'
         #  define neighbour sets using a shapefile
@@ -1607,9 +1596,6 @@ sub sp_points_in_same_poly_shape {
     my $pointshape2 = Geo::ShapeFile::Point->new(X => $x_coord2, Y => $y_coord2);
 
     my $rtree = $self->get_rtree_for_polygons_from_shapefile (%args, shapes => $polys);
-    my $bd = $h->{basedata};
-    my @cell_sizes = $bd->get_cell_sizes;
-    my ($cell_x, $cell_y) = ($cell_sizes[$axes->[0]], $cell_sizes[$axes->[1]]);
 
     #  smaller rectangles than the cells so we don't overlap with nbrs - that causes grief later on
     # my ($dx, $dy) = ($cell_x / 4, $cell_y / 4);
@@ -1678,8 +1664,7 @@ sub sp_points_in_same_poly_shape {
 }
 
 sub get_cache_name_sp_point_in_poly_shape {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
     my $cache_name = join ':',
         'sp_point_in_poly_shape',
         $args{file},
@@ -1689,8 +1674,7 @@ sub get_cache_name_sp_point_in_poly_shape {
 }
 
 sub get_cache_name_sp_points_in_same_poly_shape {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
     my $cache_name = join ':',
         'sp_points_in_same_poly_shape',
         $args{file};
@@ -1802,19 +1786,17 @@ sub get_rtree_for_polygons_from_shapefile {
 }
 
 sub get_cache_name_rtree {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
     my $cache_name = join ':',
         'RTREE',
         $args{file},
         ($args{field} || $NULL_STRING),
-        (defined $args{field_val} ? $args{field_val} : $NULL_STRING);
+        ($args{field_val} // $NULL_STRING);
     return $cache_name;
 }
 
 sub build_rtree_for_shapepolys {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
     my $shapes = $args{shapes};
 
@@ -1829,8 +1811,6 @@ sub build_rtree_for_shapepolys {
 
 sub get_metadata_sp_group_not_empty {
     my $self = shift;
-    
-    my %args = @_;
 
     my $example = <<~'END_GP_NOT_EMPTY_EX'
         # Restrict calculations to those non-empty groups.
@@ -2187,7 +2167,6 @@ sub get_example_sp_get_spatial_output_list_value {
 
 sub get_metadata_sp_get_spatial_output_list_value {
     my $self = shift;
-    my %args = @_;
 
     my $description =
         q{Obtain a value from a list in a previously calculated spatial output.};
@@ -2297,7 +2276,6 @@ sub get_example_sp_richness_greater_than {
 
 sub get_metadata_sp_richness_greater_than {
     my $self = shift;
-    my %args = @_;
 
     my $description =
         q{Return true if the richness for an element is greater than the threshold.};
@@ -2366,7 +2344,6 @@ sub get_example_sp_redundancy_greater_than {
 
 sub get_metadata_sp_redundancy_greater_than {
     my $self = shift;
-    my %args = @_;
 
     my $description =
         q{Return true if the sample redundancy for an element is greater than the threshold.};
@@ -2415,7 +2392,6 @@ sub sp_redundancy_greater_than {
 
 sub get_metadata_sp_spatial_output_passed_defq {
     my $self = shift;
-    my %args = @_;
 
     my $description =
         "Returns 1 if an element passed the definition query "
@@ -2526,7 +2502,6 @@ sub get_caller_spatial_output_ref {
 
 sub get_metadata_sp_points_in_same_cluster {
     my $self = shift;
-    my %args = @_;
 
     my $examples = <<~'END_EXAMPLES'
         #  Try to use the highest four clusters from the root.
@@ -2647,7 +2622,6 @@ sub sp_points_in_same_cluster {
 
 sub get_metadata_sp_point_in_cluster {
     my $self = shift;
-    my %args = @_;
 
     my $examples = <<~'END_EXAMPLES';
         #  Use any element that is a terminal in the cluster output.

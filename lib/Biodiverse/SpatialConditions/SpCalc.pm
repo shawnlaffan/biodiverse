@@ -2075,6 +2075,10 @@ sub get_metadata_sp_in_label_ancestor_range {
             Returns false if the label is not associated with
             a node on the tree.
 
+            When the as_frac argument is true then dist is
+            treated as a fraction of the distance to the root
+            node.
+
             The underlying algorithm checks each of the terminal
             ranges using sp_in_label_range().  This means the
             search can also use the convex hull or circumcircle
@@ -2118,7 +2122,7 @@ sub get_metadata_sp_in_label_ancestor_range {
 
     my $meta = $self->get_metadata_sp_in_label_range;
     push @{$meta->{required_args}}, 'dist';
-    push @{$meta->{optional_args}}, 'by_depth';
+    push @{$meta->{optional_args}}, (qw /by_depth as_frac/);
     $meta->{description} = $description;
     $meta->{example}     = $example;
     $meta->{requires_tree_ref} = 1;
@@ -2135,6 +2139,16 @@ sub sp_in_label_ancestor_range {
     return 0 if !defined $node;
 
     my $d = $args{dist} // croak 'argument "dist" not defined';
+
+    if ($args{as_frac}) {
+        if ($args{by_depth}) {
+            $d = (1 - $d) * $node->get_depth;
+        }
+        else {
+            $d *= $node->get_distance_to_root_node;
+        }
+    }
+
     my $ancestor = $args{by_depth}
         ? $node->get_ancestor_by_depth_aa($d)
         : $node->get_ancestor_by_length_aa($d);

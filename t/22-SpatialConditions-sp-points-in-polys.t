@@ -330,6 +330,25 @@ sub test_sp_in_tree_ancestor_range {
     my $passed = $sp_depth->get_groups_that_pass_def_query();
     is $passed, $exp, "Expected def query passes (depth)";
 
+    $cond = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_ancestor_range(by_depth => 1, dist => 0.5, as_frac => 1);
+        EOC
+    ;
+    my $defq_dfrac = Biodiverse::SpatialConditions::DefQuery->new(
+        conditions   => $cond,
+        %common_cond_args,
+    );
+    my $sp_depth_frac = $bd->add_spatial_output(name => "test_ancestor_range_depth_frac");
+    $sp_depth_frac->run_analysis(
+        %common_sp_args,
+        definition_query => $defq_dfrac,
+    );
+
+    is scalar $sp_depth_frac->get_groups_that_pass_def_query,
+        scalar $sp_depth->get_groups_that_pass_def_query,
+        "Expected def query passes (depth frac)";
+
     #  0.97 is the same node as for by_depth=2
     $cond = <<~'EOC'
         $self->set_current_label('Genus:sp4');
@@ -349,6 +368,25 @@ sub test_sp_in_tree_ancestor_range {
 
     $passed = $sp_len->get_groups_that_pass_def_query();
     is $passed, $exp, "Expected def query passes (length)";
+
+    $cond = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_ancestor_range(dist => 0.97, as_frac => 1);
+        EOC
+    ;
+    my $defq_lfrac = Biodiverse::SpatialConditions::DefQuery->new(
+        conditions   => $cond,
+        %common_cond_args,
+    );
+    my $sp_len_frac = $bd->add_spatial_output(name => "test_ancestor_range_len_frac");
+    $sp_len_frac->run_analysis(
+        %common_sp_args,
+        definition_query => $defq_lfrac,
+    );
+
+    is scalar $sp_len_frac->get_groups_that_pass_def_query,
+        scalar $sp_len->get_groups_that_pass_def_query,
+        "Expected def query passes (length frac)";
 
     #  nothing should pass for not in tree
     $cond = <<~'EOC'

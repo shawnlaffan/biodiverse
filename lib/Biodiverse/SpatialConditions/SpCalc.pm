@@ -2017,12 +2017,13 @@ sub sp_in_label_range {
         ? $h->{coord_id1}
         : $h->{coord_id2};
 
+    my $bd = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
+
     if ($args{convex_hull} || $args{circumcircle}) {
         my $method = $args{convex_hull}
           ? 'get_groups_in_label_range_convex_hull'
           : 'get_groups_in_label_range_circumcircle';
 
-        my $bd = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
         croak "sp_in_label_range: Insufficient group axes for $method"
             if scalar $bd->get_group_axis_count < 2;
 
@@ -2035,7 +2036,7 @@ sub sp_in_label_range {
         return $groups->{$group};
     }
 
-    my $labels_in_group = $h->{basedata}->get_labels_in_group_as_hash_aa ($group);
+    my $labels_in_group = $bd->get_labels_in_group_as_hash_aa ($group);
 
     return exists $labels_in_group->{$label};
 }

@@ -426,4 +426,43 @@ sub test_sp_in_tree_ancestor_range {
 
     $passed = $sp_depth_cc->get_groups_that_pass_def_query();
     is $passed, $exp_cc, "Expected def query passes";
+
+
+    #  terminals should be the same as a call to in_label_range
+    $cond = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_ancestor_range(dist => 0);
+        EOC
+    ;
+    my $defq_d0 = Biodiverse::SpatialConditions::DefQuery->new(
+        conditions   => $cond,
+        %common_cond_args,
+    );
+
+    my $sp_d0 = $bd->add_spatial_output(name => "test_ancestor_range_length_d0");
+    $sp_d0->run_analysis(
+        %common_sp_args,
+        definition_query   => $defq_d0,
+    );
+
+    $cond = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_range();
+        EOC
+    ;
+    my $defq_lr = Biodiverse::SpatialConditions::DefQuery->new(
+        conditions   => $cond,
+        %common_cond_args,
+    );
+
+    my $sp_lr = $bd->add_spatial_output(name => "test_label_range");
+    $sp_lr->run_analysis(
+        %common_sp_args,
+        definition_query   => $defq_lr,
+    );
+
+    is scalar $sp_d0->get_groups_that_pass_def_query,
+        scalar $sp_lr->get_groups_that_pass_def_query,
+        'dist => 0 is same as call to sp_in_label_range';
+
 }

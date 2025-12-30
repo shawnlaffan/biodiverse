@@ -1950,7 +1950,7 @@ sub get_metadata_sp_in_label_range {
         The label argument should normally be specified but in some
         circumstances a default is set (e.g. when a randomisation
         seed location is set).
-    EOD
+        EOD
     ;
 
     my $example = <<~'EOEX'
@@ -2045,50 +2045,50 @@ sub get_metadata_sp_in_label_ancestor_range {
     my $self = shift;
 
     my $description = <<~'EOD'
-            Is a group within the range of a label's ancestor?
+        Is a group within the range of a label's ancestor?
 
-            Returns true if the group falls within the range of
-            any of the any of the ancestor's terminal descendant
-            ranges.
+        Returns true if the group falls within the range of
+        any of the any of the ancestor's terminal descendant
+        ranges.
 
-            The ancestor can be defined by length (default) or
-            depth (the number of ancestors) using the by_depth
-            argument.
+        The ancestor can be defined by length (default) or
+        depth (the number of ancestors) using the by_depth
+        argument.
 
-            Negative dist values search from the root to the
-            specified node.
+        Negative dist values search from the root to the
+        specified node.
 
-            The dist argument determines how far up or down the tree
-            the ancestor is searched for.  When using length,
-            the distance includes the tipwards extent
-            of the branch. The depth is calculated as the number
-            of ancestors.
+        The dist argument determines how far up or down the tree
+        the ancestor is searched for.  When using length,
+        the distance includes the tipwards extent
+        of the branch. The depth is calculated as the number
+        of ancestors.
 
-            If the dist value exceeds the distance from the label
-            node to the root node then the root or label node
-            is returned for positive or negative dist values,
-            respectively.
+        If the dist value exceeds the distance from the label
+        node to the root node then the root or label node
+        is returned for positive or negative dist values,
+        respectively.
 
-            An internal branch can be specified as the label.
-            Specifying a dist of 0 is one means to use the
-            range of an internal node.
+        An internal branch can be specified as the label.
+        Specifying a dist of 0 is one means to use the
+        range of an internal node.
 
-            Returns false if the label is not associated with
-            a node on the tree.
+        Returns false if the label is not associated with
+        a node on the tree.
 
-            When the as_frac argument is true then dist is
-            treated as a fraction of the distance to the root
-            node.
+        When the as_frac argument is true then dist is
+        treated as a fraction of the distance to the root
+        node.
 
-            The underlying algorithm checks each of the terminal
-            ranges using sp_in_label_range().  This means the
-            search can also use the convex hull or circumcircle
-            of each terminal, as well as setting its other arguments
-            and using a default label in some circumstances.
+        The underlying algorithm checks each of the terminal
+        ranges using sp_in_label_range().  This means the
+        search can also use the convex hull or circumcircle
+        of each terminal, as well as setting its other arguments
+        and using a default label in some circumstances.
 
-            Note that each terminal of the ancestor is assessed separately.
-            The ranges are not aggregated before the convex hull
-            or circumcircle is calculated.
+        Note that each terminal of the ancestor is assessed separately.
+        The ranges are not aggregated before the convex hull
+        or circumcircle is calculated.
 
         EOD
     ;

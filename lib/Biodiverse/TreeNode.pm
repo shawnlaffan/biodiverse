@@ -1709,6 +1709,35 @@ sub get_siblings {
     return wantarray ? @sibs : \@sibs;
 }
 
+#  negative values
+sub get_nth_ancestor {
+    my ($self, $n) = @_;
+
+    my $aref = $self->get_path_to_root_node // [];
+    my $ancestor = $aref->[$n];
+
+    return $ancestor // ($n < 0 ? $self : $aref->[-1]);
+}
+
+sub get_ancestor_by_depth_aa {
+    return shift->get_nth_ancestor(@_);
+}
+
+sub get_ancestor_by_length_aa {
+    my ($self, $len) = @_;
+
+    if ($len < 0) {
+        $len += $self->get_distance_to_root_node;
+    }
+    while ($self) {
+        $len -= $self->get_length;
+        last if $len < 0;
+        $self = $self->get_parent
+            // return $self;
+    }
+    return $self;
+}
+
 #  assign some plot coords to the nodes to allow reconstruction of
 #  the dendrogram from a table
 #  need to assign terminal y-values in order, and the parents take the average of the terminal y values.  

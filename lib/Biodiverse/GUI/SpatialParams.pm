@@ -76,6 +76,9 @@ sub new {
     $options_button->signal_connect_swapped(clicked => \&run_options_dialogue, $self);
     $options_button->set_tooltip_text('Control some of the processing options');
 
+    my $tree_combo = $self->update_dendrogram_combo;
+    $tree_combo->show_all;
+
     # Scrolled window for multi-line conditions
     my $scroll = Gtk3::ScrolledWindow->new;
     $scroll->set_policy('automatic', 'automatic');
@@ -86,15 +89,22 @@ sub new {
     my $frame = Gtk3::Frame->new();
     $frame->add($text_view_no_scroll);
 
-    my $hideable_widgets = [$scroll, $frame, $options_button, $syntax_button];
+    my $hideable_widgets = [
+        $scroll, $frame,
+        $tree_combo,
+        $options_button, $syntax_button,
+    ];
 
     # HBox
     $hbox->pack_start($expander, 0, 0, 0);
     $hbox->pack_start($scroll, 1, 1, 0);
     $hbox->pack_start($frame, 1, 1, 0);
+    $hbox->pack_start($tree_combo, 0, 1, 0);
     $hbox->pack_start($options_button, 0, 0, 0);
     $hbox->pack_end($syntax_button, 0, 0, 0);
     $hbox->show_all();
+
+    $self->{tree_combo} = $tree_combo;
 
     my $cb_text_buffer = sub {
         if ($text_buffer->get_line_count > 1) {
@@ -118,31 +128,33 @@ sub new {
 
 
     my $expander_cb = sub {
-        my $expand = !$expander->get_expanded;
-        my $method = $expand ? 'show' : 'hide';
+        my $visible = !$expander->get_expanded;
         foreach my $widget (@$hideable_widgets) {
-            if (not $widget =~ 'Button' and not $widget =~ $self->{current_text_view}) {
+            if (not $widget =~ 'Button|ComboBox' and not $widget =~ $self->{current_text_view}) {
                 $widget->hide;  # hide the inactive textview regardless
             }
             else {
-                $widget->$method;
+                $widget->set_visible($visible);
             }
         }
     };
-    $expander->set_tooltip_text ('Show or hide the edit and verify boxes.  Use this to free up some screen real estate.');
+    $expander->set_tooltip_text (
+        'Show or hide the edit box and other widgets.  '
+      . 'Use this to free up some screen real estate.'
+    );
     $expander->signal_connect_swapped (
         activate => $expander_cb,
         $self,
     );
     $expander->set_expanded(!$start_hidden);
 
-    my $method = $start_hidden ? 'hide' : 'show';
+    my $visible = !$start_hidden;
     foreach my $widget (@$hideable_widgets) {
-        if (not $widget =~ 'Button' and not $widget =~ $self->{current_text_view}) {
+        if (not $widget =~ 'Button|ComboBox' and not $widget =~ $self->{current_text_view}) {
             $widget->hide;  # hide the inactive textview regardless
         }
         else {
-            $widget->$method;
+            $widget->set_visible($visible);
         }
     }
 
@@ -176,6 +188,7 @@ sub on_syntax_check {
             conditions            => $expr,
             basedata_ref          => $bd,
             promise_current_label => $self->{promise_current_label},
+            tree_ref              => $self->get_tree_ref,
         );
     };
     #croak $EVAL_ERROR if $EVAL_ERROR;
@@ -206,13 +219,34 @@ sub get_validated_conditions {
     my $self = shift;
 
     my $conditions = $self->{validated_conditions};
-    croak "Conditions not yet validated\n" if !defined $conditions;
+    return if !defined $conditions;
+    # croak "Conditions not yet validated\n" if !defined $conditions;
 
     my $options = $self->get_options;
     $conditions->set_no_recycling_flag ($options->{no_recycling});
     $conditions->set_ignore_spatial_index_flag ($options->{ignore_spatial_index});
 
     return $conditions;
+}
+
+sub get_tree_ref {
+    my $self = shift;
+
+    my $combo = $self->{tree_combo};
+    return if !$combo;
+
+    my $iter = $combo->get_active_iter;
+    my $tree_ref = $iter ? $combo->get_model->get($iter, 1) : undef;
+
+    if ($tree_ref eq 'no tree') {
+        $tree_ref = undef;
+    }
+    elsif ($tree_ref eq 'project') {
+        my $gui = Biodiverse::GUI::GUIManager->instance;
+        $tree_ref = $gui->get_project->get_selected_phylogeny;
+    }
+
+    return $tree_ref;
 }
 
 sub get_object {
@@ -312,6 +346,62 @@ sub get_options {
     my $options = $self->{options} // {};
     
     return wantarray ? %$options : $options;
+}
+
+sub update_dendrogram_combo {
+    my $self = shift;
+
+    my $combobox = Gtk3::ComboBox->new;
+
+    my $renderer_text = Gtk3::CellRendererText->new();
+    $combobox->pack_start($renderer_text, 1);
+    $combobox->add_attribute($renderer_text, "text", 0);
+
+    #  Clear the current entries.
+    #  We need to load a new ListStore to avoid crashes due
+    #  to them being destroyed somewhere in the refresh process
+    #  (Not sure that is still the case)
+    my $model = Gtk3::ListStore->new('Glib::String', 'Glib::Scalar');
+
+    my @combo_items;
+
+    my $output_ref = eval {$self->get_validated_conditions};
+    if ($output_ref && $output_ref->can('get_tree_ref') && $output_ref->get_tree_ref) {
+        my $iter = $model->append();
+        $model->set( $iter, 0 => 'analysis', 1 =>  $output_ref->get_tree_ref);
+        push @combo_items, 'analysis';
+    }
+
+    foreach my $option ('no tree', 'project') {
+        my $iter = $model->append();
+        $model->set( $iter, 0 => $option, 1 => $option );
+        push @combo_items, $option;
+    }
+
+    my $list = Biodiverse::GUI::GUIManager->instance->get_project->get_phylogeny_list;
+    foreach my $tree (@$list) {
+        my $name = $tree->get_name;
+        my $iter = $model->append();
+        $model->set( $iter, 0 => $name, 1 => $tree );
+    }
+
+    $combobox->set_model ($model);
+
+    state $tooltip = <<~'EOT';
+        Choose the tree to use in the spatial conditions.
+
+        The remainder of the options are the trees available at
+        the project level.  Note that this set is not updated as
+        trees are added to and removed from the project.
+        Changes can be triggered by closing and reopening the tab.
+        EOT
+    ;
+
+    $combobox->set_tooltip_text ($tooltip);
+    $combobox->set_active(0);
+    # $combobox->show_all;
+
+    return $combobox;
 }
 
 

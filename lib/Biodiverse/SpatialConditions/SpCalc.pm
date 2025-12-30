@@ -20,11 +20,10 @@ use Tree::R;
 use Biodiverse::Progress;
 use Scalar::Util qw /looks_like_number blessed/;
 use List::MoreUtils qw /uniq/;
-use List::Util qw /min max/;
+use List::Util qw /min max any/;
 use Ref::Util qw { :all };
 
 
-my $metadata_class = 'Biodiverse::Metadata::SpatialConditions';
 use Biodiverse::Metadata::SpatialConditions;
 
 our $NULL_STRING = q{};
@@ -368,17 +367,8 @@ sub sp_square {
     my $size = $args{size} / 2;
 
     my $h = $self->get_param('CURRENT_ARGS');
-
-    #my @x = @{ $h->{dists}{D_list} }; 
-    foreach my $dist (@{ $h->{dists}{D_list} }) {
-        warn "$dist, $size"
-          if    $args{size} == 0.2
-             && (abs ($size - $dist) < 0.00001)
-             && (abs ($size - $dist) > 0);
-        return 0 if $dist > $size;
-    }
-
-    return 1;  #  if we get this far then we are OK.
+    my $aref = $h->{dists}{D_list} // [];
+    return List::Util::all {$_ <= $size} @$aref;
 }
 
 sub get_metadata_sp_square_cell {
@@ -419,14 +409,8 @@ sub sp_square_cell {
     my $size = $args{size} / 2;
 
     my $h = $self->get_param('CURRENT_ARGS');
-
-    #my @x = @{ $h->{dists}{C_list} };
-    foreach my $dist (@{ $h->{dists}{C_list} }) {
-        return 0 if $dist > $size;
-    }
-
-    #  if we get this far then we are OK.
-    return 1;
+    my $aref = $h->{dists}{C_list} // [];
+    return List::Util::all {$_ <= $size} @$aref;
 }
 
 sub get_metadata_sp_block {
@@ -602,7 +586,6 @@ sub sp_ellipse {
 
 sub get_metadata_sp_select_all {
     my $self = shift;
-    my %args = @_;
 
     my %metadata = (
         description    => 'Select all elements as neighbours',
@@ -615,9 +598,6 @@ sub get_metadata_sp_select_all {
 }
 
 sub sp_select_all {
-    my $self = shift;
-    #my %args = @_;
-
     return 1;    #  always returns true
 }
 
@@ -636,7 +616,6 @@ sub get_metadata_sp_self_only {
 
 sub sp_self_only {
     my $self = shift;
-    my %args = @_;
 
     my $h = $self->get_param('CURRENT_ARGS');
 
@@ -1183,7 +1162,6 @@ sub get_cached_subset_nbrs {
 
 sub clear_cached_subset_nbrs {
     my $self = shift;
-    my %args = @_;
 
     my $clear = $self->get_param('SP_SELECT_SEQUENCE_CLEAR_CACHE');
     return if ! $clear;
@@ -1255,13 +1233,13 @@ sub sp_select_block {
     my $coord_id1 = $h->{coord_id1};
     my $coord_id2 = $h->{coord_id2};
 
-    my $verifying = $self->get_param('VERIFYING');
+    # my $verifying = $self->get_param('VERIFYING');
 
     my $frequency    = $args{count} // 1;
     my $size         = $args{size}; #  should be a function of cellsizes
     my $prng_seed    = $args{prng_seed};
     my $random       = $args{random} // 1;
-    my $use_cache    = $args{use_cache} // 1;
+    # my $use_cache    = $args{use_cache} // 1;
 
     if ($args{clear_cache}) {
         $self->set_param(SP_SELECT_BLOCK_CLEAR_CACHE => 1);
@@ -1358,8 +1336,6 @@ sub get_spatial_output_sp_select_block {
 sub get_metadata_sp_point_in_poly {
     my $self = shift;
     
-    my %args = @_;
-    
     my $example = <<~'END_SP_PINPOLY'
         # Is the neighbour coord in a square polygon?
         sp_point_in_poly (
@@ -1432,7 +1408,6 @@ sub _get_shp_examples {
 
 sub get_metadata_sp_point_in_poly_shape {
     my $self = shift;
-    my %args = @_;
     
     my $examples = $self->_get_shp_examples;
 
@@ -1501,7 +1476,7 @@ sub sp_point_in_poly_shape {
 
     #  need a progress dialogue for involved searches
     #my $progress = Biodiverse::Progress->new(text => 'Point in poly search');
-    my ($i, $target) = (1, scalar @$rtree_polys);
+    # my ($i, $target) = (1, scalar @$rtree_polys);
 
     foreach my $poly (@$rtree_polys) {
         #$progress->update(
@@ -1527,7 +1502,6 @@ sub sp_point_in_poly_shape {
 
 sub get_metadata_sp_points_in_same_poly_shape {
     my $self = shift;
-    my %args = @_;
 
     my $examples = <<~'END_EXAMPLES'
         #  define neighbour sets using a shapefile
@@ -1607,9 +1581,6 @@ sub sp_points_in_same_poly_shape {
     my $pointshape2 = Geo::ShapeFile::Point->new(X => $x_coord2, Y => $y_coord2);
 
     my $rtree = $self->get_rtree_for_polygons_from_shapefile (%args, shapes => $polys);
-    my $bd = $h->{basedata};
-    my @cell_sizes = $bd->get_cell_sizes;
-    my ($cell_x, $cell_y) = ($cell_sizes[$axes->[0]], $cell_sizes[$axes->[1]]);
 
     #  smaller rectangles than the cells so we don't overlap with nbrs - that causes grief later on
     # my ($dx, $dy) = ($cell_x / 4, $cell_y / 4);
@@ -1678,8 +1649,7 @@ sub sp_points_in_same_poly_shape {
 }
 
 sub get_cache_name_sp_point_in_poly_shape {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
     my $cache_name = join ':',
         'sp_point_in_poly_shape',
         $args{file},
@@ -1689,8 +1659,7 @@ sub get_cache_name_sp_point_in_poly_shape {
 }
 
 sub get_cache_name_sp_points_in_same_poly_shape {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
     my $cache_name = join ':',
         'sp_points_in_same_poly_shape',
         $args{file};
@@ -1802,19 +1771,17 @@ sub get_rtree_for_polygons_from_shapefile {
 }
 
 sub get_cache_name_rtree {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
     my $cache_name = join ':',
         'RTREE',
         $args{file},
         ($args{field} || $NULL_STRING),
-        (defined $args{field_val} ? $args{field_val} : $NULL_STRING);
+        ($args{field_val} // $NULL_STRING);
     return $cache_name;
 }
 
 sub build_rtree_for_shapepolys {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
     my $shapes = $args{shapes};
 
@@ -1829,8 +1796,6 @@ sub build_rtree_for_shapepolys {
 
 sub get_metadata_sp_group_not_empty {
     my $self = shift;
-    
-    my %args = @_;
 
     my $example = <<~'END_GP_NOT_EMPTY_EX'
         # Restrict calculations to those non-empty groups.
@@ -1950,7 +1915,7 @@ sub get_metadata_sp_in_label_range {
         The label argument should normally be specified but in some
         circumstances a default is set (e.g. when a randomisation
         seed location is set).
-    EOD
+        EOD
     ;
 
     my $example = <<~'EOEX'
@@ -2017,12 +1982,13 @@ sub sp_in_label_range {
         ? $h->{coord_id1}
         : $h->{coord_id2};
 
+    my $bd = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
+
     if ($args{convex_hull} || $args{circumcircle}) {
         my $method = $args{convex_hull}
           ? 'get_groups_in_label_range_convex_hull'
           : 'get_groups_in_label_range_circumcircle';
 
-        my $bd = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
         croak "sp_in_label_range: Insufficient group axes for $method"
             if scalar $bd->get_group_axis_count < 2;
 
@@ -2035,11 +2001,128 @@ sub sp_in_label_range {
         return $groups->{$group};
     }
 
-    my $labels_in_group = $h->{basedata}->get_labels_in_group_as_hash_aa ($group);
+    my $labels_in_group = $bd->get_labels_in_group_as_hash_aa ($group);
 
     return exists $labels_in_group->{$label};
 }
 
+sub get_metadata_sp_in_label_ancestor_range {
+    my $self = shift;
+
+    my $description = <<~'EOD'
+        Is a group within the range of a label's ancestor?
+
+        Returns true if the group falls within the range of
+        any of the any of the ancestor's terminal descendant
+        ranges.
+
+        The ancestor can be defined by length (default) or
+        depth (the number of ancestors) using the by_depth
+        argument.
+
+        Negative dist values search from the root to the
+        specified node.
+
+        The dist argument determines how far up or down the tree
+        the ancestor is searched for.  When using length,
+        the distance includes the tipwards extent
+        of the branch. The depth is calculated as the number
+        of ancestors.
+
+        If the dist value exceeds the distance from the label
+        node to the root node then the root or label node
+        is returned for positive or negative dist values,
+        respectively.
+
+        An internal branch can be specified as the label.
+        Specifying a dist of 0 is one means to use the
+        range of an internal node.
+
+        Returns false if the label is not associated with
+        a node on the tree.
+
+        When the as_frac argument is true then dist is
+        treated as a fraction of the distance to the root
+        node.
+
+        The underlying algorithm checks each of the terminal
+        ranges using sp_in_label_range().  This means the
+        search can also use the convex hull or circumcircle
+        of each terminal, as well as setting its other arguments
+        and using a default label in some circumstances.
+
+        Note that each terminal of the ancestor is assessed separately.
+        The ranges are not aggregated before the convex hull
+        or circumcircle is calculated.
+
+        EOD
+    ;
+
+    my $example = <<~'EOEX'
+        # Are we in the range of an ancestor of Genus:Sp1?
+        sp_in_label_ancestor_range(label => 'Genus:Sp1', dist => 0.5)
+
+        # Are we in the range of the "grandmother" of Genus:Sp1?
+        sp_in_label_ancestor_range(
+          label    => 'Genus:Sp1',
+          dist     => 2,
+          by_depth => 1,
+        )
+
+        #  Are we in the convex hull?
+        sp_in_label_ancestor_range(
+          label => 'Genus:Sp1',
+          dist  => 0.5,
+          convex_hull => 1,
+        )
+
+        #  Are we in the circumscribing circle?
+        sp_in_label_ancestor_range(
+          label => 'Genus:Sp1',
+          dist  => 0.5,
+          circumcircle => 1,
+        )
+
+        EOEX
+    ;
+
+    my $meta = $self->get_metadata_sp_in_label_range;
+    push @{$meta->{required_args}}, 'dist';
+    push @{$meta->{optional_args}}, (qw /by_depth as_frac/);
+    $meta->{description} = $description;
+    $meta->{example}     = $example;
+    $meta->{requires_tree_ref} = 1;
+    return wantarray ? %$meta : $meta;
+}
+
+sub sp_in_label_ancestor_range {
+    my ($self, %args) = @_;
+
+    my $label = $args{label} // $self->_process_label_arg();
+    my $tree  = $self->get_tree_ref // croak 'No tree ref available';
+
+    my $node = $tree->get_node_ref_or_undef_aa($label);
+    return 0 if !defined $node;
+
+    my $d = $args{dist} // croak 'argument "dist" not defined';
+
+    if ($args{as_frac}) {
+        if ($args{by_depth}) {
+            $d = (1 - $d) * $node->get_depth;
+        }
+        else {
+            $d *= $node->get_distance_to_root_node;
+        }
+    }
+
+    my $ancestor = $args{by_depth}
+        ? $node->get_ancestor_by_depth_aa($d)
+        : $node->get_ancestor_by_length_aa($d);
+
+    return List::Util::any
+        {$self->sp_in_label_range (%args, label => $_)}
+        keys %{$ancestor->get_terminal_elements};
+}
 
 sub get_example_sp_get_spatial_output_list_value {
 
@@ -2069,7 +2152,6 @@ sub get_example_sp_get_spatial_output_list_value {
 
 sub get_metadata_sp_get_spatial_output_list_value {
     my $self = shift;
-    my %args = @_;
 
     my $description =
         q{Obtain a value from a list in a previously calculated spatial output.};
@@ -2179,7 +2261,6 @@ sub get_example_sp_richness_greater_than {
 
 sub get_metadata_sp_richness_greater_than {
     my $self = shift;
-    my %args = @_;
 
     my $description =
         q{Return true if the richness for an element is greater than the threshold.};
@@ -2248,7 +2329,6 @@ sub get_example_sp_redundancy_greater_than {
 
 sub get_metadata_sp_redundancy_greater_than {
     my $self = shift;
-    my %args = @_;
 
     my $description =
         q{Return true if the sample redundancy for an element is greater than the threshold.};
@@ -2297,7 +2377,6 @@ sub sp_redundancy_greater_than {
 
 sub get_metadata_sp_spatial_output_passed_defq {
     my $self = shift;
-    my %args = @_;
 
     my $description =
         "Returns 1 if an element passed the definition query "
@@ -2408,7 +2487,6 @@ sub get_caller_spatial_output_ref {
 
 sub get_metadata_sp_points_in_same_cluster {
     my $self = shift;
-    my %args = @_;
 
     my $examples = <<~'END_EXAMPLES'
         #  Try to use the highest four clusters from the root.
@@ -2529,7 +2607,6 @@ sub sp_points_in_same_cluster {
 
 sub get_metadata_sp_point_in_cluster {
     my $self = shift;
-    my %args = @_;
 
     my $examples = <<~'END_EXAMPLES';
         #  Use any element that is a terminal in the cluster output.

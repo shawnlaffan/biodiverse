@@ -82,6 +82,63 @@ sub _chklk {
 
 }
 
+sub test_ancestor_by {
+    my $tree = get_site_data_as_tree();
+
+    my $from_name   = '3450000:850000';
+    my $target_name = '112___';
+    # my @descendents = qw /
+    #     3450000:850000  3450000:950000  3450000:1150000
+    #     3550000:950000  3550000:1050000 3550000:1150000
+    #     3650000:1150000 3750000:1350000 3750000:1550000
+    #     3850000:1650000
+    # /;
+
+    #  check a terminal
+    my $from_node = $tree->get_node_ref_aa ($from_name);
+    my $d = 4;
+    my $ancestor = $from_node->get_ancestor_by_depth_aa($d);
+    is $ancestor->get_name,
+       $target_name,
+       "Got expected ancestor for $from_name at depth above of $d";
+    $d = 0.7;
+    $ancestor = $from_node->get_ancestor_by_length_aa($d);
+    is $ancestor->get_name,
+        $target_name,
+        "Got expected ancestor for $from_name at length above of $d";
+
+    #  numbers bigger than tree return the root
+    $d = 27;
+    my $root = $tree->get_root_node;
+    $ancestor = $from_node->get_ancestor_by_depth_aa($d);
+    is $ancestor->get_name,
+        $root->get_name,
+        "Got root node when ancestor depth exceeds tree";
+    $ancestor = $from_node->get_ancestor_by_length_aa($d);
+    is $ancestor->get_name,
+        $root->get_name,
+        "Got root node when ancestor length exceeds tree";
+
+    #  now from an internal node (the immediate parent)
+    $from_node = $from_node->get_parent;
+    $from_name = $from_node->get_name;
+    $d = 3;
+    $ancestor = $from_node->get_ancestor_by_depth_aa($d);
+    is $ancestor->get_name,
+        $target_name,
+        "Got expected ancestor for $from_name at depth above of $d";
+    $d = 0.7 - 0.25;  #  subtract terminal's length
+    $ancestor = $from_node->get_ancestor_by_length_aa($d);
+    is $ancestor->get_name,
+        $target_name,
+        "Got expected ancestor for $from_name at length above of $d";
+
+    #  exceptions
+    is $from_node->get_ancestor_by_depth_aa(-1)->get_name, '126___', '-ve ancestor by depth call';
+    is $from_node->get_ancestor_by_length_aa(-0.025)->get_name, '123___', '-ve ancestor by length call';
+
+}
+
 
 sub test_is_ultrametric {
     my $tree = Biodiverse::Tree->new (NAME => 'ultron');

@@ -87,6 +87,7 @@ sub new {
         KEEP_LAST_DISTANCES => $args{keep_last_distances},
     );
     $self->set_promise_current_label($args{promise_current_label});
+    $self->set_tree_ref($args{tree_ref});
 
     eval {$self->parse_distances};
     croak $EVAL_ERROR if $EVAL_ERROR;
@@ -107,6 +108,20 @@ sub metadata_class {
 sub get_metadata {
     my $self = shift;
     return $self->SUPER::get_metadata (@_, no_use_cache => 1);
+}
+
+sub get_tree_ref {
+    my ($self) = @_;
+    $self->get_param('TREE_REF');
+}
+
+sub set_tree_ref {
+    my ($self, $tree_ref) = @_;
+    if (my $old_tree = $self->get_tree_ref) {
+        $self->delete_cached_values
+          if ref $tree_ref ne ref $old_tree;
+    }
+    $self->set_param(TREE_REF => $tree_ref);
 }
 
 sub get_conditions {
@@ -193,6 +208,17 @@ sub set_promise_current_label {
     my ($self, $promise) = @_;
     return $self->{promise_current_label} = $promise;
 }
+
+sub get_requires_tree_ref {
+    my ($self) = @_;
+    return $self->{requires_tree_ref};
+}
+
+sub set_requires_tree_ref {
+    my ($self, $bool) = @_;
+    return $self->{requires_tree_ref} = $bool;
+}
+
 
 sub get_used_dists {
     my $self = shift;
@@ -291,7 +317,10 @@ sub parse_distances {
     my $re_sub_names_text = '\b(?:' . join( q{|}, @subs_to_check ) . ')\b';
     my $re_sub_names      = qr /$re_sub_names_text/xsm;
     my $is_volatile;
-    
+
+    #  maybe the user calls this in the condition somewhere
+    my $requires_tree_ref = $conditions =~ /\$self\s*\-\>\s*get_tree_ref\b/;
+
     my %shape_hash;
 
     my $str_len = length $conditions;
@@ -387,6 +416,8 @@ sub parse_distances {
                 $is_volatile ||= $self->$cb(%hash_1);
             }
 
+            $requires_tree_ref ||= $metadata->get_requires_tree_ref;
+
             #  REALLY BAD CODE - does not allow for other
             #  functions and operators
             $results_types .= ' ' . $metadata->get_result_type;
@@ -427,6 +458,12 @@ sub parse_distances {
     $self->set_param( USES             => \%uses_distances );
     $self->set_param( SHAPE_TYPES      => join ' ', sort keys %shape_hash);
     $self->set_volatile_flag($is_volatile);
+    $self->set_requires_tree_ref($requires_tree_ref);
+
+    if (!$requires_tree_ref) {
+        #  clear the tree if we do not need it
+        $self->set_tree_ref(undef);
+    }
 
     #  do we need to calculate the distances?  NEEDS A BIT MORE THOUGHT
     $self->set_param( CALC_DISTANCES => undef );

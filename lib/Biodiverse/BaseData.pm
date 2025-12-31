@@ -2194,36 +2194,13 @@ sub get_groups_with_label {    #  get a list of the groups that contain $label
         element => $args{label} );
 }
 
-sub get_groups_with_label_as_hash
-{                              #  get a hash of the groups that contain $label
-    my $self = shift;
-    my %args = @_;
+#  get a hash of the groups that contain $label
+sub get_groups_with_label_as_hash {
+    my ($self, %args) = @_;
 
     croak "Label not specified\n" if !defined $args{label};
 
-    if ( !defined $args{use_elements} ) {
-
-        #  takes care of the wantarray stuff this way
-        return $self->get_labels_ref->get_sub_element_hash_aa( $args{label} );
-    }
-
-    #  Not sure why the rest is here - is it used anywhere?
-    #  violates the guideline that subs should do one thing only
-
-    #  make a copy - don't want to delete the original
-    my %results =
-      $self->get_labels_ref->get_sub_element_hash( element => $args{label} );
-
-    #  get a list of keys we don't want
-    no warnings
-      'uninitialized';    #  in case a list containing nulls is sent through
-    my %sub_results = %results;
-    delete @sub_results{ @{ $args{use_elements} } };
-
-    #  now we delete those keys we don't want.  Twisted, but should work.
-    delete @results{ keys %sub_results };
-
-    return wantarray ? %results : \%results;
+    return $self->get_labels_ref->get_sub_element_hash_aa( $args{label} );
 }
 
 sub get_groups_with_label_as_hash_aa {

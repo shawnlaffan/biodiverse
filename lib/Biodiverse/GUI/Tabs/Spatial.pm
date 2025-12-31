@@ -417,6 +417,7 @@ sub get_tree_menu_items {
                qw /background_colour
                    separator
                    highlight_groups_on_map
+                   highlight_groups_on_map_convex_hull
                    highlight_paths_on_tree
                    separator
                    plot_branches_by
@@ -575,6 +576,7 @@ sub init_dendrogram {
     # my $vscroll     = $self->get_xmlpage_object('spatialPhylogenyVScroll');
 
     my $hover_closure       = sub { $self->on_phylogeny_hover(@_); };
+    my $end_hover_closure   = sub { $self->on_end_phylogeny_hover(@_); };
     my $highlight_closure   = sub { $self->on_phylogeny_highlight(@_); };
     my $ctrl_click_closure  = sub { $self->on_phylogeny_popup(@_); };
     my $click_closure       = sub { $self->on_phylogeny_click(@_); };
@@ -585,6 +587,7 @@ sub init_dendrogram {
         frame                         => $frame,
         grid                          => undef,
         hover_func                    => $hover_closure,
+        end_hover_func                => $end_hover_closure,
         highlight_func                => $highlight_closure,
         ctrl_click_func               => $ctrl_click_closure,
         click_func                    => $click_closure,
@@ -1223,6 +1226,8 @@ sub on_phylogeny_highlight {
 
         last LABEL if $max_groups == scalar keys %groups;
     }
+
+    $self->highlight_label_range_convex_hulls($node);
 
     $self->{grid}->mark_with_circles ( [keys %groups] );
     $self->{grid}->mark_with_dashes  ( [] );  #  clear any nbr_set2 highlights

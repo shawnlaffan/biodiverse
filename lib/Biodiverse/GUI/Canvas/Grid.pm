@@ -47,9 +47,10 @@ sub new {
         overlays   => sub {shift->_bounding_box_page_units(@_)},
         underlays  => sub {},
         legend     => sub {shift->get_legend->draw(@_)},
-        sel_rect   => sub {shift->draw_selection_rect (@_)}
+        sel_rect   => sub {shift->draw_selection_rect (@_)},
+        range_outlines => undef,
     };
-    $self->{callback_order} = [qw /underlays map overlays legend highlights sel_rect/];
+    $self->{callback_order} = [qw /underlays map overlays legend range_outlines highlights sel_rect/];
 
     return $self;
 }
@@ -628,21 +629,30 @@ sub plot_highlights {
     return FALSE;
 }
 
+sub clear_range_outlines {
+    my $self = shift;
+    $self->set_overlay(
+        cb_target   => 'range_outlines',
+        plot_on_top => 1,
+        data        => undef,
+    );
+}
+
 sub set_overlay {
     my ($self, %args) = @_;
     my ($shapefile, $colour, $plot_on_top, $alpha, $type, $linewidth)
       = @args{qw /shapefile colour plot_on_top alpha type linewidth/};
 
-    my $cb_target_name = $plot_on_top ? 'overlays' : 'underlays';
+    my $cb_target_name = $args{cb_target} // ($plot_on_top ? 'overlays' : 'underlays');
 
-    if (!defined $shapefile) {
+    if (!defined $shapefile && ! defined $args{data}) {
         #  clear it
         $self->{callbacks}{$cb_target_name} = undef;
         $self->drawable->queue_draw;
         return;
     }
 
-    my $data = $self->load_shapefile($shapefile);
+    my $data = $args{data} // $self->load_shapefile($shapefile);
 
     my @rgba = (
         $self->rgb_to_array($colour),
@@ -656,7 +666,6 @@ sub set_overlay {
     if (is_blessed_ref ($data->[0])) {
         $cb = sub {
             my ($self, $cx) = @_;
-
             $cx->set_matrix($self->{matrix});
             $cx->set_source_rgba(@rgba);
             #  line width should be an option in the GUI
@@ -674,7 +683,7 @@ sub set_overlay {
             $cx->$stroke_or_fill;
         };
     }
-    else {  #  shapefiles, old style
+    else {  #  label range convex hulls etc
         $cb = sub {
             my ($self, $cx) = @_;
 

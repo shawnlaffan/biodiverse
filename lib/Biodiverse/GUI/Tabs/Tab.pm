@@ -1317,6 +1317,19 @@ EOT
             active   => 1,
             self_key => 'checkbox_show_tree_legend',
         },
+        highlight_groups_on_map_convex_hull => {
+            type     => 'Gtk3::CheckMenuItem',
+            label    => 'Highlight groups on map with range convex hulls',
+            tooltip  => 'When hovering the mouse over a tree branch, '
+                . 'plot a convex hull of the range of each subtending label.',
+            event    => 'toggled',
+            callback => sub {
+                my $self = shift;
+                $self->toggle_highlight_label_range_convex_hulls;
+            },
+            active   => 0,
+            self_key => 'checkbox_show_tree_legend',
+        },
         highlight_paths_on_tree => {
             type     => 'Gtk3::CheckMenuItem',
             label    => 'Highlight paths on tree',

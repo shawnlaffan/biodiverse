@@ -418,6 +418,7 @@ sub get_tree_menu_items {
                    separator
                    highlight_groups_on_map
                    highlight_groups_on_map_convex_hull
+                   highlight_groups_on_map_circumcircle
                    highlight_paths_on_tree
                    separator
                    plot_branches_by
@@ -1208,6 +1209,7 @@ sub on_phylogeny_highlight {
 
     $self->highlight_label_range_marks($node);
     $self->highlight_label_range_convex_hulls($node);
+    $self->highlight_label_range_circumcircles($node);
 
     return;
 }

@@ -42,15 +42,24 @@ sub new {
     $self->init_legend(%args, parent => $self);
 
     $self->{callbacks} = {
-        map        => sub {shift->draw_cells_cb(@_)},
-        highlights => sub {shift->plot_highlights(@_)},
-        overlays   => sub {shift->_bounding_box_page_units(@_)},
-        underlays  => sub {},
-        legend     => sub {shift->get_legend->draw(@_)},
-        sel_rect   => sub {shift->draw_selection_rect (@_)},
-        range_outlines => undef,
+        map                 => sub {shift->draw_cells_cb(@_)},
+        highlights          => sub {shift->plot_highlights(@_)},
+        overlays            => sub {shift->_bounding_box_page_units(@_)},
+        underlays           => sub {},
+        legend              => sub {shift->get_legend->draw(@_)},
+        sel_rect            => sub {shift->draw_selection_rect(@_)},
+        range_convex_hulls  => undef,
+        range_circumcircles => undef,
     };
-    $self->{callback_order} = [qw /underlays map overlays legend range_outlines highlights sel_rect/];
+    $self->{callback_order} = [qw /
+        underlays
+        map
+        overlays
+        legend
+        range_convex_hulls
+        range_circumcircles
+        highlights sel_rect
+    /];
 
     return $self;
 }
@@ -629,10 +638,19 @@ sub plot_highlights {
     return FALSE;
 }
 
-sub clear_range_outlines {
+sub clear_range_convex_hulls {
     my $self = shift;
     $self->set_overlay(
-        cb_target   => 'range_outlines',
+        cb_target   => 'range_convex_hulls',
+        plot_on_top => 1,
+        data        => undef,
+    );
+}
+
+sub clear_range_circumcircles {
+    my $self = shift;
+    $self->set_overlay(
+        cb_target   => 'range_circumcircles',
         plot_on_top => 1,
         data        => undef,
     );
@@ -663,7 +681,19 @@ sub set_overlay {
     $linewidth ||= 1;
 
     my $cb;
-    if (is_blessed_ref ($data->[0])) {
+    if (is_blessed_ref ($data) && $data->isa('Biodiverse::Geometry::Circle')) {
+        $cb = sub {
+            my ($self, $cx) = @_;
+            $cx->set_matrix($self->{matrix});
+            $cx->set_source_rgba(@rgba);
+            #  line width should be an option in the GUI
+            $cx->set_line_width(max($cx->device_to_user_distance($linewidth, $linewidth)));
+            $cx->arc(@{$data->centre}, $data->radius, 0, 2.0 * PI);
+            $cx->close_path;
+            $cx->$stroke_or_fill;
+        }
+    }
+    elsif (is_blessed_ref ($data->[0])) {
         $cb = sub {
             my ($self, $cx) = @_;
             $cx->set_matrix($self->{matrix});

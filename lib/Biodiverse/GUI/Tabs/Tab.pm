@@ -1332,6 +1332,21 @@ EOT
                 $self->get_highlight_label_range_convex_hulls;
             },
         },
+        highlight_groups_on_map_circumcircle => {
+            type     => 'Gtk3::CheckMenuItem',
+            label    => 'Highlight groups on map with range circumcircles',
+            tooltip  => 'When hovering the mouse over a tree branch, '
+                . 'plot a circumcircle containing the range of each subtending label.',
+            event    => 'toggled',
+            callback => sub {
+                my ($self, $widget) = @_;
+                $self->set_highlight_label_range_circumcircles($widget->get_active);
+            },
+            active   => sub {
+                my ($self) = @_;
+                $self->get_highlight_label_range_circumcircles;
+            },
+        },
         highlight_paths_on_tree => {
             type     => 'Gtk3::CheckMenuItem',
             label    => 'Highlight paths on tree',

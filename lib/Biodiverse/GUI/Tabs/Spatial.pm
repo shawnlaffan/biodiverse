@@ -256,6 +256,7 @@ sub new {
     $self->queue_set_pane(1  , 'spatial_vpanePhylogeny');
 
     $self->setup_dendrogram;
+    $self->{use_highlight_path} = 1;
 
     # Connect signals
     $self->{xmlLabel}->get_object('btnSpatialClose')->signal_connect_swapped(
@@ -413,8 +414,15 @@ sub get_tree_menu_items {
             callback => \&on_tree_undef_colour_changed,
         },
         (   map {$self->get_tree_menu_item($_)}
-               qw /background_colour separator plot_branches_by set_tree_branch_line_widths
-                   separator export_tree /
+               qw /background_colour
+                   separator
+                   highlight_groups_on_map
+                   highlight_paths_on_tree
+                   separator
+                   plot_branches_by
+                   set_tree_branch_line_widths
+                   separator
+                   export_tree /
         ),
     );
 
@@ -1672,6 +1680,8 @@ sub on_grid_hover {
         #  does this even trigger now?
         my $group = $element; # is this the same?
         return if ! defined $group;
+
+        return if !$self->{use_highlight_path};
 
         # get labels in the group
         my $bd = $bd_ref;

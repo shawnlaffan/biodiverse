@@ -398,6 +398,8 @@ sub get_tree_menu_items {
         (   map {$self->get_tree_menu_item($_)}
                qw /plot_branches_by
                    highlight_groups_on_map
+                   highlight_groups_on_map_convex_hull
+                   highlight_groups_on_map_circumcircle
                    highlight_paths_on_tree
                    separator
                    background_colour
@@ -891,6 +893,133 @@ sub on_highlight_groups_on_map_changed {
 
     return;
 }
+
+sub set_highlight_label_range_convex_hulls {
+    my ($self, $value) = @_;
+
+    $self->{highlight_label_range_convex_hulls} = !!$value;
+
+    return;
+}
+
+sub toggle_highlight_label_range_convex_hulls {
+    my ($self, $value) = @_;
+
+    $self->{highlight_label_range_convex_hulls}
+        = !$self->{highlight_label_range_convex_hulls};
+}
+
+sub get_highlight_label_range_convex_hulls {
+    $_[0]->{highlight_label_range_convex_hulls};
+}
+
+sub set_highlight_label_range_circumcircles {
+    my ($self, $value) = @_;
+
+    $self->{highlight_label_range_circumcircles} = !!$value;
+
+    return;
+}
+
+sub toggle_highlight_label_range_circumcircles {
+    my ($self, $value) = @_;
+
+    $self->{highlight_label_range_circumcircles}
+        = !$self->{highlight_label_range_circumcircles};
+}
+
+sub get_highlight_label_range_circumcircles {
+    $_[0]->{highlight_label_range_circumcircles};
+}
+
+sub highlight_label_range_convex_hulls {
+    my ($self, $node) = @_;
+
+    return if !$self->get_highlight_label_range_convex_hulls;
+
+    my $terminal_elements = $node->get_terminal_elements;
+
+    my $bd = $self->get_base_ref;
+    my $label_hash = $bd->get_labels_ref->get_element_hash;
+
+    #  clear existing
+    $self->{grid}->clear_range_convex_hulls;
+
+    my $cache = $bd->get_cached_value_dor_set_default_href('LABEL_RANGE_CONVEX_HULL_VERTICES');
+
+    foreach my $label (keys %$terminal_elements) {
+        next LABEL if !exists $label_hash->{$label};
+        my $data
+            = $cache->{$label}
+            //= $bd->get_label_range_convex_hull(label => $label)->GetPoints(0, 0);
+        $self->{grid}->set_overlay(
+            type        => 'polyline',
+            cb_target   => 'range_convex_hulls',
+            plot_on_top => 1,
+            data        => $data,
+            colour      => COLOUR_BLACK,
+            alpha       => 0.5,
+        );
+    }
+}
+
+sub highlight_label_range_circumcircles {
+    my ($self, $node) = @_;
+
+    return if !$self->get_highlight_label_range_circumcircles;
+
+    my $terminal_elements = $node->get_terminal_elements;
+
+    my $bd = $self->get_base_ref;
+    my $label_hash = $bd->get_labels_ref->get_element_hash;
+
+    #  clear existing
+    $self->{grid}->clear_range_circumcircles;
+
+    foreach my $label (keys %$terminal_elements) {
+        next LABEL if !exists $label_hash->{$label};
+        my $data = $bd->get_label_range_circumcircle(label => $label);
+        $self->{grid}->set_overlay(
+            type        => 'polyline',
+            cb_target   => 'range_circumcircles',
+            plot_on_top => 1,
+            data        => $data,
+            colour      => COLOUR_BLACK,
+            alpha       => 0.5,
+        );
+    }
+}
+
+sub highlight_label_range_marks {
+    my ($self, $node) = @_;
+
+    my $terminal_elements = (defined $node) ? $node->get_terminal_elements : {};
+
+    # Hash of groups that have the selected labels
+    my %groups;
+
+    my $bd = $self->get_base_ref;
+    my $label_hash = $bd->get_labels_ref->get_element_hash;
+    my $max_groups = $bd->get_group_count;
+
+    LABEL:
+    foreach my $label (keys %$terminal_elements) {
+        next LABEL if !exists $label_hash->{$label};
+
+        my $containing = eval {$bd->get_groups_with_label_as_hash_aa($label)};
+        next LABEL if !$containing;
+
+        @groups{keys %$containing} = ();
+
+        last LABEL if $max_groups == scalar keys %groups;
+    }
+
+    $self->{grid}->mark_with_circles ( [keys %groups] );
+    $self->{grid}->mark_with_dashes  ( [] );  #  clear any nbr_set2 highlights
+
+    return;
+}
+
 
 sub on_selected_matrix_changed {
     my ($self, %args) = @_;
@@ -1438,6 +1567,8 @@ sub on_end_phylogeny_hover {
 
     return if !$self->do_canvas_hover_flag;
 
+    $self->{grid}->clear_range_convex_hulls;
+    $self->{grid}->clear_range_circumcircles;
     $self->{grid}->mark_with_circles;
 }
 
@@ -1446,28 +1577,13 @@ sub on_end_phylogeny_hover {
 sub on_phylogeny_highlight {
     my ($self, $node) = @_;
 
+    return if !$node;
+
     return if !$self->do_canvas_hover_flag;
 
-    my $terminal_elements = (defined $node) ? $node->get_terminal_elements : {};
-
-    # Hash of groups that have the selected labels
-    my %groups;
-    my ($iter, $label, $hash);
-
-    my $bd = $self->{base_ref};
-    my $label_hash = $bd->get_labels_ref->get_element_hash;
-
-  LABEL:
-    foreach my $label (keys %$terminal_elements) {
-        next LABEL if !exists $label_hash->{$label};
-
-        my $containing = eval {$bd->get_groups_with_label_as_hash(label => $label)};
-        next LABEL if !$containing;
-
-        @groups{keys %$containing} = ();
-    }
-
-    $self->{grid}->mark_with_circles ( [keys %groups] );
+    $self->highlight_label_range_marks($node);
+    $self->highlight_label_range_convex_hulls($node);
+    $self->highlight_label_range_circumcircles($node);
 
     if (defined $node) {
         my $text = 'Node: ' . $node->get_name;

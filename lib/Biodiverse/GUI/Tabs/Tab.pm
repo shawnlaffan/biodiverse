@@ -13,7 +13,7 @@ use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
 use Carp;
 use Sort::Key::Natural qw /natsort/;
-use Ref::Util qw /is_arrayref/;
+use Ref::Util qw /is_arrayref is_coderef/;
 
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
@@ -1167,7 +1167,8 @@ sub _add_items_to_menu {
             $menu_item->set_tooltip_text($tooltip);
         }
         if (($type =~ 'Check') && exists $item->{active}) {
-            $menu_item->set_active($item->{active});
+            my $val = $item->{active};
+            $menu_item->set_active(is_coderef $val ? $self->$val : $val);
         }
         if (my $callback = $item->{callback}) {
             my $args = $item->{callback_args};
@@ -1315,7 +1316,36 @@ EOT
                 $self->on_highlight_groups_on_map_changed;
             },
             active   => 1,
-            self_key => 'checkbox_show_tree_legend',
+        },
+        highlight_groups_on_map_convex_hull => {
+            type     => 'Gtk3::CheckMenuItem',
+            label    => 'Highlight groups on map with range convex hulls',
+            tooltip  => 'When hovering the mouse over a tree branch, '
+                . 'plot a convex hull of the range of each subtending label.',
+            event    => 'toggled',
+            callback => sub {
+                my ($self, $widget) = @_;
+                $self->set_highlight_label_range_convex_hulls($widget->get_active);
+            },
+            active   => sub {
+                my ($self) = @_;
+                $self->get_highlight_label_range_convex_hulls;
+            },
+        },
+        highlight_groups_on_map_circumcircle => {
+            type     => 'Gtk3::CheckMenuItem',
+            label    => 'Highlight groups on map with range circumcircles',
+            tooltip  => 'When hovering the mouse over a tree branch, '
+                . 'plot a circumcircle containing the range of each subtending label.',
+            event    => 'toggled',
+            callback => sub {
+                my ($self, $widget) = @_;
+                $self->set_highlight_label_range_circumcircles($widget->get_active);
+            },
+            active   => sub {
+                my ($self) = @_;
+                $self->get_highlight_label_range_circumcircles;
+            },
         },
         highlight_paths_on_tree => {
             type     => 'Gtk3::CheckMenuItem',

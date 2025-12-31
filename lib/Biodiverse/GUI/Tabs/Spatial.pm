@@ -256,6 +256,7 @@ sub new {
     $self->queue_set_pane(1  , 'spatial_vpanePhylogeny');
 
     $self->setup_dendrogram;
+    $self->{use_highlight_path} = 1;
 
     # Connect signals
     $self->{xmlLabel}->get_object('btnSpatialClose')->signal_connect_swapped(
@@ -413,8 +414,17 @@ sub get_tree_menu_items {
             callback => \&on_tree_undef_colour_changed,
         },
         (   map {$self->get_tree_menu_item($_)}
-               qw /background_colour separator plot_branches_by set_tree_branch_line_widths
-                   separator export_tree /
+               qw /background_colour
+                   separator
+                   highlight_groups_on_map
+                   highlight_groups_on_map_convex_hull
+                   highlight_groups_on_map_circumcircle
+                   highlight_paths_on_tree
+                   separator
+                   plot_branches_by
+                   set_tree_branch_line_widths
+                   separator
+                   export_tree /
         ),
     );
 
@@ -567,6 +577,7 @@ sub init_dendrogram {
     # my $vscroll     = $self->get_xmlpage_object('spatialPhylogenyVScroll');
 
     my $hover_closure       = sub { $self->on_phylogeny_hover(@_); };
+    my $end_hover_closure   = sub { $self->on_end_phylogeny_hover(@_); };
     my $highlight_closure   = sub { $self->on_phylogeny_highlight(@_); };
     my $ctrl_click_closure  = sub { $self->on_phylogeny_popup(@_); };
     my $click_closure       = sub { $self->on_phylogeny_click(@_); };
@@ -577,6 +588,7 @@ sub init_dendrogram {
         frame                         => $frame,
         grid                          => undef,
         hover_func                    => $hover_closure,
+        end_hover_func                => $end_hover_closure,
         highlight_func                => $highlight_closure,
         ctrl_click_func               => $ctrl_click_closure,
         click_func                    => $click_closure,
@@ -1195,22 +1207,9 @@ sub on_phylogeny_highlight {
 
     return if !$self->do_canvas_hover_flag;
 
-    my $terminal_elements = $node->get_terminal_elements;
-
-    # Hash of groups that have the selected labels
-    my %groups;
-
-    my $bd = $self->get_base_ref;
-
-    LABEL:
-    foreach my $label (keys %$terminal_elements) {
-        my $containing = eval {$bd->get_groups_with_label_as_hash(label => $label)};
-        next LABEL if !$containing;
-        @groups{keys %$containing} = ();
-    }
-
-    $self->{grid}->mark_with_circles ( [keys %groups] );
-    $self->{grid}->mark_with_dashes  ( [] );  #  clear any nbr_set2 highlights
+    $self->highlight_label_range_marks($node);
+    $self->highlight_label_range_convex_hulls($node);
+    $self->highlight_label_range_circumcircles($node);
 
     return;
 }
@@ -1665,6 +1664,8 @@ sub on_grid_hover {
         #  does this even trigger now?
         my $group = $element; # is this the same?
         return if ! defined $group;
+
+        return if !$self->{use_highlight_path};
 
         # get labels in the group
         my $bd = $bd_ref;

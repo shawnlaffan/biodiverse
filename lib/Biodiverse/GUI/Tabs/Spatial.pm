@@ -1206,31 +1206,8 @@ sub on_phylogeny_highlight {
 
     return if !$self->do_canvas_hover_flag;
 
-    my $terminal_elements = $node->get_terminal_elements;
-
-    # Hash of groups that have the selected labels
-    my %groups;
-
-    my $bd = $self->get_base_ref;
-    my $label_hash = $bd->get_labels_ref->get_element_hash;
-    my $max_groups = $bd->get_group_count;
-
-    LABEL:
-    foreach my $label (keys %$terminal_elements) {
-        next LABEL if !exists $label_hash->{$label};
-
-        my $containing = eval {$bd->get_groups_with_label_as_hash_aa($label)};
-        next LABEL if !$containing;
-
-        @groups{keys %$containing} = ();
-
-        last LABEL if $max_groups == scalar keys %groups;
-    }
-
+    $self->highlight_label_range_marks($node);
     $self->highlight_label_range_convex_hulls($node);
-
-    $self->{grid}->mark_with_circles ( [keys %groups] );
-    $self->{grid}->mark_with_dashes  ( [] );  #  clear any nbr_set2 highlights
 
     return;
 }

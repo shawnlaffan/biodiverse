@@ -1452,19 +1452,21 @@ sub on_phylogeny_highlight {
 
     # Hash of groups that have the selected labels
     my %groups;
-    my ($iter, $label, $hash);
 
-    my $bd = $self->{base_ref};
+    my $bd = $self->get_base_ref;
     my $label_hash = $bd->get_labels_ref->get_element_hash;
+    my $max_groups = $bd->get_group_count;
 
   LABEL:
     foreach my $label (keys %$terminal_elements) {
         next LABEL if !exists $label_hash->{$label};
 
-        my $containing = eval {$bd->get_groups_with_label_as_hash(label => $label)};
+        my $containing = eval {$bd->get_groups_with_label_as_hash_aa($label)};
         next LABEL if !$containing;
 
         @groups{keys %$containing} = ();
+
+        last LABEL if $max_groups == scalar keys %groups;
     }
 
     $self->{grid}->mark_with_circles ( [keys %groups] );

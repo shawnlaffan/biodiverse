@@ -399,6 +399,7 @@ sub get_tree_menu_items {
                qw /plot_branches_by
                    highlight_groups_on_map
                    highlight_groups_on_map_convex_hull
+                   highlight_groups_on_map_convex_hull_union
                    highlight_groups_on_map_circumcircle
                    highlight_paths_on_tree
                    separator
@@ -913,6 +914,25 @@ sub get_highlight_label_range_convex_hulls {
     $_[0]->{highlight_label_range_convex_hulls};
 }
 
+sub set_highlight_label_range_convex_hull_union {
+    my ($self, $value) = @_;
+
+    $self->{highlight_label_range_convex_hull_union} = !!$value;
+
+    return;
+}
+
+sub toggle_highlight_label_range_convex_hull_union {
+    my ($self, $value) = @_;
+
+    $self->{highlight_label_range_convex_hull_union}
+        = !$self->{highlight_label_range_convex_hull_union};
+}
+
+sub get_highlight_label_range_convex_hull_union {
+    $_[0]->{highlight_label_range_convex_hull_union};
+}
+
 sub set_highlight_label_range_circumcircles {
     my ($self, $value) = @_;
 
@@ -957,6 +977,45 @@ sub highlight_label_range_convex_hulls {
             cb_target   => 'range_convex_hulls',
             plot_on_top => 1,
             data        => $data,
+            colour      => COLOUR_BLACK,
+            alpha       => 0.5,
+        );
+    }
+}
+
+sub highlight_label_range_convex_hull_union {
+    my ($self, $node) = @_;
+
+    return if !$self->get_highlight_label_range_convex_hull_union;
+
+    my $terminal_elements = $node->get_terminal_elements;
+
+    my $bd = $self->get_base_ref;
+    my $label_hash = $bd->get_labels_ref->get_element_hash;
+
+    #  clear existing
+    $self->{grid}->clear_range_convex_hulls;
+
+    my $cache = $bd->get_cached_value_dor_set_default_href('LABEL_RANGE_CONVEX_HULL_VERTICES');
+
+    my $hull_union = $cache->{$node->get_name};
+    if (!$hull_union) {
+        #  could climb up the tree if this takes too long
+        foreach my $label (keys %$terminal_elements) {
+            next LABEL if !exists $label_hash->{$label};
+            my $hull = $bd->get_label_range_convex_hull(label => $label);
+            $hull_union = $hull_union ? $hull_union->Union ($hull) : $hull;
+        }
+        $cache->{$node->get_name} = $hull_union;
+    }
+
+    # avoid plotting empties
+    if (defined $hull_union) {
+        $self->{grid}->set_overlay(
+            type        => 'polyline',
+            cb_target   => 'range_convex_hulls',
+            plot_on_top => 1,
+            data        => scalar $hull_union->GetPoints(0, 0),
             colour      => COLOUR_BLACK,
             alpha       => 0.5,
         );
@@ -1583,6 +1642,7 @@ sub on_phylogeny_highlight {
 
     $self->highlight_label_range_marks($node);
     $self->highlight_label_range_convex_hulls($node);
+    $self->highlight_label_range_convex_hull_union($node);
     $self->highlight_label_range_circumcircles($node);
 
     if (defined $node) {

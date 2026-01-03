@@ -418,6 +418,7 @@ sub get_tree_menu_items {
                    separator
                    highlight_groups_on_map
                    highlight_groups_on_map_convex_hull
+                   highlight_groups_on_map_convex_hull_union
                    highlight_groups_on_map_circumcircle
                    highlight_paths_on_tree
                    separator
@@ -1194,22 +1195,6 @@ sub on_phylogeny_hover {
 
     $self->get_xmlpage_object('lblOutput')->set_markup($map_text);
     $self->get_xmlpage_object('spatial_label_VL_tree')->set_markup($dendro_text);
-
-    return;
-}
-
-# many other phylogeny methods are given in Labels.pm
-# Called by dendrogram when user hovers over a node
-sub on_phylogeny_highlight {
-    my ($self, $node) = @_;
-
-    return if !$node;
-
-    return if !$self->do_canvas_hover_flag;
-
-    $self->highlight_label_range_marks($node);
-    $self->highlight_label_range_convex_hulls($node);
-    $self->highlight_label_range_circumcircles($node);
 
     return;
 }

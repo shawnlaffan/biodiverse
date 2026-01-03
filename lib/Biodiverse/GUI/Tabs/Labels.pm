@@ -1645,9 +1645,8 @@ sub on_phylogeny_highlight {
     $self->highlight_label_range_convex_hull_union($node);
     $self->highlight_label_range_circumcircles($node);
 
-    if (defined $node) {
-        my $text = 'Node: ' . $node->get_name;
-        $self->get_xmlpage_object('label_VL_tree')->set_markup($text);
+    if (my $widget = $self->get_xmlpage_object('label_VL_tree')) {
+        $widget->set_markup('Node: ' . $node->get_name);
     }
 
     return;

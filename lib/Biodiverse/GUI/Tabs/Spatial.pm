@@ -1199,23 +1199,6 @@ sub on_phylogeny_hover {
     return;
 }
 
-# many other phylogeny methods are given in Labels.pm
-# Called by dendrogram when user hovers over a node
-sub on_phylogeny_highlight {
-    my ($self, $node) = @_;
-
-    return if !$node;
-
-    return if !$self->do_canvas_hover_flag;
-
-    $self->highlight_label_range_marks($node);
-    $self->highlight_label_range_convex_hulls($node);
-    $self->highlight_label_range_convex_hull_union($node);
-    $self->highlight_label_range_circumcircles($node);
-
-    return;
-}
-
 sub on_phylogeny_click {
     my ($self, $node) = @_;
 

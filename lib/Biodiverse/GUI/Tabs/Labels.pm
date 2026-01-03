@@ -998,7 +998,11 @@ sub highlight_label_range_convex_hull_union {
 
     my $cache = $bd->get_cached_value_dor_set_default_href('LABEL_RANGE_CONVEX_HULL_VERTICES');
 
-    my $hull_union = $cache->{$node->get_name};
+    #  Cache on list of terminal names to avoid issues with trees
+    #  that have similarly named nodes with different terminals.
+    my $cache_key = $node->is_terminal_node ? $node->get_name : $node->get_terminal_element_names_sha256;
+
+    my $hull_union = $cache->{$cache_key};
     if (!$hull_union) {
         #  could climb up the tree if this takes too long
         foreach my $label (keys %$terminal_elements) {
@@ -1006,7 +1010,7 @@ sub highlight_label_range_convex_hull_union {
             my $hull = $bd->get_label_range_convex_hull(label => $label);
             $hull_union = $hull_union ? $hull_union->Union ($hull) : $hull;
         }
-        $cache->{$node->get_name} = $hull_union;
+        $cache->{$cache_key} = $hull_union;
     }
 
     # avoid plotting empties

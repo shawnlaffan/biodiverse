@@ -1017,6 +1017,26 @@ sub get_terminal_element_count {
     return scalar keys %$hash;
 }
 
+sub get_terminal_element_names_sha256 {
+    my $self = shift;
+    state $cache_key = 'terminal_element_names_sha256';
+
+    if (my $cached = $self->get_cached_value ($cache_key)) {
+        return $cached;
+    }
+
+    my $terminals = $self->get_terminal_elements;
+    my @names = sort keys %$terminals;
+
+    use Digest::SHA qw/sha256_hex/;
+    #  Join using ascii file separator control character,
+    #  which is also the default value for $;
+    my $sha = sha256_hex join "\034", @names;
+    $self->set_cached_value ($cache_key => $sha);
+
+    return $sha;
+}
+
 sub get_all_named_descendants {
     my $self = shift;
     my %args = (cache => 1, @_);  #  cache unless told otherwise

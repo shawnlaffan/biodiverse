@@ -59,6 +59,7 @@ sub new {
         range_convex_hulls
         range_convex_hull_union
         range_circumcircles
+        range_circumcircle_union
         highlights sel_rect
     /];
 
@@ -661,6 +662,15 @@ sub clear_range_circumcircles {
     my $self = shift;
     $self->set_overlay(
         cb_target   => 'range_circumcircles',
+        plot_on_top => 1,
+        data        => undef,
+    );
+}
+
+sub clear_range_circumcircle_union {
+    my $self = shift;
+    $self->set_overlay(
+        cb_target   => 'range_circumcircle_union',
         plot_on_top => 1,
         data        => undef,
     );

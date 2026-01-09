@@ -420,6 +420,7 @@ sub get_tree_menu_items {
                    highlight_groups_on_map_convex_hull
                    highlight_groups_on_map_convex_hull_union
                    highlight_groups_on_map_circumcircle
+                   highlight_groups_on_map_circumcircle_union
                    highlight_paths_on_tree
                    separator
                    plot_branches_by

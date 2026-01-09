@@ -1035,17 +1035,15 @@ sub highlight_label_range_convex_hull_union {
         $cache->{$cache_key} = $hull_union = $hull_union->GetPoints(0,0);
     }
 
-    # avoid plotting empties
-    # if (@$hull_union) {
-        $self->{grid}->set_overlay(
-            type        => 'polyline',
-            cb_target   => 'range_convex_hulls',
-            plot_on_top => 1,
-            data        => $hull_union,
-            colour      => COLOUR_BLACK,
-            alpha       => 0.5,
-        );
-    # }
+    $self->{grid}->set_overlay(
+        type        => 'polyline',
+        cb_target   => 'range_convex_hulls',
+        plot_on_top => 1,
+        data        => $hull_union,
+        colour      => COLOUR_BLACK,
+        alpha       => 0.5,
+    );
+
 }
 
 sub highlight_label_range_circumcircles {

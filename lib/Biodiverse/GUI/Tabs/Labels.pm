@@ -395,25 +395,30 @@ sub get_tree_menu_items {
                       . "(this is the same as the one selected at "
                       . "the project level)",
         },
-        (   map {$self->get_tree_menu_item($_)}
-               qw /
-                   highlight_groups_on_map
-                   highlight_groups_on_map_convex_hull
-                   highlight_groups_on_map_convex_hull_union
-                   highlight_groups_on_map_circumcircle
-                   highlight_groups_on_map_circumcircle_union
-                   highlight_paths_on_tree
-                   separator
-                   plot_branches_by
-                   set_tree_branch_line_widths
-                   background_colour
-                   separator
-                   export_tree
-               /
-        ),
+        $self->get_standard_tree_menu_items,
     );
 
     return wantarray ? @menu_items : \@menu_items;
+}
+
+sub get_standard_tree_menu_items {
+    my $self = shift;
+
+    return map {$self->get_tree_menu_item($_)}
+        qw /
+            highlight_groups_on_map
+            highlight_groups_on_map_convex_hull
+            highlight_groups_on_map_convex_hull_union
+            highlight_groups_on_map_circumcircle
+            highlight_groups_on_map_circumcircle_union
+            highlight_paths_on_tree
+            separator
+            plot_branches_by
+            set_tree_branch_line_widths
+            background_colour
+            separator
+            export_tree
+        /;
 }
 
 ##################################################

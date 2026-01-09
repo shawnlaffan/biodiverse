@@ -414,8 +414,7 @@ sub get_tree_menu_items {
             callback => \&on_tree_undef_colour_changed,
         },
         (   map {$self->get_tree_menu_item($_)}
-               qw /background_colour
-                   separator
+               qw /
                    highlight_groups_on_map
                    highlight_groups_on_map_convex_hull
                    highlight_groups_on_map_convex_hull_union
@@ -425,8 +424,10 @@ sub get_tree_menu_items {
                    separator
                    plot_branches_by
                    set_tree_branch_line_widths
+                   background_colour
                    separator
-                   export_tree /
+                   export_tree
+               /
         ),
     );
 

@@ -396,7 +396,7 @@ sub get_tree_menu_items {
                       . "the project level)",
         },
         (   map {$self->get_tree_menu_item($_)}
-               qw /plot_branches_by
+               qw /
                    highlight_groups_on_map
                    highlight_groups_on_map_convex_hull
                    highlight_groups_on_map_convex_hull_union
@@ -404,8 +404,9 @@ sub get_tree_menu_items {
                    highlight_groups_on_map_circumcircle_union
                    highlight_paths_on_tree
                    separator
-                   background_colour
+                   plot_branches_by
                    set_tree_branch_line_widths
+                   background_colour
                    separator
                    export_tree
                /

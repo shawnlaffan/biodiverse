@@ -11,7 +11,7 @@ use Glib qw/TRUE FALSE/;
 use Gtk3;
 use List::Util qw /min max/;
 use List::MoreUtils qw /minmax/;
-use Ref::Util qw /is_hashref is_blessed_ref/;
+use Ref::Util qw /is_hashref is_arrayref is_blessed_ref/;
 use POSIX qw /floor/;
 use Carp qw /croak confess/;
 use Tree::R;
@@ -693,7 +693,7 @@ sub set_overlay {
             $cx->$stroke_or_fill;
         }
     }
-    elsif (is_blessed_ref ($data->[0])) {
+    elsif (is_arrayref ($data) && is_blessed_ref ($data->[0])) {
         $cb = sub {
             my ($self, $cx) = @_;
             $cx->set_matrix($self->{matrix});

@@ -1003,27 +1003,29 @@ sub highlight_label_range_convex_hull_union {
     my $cache_key = $node->is_terminal_node ? $node->get_name : $node->get_terminal_element_names_sha256;
 
     my $hull_union = $cache->{$cache_key};
-    if (!$hull_union) {
+    if (!defined $hull_union) {
         #  could climb up the tree if this takes too long
         foreach my $label (keys %$terminal_elements) {
             next LABEL if !exists $label_hash->{$label};
             my $hull = $bd->get_label_range_convex_hull(label => $label);
             $hull_union = $hull_union ? $hull_union->Union ($hull) : $hull;
         }
-        $cache->{$cache_key} = $hull_union;
+        $hull_union //= Geo::GDAL::FFI::Geometry->new(WKT => 'POLYGON EMPTY');
+        #  store just the vertices
+        $cache->{$cache_key} = $hull_union = $hull_union->GetPoints(0,0);
     }
 
     # avoid plotting empties
-    if (defined $hull_union) {
+    # if (@$hull_union) {
         $self->{grid}->set_overlay(
             type        => 'polyline',
             cb_target   => 'range_convex_hulls',
             plot_on_top => 1,
-            data        => scalar $hull_union->GetPoints(0, 0),
+            data        => $hull_union,
             colour      => COLOUR_BLACK,
             alpha       => 0.5,
         );
-    }
+    # }
 }
 
 sub highlight_label_range_circumcircles {

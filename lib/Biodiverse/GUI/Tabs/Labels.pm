@@ -395,23 +395,30 @@ sub get_tree_menu_items {
                       . "(this is the same as the one selected at "
                       . "the project level)",
         },
-        (   map {$self->get_tree_menu_item($_)}
-               qw /plot_branches_by
-                   highlight_groups_on_map
-                   highlight_groups_on_map_convex_hull
-                   highlight_groups_on_map_convex_hull_union
-                   highlight_groups_on_map_circumcircle
-                   highlight_paths_on_tree
-                   separator
-                   background_colour
-                   set_tree_branch_line_widths
-                   separator
-                   export_tree
-               /
-        ),
+        $self->get_standard_tree_menu_items,
     );
 
     return wantarray ? @menu_items : \@menu_items;
+}
+
+sub get_standard_tree_menu_items {
+    my $self = shift;
+
+    return map {$self->get_tree_menu_item($_)}
+        qw /
+            highlight_groups_on_map
+            highlight_groups_on_map_convex_hull
+            highlight_groups_on_map_convex_hull_union
+            highlight_groups_on_map_circumcircle
+            highlight_groups_on_map_circumcircle_union
+            highlight_paths_on_tree
+            separator
+            plot_branches_by
+            set_tree_branch_line_widths
+            background_colour
+            separator
+            export_tree
+        /;
 }
 
 ##################################################
@@ -952,6 +959,25 @@ sub get_highlight_label_range_circumcircles {
     $_[0]->{highlight_label_range_circumcircles};
 }
 
+sub set_highlight_label_range_circumcircle_union {
+    my ($self, $value) = @_;
+
+    $self->{highlight_label_range_circumcircle_union} = !!$value;
+
+    return;
+}
+
+sub toggle_highlight_label_range_circumcircle_union {
+    my ($self, $value) = @_;
+
+    $self->{highlight_label_range_circumcircle_union}
+        = !$self->{highlight_label_range_circumcircle_union};
+}
+
+sub get_highlight_label_range_circumcircle_union {
+    $_[0]->{highlight_label_range_circumcircle_union};
+}
+
 sub highlight_label_range_convex_hulls {
     my ($self, $node) = @_;
 
@@ -994,7 +1020,7 @@ sub highlight_label_range_convex_hull_union {
     my $label_hash = $bd->get_labels_ref->get_element_hash;
 
     #  clear existing
-    $self->{grid}->clear_range_convex_hulls;
+    $self->{grid}->clear_range_convex_hull_union;
 
     my $cache = $bd->get_cached_value_dor_set_default_href('LABEL_RANGE_CONVEX_HULL_VERTICES');
 
@@ -1003,27 +1029,27 @@ sub highlight_label_range_convex_hull_union {
     my $cache_key = $node->is_terminal_node ? $node->get_name : $node->get_terminal_element_names_sha256;
 
     my $hull_union = $cache->{$cache_key};
-    if (!$hull_union) {
+    if (!defined $hull_union) {
         #  could climb up the tree if this takes too long
         foreach my $label (keys %$terminal_elements) {
             next LABEL if !exists $label_hash->{$label};
             my $hull = $bd->get_label_range_convex_hull(label => $label);
             $hull_union = $hull_union ? $hull_union->Union ($hull) : $hull;
         }
-        $cache->{$cache_key} = $hull_union;
+        $hull_union //= Geo::GDAL::FFI::Geometry->new(WKT => 'POLYGON EMPTY');
+        #  store just the vertices
+        $cache->{$cache_key} = $hull_union = $hull_union->GetPoints(0,0);
     }
 
-    # avoid plotting empties
-    if (defined $hull_union) {
-        $self->{grid}->set_overlay(
-            type        => 'polyline',
-            cb_target   => 'range_convex_hulls',
-            plot_on_top => 1,
-            data        => scalar $hull_union->GetPoints(0, 0),
-            colour      => COLOUR_BLACK,
-            alpha       => 0.5,
-        );
-    }
+    $self->{grid}->set_overlay(
+        type        => 'polyline',
+        cb_target   => 'range_convex_hulls',
+        plot_on_top => 1,
+        data        => $hull_union,
+        colour      => COLOUR_BLACK,
+        alpha       => 0.5,
+    );
+
 }
 
 sub highlight_label_range_circumcircles {
@@ -1051,6 +1077,52 @@ sub highlight_label_range_circumcircles {
             alpha       => 0.5,
         );
     }
+}
+
+sub highlight_label_range_circumcircle_union {
+    my ($self, $node) = @_;
+
+    return if !$self->get_highlight_label_range_circumcircle_union;
+
+    my $terminal_elements = $node->get_terminal_elements;
+
+    my $bd = $self->get_base_ref;
+    my $label_hash = $bd->get_labels_ref->get_element_hash;
+
+    #  clear existing
+    $self->{grid}->clear_range_circumcircle_union;
+
+    my $cache = $bd->get_cached_value_dor_set_default_href('LABEL_RANGE_CIRCUMCIRCLE_UNION_VERTICES');
+
+    #  Cache on list of terminal names to avoid issues with trees
+    #  that have similarly named nodes with different terminals.
+    my $cache_key = $node->is_terminal_node ? $node->get_name : $node->get_terminal_element_names_sha256;
+
+    my $union = $cache->{$cache_key};
+    if (!defined $union) {
+        #  could climb up the tree if this takes too long
+        foreach my $label (keys %$terminal_elements) {
+            next LABEL if !exists $label_hash->{$label};
+            my $circle = $bd->get_label_range_circumcircle(label => $label);
+            my $wkt = sprintf "POINT (%s %s)", @{$circle->centre};
+            #  default of 30 seems to work and is suggested in the GDAL docs
+            my $hull = Geo::GDAL::FFI::Geometry->new (WKT => $wkt)->Buffer($circle->radius, 30);
+            $union = $union ? $union->Union ($hull) : $hull;
+        }
+        $union //= Geo::GDAL::FFI::Geometry->new(WKT => 'POLYGON EMPTY');
+        #  store just the vertices
+        $cache->{$cache_key} = $union = $union->GetPoints(0,0);
+    }
+
+    $self->{grid}->set_overlay(
+        type        => 'polyline',
+        cb_target   => 'range_circumcircle_union',
+        plot_on_top => 1,
+        data        => $union,
+        colour      => COLOUR_BLACK,
+        alpha       => 0.5,
+    );
+
 }
 
 sub highlight_label_range_marks {
@@ -1632,6 +1704,8 @@ sub on_end_phylogeny_hover {
 
     $self->{grid}->clear_range_convex_hulls;
     $self->{grid}->clear_range_circumcircles;
+    $self->{grid}->clear_range_convex_hull_union;
+    $self->{grid}->clear_range_circumcircle_union;
     $self->{grid}->mark_with_circles;
 }
 
@@ -1648,6 +1722,7 @@ sub on_phylogeny_highlight {
     $self->highlight_label_range_convex_hulls($node);
     $self->highlight_label_range_convex_hull_union($node);
     $self->highlight_label_range_circumcircles($node);
+    $self->highlight_label_range_circumcircle_union($node);
 
     if (my $widget = $self->get_xmlpage_object('label_VL_tree')) {
         $widget->set_markup('Node: ' . $node->get_name);

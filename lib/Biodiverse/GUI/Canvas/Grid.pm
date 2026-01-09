@@ -11,7 +11,7 @@ use Glib qw/TRUE FALSE/;
 use Gtk3;
 use List::Util qw /min max/;
 use List::MoreUtils qw /minmax/;
-use Ref::Util qw /is_hashref is_blessed_ref/;
+use Ref::Util qw /is_hashref is_arrayref is_blessed_ref/;
 use POSIX qw /floor/;
 use Carp qw /croak confess/;
 use Tree::R;
@@ -57,7 +57,9 @@ sub new {
         overlays
         legend
         range_convex_hulls
+        range_convex_hull_union
         range_circumcircles
+        range_circumcircle_union
         highlights sel_rect
     /];
 
@@ -647,10 +649,28 @@ sub clear_range_convex_hulls {
     );
 }
 
+sub clear_range_convex_hull_union {
+    my $self = shift;
+    $self->set_overlay(
+        cb_target   => 'range_convex_hull_union',
+        plot_on_top => 1,
+        data        => undef,
+    );
+}
+
 sub clear_range_circumcircles {
     my $self = shift;
     $self->set_overlay(
         cb_target   => 'range_circumcircles',
+        plot_on_top => 1,
+        data        => undef,
+    );
+}
+
+sub clear_range_circumcircle_union {
+    my $self = shift;
+    $self->set_overlay(
+        cb_target   => 'range_circumcircle_union',
         plot_on_top => 1,
         data        => undef,
     );
@@ -693,7 +713,7 @@ sub set_overlay {
             $cx->$stroke_or_fill;
         }
     }
-    elsif (is_blessed_ref ($data->[0])) {
+    elsif (is_arrayref ($data) && is_blessed_ref ($data->[0])) {
         $cb = sub {
             my ($self, $cx) = @_;
             $cx->set_matrix($self->{matrix});

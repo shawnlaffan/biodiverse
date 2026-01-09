@@ -994,7 +994,7 @@ sub highlight_label_range_convex_hull_union {
     my $label_hash = $bd->get_labels_ref->get_element_hash;
 
     #  clear existing
-    $self->{grid}->clear_range_convex_hulls;
+    $self->{grid}->clear_range_convex_hull_union;
 
     my $cache = $bd->get_cached_value_dor_set_default_href('LABEL_RANGE_CONVEX_HULL_VERTICES');
 

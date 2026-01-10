@@ -49,6 +49,8 @@ sub main {
         return 0;
     }
 
+    test_vcache();
+
     test_save_and_reload_no_suffix ($bd);
     test_save_and_reload_bung_file ($bd);
 
@@ -236,6 +238,46 @@ sub test_save_and_reload_bung_file {
         dies {$object->load_file (file => $fname)},
         "Error raised on loading non-conformant file"
     ) or note ($@);
+}
+
+sub test_vcache {
+    use Biodiverse::VCache;
+
+    my $vcache = Biodiverse::VCache->new;
+
+    my $cache_name = 'TEST_CACHE_NAME';
+
+    $vcache->get_cached_value_dor_set_default_href($cache_name);
+
+    my $encoder = Sereal::Encoder->new({
+        undef_unknown    => 1, #  strip any code refs
+        freeze_callbacks => 1,
+    });
+
+    my $serialised;
+    my $decoder = Sereal::Decoder->new();
+    eval {
+        $decoder->decode ($encoder->encode($vcache), $serialised);
+        1;
+    };
+    die $@ if $@;
+
+    isnt $serialised, $vcache;
+    is [keys %$serialised], [], 'serialised object has no keys';
+
+    my $tree = Biodiverse::Tree->new (NAME => 'for testing');
+    my $vcache2 = $tree->get_volatile_cache;
+    ok $tree->{_vcache}, 'object has the vcache';
+    $tree->clear_volatile_cache;
+    ok !$tree->{_vcache}, 'object no longer has the vcache';
+
+    #  now check a slightly deeper serialisation
+    $vcache2 = $tree->get_volatile_cache;
+    $vcache2->get_cached_value_dor_set_default_href($cache_name);
+    is [keys %{$tree->{_vcache}{_cache}}], [$cache_name], 'tree object has expected vcache keys';
+    $decoder->decode ($encoder->encode($tree), $serialised);
+    is [keys %{$serialised->{_vcache}}], [], 'serialised object has no vcache';
+
 }
 
 1;

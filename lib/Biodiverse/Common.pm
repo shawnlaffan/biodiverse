@@ -67,7 +67,8 @@ sub clone {
         #  https://rt.cpan.org/Public/Bug/Display.html?id=97525
         #  could use Sereal::Dclone for brevity
         my $encoder = Sereal::Encoder->new({
-            undef_unknown => 1,  #  strip any code refs
+            undef_unknown    => 1, #  strip any code refs
+            freeze_callbacks => 1,
         });
         my $decoder = Sereal::Decoder->new();
         eval {
@@ -741,8 +742,9 @@ sub save_to_sereal {
     use Sereal::Encoder ();
 
     my $encoder = Sereal::Encoder->new({
-        undef_unknown    => 1,  #  strip any code refs
-        protocol_version => 3,  #  keep compatibility with older files - should be an argument
+        undef_unknown    => 1, #  strip any code refs
+        protocol_version => 3, #  keep compatibility with older files - should be an argument
+        freeze_callbacks => 1,
     });
 
     open (my $fh, '>', $file) or die "Cannot open $file";

@@ -1,7 +1,7 @@
 package Biodiverse::Common::Caching;
 use strict;
 use warnings;
-
+use 5.036;
 
 our $VERSION = '5.0';
 
@@ -78,5 +78,16 @@ sub delete_cached_value {
     delete $self->{_cache}{$key};
 }
 
+
+sub get_volatile_cache {
+    my $self = shift;
+    use Biodiverse::VCache;
+    $self->{_vcache} //= Biodiverse::VCache->new;
+}
+
+sub clear_volatile_cache {
+    my $self = shift;
+    delete $self->{_vcache};
+}
 
 1;

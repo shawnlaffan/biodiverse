@@ -48,27 +48,12 @@ sub get_groups_in_label_range_circumcircle {
     }
 
     my $circle = $self->get_label_range_circumcircle(label => $label, axes => \@axes);
-    my ($xmin, $ymin, $xmax, $ymax) = $circle->bbox;
 
-    my $gp = $self->get_groups_ref;
+    my $in_circumcircle = $self->get_groups_in_circle (circle => $circle, axes => \@axes);
 
-    my %in_circumcircle;
-    \my @groups = $self->get_groups;
-    GP:
-    foreach my $group (@groups) {
-        my $coords = $gp->get_element_name_as_array_aa($group);
-        my ($x, $y) = @$coords[@axes];
+    $cache->{$label} = $in_circumcircle;
 
-        next GP if $x < $xmin || $x > $xmax || $y < $ymin || $y > $ymax;
-
-        next GP if !$circle->contains_point([$x,$y]);
-
-        $in_circumcircle{$group}++;
-    }
-
-    $cache->{$label} = \%in_circumcircle;
-
-    return wantarray ? %in_circumcircle : \%in_circumcircle;
+    return wantarray ? %$in_circumcircle : $in_circumcircle;
 }
 
 
@@ -154,12 +139,32 @@ sub get_groups_in_label_range_convex_hull {
     #  get_label_range_convex_hull will croak if axes etc are invalid,
     #  so no need to check here
     my $hull = $self->get_label_range_convex_hull(%args, as_wkt => undef, as_json => undef);
-    my $bbox = $hull->GetEnvelope;
+
+    my $in_hull = $self->get_groups_in_polygon(polygon => $hull, axes => \@axes);
+
+    $cache->{$label} = $in_hull;
+
+    return wantarray ? %$in_hull : $in_hull;
+}
+
+sub get_groups_in_polygon {
+    my ($self, %args) = @_;
+
+    my $polygon = $args{polygon} // croak 'polygon arg not passed';
+    \my @axes  = $args{axes} // [0,1];
+
+    return $self->get_groups_in_circle(circle => $polygon, axes => \@axes)
+        if $polygon->isa('Biodiverse::Geometry::Circle');
+
+    return wantarray ? () : {}
+        if $polygon->IsEmpty;
+
+    my $bbox = $polygon->GetEnvelope;
     my ($xmin, $xmax, $ymin, $ymax) = @$bbox;
 
     my $gp = $self->get_groups_ref;
 
-    my %in_hull;
+    my %in_polygon;
     \my @groups = $self->get_groups;
     GP:
     foreach my $group (@groups) {
@@ -170,14 +175,42 @@ sub get_groups_in_label_range_convex_hull {
 
         my $wkt = "POINT($x $y)";
         my $point = Geo::GDAL::FFI::Geometry->new(WKT => $wkt);
-        if ($point->Intersects($hull)) {
-            $in_hull{$group}++;
+        if ($point->Intersects($polygon)) {
+            $in_polygon{$group}++;
         }
     }
 
-    $cache->{$label} = \%in_hull;
+    return wantarray ? %in_polygon : \%in_polygon;
+}
 
-    return wantarray ? %in_hull : \%in_hull;
+sub get_groups_in_circle {
+    my ($self, %args) = @_;
+
+    my $circle = $args{circle} // croak 'circle arg not passed';
+    \my @axes  = $args{axes} // [0,1];
+
+    return wantarray ? () : {}
+        if $circle->radius < 0;
+
+    my ($xmin, $ymin, $xmax, $ymax) = $circle->bbox;
+
+    my $gp = $self->get_groups_ref;
+
+    my %in_circumcircle;
+    \my @groups = $self->get_groups;
+    GP:
+    foreach my $group (@groups) {
+        my $coords = $gp->get_element_name_as_array_aa($group);
+        my ($x, $y) = @$coords[@axes];
+
+        next GP if $x < $xmin || $x > $xmax || $y < $ymin || $y > $ymax;
+
+        next GP if !$circle->contains_point([$x,$y]);
+
+        $in_circumcircle{$group}++;
+    }
+
+    return wantarray ? %in_circumcircle : \%in_circumcircle;
 }
 
 

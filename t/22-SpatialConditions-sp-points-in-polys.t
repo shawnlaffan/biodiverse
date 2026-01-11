@@ -142,6 +142,7 @@ sub test_sp_in_label_range_convex_hull {
     my $bd = get_basedata_object_from_site_data (
         CELL_SIZES => [100000, 100000],
     );
+    $bd->rename(new_name => 'test_sp_in_label_range_convex_hull');
 
     my $cond = <<~'EOC'
         $self->set_current_label('Genus:sp4');
@@ -189,6 +190,69 @@ sub test_sp_in_label_range_convex_hull {
     my $passed3 = $sp3->get_groups_that_pass_def_query();
     isnt $passed3, $exp, 'Expected def query not same as normal range check';
 
+    my $cond_b0 = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_range(convex_hull => 1, buffer_dist => 0);
+        EOC
+    ;
+
+    my $sp4 = $bd->add_spatial_output (name => 'test_bd0');
+    $sp4->run_analysis (
+        calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
+        spatial_conditions => ['sp_self_only()'],
+        definition_query   => $cond_b0,
+    );
+
+    my $passed4 = $sp4->get_groups_that_pass_def_query();
+    is $passed4, $exp, 'Expected def query passes, buff_dist = 0';
+
+    my $cond_bnegbig = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_range(convex_hull => 1, buffer_dist => -1e9);
+        EOC
+    ;
+
+    my $sp5 = $bd->add_spatial_output (name => 'test_bnegbig');
+    eval {
+        $sp5->run_analysis(
+            calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
+            spatial_conditions => [ 'sp_self_only()' ],
+            definition_query   => $cond_bnegbig,
+        );
+    };
+
+    my $passed5 = $sp5->get_groups_that_pass_def_query();
+    is $passed5, {}, 'Expected def query passes, buff_dist large negative';
+
+    my $cond_buffered = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_range(convex_hull => 1, buffer_dist => 100000);
+        EOC
+    ;
+
+    my @exp_buf_pos_arr = qw /
+        3450000:2050000 3450000:2150000 3550000:1950000 3550000:2050000 3550000:2150000
+        3550000:2250000 3650000:1850000 3650000:1950000 3650000:2050000 3650000:2350000
+        3750000:1850000 3750000:1950000 3750000:2050000 3750000:2150000 3850000:1850000
+        3850000:1950000
+    /;
+
+    my $exp_buff_pos = {};
+    foreach my $gp (@exp_buf_pos_arr) {
+        $exp_buff_pos->{$gp} = 1;
+    }
+    my $sp6 = $bd->add_spatial_output (name => 'test_buff_pos');
+    eval {
+        $sp6->run_analysis(
+            calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
+            spatial_conditions => [ 'sp_self_only()' ],
+            definition_query   => $cond_buffered,
+        );
+    };
+
+    my $passed6 = $sp6->get_groups_that_pass_def_query();
+    is $passed6, $exp_buff_pos, 'Expected def query passes, convex_hull buff_dist positive';
+
 }
 
 sub test_sp_in_label_range_circumcircle {
@@ -223,6 +287,69 @@ sub test_sp_in_label_range_circumcircle {
     my $passed = $sp->get_groups_that_pass_def_query();
     is $passed, $exp, 'Expected def query not same as normal range check';
 
+    #  check buffer of zero
+    $cond = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_range(circumcircle => 1, buffer_dist => 0);
+        EOC
+    ;
+
+    $sp = $bd->add_spatial_output(name => "test_buff_dist_0");
+    $sp->run_analysis(
+        calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
+        spatial_conditions => [ 'sp_self_only()' ],
+        definition_query   => $cond,
+    );
+
+    $passed = $sp->get_groups_that_pass_def_query();
+    is $passed, $exp, 'Expected def query not same as normal range check, buffer_dist = 0';
+
+    #  check large neg buffer
+    $cond = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_range(circumcircle => 1, buffer_dist => -1e9);
+        EOC
+    ;
+
+    $sp = $bd->add_spatial_output(name => "test_buff_dist_bigneg");
+    eval {
+        $sp->run_analysis(
+            calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
+            spatial_conditions => [ 'sp_self_only()' ],
+            definition_query   => $cond,
+        );
+    };
+
+    $passed = $sp->get_groups_that_pass_def_query();
+    is $passed, {}, 'Expected def query, buffer_dist is big neg';
+
+    #  check pos buffer
+    $cond = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_range(circumcircle => 1, buffer_dist => 100000);
+        EOC
+    ;
+
+    $sp = $bd->add_spatial_output(name => "test_buff_dist");
+    eval {
+        $sp->run_analysis(
+            calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
+            spatial_conditions => [ 'sp_self_only()' ],
+            definition_query   => $cond,
+        );
+    };
+
+    my @exp_buf_pos_arr = qw /
+        3350000:2050000 3350000:2150000 3450000:2050000 3450000:2150000 3550000:1950000
+        3550000:2050000 3550000:2150000 3550000:2250000 3650000:1750000 3650000:1850000
+        3650000:1950000 3650000:2050000 3650000:2350000 3750000:1850000 3750000:1950000
+        3750000:2050000 3750000:2150000 3850000:1850000 3850000:1950000
+    /;
+
+    my $exp_buf_pos = {map {$_ => 1} @exp_buf_pos_arr};
+
+    $passed = $sp->get_groups_that_pass_def_query();
+    is $passed, $exp_buf_pos, 'Expected def query, buffer_dist is positive';
 }
 
 

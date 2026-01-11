@@ -1912,6 +1912,10 @@ sub get_metadata_sp_in_label_range {
         If both convex_hull and circumcircle arguments are set to true then
         the circumcircle is used.
 
+        An optional buffer_dist argument can be used to adjust the size
+        of the convex hull or circumcircle.  As is standard with GIS buffering,
+        positive values increase the area while negative values decrease it.
+
         The label argument should normally be specified but in some
         circumstances a default is set (e.g. when a randomisation
         seed location is set).
@@ -1927,6 +1931,20 @@ sub get_metadata_sp_in_label_range {
 
         #  Are we in the circumscribing circle?
         sp_in_label_range(label => 'Genus:Sp1', circumcircle => 1)
+
+        #  Are we in the convex hull with a buffer of 100,000 units?
+        sp_in_label_range(
+            label       => 'Genus:Sp1',
+            convex_hull => 1,
+            buffer_dist => 100000,
+        )
+
+        #  Buffers can be negative, in which case the convex hull or circumcircle is shrunk
+        sp_in_label_range(
+            label       => 'Genus:Sp1',
+            convex_hull => 1,
+            buffer_dist => -100000,
+        )
 
         #  Are we in the convex hull defined using the
         #  coordinates from the third and first axes?
@@ -1958,6 +1976,7 @@ sub get_metadata_sp_in_label_range {
             'axes',
             'circumcircle',
             'convex_hull',
+            'buffer_dist',
         ],
         result_type    => $uses_current_label ? 'complex' : 'always_same',
         index_no_use   => 1, #  turn index off since this doesn't cooperate with the search method
@@ -1984,21 +2003,36 @@ sub sp_in_label_range {
 
     my $bd = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
 
-    if ($args{convex_hull} || $args{circumcircle}) {
-        my $method = $args{convex_hull}
-          ? 'get_groups_in_label_range_convex_hull'
-          : 'get_groups_in_label_range_circumcircle';
+    return 0 if !$bd->exists_label_aa($label);
 
-        croak "sp_in_label_range: Insufficient group axes for $method"
+    if ($args{convex_hull} || $args{circumcircle}) {
+        croak "sp_in_label_range: Insufficient group axes for "
+            . ($args{convex_hull} ? "convex hull" : "circumcircle")
             if scalar $bd->get_group_axis_count < 2;
 
-        return 0 if !$bd->exists_label_aa($label);
+        my $axes      = $args{axes} // $h->{axes} // [0,1];
+        my $poly_type = $args{circumcircle} ? 'circumcircle' : 'convex_hull';
+        my $in_polygon;
 
-        my $groups = $bd->$method (
-            label => $label,
-            axes  => $args{axes} // $h->{axes},
-        );
-        return $groups->{$group};
+        if (my $buff_dist = $args{buffer_dist}) {  #  we have a buffer to work with
+            my $cache_key = 'IN_LABEL_RANGE_' . uc($poly_type) . '_BUFFERED_' . join ':', @$axes;
+            my $cache = $self->get_cached_value_dor_set_default_href($cache_key);
+            $in_polygon
+                = $cache->{$label}{$buff_dist}
+                //= do {
+                    my $method  = "get_label_range_${poly_type}";
+                    my $polygon = $bd->$method(label => $label, axes => $axes)->Buffer($buff_dist, 30);
+                    $bd->get_groups_in_polygon (polygon => $polygon, axes => $axes);
+                };
+        }
+        else {  #  no buffer
+            my $method = "get_groups_in_label_range_${poly_type}";
+            $in_polygon = $bd->$method(
+                label => $label,
+                axes  => $axes,
+            );
+        }
+        return $in_polygon->{$group};
     }
 
     my $labels_in_group = $bd->get_labels_in_group_as_hash_aa ($group);
@@ -2049,7 +2083,8 @@ sub get_metadata_sp_in_label_ancestor_range {
         ranges using sp_in_label_range().  This means the
         search can also use the convex hull or circumcircle
         of each terminal, as well as setting its other arguments
-        and using a default label in some circumstances.
+        such as the buffer_dist and using a default label
+        in some circumstances.
 
         Note that each terminal of the ancestor is assessed separately.
         The ranges are not aggregated before the convex hull

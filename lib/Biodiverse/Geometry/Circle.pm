@@ -11,7 +11,7 @@ our $VERSION = '5.0';
 
 
 sub new ($class, $p, $r) {
-    return bless { centre => $p, radius => $r }, ($class // __PACKAGE__);
+    return bless { centre => $p, radius => $r }, (ref($class) || $class // __PACKAGE__);
 }
 
 #  slurpy to avoid arity checks
@@ -141,5 +141,20 @@ sub get_circumcircle ($self, $p) {
 
     return welzl_helper([List::Util::shuffle @$p], [], scalar @$p);
 }
+
+sub clone {
+    my $self = shift;
+    use Clone;
+    return Clone::clone ($self);
+}
+
+#  named for consistency with Geo::GDAL::FFI
+sub Buffer {
+    my ($self, $buffer) = @_;
+    my $clone = $self->clone;
+    $clone->{radius} += $buffer;
+    $clone;
+}
+
 
 1;

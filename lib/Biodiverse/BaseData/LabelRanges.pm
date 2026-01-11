@@ -153,6 +153,12 @@ sub get_groups_in_polygon {
     my $polygon = $args{polygon} // croak 'polygon arg not passed';
     \my @axes  = $args{axes} // [0,1];
 
+    return $self->get_groups_in_circle(circle => $polygon, axes => \@axes)
+        if $polygon->isa('Biodiverse::Geometry::Circle');
+
+    return wantarray ? () : {}
+        if $polygon->IsEmpty;
+
     my $bbox = $polygon->GetEnvelope;
     my ($xmin, $xmax, $ymin, $ymax) = @$bbox;
 
@@ -182,6 +188,9 @@ sub get_groups_in_circle {
 
     my $circle = $args{circle} // croak 'circle arg not passed';
     \my @axes  = $args{axes} // [0,1];
+
+    return wantarray ? () : {}
+        if $circle->radius < 0;
 
     my ($xmin, $ymin, $xmax, $ymax) = $circle->bbox;
 

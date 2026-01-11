@@ -267,16 +267,17 @@ sub test_vcache {
 
     my $tree = Biodiverse::Tree->new (NAME => 'for testing');
     my $vcache2 = $tree->get_volatile_cache;
-    ok $tree->{_vcache}, 'object has the vcache';
+    ok $tree->{_cache}{_vcache}, 'object has the vcache';
     $tree->clear_volatile_cache;
-    ok !$tree->{_vcache}, 'object no longer has the vcache';
+    ok !$tree->{_cache}{_vcache}, 'object no longer has the vcache';
 
     #  now check a slightly deeper serialisation
     $vcache2 = $tree->get_volatile_cache;
     $vcache2->get_cached_value_dor_set_default_href($cache_name);
-    is [keys %{$tree->{_vcache}{_cache}}], [$cache_name], 'tree object has expected vcache keys';
+    is [$vcache2->get_cached_value_keys], [$cache_name], 'tree object has expected vcache keys';
     $decoder->decode ($encoder->encode($tree), $serialised);
-    is [keys %{$serialised->{_vcache}}], [], 'serialised object has no vcache';
+    my $vcache_s = $serialised->get_volatile_cache;
+    is [$vcache_s->get_cached_value_keys], [], 'serialised object has no vcache keys';
 
 }
 

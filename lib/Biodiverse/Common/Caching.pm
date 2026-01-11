@@ -82,12 +82,12 @@ sub delete_cached_value {
 sub get_volatile_cache {
     my $self = shift;
     use Biodiverse::VCache;
-    $self->{_vcache} //= Biodiverse::VCache->new;
+    $self->{_cache}{_vcache} //= Biodiverse::VCache->new;
 }
 
 sub clear_volatile_cache {
     my $self = shift;
-    delete $self->{_vcache};
+    $self->delete_cached_value('_vcache');
 }
 
 1;

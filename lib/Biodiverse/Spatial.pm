@@ -1437,12 +1437,12 @@ sub get_nbrs_for_element {
             #  not if we are volatile
             if (!$nbr_sets_are_volatile) {
                 $self->add_to_lists(
-                element        => $element,
-                $nbr_list_name => $nbr_list[$i],
-                use_ref        => 1,
-            );
+                    element        => $element,
+                    $nbr_list_name => $nbr_list[$i],
+                    use_ref        => 1,
+                );
+            }
         }
-    }
     }
 
     return wantarray ? @nbr_list : \@nbr_list;

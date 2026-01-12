@@ -6,7 +6,7 @@ use 5.022;
 
 our $VERSION = '5.0';
 
-use experimental 'for_list';
+use experimental qw /refaliasing for_list/;
 
 use Carp;
 use English qw /-no_match_vars/;
@@ -80,8 +80,7 @@ sub sp_circle {
     my $h = $self->get_param('CURRENT_ARGS');
 
     my $dist;
-    if ( $args{axes} ) {
-        my $axes  = $args{axes};
+    if (my $axes = $args{axes} ) {
         my $dists = $h->{dists}{D_list};
         my $d_sqr = 0;
         foreach my $axis (@$axes) {
@@ -98,10 +97,7 @@ sub sp_circle {
         $dist = $h->{dists}{D}; 
     }
 
-    #  could put into the return, but this helps debugging
-    my $test = $dist <= $args{radius};    
-
-    return $test;
+    return $dist <= $args{radius};
 }
 
 sub get_metadata_sp_circle_cell {
@@ -139,7 +135,6 @@ sub get_metadata_sp_circle_cell {
 }
 
 #  cell based circle.
-#  As with the other version, should add an option to use a subset of axes
 sub sp_circle_cell {
     my $self = shift;
     my %args = @_;
@@ -147,8 +142,7 @@ sub sp_circle_cell {
     my $h = $self->get_param('CURRENT_ARGS');
 
     my $dist;
-    if ( $args{axes} ) {
-        my $axes  = $args{axes};
+    if (my $axes = $args{axes}) {
         my $dists = $h->{dists}{C_list};
         my $d_sqr = 0;
         foreach my $axis (@$axes) {
@@ -160,10 +154,7 @@ sub sp_circle_cell {
         $dist = $h->{dists}{C};
     }
 
-    #  could put into the return, but still debugging
-    my $test = $dist <= $args{radius};
-
-    return $test;
+    return $dist <= $args{radius};
 }
 
 
@@ -271,6 +262,7 @@ sub get_metadata_sp_annulus {
     my $example = <<~'EOEX'
         #  an annulus assessed against all axes
         sp_annulus (inner_radius => 2000000, outer_radius => 4000000)
+
         #  an annulus assessed against axes 0 and 1
         sp_annulus (inner_radius => 2000000, outer_radius => 4000000, axes => [0,1])
         EOEX
@@ -779,12 +771,7 @@ sub get_comparator_for_text_matching {
     
     if (defined $axis) { #  check against one axis
 
-        if ( $type eq 'proc' ) {
-            $compcoord = $h->{coord_array};
-        }
-        elsif ( $type eq 'nbr' ) {
-            $compcoord = $h->{nbrcoord_array};
-        }
+        $compcoord = $type eq 'proc' ? $h->{coord_array} : $h->{nbrcoord_array};
 
         croak ("axis argument $args{axis} beyond array bounds, comparing with "
             . join (q{ }, @$compcoord)
@@ -794,12 +781,7 @@ sub get_comparator_for_text_matching {
         return $compcoord->[ $axis ];
     }
 
-    if ( $type eq 'proc' ) {
-        $compcoord = $h->{coord_id1};
-    }
-    elsif ( $type eq 'nbr' ) {
-        $compcoord = $h->{coord_id2};
-    }
+    $compcoord = $type eq 'proc' ? $h->{coord_id1} : $h->{coord_id2};
     
     return $compcoord;  #  deref scalar reference
 }
@@ -919,29 +901,27 @@ sub _sp_side {
     my $self = shift;
     my %args = @_;
 
-    my $axes = $args{axes};
-    if ( defined $axes ) {
+    my $axes_ref = $args{axes};
+    if ( defined $axes_ref ) {
         croak "_sp_side:  axes arg is not an array ref\n"
-            if ( !is_arrayref($axes) );
-        my $axis_count = scalar @$axes;
+            if ( !is_arrayref($axes_ref) );
         croak
-          "_sp_side:  axes array needs two axes, you have given $axis_count\n"
-          if $axis_count != 2;
+          "_sp_side:  axes array needs two axes, you have given " . (scalar @$axes_ref) . "\n"
+          if @$axes_ref != 2;
     }
-    else {
-        $axes = [0,1];
-    }
+
+    \my @axes = $axes_ref // [0,1];
 
     my $h = $self->get_param('CURRENT_ARGS');
 
     #  Need to de-ref to get the values
-    my @coord     = @{ $h->{coord_array} };
-    my @nbr_coord = @{ $h->{nbrcoord_array} };
+    \my @coord     = $h->{coord_array};
+    \my @nbr_coord = $h->{nbrcoord_array};
 
     #  coincident points are in line
     return 0 if (
-           $nbr_coord[$axes->[1]] == $coord[$axes->[1]]
-        && $nbr_coord[$axes->[0]] == $coord[$axes->[0]]
+           $nbr_coord[$axes[1]] == $coord[$axes[1]]
+        && $nbr_coord[$axes[0]] == $coord[$axes[0]]
     );
 
     #  set the default offset as east in radians
@@ -949,16 +929,13 @@ sub _sp_side {
     if ( defined $args{vector_angle_deg} && !defined $args{vector_angle} ) {
         $vector_angle = deg2rad ( $args{vector_angle_deg} );
     }
-    else {
-        $vector_angle = $args{vector_angle} // 0;
-    }
 
     #  get the direction and rotate it so vector_angle is zero
     my $dir = atan2 (
-        $nbr_coord[$axes->[1]] - $coord[$axes->[1]],
-        $nbr_coord[$axes->[0]] - $coord[$axes->[0]],
+        $nbr_coord[$axes[1]] - $coord[$axes[1]],
+        $nbr_coord[$axes[0]] - $coord[$axes[0]],
     )
-    - $vector_angle;
+    - ($vector_angle // 0);
 
     #  Do we need to do this?  Must modify checks below if removed.
     if ($dir < 0) {
@@ -1437,15 +1414,7 @@ sub sp_point_in_poly_shape {
     my $no_cache = $args{no_cache};
     my $axes = $args{axes} || [0,1];
 
-    my $point = $args{point};
-    if (!defined $point) {  #  convoluted, but syntax highlighting plays up with ternary op
-        if (eval {$self->is_def_query}) {
-            $point = $h->{coord_array};
-        }
-        else {
-            $point = $h->{nbrcoord_array};
-        }
-    }
+    my $point = $args{point} // ($self->is_def_query ? $h->{coord_array} : $h->{nbrcoord_array});
 
     my $x_coord = $point->[$axes->[0]];
     my $y_coord = $point->[$axes->[1]];
@@ -2006,12 +1975,12 @@ sub sp_in_label_range {
     return 0 if !$bd->exists_label_aa($label);
 
     if ($args{convex_hull} || $args{circumcircle}) {
-        croak "sp_in_label_range: Insufficient group axes for "
-            . ($args{convex_hull} ? "convex hull" : "circumcircle")
+        my $poly_type = $args{convex_hull} ? 'convex_hull' : 'circumcircle';
+
+        croak "sp_in_label_range: Insufficient group axes for $poly_type"
             if scalar $bd->get_group_axis_count < 2;
 
-        my $axes      = $args{axes} // $h->{axes} // [0,1];
-        my $poly_type = $args{circumcircle} ? 'circumcircle' : 'convex_hull';
+        my $axes = $args{axes} // $h->{axes} // [0,1];
         my $in_polygon;
 
         if (my $buff_dist = $args{buffer_dist}) {  #  we have a buffer to work with

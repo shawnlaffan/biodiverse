@@ -253,6 +253,22 @@ sub test_sp_in_label_range_convex_hull {
     my $passed6 = $sp6->get_groups_that_pass_def_query();
     is $passed6, $exp_buff_pos, 'Expected def query passes, convex_hull buff_dist positive';
 
+    $cond = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_range(convex_hull => 1, circumcircle => 1);
+        EOC
+    ;
+    $sp = $bd->add_spatial_output(name => "test_circumcircle_and_convex_hull_args");
+    eval {
+        $sp->run_analysis(
+            calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
+            spatial_conditions => [ 'sp_self_only()' ],
+            definition_query   => $cond,
+        );
+    };
+
+    $passed = $sp->get_groups_that_pass_def_query();
+    is $passed, $exp, 'Expected def query, convex_hull overrides circumcircle arg';
 }
 
 sub test_sp_in_label_range_circumcircle {

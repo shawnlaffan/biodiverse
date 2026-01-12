@@ -2006,12 +2006,12 @@ sub sp_in_label_range {
     return 0 if !$bd->exists_label_aa($label);
 
     if ($args{convex_hull} || $args{circumcircle}) {
-        croak "sp_in_label_range: Insufficient group axes for "
-            . ($args{convex_hull} ? "convex hull" : "circumcircle")
+        my $poly_type = $args{convex_hull} ? 'convex_hull' : 'circumcircle';
+
+        croak "sp_in_label_range: Insufficient group axes for $poly_type"
             if scalar $bd->get_group_axis_count < 2;
 
-        my $axes      = $args{axes} // $h->{axes} // [0,1];
-        my $poly_type = $args{circumcircle} ? 'circumcircle' : 'convex_hull';
+        my $axes = $args{axes} // $h->{axes} // [0,1];
         my $in_polygon;
 
         if (my $buff_dist = $args{buffer_dist}) {  #  we have a buffer to work with

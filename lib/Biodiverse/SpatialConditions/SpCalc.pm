@@ -2091,34 +2091,34 @@ sub get_metadata_sp_in_label_ancestor_range {
 
     my $example = <<~'EOEX'
         # Are we in the range of an ancestor of Genus:Sp1?
-        sp_in_label_ancestor_range(label => 'Genus:Sp1', dist => 0.5)
+        sp_in_label_ancestor_range(label => 'Genus:Sp1', target => 0.5)
 
         # Are we in the range of the "grandmother" of Genus:Sp1?
         sp_in_label_ancestor_range(
           label    => 'Genus:Sp1',
-          dist     => 2,
+          target   => 2,
           by_depth => 1,
         )
 
         #  Are we in the tips' convex hulls?
         sp_in_label_ancestor_range(
-          label => 'Genus:Sp1',
-          dist  => 0.5,
+          label       => 'Genus:Sp1',
+          target      => 0.5,
           convex_hull => 1,
         )
 
         #  Are we in the tips' concave hulls?
         sp_in_label_ancestor_range(
-          label => 'Genus:Sp1',
-          dist  => 0.5,
+          label        => 'Genus:Sp1',
+          target       => 0.5,
           concave_hull => 1,
           hull_ratio   => 0.5,
         )
 
         #  Are we in the tips' circumscribing circles?
         sp_in_label_ancestor_range(
-          label => 'Genus:Sp1',
-          dist  => 0.5,
+          label        => 'Genus:Sp1',
+          target       => 0.5,
           circumcircle => 1,
         )
 
@@ -2126,7 +2126,7 @@ sub get_metadata_sp_in_label_ancestor_range {
     ;
 
     my $meta = $self->get_metadata_sp_in_label_range;
-    push @{$meta->{required_args}}, 'dist';
+    push @{$meta->{required_args}}, 'target';
     push @{$meta->{optional_args}}, (qw /by_depth as_frac/);
     $meta->{description} = $description;
     $meta->{example}     = $example;
@@ -2143,7 +2143,7 @@ sub sp_in_label_ancestor_range {
     my $node = $tree->get_node_ref_or_undef_aa($label);
     return 0 if !defined $node;
 
-    my $d = $args{dist} // croak 'argument "dist" not defined';
+    my $d = $args{target} // croak 'argument "target" not defined';
 
     if ($args{as_frac}) {
         if ($args{by_depth}) {

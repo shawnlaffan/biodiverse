@@ -563,7 +563,7 @@ sub test_sp_in_tree_ancestor_range {
 
     my $cond = <<~'EOC'
         $self->set_current_label('Genus:sp4');
-        sp_in_label_ancestor_range(by_depth => 2, dist => 2);
+        sp_in_label_ancestor_range(by_depth => 2, target => 2);
         EOC
     ;
     my $defq = Biodiverse::SpatialConditions::DefQuery->new(
@@ -596,7 +596,7 @@ sub test_sp_in_tree_ancestor_range {
 
     $cond = <<~'EOC'
         $self->set_current_label('Genus:sp4');
-        sp_in_label_ancestor_range(by_depth => 1, dist => 0.5, as_frac => 1);
+        sp_in_label_ancestor_range(by_depth => 1, target => 0.5, as_frac => 1);
         EOC
     ;
     my $defq_dfrac = Biodiverse::SpatialConditions::DefQuery->new(
@@ -616,7 +616,7 @@ sub test_sp_in_tree_ancestor_range {
     #  0.97 is the same node as for by_depth=2
     $cond = <<~'EOC'
         $self->set_current_label('Genus:sp4');
-        sp_in_label_ancestor_range(by_depth => 0, dist => 0.97);
+        sp_in_label_ancestor_range(by_depth => 0, target => 0.97);
         EOC
     ;
     my $defq_len = Biodiverse::SpatialConditions::DefQuery->new(
@@ -635,7 +635,7 @@ sub test_sp_in_tree_ancestor_range {
 
     $cond = <<~'EOC'
         $self->set_current_label('Genus:sp4');
-        sp_in_label_ancestor_range(dist => 0.97, as_frac => 1);
+        sp_in_label_ancestor_range(target => 0.97, as_frac => 1);
         EOC
     ;
     my $defq_lfrac = Biodiverse::SpatialConditions::DefQuery->new(
@@ -655,7 +655,7 @@ sub test_sp_in_tree_ancestor_range {
     #  nothing should pass for not in tree
     $cond = <<~'EOC'
         $self->set_current_label('somelabelnotintree');
-        sp_in_label_ancestor_range(by_depth => 2, dist => 2);
+        sp_in_label_ancestor_range(by_depth => 2, target => 2);
         EOC
     ;
     $defq = Biodiverse::SpatialConditions::DefQuery->new(
@@ -675,7 +675,7 @@ sub test_sp_in_tree_ancestor_range {
     #  Now the convex hull case.  We only need to check one of depth or length.
     $cond = <<~'EOC'
         $self->set_current_label('Genus:sp4');
-        sp_in_label_ancestor_range(by_depth => 2, dist => 2, convex_hull => 1);
+        sp_in_label_ancestor_range(by_depth => 2, target => 2, convex_hull => 1);
         EOC
     ;
     my $defq_depth_ch = Biodiverse::SpatialConditions::DefQuery->new(
@@ -702,7 +702,7 @@ sub test_sp_in_tree_ancestor_range {
     #  we only need to check one of depth or length.
     $cond = <<~'EOC'
         $self->set_current_label('Genus:sp4');
-        sp_in_label_ancestor_range(by_depth => 2, dist => 2, circumcircle => 1);
+        sp_in_label_ancestor_range(by_depth => 2, target => 2, circumcircle => 1);
         EOC
     ;
     my $defq_depth_cc = Biodiverse::SpatialConditions::DefQuery->new(
@@ -733,7 +733,7 @@ sub test_sp_in_tree_ancestor_range {
     #  terminals should be the same as a call to in_label_range
     $cond = <<~'EOC'
         $self->set_current_label('Genus:sp4');
-        sp_in_label_ancestor_range(dist => 0);
+        sp_in_label_ancestor_range(target => 0);
         EOC
     ;
     my $defq_d0 = Biodiverse::SpatialConditions::DefQuery->new(
@@ -765,6 +765,6 @@ sub test_sp_in_tree_ancestor_range {
 
     is scalar $sp_d0->get_groups_that_pass_def_query,
         scalar $sp_lr->get_groups_that_pass_def_query,
-        'dist => 0 is same as call to sp_in_label_range';
+        'target => 0 is same as call to sp_in_label_range';
 
 }

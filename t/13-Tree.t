@@ -107,6 +107,21 @@ sub test_ancestor_by {
         $target_name,
         "Got expected ancestor for $from_name at length above of $d";
 
+    my $ntips = 10;
+    $ancestor = $from_node->get_ancestor_by_ntips_aa($ntips);
+    is $ancestor->get_name,
+        $target_name,
+        "Got expected ancestor for $from_name when looking for $ntips tips";
+    $ancestor = $from_node->get_ancestor_by_ntips_aa(-10);
+    is $ancestor->get_name,
+        $from_node->get_name,
+        "Got caller node when ntips is <0";
+    $ancestor = $from_node->get_ancestor_by_ntips_aa(10e6);
+    is $ancestor->get_name,
+        $from_node->get_root_node->get_name,
+        "Got root node when ntips exceed the tree's";
+
+
     #  numbers bigger than tree return the root
     $d = 27;
     my $root = $tree->get_root_node;
@@ -136,7 +151,6 @@ sub test_ancestor_by {
     #  exceptions
     is $from_node->get_ancestor_by_depth_aa(-1)->get_name, '126___', '-ve ancestor by depth call';
     is $from_node->get_ancestor_by_length_aa(-0.025)->get_name, '123___', '-ve ancestor by length call';
-
 }
 
 

@@ -1758,6 +1758,24 @@ sub get_ancestor_by_length_aa {
     return $self;
 }
 
+sub get_ancestor_by_ntips {
+    my ($self, %args) = @_;
+    $self->get_ancestor_by_ntips_aa($args{ntips});
+}
+
+sub get_ancestor_by_ntips_aa {
+    my ($self, $target) = @_;
+
+    return $self if $target <= 0;
+
+    while ($self->get_terminal_element_count < $target) {
+        $self = $self->get_parent
+            // last;
+    }
+
+    return $self;
+}
+
 #  assign some plot coords to the nodes to allow reconstruction of
 #  the dendrogram from a table
 #  need to assign terminal y-values in order, and the parents take the average of the terminal y values.  

@@ -1347,6 +1347,36 @@ EOT
                 $self->get_highlight_label_range_convex_hull_union;
             },
         },
+        highlight_groups_on_map_concave_hull => {
+            type     => 'Gtk3::CheckMenuItem',
+            label    => 'Highlight groups on map with range concave hulls',
+            tooltip  => 'When hovering the mouse over a tree branch, '
+                . 'plot a concave (alpha) hull of the range of each subtending label.',
+            event    => 'toggled',
+            callback => sub {
+                my ($self, $widget) = @_;
+                $self->set_highlight_label_range_concave_hulls($widget->get_active);
+            },
+            active   => sub {
+                my ($self) = @_;
+                $self->get_highlight_label_range_concave_hulls;
+            },
+        },
+        highlight_groups_on_map_concave_hull_union => {
+            type     => 'Gtk3::CheckMenuItem',
+            label    => 'Highlight groups on map with range concave hull union',
+            tooltip  => 'When hovering the mouse over a tree branch, '
+                . 'plot the union of the concave hulls of the range of each subtending label.',
+            event    => 'toggled',
+            callback => sub {
+                my ($self, $widget) = @_;
+                $self->set_highlight_label_range_concave_hull_union($widget->get_active);
+            },
+            active   => sub {
+                my ($self) = @_;
+                $self->get_highlight_label_range_concave_hull_union;
+            },
+        },
         highlight_groups_on_map_circumcircle => {
             type     => 'Gtk3::CheckMenuItem',
             label    => 'Highlight groups on map with range circumcircles',

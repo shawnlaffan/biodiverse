@@ -409,6 +409,8 @@ sub get_standard_tree_menu_items {
             highlight_groups_on_map
             highlight_groups_on_map_convex_hull
             highlight_groups_on_map_convex_hull_union
+            highlight_groups_on_map_concave_hull
+            highlight_groups_on_map_concave_hull_union
             highlight_groups_on_map_circumcircle
             highlight_groups_on_map_circumcircle_union
             highlight_paths_on_tree
@@ -902,86 +904,45 @@ sub on_highlight_groups_on_map_changed {
     return;
 }
 
-sub set_highlight_label_range_convex_hulls {
-    my ($self, $value) = @_;
 
-    $self->{highlight_label_range_convex_hulls} = !!$value;
-
-    return;
+#  generate the get, set and toggle methods for the range polygon overlays
+for my $type (qw /convex_hull concave_hull circumcircle/) {
+    no strict 'refs';
+    my $infix = 'highlight_label_range';
+    my $pkg = __PACKAGE__;
+    for my $suffix ("${type}s", "${type}_union") {
+        my $hash_key = "${infix}_${suffix}";
+        *{"${pkg}::set_${infix}_${suffix}"} =
+            do {
+                sub {
+                    my ($self, $value) = @_;
+                    $self->{$hash_key} = !!$value;
+                    return;
+                };
+            };
+        *{"${pkg}::get_${infix}_${suffix}"} =
+            do {
+                sub {
+                    $_[0]->{$hash_key};
+                };
+            };
+        *{"${pkg}::toggle_${infix}_${suffix}"} =
+            do {
+                sub {
+                    my ($self) = @_;
+                    $self->{$hash_key} = !$self->{$hash_key};
+                };
+            };
+    }
 }
 
-sub toggle_highlight_label_range_convex_hulls {
-    my ($self, $value) = @_;
+sub _highlight_label_range_hulls {
+    my ($self, $node, $is_concave, %rest) = @_;
 
-    $self->{highlight_label_range_convex_hulls}
-        = !$self->{highlight_label_range_convex_hulls};
-}
+    my $type = $is_concave ? 'concave' : 'convex';
 
-sub get_highlight_label_range_convex_hulls {
-    $_[0]->{highlight_label_range_convex_hulls};
-}
-
-sub set_highlight_label_range_convex_hull_union {
-    my ($self, $value) = @_;
-
-    $self->{highlight_label_range_convex_hull_union} = !!$value;
-
-    return;
-}
-
-sub toggle_highlight_label_range_convex_hull_union {
-    my ($self, $value) = @_;
-
-    $self->{highlight_label_range_convex_hull_union}
-        = !$self->{highlight_label_range_convex_hull_union};
-}
-
-sub get_highlight_label_range_convex_hull_union {
-    $_[0]->{highlight_label_range_convex_hull_union};
-}
-
-sub set_highlight_label_range_circumcircles {
-    my ($self, $value) = @_;
-
-    $self->{highlight_label_range_circumcircles} = !!$value;
-
-    return;
-}
-
-sub toggle_highlight_label_range_circumcircles {
-    my ($self, $value) = @_;
-
-    $self->{highlight_label_range_circumcircles}
-        = !$self->{highlight_label_range_circumcircles};
-}
-
-sub get_highlight_label_range_circumcircles {
-    $_[0]->{highlight_label_range_circumcircles};
-}
-
-sub set_highlight_label_range_circumcircle_union {
-    my ($self, $value) = @_;
-
-    $self->{highlight_label_range_circumcircle_union} = !!$value;
-
-    return;
-}
-
-sub toggle_highlight_label_range_circumcircle_union {
-    my ($self, $value) = @_;
-
-    $self->{highlight_label_range_circumcircle_union}
-        = !$self->{highlight_label_range_circumcircle_union};
-}
-
-sub get_highlight_label_range_circumcircle_union {
-    $_[0]->{highlight_label_range_circumcircle_union};
-}
-
-sub highlight_label_range_convex_hulls {
-    my ($self, $node) = @_;
-
-    return if !$self->get_highlight_label_range_convex_hulls;
+    my $method = "get_highlight_label_range_${type}_hulls";
+    return if !$self->$method;
 
     my $terminal_elements = $node->get_terminal_elements;
 
@@ -989,18 +950,32 @@ sub highlight_label_range_convex_hulls {
     my $label_hash = $bd->get_labels_ref->get_element_hash;
 
     #  clear existing
-    $self->{grid}->clear_range_convex_hulls;
+    $method = "clear_range_${type}_hulls";
+    $self->{grid}->$method;
 
-    my $cache = $bd->get_cached_value_dor_set_default_href('LABEL_RANGE_CONVEX_HULL_VERTICES');
+    my $cache = $bd->get_cached_value_dor_set_default_href("LABEL_RANGE_' uc($type) . '_HULL_VERTICES");
 
     foreach my $label (keys %$terminal_elements) {
         next LABEL if !exists $label_hash->{$label};
         my $data
             = $cache->{$label}
-            //= $bd->get_label_range_convex_hull(label => $label)->GetPoints(0, 0);
+            //= do {
+                my $meth = "get_label_range_${type}_hull";
+                my $geom = $bd->$meth(label => $label, %rest);
+                #  a bit nasty but the plotting currently works most generally with an array of objects
+                my $gtype = $geom->GetType;
+                my $g = $geom->GetPoints(0,0);
+                my $object = Biodiverse::GUI::Overlays::Geometry->new (
+                    extent   => [@{$geom->GetEnvelope}[0,2,1,3]],  #  x1,y1,x2,y2
+                    id       => $label,
+                    type     => $gtype,
+                    geometry => $gtype =~ /Multi/ ? $g : [ $g ]
+                );
+                [$object];
+            };
         $self->{grid}->set_overlay(
             type        => 'polyline',
-            cb_target   => 'range_convex_hulls',
+            cb_target   => "range_${type}_hulls",
             plot_on_top => 1,
             data        => $data,
             colour      => COLOUR_BLACK,
@@ -1009,10 +984,38 @@ sub highlight_label_range_convex_hulls {
     }
 }
 
+sub highlight_label_range_convex_hulls {
+    my ($self, $node) = @_;
+
+    return $self->_highlight_label_range_hulls($node);
+}
+
+sub highlight_label_range_concave_hulls {
+    my ($self, $node, @rest) = @_;
+
+    return $self->_highlight_label_range_hulls($node, 1, @rest);
+}
+
 sub highlight_label_range_convex_hull_union {
     my ($self, $node) = @_;
 
-    return if !$self->get_highlight_label_range_convex_hull_union;
+    return $self->_highlight_label_range_hull_union($node);
+}
+
+sub highlight_label_range_concave_hull_union {
+    my ($self, $node, @rest) = @_;
+
+    return $self->_highlight_label_range_hull_union($node, 1, @rest);
+}
+
+
+sub _highlight_label_range_hull_union {
+    my ($self, $node, $is_concave, %rest) = @_;
+
+    my $type = $is_concave ? 'concave' : 'convex';
+
+    my $method = "get_highlight_label_range_${type}_hull_union";
+    return if !$self->$method;
 
     my $terminal_elements = $node->get_terminal_elements;
 
@@ -1020,20 +1023,22 @@ sub highlight_label_range_convex_hull_union {
     my $label_hash = $bd->get_labels_ref->get_element_hash;
 
     #  clear existing
-    $self->{grid}->clear_range_convex_hull_union;
+    $method = "clear_range_${type}_hull_union";
+    $self->{grid}->$method;
 
-    my $cache = $bd->get_cached_value_dor_set_default_href('LABEL_RANGE_CONVEX_HULL_VERTICES');
+    my $cache = $bd->get_cached_value_dor_set_default_href("LABEL_RANGE_' uc($type) . '_HULL_VERTICES");
 
     #  Cache on list of terminal names to avoid issues with trees
     #  that have similarly named nodes with different terminals.
     my $cache_key = $node->is_terminal_node ? $node->get_name : $node->get_terminal_element_names_sha256;
 
     my $hull_union = $cache->{$cache_key};
+    my $hull_method = "get_label_range_${type}_hull";
     if (!defined $hull_union) {
         #  could climb up the tree if this takes too long
         foreach my $label (keys %$terminal_elements) {
-            next LABEL if !exists $label_hash->{$label};
-            my $hull = $bd->get_label_range_convex_hull(label => $label);
+            next if !exists $label_hash->{$label};
+            my $hull = $bd->$hull_method(label => $label);
             $hull_union = $hull_union ? $hull_union->Union ($hull) : $hull;
         }
         $hull_union //= Geo::GDAL::FFI::Geometry->new(WKT => 'POLYGON EMPTY');
@@ -1043,7 +1048,7 @@ sub highlight_label_range_convex_hull_union {
 
     $self->{grid}->set_overlay(
         type        => 'polyline',
-        cb_target   => 'range_convex_hulls',
+        cb_target   => "range_${type}_hull_union",
         plot_on_top => 1,
         data        => $hull_union,
         colour      => COLOUR_BLACK,
@@ -1703,8 +1708,10 @@ sub on_end_phylogeny_hover {
     return if !$self->do_canvas_hover_flag;
 
     $self->{grid}->clear_range_convex_hulls;
+    $self->{grid}->clear_range_concave_hulls;
     $self->{grid}->clear_range_circumcircles;
     $self->{grid}->clear_range_convex_hull_union;
+    $self->{grid}->clear_range_concave_hull_union;
     $self->{grid}->clear_range_circumcircle_union;
     $self->{grid}->mark_with_circles;
 }
@@ -1720,7 +1727,9 @@ sub on_phylogeny_highlight {
 
     $self->highlight_label_range_marks($node);
     $self->highlight_label_range_convex_hulls($node);
+    $self->highlight_label_range_concave_hulls($node);
     $self->highlight_label_range_convex_hull_union($node);
+    $self->highlight_label_range_concave_hull_union($node);
     $self->highlight_label_range_circumcircles($node);
     $self->highlight_label_range_circumcircle_union($node);
 

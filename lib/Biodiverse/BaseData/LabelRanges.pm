@@ -9,7 +9,7 @@ use Carp qw /croak/;
 
 use experimental qw /refaliasing declared_refs/;
 
-use Geo::GDAL::FFI;
+use Geo::GDAL::FFI 0.15;
 
 sub get_label_range_circumcircle {
     my ($self, %args) = @_;
@@ -57,19 +57,31 @@ sub get_groups_in_label_range_circumcircle {
 }
 
 
-#  get a convex hull of the label's range
 sub get_label_range_convex_hull {
+    my ($self, %args) = @_;
+    return $self->_get_label_range_hull (%args, is_concave => 0);
+}
+
+sub get_label_range_concave_hull {
+    my ($self, %args) = @_;
+    return $self->_get_label_range_hull (%args, is_concave => 1);
+}
+
+#  get a convex hull of the label's range
+sub _get_label_range_hull {
     my ($self, %args) = @_;
     my $label = $args{label};
     \my @axes  = $args{axes} // [0,1];
 
     my @res = $self->get_cell_sizes;
 
-    croak "Cannot calculate convex hull on single axis"
+    my $type = $args{is_concave} ? 'concave' : 'convex';
+
+    croak "Cannot calculate $type hull on single axis"
         if @res == 1;
-    croak "Cannot calculate convex hull on more than two axes"
+    croak "Cannot calculate $type hull on more than two axes"
         if @res > 2;
-    croak "Cannot calculate convex hull on text axes"
+    croak "Cannot calculate $type hull on text axes"
         if $res[$axes[0]] < 0 || $res[$axes[1]] < 0;
 
     my $elements = $self->get_groups_with_label_as_hash_aa($label);
@@ -79,7 +91,7 @@ sub get_label_range_convex_hull {
     my $c1 = $res[$axes[0]] / 2;
     my $c2 = $res[$axes[1]] / 2;
 
-    my $cache_key = 'LABEL_RANGE_CONVEX_HULL_' . join ':', @axes;
+    my $cache_key = 'LABEL_RANGE_' . uc($type) . '_CONVEX_HULL_' . join ':', @axes;
     my $cache = $self->get_cached_value_dor_set_default_href ($cache_key);
 
     my $hull;
@@ -107,8 +119,14 @@ sub get_label_range_convex_hull {
             }
             $wkt =~ s/, $//;
             $wkt .= ')';
-            my $g = Geo::GDAL::FFI::Geometry->new(WKT => $wkt);
-            $hull = $g->ConvexHull;
+
+            my $g = Geo::GDAL::FFI::Geometry->new(WKT => $wkt)->UnaryUnion;
+
+            my $method = ucfirst ($type) . 'Hull';
+            #  a ratio of 0 causes issues similar to https://github.com/libgeos/geos/issues/1212
+            my @hull_args = $args{is_concave} ? ($args{ratio} || 0.0001, !!$args{allow_holes}) : ();
+            # $hull = $args{is_concave} ? $g : $g->$method(@hull_args);  #  debug
+            $hull = $g->$method(@hull_args);
             $cache->{$label} = $hull->ExportToWKT;
         }
 
@@ -121,24 +139,41 @@ sub get_label_range_convex_hull {
     return $args{as_wkt} ? $hull->ExportToWKT : $args{as_json} ? $hull->ExportToJSON : $hull;
 }
 
-#  could do the whole thing in GDAL if we created an in-memory geopackage
 sub get_groups_in_label_range_convex_hull {
+    my ($self, %args) = @_;
+
+    return $self->_get_groups_in_label_range_hull (%args, is_concave => 0);
+}
+
+sub get_groups_in_label_range_concave_hull {
+    my ($self, %args) = @_;
+
+    return $self->_get_groups_in_label_range_hull (%args, is_concave => 1);
+}
+
+#  could do the whole thing in GDAL if we created an in-memory geopackage
+sub _get_groups_in_label_range_hull {
     my ($self, %args) = @_;
     my $label = $args{label};
     \my @axes  = $args{axes} // [0,1];
 
-    my $cache_key = 'GROUPS_IN_LABEL_RANGE_CONVEX_HULL_' . join ':', @axes;
-    my $cache = $self->get_cached_value_dor_set_default_href ($cache_key);
+    my $type = $args{is_concave} ? 'concave' : 'convex';
 
+    my $cache_key = 'GROUPS_IN_LABEL_RANGE_' . ucfirst ($type) . '_HULL_' . join ':', @axes;
+    my $cache = $self->get_cached_value_dor_set_default_href ($cache_key);
 
     #  cache as wkt for now
     if (my $cached = $cache->{$label}) {
         return wantarray ? %$cached : $cached;
     }
 
-    #  get_label_range_convex_hull will croak if axes etc are invalid,
+    #  inner subs will croak if axes etc are invalid,
     #  so no need to check here
-    my $hull = $self->get_label_range_convex_hull(%args, as_wkt => undef, as_json => undef);
+    my $hull = $self->_get_label_range_hull(
+        %args,
+        as_wkt  => undef,
+        as_json => undef,
+    );
 
     my $in_hull = $self->get_groups_in_polygon(polygon => $hull, axes => \@axes);
 

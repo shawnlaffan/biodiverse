@@ -859,13 +859,12 @@ sub {
     my @coord = @{ $args{coord_array1} };
 
     #  shorthands - most cases will be 2D
-    my ( $x, $y, $z ) = ( $coord[0], $coord[1], $coord[2] );
+    my ( $x, $y, $z ) = @coord[0,1,2];
 
     my @nbrcoord = $args{coord_array2} ? @{ $args{coord_array2} } : ();
 
     #  shorthands - most cases will be 2D
-    my ( $nbr_x, $nbr_y, $nbr_z ) =
-      ( $nbrcoord[0], $nbrcoord[1], $nbrcoord[2] );
+    my ( $nbr_x, $nbr_y, $nbr_z ) = @nbrcoord[0,1,2];
 
     #  These are used by the sp_* subs
     my $current_args = {

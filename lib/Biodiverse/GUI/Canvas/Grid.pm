@@ -57,7 +57,9 @@ sub new {
         overlays
         legend
         range_convex_hulls
+        range_concave_hulls
         range_convex_hull_union
+        range_concave_hull_union
         range_circumcircles
         range_circumcircle_union
         highlights sel_rect
@@ -649,10 +651,28 @@ sub clear_range_convex_hulls {
     );
 }
 
+sub clear_range_concave_hulls {
+    my $self = shift;
+    $self->set_overlay(
+        cb_target   => 'range_concave_hulls',
+        plot_on_top => 1,
+        data        => undef,
+    );
+}
+
 sub clear_range_convex_hull_union {
     my $self = shift;
     $self->set_overlay(
         cb_target   => 'range_convex_hull_union',
+        plot_on_top => 1,
+        data        => undef,
+    );
+}
+
+sub clear_range_concave_hull_union {
+    my $self = shift;
+    $self->set_overlay(
+        cb_target   => 'range_concave_hull_union',
         plot_on_top => 1,
         data        => undef,
     );

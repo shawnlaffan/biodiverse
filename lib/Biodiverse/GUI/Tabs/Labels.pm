@@ -905,119 +905,35 @@ sub on_highlight_groups_on_map_changed {
 }
 
 
-# these hull and circumcircle methods need to be factoried
-sub set_highlight_label_range_convex_hulls {
-    my ($self, $value) = @_;
-
-    $self->{highlight_label_range_convex_hulls} = !!$value;
-
-    return;
-}
-
-sub toggle_highlight_label_range_convex_hulls {
-    my ($self, $value) = @_;
-
-    $self->{highlight_label_range_convex_hulls}
-        = !$self->{highlight_label_range_convex_hulls};
-}
-
-sub get_highlight_label_range_convex_hulls {
-    $_[0]->{highlight_label_range_convex_hulls};
-}
-
-sub set_highlight_label_range_concave_hulls {
-    my ($self, $value) = @_;
-
-    $self->{highlight_label_range_concave_hulls} = !!$value;
-
-    return;
-}
-
-sub toggle_highlight_label_range_concave_hulls {
-    my ($self, $value) = @_;
-
-    $self->{highlight_label_range_concave_hulls}
-        = !$self->{highlight_label_range_concave_hulls};
-}
-
-sub get_highlight_label_range_concave_hulls {
-    $_[0]->{highlight_label_range_concave_hulls};
-}
-
-sub set_highlight_label_range_convex_hull_union {
-    my ($self, $value) = @_;
-
-    $self->{highlight_label_range_convex_hull_union} = !!$value;
-
-    return;
-}
-
-sub toggle_highlight_label_range_convex_hull_union {
-    my ($self, $value) = @_;
-
-    $self->{highlight_label_range_convex_hull_union}
-        = !$self->{highlight_label_range_convex_hull_union};
-}
-
-sub get_highlight_label_range_convex_hull_union {
-    $_[0]->{highlight_label_range_convex_hull_union};
-}
-
-sub set_highlight_label_range_concave_hull_union {
-    my ($self, $value) = @_;
-
-    $self->{highlight_label_range_concave_hull_union} = !!$value;
-
-    return;
-}
-
-sub toggle_highlight_label_range_concave_hull_union {
-    my ($self, $value) = @_;
-
-    $self->{highlight_label_range_concave_hull_union}
-        = !$self->{highlight_label_range_concave_hull_union};
-}
-
-sub get_highlight_label_range_concave_hull_union {
-    $_[0]->{highlight_label_range_concave_hull_union};
-}
-
-sub set_highlight_label_range_circumcircles {
-    my ($self, $value) = @_;
-
-    $self->{highlight_label_range_circumcircles} = !!$value;
-
-    return;
-}
-
-sub toggle_highlight_label_range_circumcircles {
-    my ($self, $value) = @_;
-
-    $self->{highlight_label_range_circumcircles}
-        = !$self->{highlight_label_range_circumcircles};
-}
-
-sub get_highlight_label_range_circumcircles {
-    $_[0]->{highlight_label_range_circumcircles};
-}
-
-sub set_highlight_label_range_circumcircle_union {
-    my ($self, $value) = @_;
-
-    $self->{highlight_label_range_circumcircle_union} = !!$value;
-
-    return;
-}
-
-sub toggle_highlight_label_range_circumcircle_union {
-    my ($self, $value) = @_;
-
-    $self->{highlight_label_range_circumcircle_union}
-        = !$self->{highlight_label_range_circumcircle_union};
-}
-
-sub get_highlight_label_range_circumcircle_union {
-    $_[0]->{highlight_label_range_circumcircle_union};
+#  generate the get, set and toggle methods for the range polygon overlays
+for my $type (qw /convex_hull concave_hull circumcircle/) {
+    no strict 'refs';
+    my $infix = 'highlight_label_range';
+    my $pkg = __PACKAGE__;
+    for my $suffix ("${type}s", "${type}_union") {
+        my $hash_key = "${infix}_${suffix}";
+        *{"${pkg}::set_${infix}_${suffix}"} =
+            do {
+                sub {
+                    my ($self, $value) = @_;
+                    $self->{$hash_key} = !!$value;
+                    return;
+                };
+            };
+        *{"${pkg}::get_${infix}_${suffix}"} =
+            do {
+                sub {
+                    $_[0]->{$hash_key};
+                };
+            };
+        *{"${pkg}::toggle_${infix}_${suffix}"} =
+            do {
+                sub {
+                    my ($self) = @_;
+                    $self->{$hash_key} = !$self->{$hash_key};
+                };
+            };
+    }
 }
 
 sub _highlight_label_range_hulls {

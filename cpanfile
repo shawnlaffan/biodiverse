@@ -12,7 +12,7 @@ requires "Exporter::Easy";
 requires "File::BOM";
 requires "File::Find::Rule";
 requires "Geo::Converter::dms2dd", "0.05";
-requires "Geo::GDAL::FFI", 0.09;  #  this will pick up the aliens
+requires "Geo::GDAL::FFI", 0.15;  #  this will pick up the aliens
 requires "Geo::ShapeFile", "3.00",
 requires "Getopt::Long::Descriptive";
 requires "HTML::QuickTable";

@@ -271,6 +271,127 @@ sub test_sp_in_label_range_convex_hull {
     is $passed, $exp, 'Expected def query, convex_hull overrides circumcircle arg';
 }
 
+
+sub test_sp_in_label_range_concave_hull {
+    my $bd = get_basedata_object_from_site_data (
+        CELL_SIZES => [100000, 100000],
+    );
+
+    my $cond = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_range(concave_hull => 1, hull_ratio => 0.3);
+        EOC
+    ;
+
+    my $exp = { map {$_ => 1} qw/
+        3550000:1950000 3550000:2050000 3550000:2150000
+        3550000:2250000 3650000:1950000 3650000:2050000
+        3750000:1950000
+    / };
+
+    my $sp = $bd->add_spatial_output(name => "test_1");
+    $sp->run_analysis(
+        calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
+        spatial_conditions => [ 'sp_self_only()' ],
+        definition_query   => $cond,
+    );
+
+    is(!!$sp->group_passed_def_query_aa('3550000:1950000'), !!1, 'Loc is in concave hull');
+    is(!!$sp->group_passed_def_query_aa('2650000:850000'), !!0, 'Loc is not in concave hull');
+
+    my $passed = $sp->get_groups_that_pass_def_query();
+    is $passed, $exp, 'Expected def query not same as normal range check';
+
+    #  check buffer of zero
+    $cond = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_range(concave_hull => 1, hull_ratio => 0.3, buffer_dist => 0);
+        EOC
+    ;
+
+    $sp = $bd->add_spatial_output(name => "test_buff_dist_0");
+    $sp->run_analysis(
+        calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
+        spatial_conditions => [ 'sp_self_only()' ],
+        definition_query   => $cond,
+    );
+
+    $passed = $sp->get_groups_that_pass_def_query();
+    is $passed, $exp, 'Expected def query not same as normal range check, buffer_dist = 0';
+
+    #  check large neg buffer
+    $cond = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_range(concave_hull => 1, hull_ratio => 0.3, buffer_dist => -1e9);
+        EOC
+    ;
+
+    $sp = $bd->add_spatial_output(name => "test_buff_dist_bigneg");
+    eval {
+        $sp->run_analysis(
+            calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
+            spatial_conditions => [ 'sp_self_only()' ],
+            definition_query   => $cond,
+        );
+    };
+
+    $passed = $sp->get_groups_that_pass_def_query();
+    is $passed, {}, 'Expected def query, buffer_dist is big neg';
+
+    #  check pos buffer
+    $cond = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_range(concave_hull => 1, hull_ratio => 0.3, buffer_dist => 100000);
+        EOC
+    ;
+
+    $sp = $bd->add_spatial_output(name => "test_buff_dist");
+    eval {
+        $sp->run_analysis(
+            calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
+            spatial_conditions => [ 'sp_self_only()' ],
+            definition_query   => $cond,
+        );
+    };
+
+    my @exp_buf_pos_arr = qw /
+        3450000:2050000 3450000:2150000 3550000:1950000 3550000:2050000 3550000:2150000
+        3550000:2250000 3650000:1850000 3650000:1950000 3650000:2050000 3650000:2350000
+        3750000:1850000 3750000:1950000 3750000:2050000 3850000:1850000 3850000:1950000
+    /;
+
+    my $exp_buf_pos = {map {$_ => 1} @exp_buf_pos_arr};
+
+    $passed = $sp->get_groups_that_pass_def_query();
+    is $passed, $exp_buf_pos, 'Expected def query, buffer_dist is positive';
+
+    #  check maximally concave hull should be the same as the convex hull
+    $cond = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_range(concave_hull => 1, hull_ratio => 200000);
+        EOC
+    ;
+
+    $sp = $bd->add_spatial_output(name => "test_max_concave_hull_ratio");
+    eval {
+        $sp->run_analysis(
+            calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
+            spatial_conditions => [ 'sp_self_only()' ],
+            definition_query   => $cond,
+        );
+    };
+
+    my $exp_convex_hull = {
+        map {; $_ => 1}
+            qw /3550000:1950000 3550000:2050000 3550000:2150000
+                3550000:2250000 3650000:1950000 3650000:2050000
+                3750000:1950000 3750000:2050000
+            /};
+
+    $passed = $sp->get_groups_that_pass_def_query();
+    is $passed, $exp_convex_hull, 'Expected def query, concave_hull ratio is >1';
+}
+
 sub test_sp_in_label_range_circumcircle {
     my $bd = get_basedata_object_from_site_data (
         CELL_SIZES => [100000, 100000],

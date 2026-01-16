@@ -1898,6 +1898,20 @@ sub get_metadata_sp_in_label_range {
         #  Are we in the convex hull?
         sp_in_label_range(label => 'Genus:Sp1', convex_hull => 1)
 
+        #  Are we in the maximally concave hull?
+        sp_in_label_range(label => 'Genus:Sp1', concave_hull => 1)
+
+        #  Are we in a slightly less concave hull?
+        sp_in_label_range(label => 'Genus:Sp1', concave_hull => 1, hull_ratio => 0.3)
+
+        #  Are we in a slightly less concave hull allowing for holes?
+        sp_in_label_range(
+            label        => 'Genus:Sp1',
+            concave_hull => 1,
+            hull_ratio   => 0.3,
+            allow_holes  => 1,
+        )
+
         #  Are we in the circumscribing circle?
         sp_in_label_range(label => 'Genus:Sp1', circumcircle => 1)
 
@@ -1908,7 +1922,7 @@ sub get_metadata_sp_in_label_range {
             buffer_dist => 100000,
         )
 
-        #  Buffers can be negative, in which case the convex hull or circumcircle is shrunk
+        #  Buffers can be negative, in which case the convex/concave hull or circumcircle is shrunk
         sp_in_label_range(
             label       => 'Genus:Sp1',
             convex_hull => 1,
@@ -1942,10 +1956,11 @@ sub get_metadata_sp_in_label_range {
         optional_args  => [
             $bool ? 'label' : (),
             'type', #  nbr or proc to control use of nbr or processing groups
-            'axes',
-            'circumcircle',
-            'convex_hull',
-            'buffer_dist',
+            qw/
+                axes         circumcircle convex_hull
+                concave_hull hull_ratio   allow_holes
+                buffer_dist
+            /,
         ],
         result_type    => $uses_current_label ? 'complex' : 'always_same',
         index_no_use   => 1, #  turn index off since this doesn't cooperate with the search method
@@ -1974,8 +1989,11 @@ sub sp_in_label_range {
 
     return 0 if !$bd->exists_label_aa($label);
 
-    if ($args{convex_hull} || $args{circumcircle}) {
-        my $poly_type = $args{convex_hull} ? 'convex_hull' : 'circumcircle';
+    if ($args{convex_hull} || $args{circumcircle} || $args{concave_hull}) {
+        my $poly_type
+            = $args{convex_hull}  ? 'convex_hull'
+            : $args{concave_hull} ? 'concave_hull'
+            : 'circumcircle';
 
         croak "sp_in_label_range: Insufficient group axes for $poly_type"
             if scalar $bd->get_group_axis_count < 2;
@@ -1983,14 +2001,22 @@ sub sp_in_label_range {
         my $axes = $args{axes} // $h->{axes} // [0,1];
         my $in_polygon;
 
+        my %extra_args;
+        my $cache_suffix = '';
+        if ($args{concave_hull}) {
+            $extra_args{allow_holes} = !!$args{allow_holes};
+            $extra_args{ratio}       = max (min (1, $args{hull_ratio} // 0.00001), 0);
+            $cache_suffix = '_ARGS_' . join ':', @extra_args{qw/ratio allow_holes/};
+        }
+
         if (my $buff_dist = $args{buffer_dist}) {  #  we have a buffer to work with
-            my $cache_key = 'IN_LABEL_RANGE_' . uc($poly_type) . '_BUFFERED_' . join ':', @$axes;
+            my $cache_key = 'IN_LABEL_RANGE_' . uc($poly_type) . '_BUFFERED_' . join (':', @$axes) . $cache_suffix;
             my $cache = $self->get_cached_value_dor_set_default_href($cache_key);
             $in_polygon
                 = $cache->{$label}{$buff_dist}
                 //= do {
                     my $method  = "get_label_range_${poly_type}";
-                    my $polygon = $bd->$method(label => $label, axes => $axes)->Buffer($buff_dist, 30);
+                    my $polygon = $bd->$method(label => $label, axes => $axes, %extra_args)->Buffer($buff_dist, 30);
                     $bd->get_groups_in_polygon (polygon => $polygon, axes => $axes);
                 };
         }
@@ -1999,6 +2025,7 @@ sub sp_in_label_range {
             $in_polygon = $bd->$method(
                 label => $label,
                 axes  => $axes,
+                %extra_args,
             );
         }
         return $in_polygon->{$group};
@@ -2050,14 +2077,14 @@ sub get_metadata_sp_in_label_ancestor_range {
 
         The underlying algorithm checks each of the terminal
         ranges using sp_in_label_range().  This means the
-        search can also use the convex hull or circumcircle
-        of each terminal, as well as setting its other arguments
+        search can also use the convex/concave hull or circumcircle
+        of each terminal, as well as setting other arguments
         such as the buffer_dist and using a default label
         in some circumstances.
 
-        Note that each terminal of the ancestor is assessed separately.
-        The ranges are not aggregated before the convex hull
-        or circumcircle is calculated.
+        Note that the range of each of the ancestor's tips
+        is assessed separately. The ranges are not aggregated
+        before the convex hull or circumcircle is calculated.
 
         EOD
     ;
@@ -2073,14 +2100,22 @@ sub get_metadata_sp_in_label_ancestor_range {
           by_depth => 1,
         )
 
-        #  Are we in the convex hull?
+        #  Are we in the tips' convex hulls?
         sp_in_label_ancestor_range(
           label => 'Genus:Sp1',
           dist  => 0.5,
           convex_hull => 1,
         )
 
-        #  Are we in the circumscribing circle?
+        #  Are we in the tips' concave hulls?
+        sp_in_label_ancestor_range(
+          label => 'Genus:Sp1',
+          dist  => 0.5,
+          concave_hull => 1,
+          hull_ratio   => 0.5,
+        )
+
+        #  Are we in the tips' circumscribing circles?
         sp_in_label_ancestor_range(
           label => 'Genus:Sp1',
           dist  => 0.5,

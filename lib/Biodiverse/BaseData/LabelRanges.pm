@@ -10,6 +10,7 @@ use Carp qw /croak/;
 use experimental qw /refaliasing declared_refs/;
 
 use Geo::GDAL::FFI 0.15;
+use List::Util qw /min max/;
 
 sub get_label_range_circumcircle {
     my ($self, %args) = @_;
@@ -91,7 +92,13 @@ sub _get_label_range_hull {
     my $c1 = $res[$axes[0]] / 2;
     my $c2 = $res[$axes[1]] / 2;
 
-    my $cache_key = 'LABEL_RANGE_' . uc($type) . '_CONVEX_HULL_' . join ':', @axes;
+    #  this is here to be part of the caching
+    #  a ratio of 0 causes issues similar to https://github.com/libgeos/geos/issues/1212
+    #  ratios over 1 currently cause problems
+    my @hull_args = $args{is_concave} ? (min (1, $args{ratio} || 0.0001), !!$args{allow_holes}) : ();
+
+    my $cache_key = sprintf 'LABEL_RANGE_%s_HULL_AXES_%s_ARGS_%s',
+        uc($type), join (':', @axes), join (':', @hull_args);
     my $cache = $self->get_cached_value_dor_set_default_href ($cache_key);
 
     my $hull;
@@ -123,8 +130,6 @@ sub _get_label_range_hull {
             my $g = Geo::GDAL::FFI::Geometry->new(WKT => $wkt)->UnaryUnion;
 
             my $method = ucfirst ($type) . 'Hull';
-            #  a ratio of 0 causes issues similar to https://github.com/libgeos/geos/issues/1212
-            my @hull_args = $args{is_concave} ? ($args{ratio} || 0.0001, !!$args{allow_holes}) : ();
             # $hull = $args{is_concave} ? $g : $g->$method(@hull_args);  #  debug
             $hull = $g->$method(@hull_args);
             $cache->{$label} = $hull->ExportToWKT;
@@ -159,7 +164,11 @@ sub _get_groups_in_label_range_hull {
 
     my $type = $args{is_concave} ? 'concave' : 'convex';
 
-    my $cache_key = 'GROUPS_IN_LABEL_RANGE_' . ucfirst ($type) . '_HULL_' . join ':', @axes;
+    #  nasty and not future proof
+    my $cache_key = sprintf 'GROUPS_IN_LABEL_RANGE_%s_HULL_AXES_%s_ARGS%s',
+        uc($type),
+        join (':', @axes),
+        $args{is_concave} ? join ':', ($args{ratio} // 'undef', !!$args{allow_holes}) : '';
     my $cache = $self->get_cached_value_dor_set_default_href ($cache_key);
 
     #  cache as wkt for now

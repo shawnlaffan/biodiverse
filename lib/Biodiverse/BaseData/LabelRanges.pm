@@ -9,7 +9,7 @@ use Carp qw /croak/;
 
 use experimental qw /refaliasing declared_refs/;
 
-use Geo::GDAL::FFI;
+use Geo::GDAL::FFI 0.15;
 
 sub get_label_range_circumcircle {
     my ($self, %args) = @_;
@@ -119,9 +119,13 @@ sub _get_label_range_hull {
             }
             $wkt =~ s/, $//;
             $wkt .= ')';
-            my $g = Geo::GDAL::FFI::Geometry->new(WKT => $wkt);
+
+            my $g = Geo::GDAL::FFI::Geometry->new(WKT => $wkt)->UnaryUnion;
+
             my $method = ucfirst ($type) . 'Hull';
-            my @hull_args = $args{is_concave} ? ($args{ratio} // 0, !!$args{allow_holes}) : ();
+            #  a ratio of 0 causes issues similar to https://github.com/libgeos/geos/issues/1212
+            my @hull_args = $args{is_concave} ? ($args{ratio} || 0.0001, !!$args{allow_holes}) : ();
+            # $hull = $args{is_concave} ? $g : $g->$method(@hull_args);  #  debug
             $hull = $g->$method(@hull_args);
             $cache->{$label} = $hull->ExportToWKT;
         }

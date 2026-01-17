@@ -2157,7 +2157,7 @@ sub sp_in_label_ancestor_range {
     my $d = $args{target} // croak 'argument "target" not defined';
 
     if ($args{as_frac}) {
-        $d = $args{by_depth}     ? (1 - $d) * $node->get_depth
+        $d = $args{by_depth}     ? ($d <=> 0) * (1 - abs ($d)) * $node->get_depth
            : $args{by_tip_count} ? POSIX::ceil($d * ($tree->get_terminal_element_count || 1))
            : $d * $node->get_distance_to_root_node;
     }

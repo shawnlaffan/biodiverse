@@ -314,14 +314,13 @@ sub get_total_length {
 
 sub get_sum_of_branch_lengths_below {
     my $self = shift;
-    my %args = (cache => 1, @_);
 
     state $cache_key = 'SUM_OF_BRANCH_LENGTHS_BELOW';
     my $sum = $self->get_cached_value ($cache_key);
     
     return $sum if defined $sum;
     
-    my %nodes = $self->get_all_descendants_and_self;
+    \my %nodes = $self->get_all_descendants_and_self;
     foreach my $node (values %nodes) {
         $sum += $node->get_length;
     }
@@ -1769,6 +1768,24 @@ sub get_ancestor_by_ntips_aa {
     return $self if $target <= 0;
 
     while ($self->get_terminal_element_count < $target) {
+        $self = $self->get_parent
+            // last;
+    }
+
+    return $self;
+}
+
+sub get_ancestor_by_sum_of_branch_lengths {
+    my ($self, %args) = @_;
+    $self->get_ancestor_by_sum_of_branch_lengths_aa($args{target});
+}
+
+sub get_ancestor_by_sum_of_branch_lengths_aa {
+    my ($self, $target) = @_;
+
+    return $self if $target <= 0;
+
+    while ($self->get_sum_of_branch_lengths_below < $target) {
         $self = $self->get_parent
             // last;
     }

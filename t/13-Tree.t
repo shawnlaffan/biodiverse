@@ -84,15 +84,19 @@ sub _chklk {
 
 sub test_ancestor_by {
     my $tree = get_site_data_as_tree();
-
+$tree->save;
     my $from_name   = '3450000:850000';
     my $target_name = '112___';
-    # my @descendents = qw /
-    #     3450000:850000  3450000:950000  3450000:1150000
-    #     3550000:950000  3550000:1050000 3550000:1150000
-    #     3650000:1150000 3750000:1350000 3750000:1550000
-    #     3850000:1650000
-    # /;
+    my @terminals = qw /
+        3450000:850000  3450000:950000  3450000:1150000
+        3550000:950000  3550000:1050000 3550000:1150000
+        3650000:1150000 3750000:1350000 3750000:1550000
+        3850000:1650000
+    /;
+    my @internals = qw/
+        46___  56___  65___  66___
+        77___  94___ 103___ 110___
+    /;
 
     #  check a terminal
     my $from_node = $tree->get_node_ref_aa ($from_name);
@@ -120,6 +124,26 @@ sub test_ancestor_by {
     is $ancestor->get_name,
         $from_node->get_root_node->get_name,
         "Got root node when ntips exceed the tree's";
+
+    my $target_len_sum
+        = List::Util::sum
+          map {$tree->get_node_ref (node => $_)->get_length}
+          (@terminals, @internals);
+    #  set len to be half way along the target branch
+    $target_len_sum += 0.5 * $tree->get_node_ref (node => $target_name)->get_length;
+
+    $ancestor = $from_node->get_ancestor_by_sum_of_branch_lengths_aa($target_len_sum);
+    is $ancestor->get_name,
+        $target_name,
+        "Got expected ancestor for $from_name when looking for sum of branch lengths $target_len_sum";
+    $ancestor = $from_node->get_ancestor_by_sum_of_branch_lengths_aa(-$target_len_sum);
+    is $ancestor->get_name,
+        $from_node->get_name,
+        "Got caller node when branch length sum target is <0";
+    $ancestor = $from_node->get_ancestor_by_sum_of_branch_lengths_aa(10e6);
+    is $ancestor->get_name,
+        $from_node->get_root_node->get_name,
+        "Got root node when branch length sum target exceeds the tree's length";
 
 
     #  numbers bigger than tree return the root

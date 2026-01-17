@@ -84,7 +84,7 @@ sub _chklk {
 
 sub test_ancestor_by {
     my $tree = get_site_data_as_tree();
-$tree->save;
+
     my $from_name   = '3450000:850000';
     my $target_name = '112___';
     my @terminals = qw /

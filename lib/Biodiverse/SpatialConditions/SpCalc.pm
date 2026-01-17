@@ -2044,36 +2044,40 @@ sub get_metadata_sp_in_label_ancestor_range {
 
         Returns true if the group falls within the range of
         any of the any of the ancestor's terminal descendant
-        ranges.
+        ranges.  The range is by default defined as the set of
+        groups in the basedata containing that label.  Polygons
+        can also be specified (see below).
 
-        The ancestor can be defined by length (default) or
-        depth (the number of ancestors) using the by_depth
-        argument.
+        The ancestor is by default defined by length along the 
+        path to the root node. The by_depth option uses the the
+        number of ancestors, while the by_tip_count option
+        finds the first ancestor with the target number of tips.
 
-        Negative dist values search from the root to the
-        specified node.
+        Negative length or depth target values search the path
+        from the root to the specified node. If by_tip_count
+        is used then it is treated as zero and returns the
+        specified label.
 
-        The dist argument determines how far up or down the tree
+        The target argument determines how far up or down the tree
         the ancestor is searched for.  When using length,
         the distance includes the tipwards extent
         of the branch. The depth is calculated as the number
         of ancestors.
 
-        If the dist value exceeds the distance from the label
-        node to the root node then the root or label node
-        is returned for positive or negative dist values,
-        respectively.
+        If the target value exceeds that to (or of) the root node
+        then the root or label node is returned for positive or
+        negative dist values, respectively.
 
         An internal branch can be specified as the label.
-        Specifying a dist of 0 is one means to use the
+        Specifying a target of 0 is one means to use the
         range of an internal node.
 
         Returns false if the label is not associated with
         a node on the tree.
 
-        When the as_frac argument is true then dist is
+        When the as_frac argument is true then target is
         treated as a fraction of the distance to the root
-        node.
+        node, or the number of tips, as appropriate.
 
         The underlying algorithm checks each of the terminal
         ranges using sp_in_label_range().  This means the
@@ -2084,7 +2088,7 @@ sub get_metadata_sp_in_label_ancestor_range {
 
         Note that the range of each of the ancestor's tips
         is assessed separately. The ranges are not aggregated
-        before the convex hull or circumcircle is calculated.
+        before a hull or circumcircle is calculated.
 
         EOD
     ;
@@ -2100,14 +2104,21 @@ sub get_metadata_sp_in_label_ancestor_range {
           by_depth => 1,
         )
 
-        #  Are we in the tips' convex hulls?
+        # Are we in the range of the first ancestor with 6 or more tips?
+        sp_in_label_ancestor_range(
+          label        => 'Genus:Sp1',
+          target       => 6,
+          by_tip_count => 1,
+        )
+
+        #  Are we in any of the tips' convex hulls?
         sp_in_label_ancestor_range(
           label       => 'Genus:Sp1',
           target      => 0.5,
           convex_hull => 1,
         )
 
-        #  Are we in the tips' concave hulls?
+        #  Are we in any of the tips' concave hulls with a ratio parameter of 0.5?
         sp_in_label_ancestor_range(
           label        => 'Genus:Sp1',
           target       => 0.5,
@@ -2115,7 +2126,7 @@ sub get_metadata_sp_in_label_ancestor_range {
           hull_ratio   => 0.5,
         )
 
-        #  Are we in the tips' circumscribing circles?
+        #  Are we in any of the tips' circumscribing circles?
         sp_in_label_ancestor_range(
           label        => 'Genus:Sp1',
           target       => 0.5,
@@ -2127,7 +2138,7 @@ sub get_metadata_sp_in_label_ancestor_range {
 
     my $meta = $self->get_metadata_sp_in_label_range;
     push @{$meta->{required_args}}, 'target';
-    push @{$meta->{optional_args}}, (qw /by_depth as_frac/);
+    push @{$meta->{optional_args}}, (qw /by_depth as_frac by_tip_count/);
     $meta->{description} = $description;
     $meta->{example}     = $example;
     $meta->{requires_tree_ref} = 1;
@@ -2146,16 +2157,14 @@ sub sp_in_label_ancestor_range {
     my $d = $args{target} // croak 'argument "target" not defined';
 
     if ($args{as_frac}) {
-        if ($args{by_depth}) {
-            $d = (1 - $d) * $node->get_depth;
-        }
-        else {
-            $d *= $node->get_distance_to_root_node;
-        }
+        $d = $args{by_depth}     ? (1 - $d) * $node->get_depth
+           : $args{by_tip_count} ? POSIX::ceil($d * ($tree->get_terminal_element_count || 1))
+           : $d * $node->get_distance_to_root_node;
     }
 
-    my $ancestor = $args{by_depth}
-        ? $node->get_ancestor_by_depth_aa($d)
+    my $ancestor
+        = $args{by_depth}     ? $node->get_ancestor_by_depth_aa($d)
+        : $args{by_tip_count} ? $node->get_ancestor_by_ntips_aa($d)
         : $node->get_ancestor_by_length_aa($d);
 
     return List::Util::any

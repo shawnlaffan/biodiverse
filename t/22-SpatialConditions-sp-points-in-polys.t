@@ -652,6 +652,47 @@ sub test_sp_in_tree_ancestor_range {
         scalar $sp_len->get_groups_that_pass_def_query,
         "Expected def query passes (length frac)";
 
+
+    $cond = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_ancestor_range(target => 6, by_tip_count => 1);
+        EOC
+    ;
+    my $defq_ntips = Biodiverse::SpatialConditions::DefQuery->new(
+        conditions   => $cond,
+        %common_cond_args,
+    );
+    my $sp_ntips = $bd->add_spatial_output(name => "test_ancestor_range_ntips");
+    $sp_ntips->run_analysis(
+        %common_sp_args,
+        definition_query => $defq_ntips,
+    );
+
+    is scalar $sp_ntips->get_groups_that_pass_def_query,
+        $exp,
+        "Expected def query passes (by_tip_count)";
+
+    # 6/31 = 0.1935483870
+    $cond = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_ancestor_range(target => 0.1935483870, by_tip_count => 1, as_frac => 1);
+        EOC
+    ;
+    my $defq_ntipsf = Biodiverse::SpatialConditions::DefQuery->new(
+        conditions   => $cond,
+        %common_cond_args,
+    );
+    my $sp_ntipsf = $bd->add_spatial_output(name => "test_ancestor_range_ntipsf");
+    $sp_ntipsf->run_analysis(
+        %common_sp_args,
+        definition_query => $defq_ntipsf,
+    );
+
+    is scalar $sp_ntipsf->get_groups_that_pass_def_query,
+        $exp,
+        "Expected def query passes (by_tip_count)";
+
+
     #  nothing should pass for not in tree
     $cond = <<~'EOC'
         $self->set_current_label('somelabelnotintree');

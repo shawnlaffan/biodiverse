@@ -692,6 +692,48 @@ sub test_sp_in_tree_ancestor_range {
         $exp,
         "Expected def query passes (by_tip_count)";
 
+    my $target_len_node = $tree->get_node_ref_aa('Genus:sp4')->get_ancestor_by_depth_aa(2);
+    my $target_len_sum = $target_len_node->get_sum_of_branch_lengths_below - 0.5 * $target_len_node->get_length;
+    $cond = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_ancestor_range(target => %VALUE%, by_len_sum => 1);
+        EOC
+    ;
+
+    my $defq_len_sum = Biodiverse::SpatialConditions::DefQuery->new(
+        conditions   => ($cond =~ s/%VALUE%/$target_len_sum/r),
+        %common_cond_args,
+    );
+    my $sp_len_sum = $bd->add_spatial_output(name => "test_ancestor_range_len_sum");
+    $sp_len_sum->run_analysis(
+        %common_sp_args,
+        definition_query => $defq_len_sum,
+    );
+    is scalar $sp_len_sum->get_groups_that_pass_def_query,
+        $exp,
+        "Expected def query passes (by_len_sum)";
+
+    $cond = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_ancestor_range(target => %VALUE%, by_len_sum => 1, as_frac => 1);
+        EOC
+    ;
+
+    $target_len_sum /= $tree->get_total_tree_length;
+    my $defq_len_sumf = Biodiverse::SpatialConditions::DefQuery->new(
+        conditions   => ($cond =~ s/%VALUE%/$target_len_sum/r),
+        %common_cond_args,
+    );
+    my $sp_len_sumf = $bd->add_spatial_output(name => "test_ancestor_range_len_sumf");
+    $sp_len_sumf->run_analysis(
+        %common_sp_args,
+        definition_query => $defq_len_sumf,
+    );
+    is scalar $sp_len_sumf->get_groups_that_pass_def_query,
+        $exp,
+        "Expected def query passes (by_len_sum as_frac)";
+
+
 
     #  nothing should pass for not in tree
     $cond = <<~'EOC'

@@ -550,6 +550,11 @@ sub test_sp_in_tree_ancestor_range {
         CELL_SIZES => [100000, 100000],
     );
     my $tree = get_tree_object_from_sample_data();
+    my $target_node = $tree->get_node_ref_aa('57___');
+    # my $desc = $target_node->get_all_descendants;
+    # say STDERR "++++ " . scalar keys %$desc;
+    # my $target_node = $tree->get_node_ref_aa('Genus:sp4')->get_ancestor_by_length_aa (0.97);
+    # say STDERR '++++++' . $target_node->get_name;
 
     my %common_sp_args = (
         calculations       => [ 'calc_element_lists_used' ],
@@ -713,6 +718,46 @@ sub test_sp_in_tree_ancestor_range {
         is scalar $sp->get_groups_that_pass_def_query,
             $exp,
             "Expected def query passes (by_tip_count)";
+    }
+
+    {
+        my $cond = <<~'EOC'
+            $self->set_current_label('Genus:sp4');
+            sp_in_label_ancestor_range(target => 10, by_desc_count => 1);
+            EOC
+        ;
+        my $defq = Biodiverse::SpatialConditions::DefQuery->new(
+            conditions => $cond,
+            %common_cond_args,
+        );
+        my $sp = $bd->add_spatial_output(name => "test_ancestor_range_ndesc");
+        $sp->run_analysis(
+            %common_sp_args,
+            definition_query => $defq,
+        );
+        is scalar $sp->get_groups_that_pass_def_query,
+            $exp,
+            "Expected def query passes (by_desc_count as_frac)";
+    }
+
+    {
+        my $cond = <<~'EOC'
+            $self->set_current_label('Genus:sp4');
+            sp_in_label_ancestor_range(target => 10/61, by_desc_count => 1, as_frac => 1);
+            EOC
+        ;
+        my $defq = Biodiverse::SpatialConditions::DefQuery->new(
+            conditions => $cond,
+            %common_cond_args,
+        );
+        my $sp = $bd->add_spatial_output(name => "test_ancestor_range_ndescf");
+        $sp->run_analysis(
+            %common_sp_args,
+            definition_query => $defq,
+        );
+        is scalar $sp->get_groups_that_pass_def_query,
+            $exp,
+            "Expected def query passes (by_desc_count as_frac)";
     }
 
     {

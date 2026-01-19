@@ -125,6 +125,21 @@ sub test_ancestor_by {
         $from_node->get_root_node->get_name,
         "Got root node when ntips exceed the tree's";
 
+    my $ndesc = scalar @terminals + scalar @internals;
+    $ancestor = $from_node->get_ancestor_by_ndescendants_aa($ndesc);
+    is $ancestor->get_name,
+        $target_name,
+        "Got expected ancestor for $from_name when looking for $ndesc descendants";
+    $ancestor = $from_node->get_ancestor_by_ndescendants_aa(-10);
+    is $ancestor->get_name,
+        $from_node->get_name,
+        "Got caller node when ndesc is <0";
+    $ancestor = $from_node->get_ancestor_by_ndescendants_aa(10e6);
+    is $ancestor->get_name,
+        $from_node->get_root_node->get_name,
+        "Got root node when ndesc exceed the tree's";
+
+
     my $target_len_sum
         = List::Util::sum
           map {$tree->get_node_ref (node => $_)->get_length}

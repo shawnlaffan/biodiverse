@@ -1775,6 +1775,24 @@ sub get_ancestor_by_ntips_aa {
     return $self;
 }
 
+sub get_ancestor_by_ndescendants {
+    my ($self, %args) = @_;
+    $self->get_ancestor_by_ndescendants_aa($args{ntips});
+}
+
+sub get_ancestor_by_ndescendants_aa {
+    my ($self, $target) = @_;
+
+    return $self if $target <= 0;
+
+    while ($self->get_descendent_count < $target) {
+        $self = $self->get_parent
+            // last;
+    }
+
+    return $self;
+}
+
 sub get_ancestor_by_sum_of_branch_lengths {
     my ($self, %args) = @_;
     $self->get_ancestor_by_sum_of_branch_lengths_aa($args{target});

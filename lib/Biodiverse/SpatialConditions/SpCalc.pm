@@ -2051,14 +2051,15 @@ sub get_metadata_sp_in_label_ancestor_range {
         The ancestor is by default defined by length along the 
         path to the root node. Setting the by_depth option to true
         uses the number of ancestors.  The by_tip_count option
-        finds the first ancestor with the target number of tips.
-        The by_len_sum finds the first ancestor for which the
-        sum of its descendant branch lengths plus its own length
-        is greater than the target.
+        finds the first ancestor with at least the target number
+        of tips while by_desc_count uses the number of descendants
+        (tips and internals). The by_len_sum finds the first ancestor
+        for which the sum of its descendant branch lengths plus
+        its own length is greater than the target.
 
         Negative length or depth target values search the path
-        from the root to the specified node. If by_tip_count
-        is used then it is treated as zero and returns the
+        from the root to the specified node. If a by_xxx_count
+        option is used then it is treated as zero and returns the
         specified label.
 
         The target argument determines how far up or down the tree
@@ -2145,6 +2146,15 @@ sub get_metadata_sp_in_label_ancestor_range {
           by_len_sum => 1,
         )
 
+        #  Are we in the range of the ancestor for which the sum of
+        #  number of branches below is at least 10?
+        sp_in_label_ancestor_range(
+          label      => 'Genus:Sp1',
+          target     => 10,
+          by_desc_count => 1,
+        )
+
+
         EOEX
     ;
 
@@ -2169,16 +2179,18 @@ sub sp_in_label_ancestor_range {
     my $d = $args{target} // croak 'argument "target" not defined';
 
     if ($args{as_frac}) {
-        $d = $args{by_depth}     ? ($d <=> 0) * (1 - abs ($d)) * $node->get_depth
-           : $args{by_len_sum}   ? $d * $tree->get_total_tree_length
-           : $args{by_tip_count} ? POSIX::ceil($d * $tree->get_terminal_element_count)
+        $d = $args{by_depth}      ? ($d <=> 0) * (1 - abs ($d)) * $node->get_depth
+           : $args{by_len_sum}    ? $d * $tree->get_total_tree_length
+           : $args{by_tip_count}  ? POSIX::ceil($d * $tree->get_terminal_element_count)
+           : $args{by_desc_count} ? POSIX::ceil($d * $tree->get_node_count)
            : $d * $node->get_distance_to_root_node;
     }
 
     my $ancestor
-        = $args{by_depth}     ? $node->get_ancestor_by_depth_aa($d)
-        : $args{by_len_sum}   ? $node->get_ancestor_by_sum_of_branch_lengths_aa($d)
-        : $args{by_tip_count} ? $node->get_ancestor_by_ntips_aa($d)
+        = $args{by_depth}      ? $node->get_ancestor_by_depth_aa($d)
+        : $args{by_len_sum}    ? $node->get_ancestor_by_sum_of_branch_lengths_aa($d)
+        : $args{by_tip_count}  ? $node->get_ancestor_by_ntips_aa($d)
+        : $args{by_desc_count} ? $node->get_ancestor_by_ndescendants_aa($d)
         : $node->get_ancestor_by_length_aa($d);
 
     return List::Util::any

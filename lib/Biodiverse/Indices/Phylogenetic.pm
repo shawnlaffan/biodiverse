@@ -1831,21 +1831,17 @@ sub get_node_range_hash {
 
     my $to_do = scalar keys %$nodes;
     my $count = 0;
-    print "[PD INDICES] Progress (% of $to_do nodes): ";
+    # print "[PD INDICES] Progress (% of $to_do nodes): ";
 
-    my $progress      = $count / $to_do;
-    my $progress_text = int (100 * $progress);
     $progress_bar->update(
-        "Calculating node ranges\n($progress_text %)",
-        $progress,
+        "Calculating node ranges\n",
+        $count / $to_do,
     );
 
     #  sort by depth so we start from the terminals
     #  and avoid recursion in get_node_range
-    my %d;
-    foreach my $node (
-      sort {($d{$b} //= $b->get_depth) <=> ($d{$a} //= $a->get_depth)}
-      values %$nodes) {
+    use Sort::Key qw /rnkeysort/;
+    foreach my $node (rnkeysort {$_->get_depth} values %$nodes) {
         
         my $node_name = $node->get_name;
         if ($return_lists) {
@@ -1870,11 +1866,9 @@ sub get_node_range_hash {
         $count ++;
         #  fewer progress calls as we get heaps with large data sets
         if (not $count % 20) {  
-            $progress      = $count / $to_do;
-            $progress_text = int (100 * $progress);
             $progress_bar->update(
                 "Calculating node ranges\n($count of $to_do)",
-                $progress,
+                $count / $to_do,
             );
         }
     }
@@ -1886,54 +1880,45 @@ sub get_node_range_hash {
 
 
 sub get_node_range {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
     my $node_ref = $args{node_ref} || croak "node_ref arg not specified\n";
     my $bd = $args{basedata_ref} || $self->get_basedata_ref;
     
+    my $return_count = !wantarray && !$args{return_list};
+
+    state $cache_name = 'NODE_RANGE_LISTS';
+    my $cache         = $self->get_cached_value_dor_set_default_href ($cache_name);
+
+    if (my $groups = $cache->{$node_ref}) {
+        return
+            $return_count ? scalar keys %$groups
+            : wantarray   ? %$groups
+            : [keys %$groups];
+    }
+
     #  sometimes a child node has the full set,
     #  so there is no need to keep collating
     my $max_poss_group_count = $bd->get_group_count;
 
-    my $return_count = !wantarray && !$args{return_list};
-
-    my $cache_name = 'NODE_RANGE_LISTS';
-    my $cache      = $self->get_cached_value_dor_set_default_aa ($cache_name, {});
-
-    if (my $groups = $cache->{$node_ref}) {
-        return scalar keys %$groups if $return_count;
-        return wantarray ? %$groups : [keys %$groups];
-    }
-
     my $node_name = $node_ref->get_name;
     my %groups;
 
-    my $children = $node_ref->get_children // [];
+    \my @children = $node_ref->get_children // [];
 
-    if (  !$node_ref->is_internal_node && $bd->exists_label_aa($node_name)) {
+    if (  !@children && $bd->exists_label_aa($node_name)) {
         my $gp_list = $bd->get_groups_with_label_as_hash_aa ($node_name);
-        if (HAVE_DATA_RECURSIVE) {
-            Data::Recursive::hash_merge (\%groups, $gp_list, Data::Recursive::LAZY());
-        }
-        else {
-            @groups{keys %$gp_list} = undef;
-        }
+        @groups{keys %$gp_list} = undef;
     }
-    if (scalar @$children && $max_poss_group_count != keys %groups) {
+    elsif (scalar @children && $max_poss_group_count != keys %groups) {
       CHILD:
-        foreach my $child (@$children) {
+        foreach my $child (@children) {
             my $cached_list = $cache->{$child};
             if (!defined $cached_list) {
                 #  bodge to work around inconsistent returns
                 #  (can be a key count, a hash, or an array ref of keys)
-                my $c = $self->get_node_range (node_ref => $child, return_list => 1);
-                if (HAVE_DATA_RECURSIVE) {
-                    Data::Recursive::hash_merge (\%groups, $c, Data::Recursive::LAZY());
-                }
-                else {
-                    @groups{@$c} = undef;
-                }
+                my $gp_list = $self->get_node_range (node_ref => $child, return_list => 1);
+                @groups{@$gp_list} = undef;
             }
             else {
                 if (HAVE_DATA_RECURSIVE) {
@@ -1951,8 +1936,10 @@ sub get_node_range {
     #  for multiple trees with overlapping name sets.
     $cache->{$node_ref} = \%groups;
 
-    return scalar keys %groups if $return_count;
-    return wantarray ? %groups : [keys %groups];
+    return
+        $return_count ? scalar keys %groups
+        : wantarray   ? %groups
+        : [keys %groups];
 }
 
 

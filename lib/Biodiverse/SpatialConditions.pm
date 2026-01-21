@@ -110,6 +110,15 @@ sub get_metadata {
     return $self->SUPER::get_metadata (@_, no_use_cache => 1);
 }
 
+sub get_basedata_ref {
+    my $self = shift;
+
+    return $self->SUPER::get_basedata_ref // do {
+        my $h = $self->get_param('CURRENT_ARGS');
+        $h->{basedata} || $h->{caller_object};
+    };
+}
+
 sub get_tree_ref {
     my ($self) = @_;
     $self->get_param('TREE_REF');

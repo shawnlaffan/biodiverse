@@ -593,17 +593,36 @@ sub test_sp_in_tree_ancestor_range {
         3950000:1750000
     /;
 
-    {
-        my $cond = <<~'EOC'
-            $self->set_current_label('Genus:sp4');
-            sp_in_label_ancestor_range(by_depth => 2, target => 2);
-            EOC
-        ;
+    my $target_len_node = $tree->get_node_ref_aa('Genus:sp4')->get_ancestor_by_depth_aa(2);
+    my $target_len_sum  = $target_len_node->get_sum_of_branch_lengths_below - 0.5 * $target_len_node->get_length;
+    my $target_len_sumf = $target_len_sum / $tree->get_total_tree_length;
+    #  these should all find the same node
+    my @cond_args = (
+        'by_depth => 1, target => 2',
+        'by_depth => 1, target => 0.5, as_frac => 1',
+        'by_depth => 0, target => 0.97',
+        'target => 0.97, as_frac => 1',
+        'target => 6, by_tip_count => 1',
+        'target => 0.1935483870, by_tip_count => 1, as_frac => 1',  #  target = 6/31
+        'target => 10, by_desc_count => 1',
+        'target => 10/61, by_desc_count => 1, as_frac => 1',
+        "target => $target_len_sum, by_len_sum => 1",
+        "target => $target_len_sumf, by_len_sum => 1, as_frac => 1",
+    );
+    my $cond_base = <<~'EOC'
+        $self->set_current_label('Genus:sp4');
+        sp_in_label_ancestor_range(%{CONDITION}%);
+        EOC
+    ;
+
+    foreach my $args (@cond_args) {
+        my $cond = $cond_base =~ s/\Q%{CONDITION}%\E/$args/r;
+
         my $defq = Biodiverse::SpatialConditions::DefQuery->new(
             conditions => $cond,
             %common_cond_args,
         );
-        my $sp = $bd->add_spatial_output(name => "test_ancestor_range_depth");
+        my $sp = $bd->add_spatial_output(name => "test_ancestor_range_($args)");
         $sp->run_analysis(
             %common_sp_args,
             definition_query => $defq,
@@ -613,192 +632,6 @@ sub test_sp_in_tree_ancestor_range {
 
         my $passed = $sp->get_groups_that_pass_def_query();
         is $passed, $exp, "Expected def query passes (depth)";
-    }
-
-    {
-        my $cond = <<~'EOC'
-            $self->set_current_label('Genus:sp4');
-            sp_in_label_ancestor_range(by_depth => 1, target => 0.5, as_frac => 1);
-            EOC
-        ;
-        my $defq = Biodiverse::SpatialConditions::DefQuery->new(
-            conditions => $cond,
-            %common_cond_args,
-        );
-        my $sp = $bd->add_spatial_output(name => "test_ancestor_range_depth_frac");
-        $sp->run_analysis(
-            %common_sp_args,
-            definition_query => $defq,
-        );
-
-        is scalar $sp->get_groups_that_pass_def_query,
-            $exp,
-            "Expected def query passes (depth frac)";
-    }
-
-    {
-        #  0.97 is the same node as for by_depth=2
-        my $cond = <<~'EOC'
-            $self->set_current_label('Genus:sp4');
-            sp_in_label_ancestor_range(by_depth => 0, target => 0.97);
-            EOC
-        ;
-        my $defq = Biodiverse::SpatialConditions::DefQuery->new(
-            conditions => $cond,
-            %common_cond_args,
-        );
-
-        my $sp = $bd->add_spatial_output(name => "test_ancestor_range_length");
-        $sp->run_analysis(
-            %common_sp_args,
-            definition_query => $defq,
-        );
-
-        is scalar $sp->get_groups_that_pass_def_query(),
-            $exp,
-            "Expected def query passes (length)";
-    }
-
-    {
-        my $cond = <<~'EOC'
-            $self->set_current_label('Genus:sp4');
-            sp_in_label_ancestor_range(target => 0.97, as_frac => 1);
-            EOC
-        ;
-        my $defq = Biodiverse::SpatialConditions::DefQuery->new(
-            conditions => $cond,
-            %common_cond_args,
-        );
-        my $sp = $bd->add_spatial_output(name => "test_ancestor_range_len_frac");
-        $sp->run_analysis(
-            %common_sp_args,
-            definition_query => $defq,
-        );
-        is scalar $sp->get_groups_that_pass_def_query,
-            $exp,
-            "Expected def query passes (length frac)";
-    }
-
-    {
-        my $cond = <<~'EOC'
-            $self->set_current_label('Genus:sp4');
-            sp_in_label_ancestor_range(target => 6, by_tip_count => 1);
-            EOC
-        ;
-        my $defq = Biodiverse::SpatialConditions::DefQuery->new(
-            conditions => $cond,
-            %common_cond_args,
-        );
-        my $sp = $bd->add_spatial_output(name => "test_ancestor_range_ntips");
-        $sp->run_analysis(
-            %common_sp_args,
-            definition_query => $defq,
-        );
-        is scalar $sp->get_groups_that_pass_def_query,
-            $exp,
-            "Expected def query passes (by_tip_count)";
-    }
-
-    {
-        # 6/31 = 0.1935483870
-        my $cond = <<~'EOC'
-            $self->set_current_label('Genus:sp4');
-            sp_in_label_ancestor_range(target => 0.1935483870, by_tip_count => 1, as_frac => 1);
-            EOC
-        ;
-        my $defq = Biodiverse::SpatialConditions::DefQuery->new(
-            conditions => $cond,
-            %common_cond_args,
-        );
-        my $sp = $bd->add_spatial_output(name => "test_ancestor_range_ntipsf");
-        $sp->run_analysis(
-            %common_sp_args,
-            definition_query => $defq,
-        );
-        is scalar $sp->get_groups_that_pass_def_query,
-            $exp,
-            "Expected def query passes (by_tip_count)";
-    }
-
-    {
-        my $cond = <<~'EOC'
-            $self->set_current_label('Genus:sp4');
-            sp_in_label_ancestor_range(target => 10, by_desc_count => 1);
-            EOC
-        ;
-        my $defq = Biodiverse::SpatialConditions::DefQuery->new(
-            conditions => $cond,
-            %common_cond_args,
-        );
-        my $sp = $bd->add_spatial_output(name => "test_ancestor_range_ndesc");
-        $sp->run_analysis(
-            %common_sp_args,
-            definition_query => $defq,
-        );
-        is scalar $sp->get_groups_that_pass_def_query,
-            $exp,
-            "Expected def query passes (by_desc_count as_frac)";
-    }
-
-    {
-        my $cond = <<~'EOC'
-            $self->set_current_label('Genus:sp4');
-            sp_in_label_ancestor_range(target => 10/61, by_desc_count => 1, as_frac => 1);
-            EOC
-        ;
-        my $defq = Biodiverse::SpatialConditions::DefQuery->new(
-            conditions => $cond,
-            %common_cond_args,
-        );
-        my $sp = $bd->add_spatial_output(name => "test_ancestor_range_ndescf");
-        $sp->run_analysis(
-            %common_sp_args,
-            definition_query => $defq,
-        );
-        is scalar $sp->get_groups_that_pass_def_query,
-            $exp,
-            "Expected def query passes (by_desc_count as_frac)";
-    }
-
-    {
-        my $target_len_node = $tree->get_node_ref_aa('Genus:sp4')->get_ancestor_by_depth_aa(2);
-        my $target_len_sum = $target_len_node->get_sum_of_branch_lengths_below - 0.5 * $target_len_node->get_length;
-        my $cond = <<~'EOC'
-            $self->set_current_label('Genus:sp4');
-            sp_in_label_ancestor_range(target => %VALUE%, by_len_sum => 1);
-            EOC
-        ;
-        my $defq = Biodiverse::SpatialConditions::DefQuery->new(
-            conditions => ($cond =~ s/%VALUE%/$target_len_sum/r),
-            %common_cond_args,
-        );
-        my $sp = $bd->add_spatial_output(name => "test_ancestor_range_len_sum");
-        $sp->run_analysis(
-            %common_sp_args,
-            definition_query => $defq,
-        );
-        is scalar $sp->get_groups_that_pass_def_query,
-            $exp,
-            "Expected def query passes (by_len_sum)";
-
-        $cond = <<~'EOC'
-            $self->set_current_label('Genus:sp4');
-            sp_in_label_ancestor_range(target => %VALUE%, by_len_sum => 1, as_frac => 1);
-            EOC
-        ;
-        $target_len_sum /= $tree->get_total_tree_length;
-        $defq = Biodiverse::SpatialConditions::DefQuery->new(
-            conditions => ($cond =~ s/%VALUE%/$target_len_sum/r),
-            %common_cond_args,
-        );
-        $sp = $bd->add_spatial_output(name => "test_ancestor_range_len_sumf");
-        $sp->run_analysis(
-            %common_sp_args,
-            definition_query => $defq,
-        );
-        is scalar $sp->get_groups_that_pass_def_query,
-            $exp,
-            "Expected def query passes (by_len_sum as_frac)";
     }
 
     {

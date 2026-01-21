@@ -2084,6 +2084,15 @@ sub get_metadata_sp_in_label_ancestor_range {
         node, the number of tips, or the sum of all branches,
         as appropriate.
 
+        If the eq argument is set then the branch lengths are all
+        treated as of equal length (the mean of the non-zero branch
+        lengths). This is the same as the alternate tree used in
+        CANAPE, and zero length branches remain zero.
+
+        If the rw argument is set then the branches are range
+        weighted.  This is the same as the range weighted
+        alternate tree in CANAPE.
+
         The underlying algorithm checks each of the terminal
         ranges using sp_in_label_range().  This means the
         search can also use the convex/concave hull or circumcircle
@@ -2172,6 +2181,36 @@ sub sp_in_label_ancestor_range {
 
     my $label = $args{label} // $self->_process_label_arg();
     my $tree  = $self->get_tree_ref // croak 'No tree ref available';
+
+    if (!$args{by_depth}){
+        #  no point weighting if it is a depth thing
+        if (delete $args{eq}) {
+            #  equal branch lengths
+            my $bd = $self->get_basedata_ref;
+            #  should cache by SHA256 or similar, and perhaps use the vcache
+            state $cache_name = 'CLONED_TREE_EQ_B_LENS_' . $bd;
+            if (my $cached = $self->get_cached_value($cache_name)) {
+                $tree = $cached;
+            }
+            else {
+                $tree = $tree->clone_with_equalised_branch_lengths(basedata_ref => $bd);
+                $self->set_cached_value($cache_name => $tree);
+            }
+        }
+        if (delete $args{rw}) {
+            #  range weighting!
+            my $bd = $self->get_basedata_ref;
+            #  should cache by SHA256 or similar, and perhaps use the vcache
+            state $cache_name = 'CLONED_TREE_RANGE_WEIGHTED_' . $bd;
+            if (my $cached = $self->get_cached_value($cache_name)) {
+                $tree = $cached;
+            }
+            else {
+                $tree = $tree->clone_with_range_weighted_branches(basedata_ref => $bd);
+                $self->set_cached_value($cache_name => $tree);
+            }
+        }
+    }
 
     my $node = $tree->get_node_ref_or_undef_aa($label);
     return 0 if !defined $node;

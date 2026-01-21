@@ -593,9 +593,12 @@ sub test_sp_in_tree_ancestor_range {
         3950000:1750000
     /;
 
+    #  lengths need to be just off exact or we hit floating point issues
     my $target_len_node = $tree->get_node_ref_aa('Genus:sp4')->get_ancestor_by_depth_aa(2);
     my $target_len_sum  = $target_len_node->get_sum_of_branch_lengths_below - 0.5 * $target_len_node->get_length;
     my $target_len_sumf = $target_len_sum / $tree->get_total_tree_length;
+    my $target_eq_tree  = 2.01 * $tree->get_mean_branch_length;
+    my $target_rw_tree  = 0.186646285;
     #  these should all find the same node
     my @cond_args = (
         'by_depth => 1, target => 2',
@@ -608,6 +611,14 @@ sub test_sp_in_tree_ancestor_range {
         'target => 10/61, by_desc_count => 1, as_frac => 1',
         "target => $target_len_sum, by_len_sum => 1",
         "target => $target_len_sumf, by_len_sum => 1, as_frac => 1",
+        "eq => 1, target => $target_eq_tree",
+        "rw => 1, target => $target_rw_tree",
+        #  these should be the same as an unweighted tree as depths are unchanged
+        'eq => 1, by_depth => 1, target => 2',
+        'eq => 1, by_depth => 1, target => 0.5, as_frac => 1',
+        'rw => 1, by_depth => 1, target => 2',
+        'rw => 1, by_depth => 1, target => 0.5, as_frac => 1',
+        'eq => 1, rw => 1, by_depth => 1, target => 2',
     );
     my $cond_base = <<~'EOC'
         $self->set_current_label('Genus:sp4');
@@ -631,7 +642,7 @@ sub test_sp_in_tree_ancestor_range {
         is ref $defq->get_tree_ref, ref $tree, 'Tree ref unchanged';
 
         my $passed = $sp->get_groups_that_pass_def_query();
-        is $passed, $exp, "Expected def query passes (depth)";
+        is $passed, $exp, "Expected def query passes ($args)";
     }
 
     {

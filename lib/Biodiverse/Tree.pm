@@ -3171,8 +3171,7 @@ sub clone_tree_with_equalised_branch_lengths {
 
     my $name = $args{name} // ( $self->get_param('NAME') . ' EQ' );
 
-    my $non_zero_len = $args{node_length}
-     // ($self->get_total_tree_length / ( $self->get_nonzero_length_count || 1 ));
+    my $non_zero_len = $args{node_length} // $self->get_mean_branch_length;
 
     \my %orig_node_length_hash = $self->get_node_length_hash;
 
@@ -3250,6 +3249,30 @@ sub clone_tree_with_rescaled_branch_lengths {
 
     return $new_tree;
 }
+
+sub clone_with_range_weighted_branches {
+    my ($self, %args) = @_;
+
+    my $bd = $args{basedata_ref} // croak "basedata_ref arg not passed";
+
+    $self = $self->clone_without_caches;
+
+    use Sort::Key qw /rnkeysort/;
+
+    foreach my $node (rnkeysort {$_->get_depth} $self->get_node_refs) {
+        my $range = $node->get_node_range (basedata_ref => $bd);
+        $node->set_length_aa ($range ? $node->get_length / $range : 0);
+    }
+
+    $self->delete_all_cached_values;
+
+    return $self;
+}
+
+#  some alt names, some of which should have been used in the first place
+*clone_tree_with_range_weighted_branches = \&clone_with_range_weighted_branches;
+*clone_with_rescaled_branch_lengths = \&clone_tree_with_rescaled_branch_lengths;
+*clone_with_equalised_branch_lengths = \&clone_tree_with_equalised_branch_lengths;
 
 #  Algorithm from Tsirogiannis et al. (2012).
 #  https://doi.org/10.1007/978-3-642-33122-0_3

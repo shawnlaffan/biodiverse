@@ -3160,6 +3160,11 @@ sub shuffle_terminal_names {
     return wantarray ? %reordered : \%reordered;
 }
 
+sub get_mean_branch_length {
+    my $self = shift;
+    return $self->get_total_tree_length / ( $self->get_nonzero_length_count || 1 );
+}
+
 sub clone_tree_with_equalised_branch_lengths {
     my $self = shift;
     my %args = @_;

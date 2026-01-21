@@ -368,7 +368,7 @@ sub get_metadata_sp_square_cell {
     my %args = @_;
 
     my $index_max_dist;
-    my $bd = eval {$self->get_basedata_ref};
+    my $bd = $self->get_basedata_ref;
     if (defined $args{size} && $bd) {
         my $cellsizes = $bd->get_cell_sizes;
         my @u = uniq @$cellsizes;
@@ -1799,7 +1799,7 @@ sub sp_group_not_empty {
     
     my $element = $args{element} // $self->is_def_query ? $h->{coord_id1} : $h->{coord_id2};
 
-    my $bd  = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
+    my $bd  = $self->get_basedata_ref;
 
     return !!$bd->get_richness_aa ($element);
 }
@@ -1985,7 +1985,7 @@ sub sp_in_label_range {
         ? $h->{coord_id1}
         : $h->{coord_id2};
 
-    my $bd = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
+    my $bd = $self->get_basedata_ref;
 
     return 0 if !$bd->exists_label_aa($label);
 
@@ -2262,7 +2262,7 @@ sub sp_get_spatial_output_list_value {
 
     my $element = $args{element} // $default_element;
 
-    my $bd      = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
+    my $bd      = $self->get_basedata_ref;
     my $sp_name = $args{output};
     croak "Spatial output name not defined\n" if not defined $sp_name;
 
@@ -2368,10 +2368,7 @@ sub sp_richness_greater_than {
     my $threshold = $args{threshold}
       // croak 'sp_richness_greater_than: threshold arg must be passed';
 
-    my $bd
-      =  eval {$self->get_basedata_ref}
-      || $h->{basedata}
-      || $h->{caller_object};
+    my $bd = $self->get_basedata_ref;
 
     #  needed if element arg not passed?
     croak "element $element is not in basedata\n"
@@ -2436,10 +2433,7 @@ sub sp_redundancy_greater_than {
     my $threshold = $args{threshold}
       // croak 'sp_redundancy_greater_than: threshold arg must be passed';
 
-    my $bd
-      =  eval {$self->get_basedata_ref}
-      || $h->{basedata}
-      || $h->{caller_object};
+    my $bd = $self->get_basedata_ref;
 
     #  needed if element arg not passed and we used the default?
     croak "element $element is not in basedata\n"
@@ -2504,7 +2498,7 @@ sub sp_spatial_output_passed_defq {
 
     my $element = $args{element} // $default_element;
     
-    my $bd      = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
+    my $bd      = $self->get_basedata_ref;
     my $sp_name = $args{output};
     my $sp;
     if (defined $sp_name) {
@@ -2641,7 +2635,7 @@ sub sp_points_in_same_cluster {
 
     my $h = $self->get_param('CURRENT_ARGS');
 
-    my $bd = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
+    my $bd = $self->get_basedata_ref;
     
     my $element1 = $args{element1};
     my $element2 = $args{element2};
@@ -2732,7 +2726,7 @@ sub sp_point_in_cluster {
 
     my $h = $self->get_param('CURRENT_ARGS');
 
-    my $bd = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
+    my $bd = $self->get_basedata_ref;
 
     croak "element $args{element} is not in basedata\n"
       if defined $args{element} and not $bd->exists_group_aa ($args{element});

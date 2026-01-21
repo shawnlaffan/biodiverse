@@ -133,6 +133,32 @@ sub set_tree_ref {
     $self->set_param(TREE_REF => $tree_ref);
 }
 
+sub get_current_coord_id {
+    my ($self, %args) = @_;
+
+    my $type = $args{type} // ($self->is_def_query ? 'proc' : 'nbr');
+    croak "Invalid type arg $type" if !($type eq 'proc' || $type eq 'nbr');
+
+    my $h = $self->get_param('CURRENT_ARGS');
+
+    return $type eq 'proc'
+        ? $h->{coord_id1}
+        : $h->{coord_id2};
+}
+
+sub get_current_coord_array {
+    my ($self, %args) = @_;
+
+    my $type = $args{type} // ($self->is_def_query ? 'proc' : 'nbr');
+    croak "Invalid type arg $type" if !($type eq 'proc' || $type eq 'nbr');
+
+    my $h = $self->get_param('CURRENT_ARGS');
+
+    return $type eq 'proc'
+        ? $h->{coord_array}
+        : $h->{nbrcoord_array};
+}
+
 sub get_conditions {
     my $self = shift;
     my %args = @_;

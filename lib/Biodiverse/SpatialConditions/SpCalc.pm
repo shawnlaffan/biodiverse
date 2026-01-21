@@ -761,19 +761,14 @@ sub get_comparator_for_text_matching {
     my $self = shift;
     my %args = @_;
 
-    my $type = $args{type};
-    $type ||= eval {$self->is_def_query()} ? 'proc' : 'nbr';
-
-    my $h = $self->get_param('CURRENT_ARGS');
-
     my $axis = $args{axis};
-    my $compcoord;
-    
-    if (defined $axis) { #  check against one axis
 
-        $compcoord = $type eq 'proc' ? $h->{coord_array} : $h->{nbrcoord_array};
+    if ( defined $axis ) { #  check against one axis
 
-        croak ("axis argument $args{axis} beyond array bounds, comparing with "
+        my $compcoord = $self->get_current_coord_array (%args);
+
+        croak (
+            "axis argument $axis beyond array bounds, comparing with "
             . join (q{ }, @$compcoord)
             )
           if abs ($axis) > $#$compcoord;
@@ -781,9 +776,7 @@ sub get_comparator_for_text_matching {
         return $compcoord->[ $axis ];
     }
 
-    $compcoord = $type eq 'proc' ? $h->{coord_id1} : $h->{coord_id2};
-    
-    return $compcoord;  #  deref scalar reference
+    return $self->get_current_coord_id;
 }
 
 sub get_metadata_sp_is_left_of {
@@ -1795,9 +1788,8 @@ sub get_metadata_sp_group_not_empty {
 sub sp_group_not_empty {
     my $self = shift;
     my %args = @_;
-    my $h = $self->get_param('CURRENT_ARGS');
-    
-    my $element = $args{element} // $self->is_def_query ? $h->{coord_id1} : $h->{coord_id2};
+
+    my $element = $args{element} // $self->get_current_coord_id;
 
     my $bd  = $self->get_basedata_ref;
 
@@ -1978,12 +1970,7 @@ sub sp_in_label_range {
 
     my $label = $args{label} // $self->_process_label_arg();
 
-    my $type = $args{type} // eval {$self->is_def_query()} ? 'proc' : 'nbr';
-    croak "Invalid type arg $type" if !($type eq 'proc' || $type eq 'nbr');
-
-    my $group = $type eq 'proc'
-        ? $h->{coord_id1}
-        : $h->{coord_id2};
+    my $group = $self->get_current_coord_id(%args);
 
     my $bd = $self->get_basedata_ref;
 
@@ -2292,14 +2279,7 @@ sub sp_get_spatial_output_list_value {
     my $index     = $args{index};
     my $no_die_if_not_exists = $args{no_error_if_no_index};
     
-    my $h = $self->get_param('CURRENT_ARGS');
-
-    my $default_element
-      = eval {$self->is_def_query}
-        ? $h->{coord_id1}
-        : $h->{coord_id2};  #?
-
-    my $element = $args{element} // $default_element;
+    my $element = $args{element} // $self->get_current_coord_id;
 
     my $bd      = $self->get_basedata_ref;
     my $sp_name = $args{output};
@@ -2396,14 +2376,7 @@ sub sp_richness_greater_than {
     my $self = shift;
     my %args = @_;
 
-    my $h = $self->get_param('CURRENT_ARGS');
-
-    my $default_element
-      = eval {$self->is_def_query}
-        ? $h->{coord_id1}
-        : $h->{coord_id2};  #?
-
-    my $element = $args{element} // $default_element;
+    my $element = $args{element} // $self->get_current_coord_id;
     my $threshold = $args{threshold}
       // croak 'sp_richness_greater_than: threshold arg must be passed';
 
@@ -2461,14 +2434,7 @@ sub sp_redundancy_greater_than {
     my $self = shift;
     my %args = @_;
 
-    my $h = $self->get_param('CURRENT_ARGS');
-
-    my $default_element
-      = eval {$self->is_def_query}
-        ? $h->{coord_id1}
-        : $h->{coord_id2};  #?
-
-    my $element = $args{element} // $default_element;
+    my $element = $args{element} // $self->get_current_coord_id;
     my $threshold = $args{threshold}
       // croak 'sp_redundancy_greater_than: threshold arg must be passed';
 
@@ -2527,15 +2493,8 @@ sub get_metadata_sp_spatial_output_passed_defq {
 sub sp_spatial_output_passed_defq {
     my $self = shift;
     my %args = @_;
-    
-    my $h = $self->get_param('CURRENT_ARGS');
 
-    my $default_element
-      = eval {$self->is_def_query}
-        ? $h->{coord_id1}
-        : $h->{coord_id2};  #?
-
-    my $element = $args{element} // $default_element;
+    my $element = $args{element} // $self->get_current_coord_id;
     
     my $bd      = $self->get_basedata_ref;
     my $sp_name = $args{output};
@@ -2553,27 +2512,24 @@ sub sp_spatial_output_passed_defq {
              && $my_name eq $sp_name 
              && $self->is_def_query;
     }
-    
     else {
         # default to the caller spatial output
         $sp = $self->get_caller_spatial_output_ref;
 
         # make sure we aren't trying to access ourself
         croak "def_query can't reference itself"
-          if eval {$self->is_def_query};
+          if eval $self->is_def_query;
 
         return 1
-          if !eval {$self->is_def_query} && $self->get_param('VERIFYING');
+          if !eval $self->is_def_query && $self->get_param('VERIFYING');
     }
     
     croak "output argument not defined "
         . "or we are not being used for a spatial analysis\n"
-          if !defined $sp;;
+          if !defined $sp;
 
     croak "element $element is not in spatial output\n"
-      if not $sp->exists_element (element => $element);
-
-    no autovivification;
+      if not $sp->exists_element_aa ($element);
 
     my $passed_defq = $sp->get_param('PASS_DEF_QUERY');
     return 1 if !$passed_defq;
@@ -2763,17 +2719,12 @@ sub sp_point_in_cluster {
     my $cl_name = $args{output}
       // croak "Cluster output name not defined\n";
 
-    my $h = $self->get_param('CURRENT_ARGS');
-
     my $bd = $self->get_basedata_ref;
 
     croak "element $args{element} is not in basedata\n"
       if defined $args{element} and not $bd->exists_group_aa ($args{element});
 
-    my $element = $args{element}
-      // eval {$self->is_def_query}
-        ? $h->{coord_id1}
-        : $h->{coord_id2};
+    my $element = $self->get_current_coord_id;
 
     my $cl = $bd->get_cluster_output_ref (name => $cl_name)
       or croak "Spatial output $cl_name does not exist in basedata "

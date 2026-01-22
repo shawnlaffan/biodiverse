@@ -1970,11 +1970,11 @@ sub sp_in_label_range {
 
     my $label = $args{label} // $self->_process_label_arg();
 
-    my $group = $self->get_current_coord_id(%args);
-
     my $bd = $self->get_basedata_ref;
 
     return 0 if !$bd->exists_label_aa($label);
+
+    my $group = $self->get_current_coord_id(%args);
 
     if ($args{convex_hull} || $args{circumcircle} || $args{concave_hull}) {
         my $poly_type
@@ -2204,24 +2204,48 @@ sub sp_in_label_ancestor_range {
 
     my $d = $args{target} // croak 'argument "target" not defined';
 
-    if ($args{as_frac}) {
-        $d = $args{by_depth}      ? ($d <=> 0) * (1 - abs ($d)) * $node->get_depth
-           : $args{by_len_sum}    ? $d * $tree->get_total_tree_length
-           : $args{by_tip_count}  ? POSIX::ceil($d * $tree->get_terminal_element_count)
-           : $args{by_desc_count} ? POSIX::ceil($d * $tree->get_node_count)
-           : $d * $node->get_distance_to_root_node;
+    #  a lot of setup but saves time for large data sets
+    my $anc_cache = $self->get_cached_value_dor_set_default_href('sp_in_label_ancestor_range_ancestors');
+    my $anc_cache_key
+        = "d=>$d,"
+        . join ',', map {"$_=>". ($args{$_} // 0)}
+        qw /by_depth by_len_sum by_tip_count by_desc_count as_frac/;
+
+    my $ancestor = $anc_cache->{$tree}{$anc_cache_key}{$label} //= do {
+        if ($args{as_frac}) {
+            $d = $args{by_depth} ? ($d <=> 0) * (1 - abs($d)) * $node->get_depth
+                : $args{by_len_sum} ? $d * $tree->get_total_tree_length
+                : $args{by_tip_count} ? POSIX::ceil($d * $tree->get_terminal_element_count)
+                : $args{by_desc_count} ? POSIX::ceil($d * $tree->get_node_count)
+                : $d * $node->get_distance_to_root_node;
+        }
+
+        my $anc = $args{by_depth} ? $node->get_ancestor_by_depth_aa($d)
+                : $args{by_len_sum} ? $node->get_ancestor_by_sum_of_branch_lengths_aa($d)
+                : $args{by_tip_count} ? $node->get_ancestor_by_ntips_aa($d)
+                : $args{by_desc_count} ? $node->get_ancestor_by_ndescendants_aa($d)
+                : $node->get_ancestor_by_length_aa($d);
+        $anc;
+    };
+
+    if ($args{convex_hull} || $args{concave_hull} || $args{circumcircle}) {
+        #  delegate to sp_in_label_range
+        my $result = List::Util::any
+            {$self->sp_in_label_range(%args, label => $_)}
+            keys %{$ancestor->get_terminal_elements};
+        return $result;
     }
 
-    my $ancestor
-        = $args{by_depth}      ? $node->get_ancestor_by_depth_aa($d)
-        : $args{by_len_sum}    ? $node->get_ancestor_by_sum_of_branch_lengths_aa($d)
-        : $args{by_tip_count}  ? $node->get_ancestor_by_ntips_aa($d)
-        : $args{by_desc_count} ? $node->get_ancestor_by_ndescendants_aa($d)
-        : $node->get_ancestor_by_length_aa($d);
-
-    return List::Util::any
-        {$self->sp_in_label_range (%args, label => $_)}
-        keys %{$ancestor->get_terminal_elements};
+    my $range_cache = $self->get_cached_value_dor_set_default_href('sp_in_label_ancestor_ranges');
+    my $bd = $self->get_basedata_ref;
+    \my %range = $range_cache->{$ancestor->get_name}{$bd} //= do {
+        $bd->get_range_union(
+            return_hash => 1,
+            labels      => scalar $ancestor->get_terminal_elements,
+        );
+    };
+    my $coord = $self->get_current_coord_id(type => $args{type});
+    return exists $range{$coord};
 }
 
 sub get_example_sp_get_spatial_output_list_value {

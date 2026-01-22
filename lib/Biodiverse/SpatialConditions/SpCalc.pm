@@ -1966,8 +1966,6 @@ sub get_metadata_sp_in_label_range {
 sub sp_in_label_range {
     my ($self, %args) = @_;
 
-    my $h = $self->get_param('CURRENT_ARGS');
-
     my $label = $args{label} // $self->_process_label_arg();
 
     my $bd = $self->get_basedata_ref;
@@ -1977,50 +1975,63 @@ sub sp_in_label_range {
     my $group = $self->get_current_coord_id(%args);
 
     if ($args{convex_hull} || $args{circumcircle} || $args{concave_hull}) {
-        my $poly_type
-            = $args{convex_hull}  ? 'convex_hull'
-            : $args{concave_hull} ? 'concave_hull'
-            : 'circumcircle';
-
-        croak "sp_in_label_range: Insufficient group axes for $poly_type"
-            if scalar $bd->get_group_axis_count < 2;
-
-        my $axes = $args{axes} // $h->{axes} // [0,1];
-        my $in_polygon;
-
-        my %extra_args;
-        my $cache_suffix = '';
-        if ($args{concave_hull}) {
-            $extra_args{allow_holes} = !!$args{allow_holes};
-            $extra_args{ratio}       = max (min (1, $args{hull_ratio} // 0.00001), 0);
-            $cache_suffix = '_ARGS_' . join ':', @extra_args{qw/ratio allow_holes/};
-        }
-
-        if (my $buff_dist = $args{buffer_dist}) {  #  we have a buffer to work with
-            my $cache_key = 'IN_LABEL_RANGE_' . uc($poly_type) . '_BUFFERED_' . join (':', @$axes) . $cache_suffix;
-            my $cache = $self->get_cached_value_dor_set_default_href($cache_key);
-            $in_polygon
-                = $cache->{$label}{$buff_dist}
-                //= do {
-                    my $method  = "get_label_range_${poly_type}";
-                    my $polygon = $bd->$method(label => $label, axes => $axes, %extra_args)->Buffer($buff_dist, 30);
-                    $bd->get_groups_in_polygon (polygon => $polygon, axes => $axes);
-                };
-        }
-        else {  #  no buffer
-            my $method = "get_groups_in_label_range_${poly_type}";
-            $in_polygon = $bd->$method(
-                label => $label,
-                axes  => $axes,
-                %extra_args,
-            );
-        }
+        my $in_polygon = $self->get_in_polygon_hash (%args);
         return $in_polygon->{$group};
     }
 
     my $labels_in_group = $bd->get_labels_in_group_as_hash_aa ($group);
 
     return exists $labels_in_group->{$label};
+}
+
+sub get_in_polygon_hash {
+    my ($self, %args) = @_;
+
+    my $bd    = $self->get_basedata_ref;
+
+    my $poly_type
+        = $args{convex_hull}  ? 'convex_hull'
+        : $args{concave_hull} ? 'concave_hull'
+        : 'circumcircle';
+
+    croak "sp_in_label_range: Insufficient group axes for $poly_type"
+        if scalar $bd->get_group_axis_count < 2;
+
+    my $h = $self->get_param('CURRENT_ARGS');
+    my $axes = $args{axes} // $h->{axes} // [0,1];
+
+    my $label = $args{label} // $self->_process_label_arg();
+
+    my $in_polygon;
+
+    my %extra_args;
+    my $cache_suffix = '';
+    if ($args{concave_hull}) {
+        $extra_args{allow_holes} = !!$args{allow_holes};
+        $extra_args{ratio}       = max (min (1, $args{hull_ratio} // 0.00001), 0);
+        $cache_suffix = '_ARGS_' . join ':', @extra_args{qw/ratio allow_holes/};
+    }
+
+    if (my $buff_dist = $args{buffer_dist}) {  #  we have a buffer to work with
+        my $cache_key = 'IN_LABEL_RANGE_' . uc($poly_type) . '_BUFFERED_' . join (':', @$axes) . $cache_suffix;
+        my $cache = $self->get_cached_value_dor_set_default_href($cache_key);
+        $in_polygon
+            = $cache->{$label}{$buff_dist}
+            //= do {
+            my $method  = "get_label_range_${poly_type}";
+            my $polygon = $bd->$method(label => $label, axes => $axes, %extra_args)->Buffer($buff_dist, 30);
+            $bd->get_groups_in_polygon (polygon => $polygon, axes => $axes);
+        };
+    }
+    else {  #  no buffer
+        my $method = "get_groups_in_label_range_${poly_type}";
+        $in_polygon = $bd->$method(
+            label => $label,
+            axes  => $axes,
+            %extra_args,
+        );
+    }
+    return wantarray ? %$in_polygon : $in_polygon;
 }
 
 sub get_metadata_sp_in_label_ancestor_range {

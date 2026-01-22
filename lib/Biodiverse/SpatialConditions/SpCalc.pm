@@ -2216,13 +2216,14 @@ sub sp_in_label_ancestor_range {
     my $d = $args{target} // croak 'argument "target" not defined';
 
     #  a lot of setup but saves time for large data sets
-    my $anc_cache = $self->get_cached_value_dor_set_default_href('sp_in_label_ancestor_range_ancestors');
-    my $anc_cache_key
+    my $cache = $self->get_cached_value_dor_set_default_href('sp_in_label_ancestor_range');
+    my $cache_key
         = "d=>$d,"
         . join ',', map {"$_=>". ($args{$_} // 0)}
         qw /by_depth by_len_sum by_tip_count by_desc_count as_frac/;
+    $cache = $cache->{$tree}{$cache_key} //= {};
 
-    my $ancestor = $anc_cache->{$tree}{$anc_cache_key}{$label} //= do {
+    my $ancestor = $cache->{ancestors}{$label} //= do {
         if ($args{as_frac}) {
             $d = $args{by_depth} ? ($d <=> 0) * (1 - abs($d)) * $node->get_depth
                 : $args{by_len_sum} ? $d * $tree->get_total_tree_length
@@ -2247,9 +2248,8 @@ sub sp_in_label_ancestor_range {
         return $result;
     }
 
-    my $range_cache = $self->get_cached_value_dor_set_default_href('sp_in_label_ancestor_ranges');
     my $bd = $self->get_basedata_ref;
-    \my %range = $range_cache->{$ancestor->get_name}{$bd} //= do {
+    \my %range = $cache->{ranges}{$bd}{$ancestor->get_name} //= do {
         $bd->get_range_union(
             return_hash => 1,
             labels      => scalar $ancestor->get_terminal_elements,

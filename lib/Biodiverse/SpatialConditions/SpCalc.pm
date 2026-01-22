@@ -2025,21 +2025,22 @@ sub get_in_polygon_hash {
 
     my $label = $args{label} // $self->_process_label_arg();
 
+    return wantarray ? () : {}
+        if !$bd->exists_label_aa($label);
+
     my $in_polygon;
 
     my %extra_args;
-    my $cache_suffix = '';
     if ($args{concave_hull}) {
         $extra_args{allow_holes} = !!$args{allow_holes};
-        $extra_args{ratio}       = max (min (1, $args{hull_ratio} // 0.00001), 0);
-        $cache_suffix = '_ARGS_' . join ':', @extra_args{qw/ratio allow_holes/};
+        $extra_args{ratio}       = max (min (1, $args{hull_ratio} // DEFAULT_CONVEX_HULL_RATIO), 0);
     }
 
     if (my $buff_dist = $args{buffer_dist}) {  #  we have a buffer to work with
-        my $cache_key = 'IN_LABEL_RANGE_' . uc($poly_type) . '_BUFFERED_' . join (':', @$axes) . $cache_suffix;
-        my $cache = $self->get_cached_value_dor_set_default_href($cache_key);
+        my $cache_key = $self->_get_cache_key_for_in_polygon_check(%args);
+        my $cache = $self->get_cached_value_dor_set_default_href('IN_LABEL_RANGE');
         $in_polygon
-            = $cache->{$label}{$buff_dist}
+            = $cache->{$cache_key}{$label}
             //= do {
             my $method  = "get_label_range_${poly_type}";
             my $polygon = $bd->$method(label => $label, axes => $axes, %extra_args)->Buffer($buff_dist, 30);
@@ -2263,21 +2264,27 @@ sub sp_in_label_ancestor_range {
         $anc;
     };
 
+    my %range;
     if ($args{convex_hull} || $args{concave_hull} || $args{circumcircle}) {
-        #  delegate to sp_in_label_range
-        my $result = List::Util::any
-            {$self->sp_in_label_range(%args, label => $_)}
-            keys %{$ancestor->get_terminal_elements};
-        return $result;
+        my $poly_cache_key = $self->_get_cache_key_for_in_polygon_check(%args);
+        \%range = $cache->{polygon_ranges}{$poly_cache_key}{$ancestor->get_name} //= do {
+            my %collated_range;
+            foreach my $tip_label ($ancestor->get_terminal_elements) {
+                \my %tip_range = $self->get_in_polygon_hash(%args, label => $tip_label);
+                @collated_range{keys %tip_range} = values %tip_range;
+            }
+            \%collated_range;
+        }
     }
-
-    my $bd = $self->get_basedata_ref;
-    \my %range = $cache->{ranges}{$bd}{$ancestor->get_name} //= do {
-        $bd->get_range_union(
-            return_hash => 1,
-            labels      => scalar $ancestor->get_terminal_elements,
-        );
-    };
+    else {
+        my $bd = $self->get_basedata_ref;
+        \%range = $cache->{group_ranges}{$bd}{$ancestor->get_name} //= do {
+            $bd->get_range_union(
+                return_hash => 1,
+                labels      => scalar $ancestor->get_terminal_elements,
+            );
+        };
+    }
     my $coord = $self->get_current_coord_id(type => $args{type});
     return exists $range{$coord};
 }

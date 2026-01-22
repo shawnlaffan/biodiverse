@@ -1984,6 +1984,29 @@ sub sp_in_label_range {
     return exists $labels_in_group->{$label};
 }
 
+use constant DEFAULT_CONVEX_HULL_RATIO => 0.00001;
+
+sub _get_cache_key_for_in_polygon_check {
+    my ($self, %args) = @_;
+
+    my $key = $args{convex_hull} ? 'convex_hull'
+        : $args{circumcircle} ? 'circumcircle'
+        : 'concave_hull';
+
+    if ($args{concave_hull}) {
+        $key .= sprintf (
+            '_ARGS_(%s:%s)',
+            (max (min (1, $args{hull_ratio} // DEFAULT_CONVEX_HULL_RATIO), 0)),
+            !!$args{allow_holes}
+        );
+    }
+    if ($args{buffer_dist}) {
+        $key .= "_buffered_$args{buffer_dist}";
+    }
+
+    return $key;
+}
+
 sub get_in_polygon_hash {
     my ($self, %args) = @_;
 

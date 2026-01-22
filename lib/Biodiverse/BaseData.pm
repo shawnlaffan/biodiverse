@@ -2140,6 +2140,13 @@ sub get_range_union {
         @shared_elements{ keys %$elements_now } = undef;
     }
 
+    if ($args{return_hash}) {
+        @shared_elements{keys %shared_elements} = (1) x keys %shared_elements;
+        return wantarray
+            ? %shared_elements
+            : \%shared_elements;
+    }
+
     return scalar keys %shared_elements if $args{return_count};    #/
 
     return wantarray

@@ -2513,6 +2513,40 @@ sub rebuild_spatial_index {
     return;
 }
 
+#  get a 2D STR R-tree index
+sub get_strtree_index {
+    my ($self, %args) = @_;
+
+    use Tree::STR 0.02;
+
+    \my @axes = $args{axes} // [0,1];
+    croak "Must specify two axes" if @axes != 2;
+
+    my $cache = $self->get_cached_value_dor_set_default_href ('GP_STRTREES');
+    my $cache_key = join ':', @axes;
+    if (my $cached = $cache->{$cache_key}) {
+        return $cached;
+    }
+
+    my @cellsizes = $self->get_cell_sizes;
+    my ($c1, $c2) = map {$_ / 2} @cellsizes[@axes];
+
+    croak "Cannot generate an index for point or text axes"
+        if $c1 <= 0 || $c2 <= 0;
+
+    my @data;
+    my $gp = $self->get_groups_ref;
+    foreach my $group ($self->get_groups) {
+        my $coords = $gp->get_element_name_as_array_aa($group);
+        my ($x, $y) = @$coords[@axes];
+        my ($x1, $x2) = ($x - $c1, $x + $c1);
+        my ($y1, $y2) = ($y - $c2, $y + $c2);
+        push @data, [$x1, $y1, $x2, $y2, $group];
+    }
+    my $tree = Tree::STR->new(\@data);
+
+    return $cache->{$cache_key} = $tree;
+}
 
 ########################################################
 #  methods to get neighbours, parse parameters etc.

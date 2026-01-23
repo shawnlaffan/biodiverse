@@ -40,6 +40,7 @@ requires "Text::CSV_XS", "1.52";
 requires "Text::Fuzzy";
 requires "Text::Wrapper";
 requires "Tree::R";
+requires "Tree::STR", "0.02";
 requires "URI::Escape";
 requires "URI::Escape::XS";
 $^O eq 'MSWin32' ? (requires "Win32::LongPath") : ();

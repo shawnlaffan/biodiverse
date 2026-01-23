@@ -2529,6 +2529,10 @@ sub get_strtree_index {
     }
 
     my @cellsizes = $self->get_cell_sizes;
+
+    croak "Cannot build an STR Tree for one axis"
+        if @cellsizes == 1;
+
     my ($c1, $c2) = map {$_ / 2} @cellsizes[@axes];
 
     croak "Cannot generate an index for point or text axes"

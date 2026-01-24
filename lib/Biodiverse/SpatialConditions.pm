@@ -110,11 +110,22 @@ sub get_metadata {
     return $self->SUPER::get_metadata (@_, no_use_cache => 1);
 }
 
+sub get_current_args {
+    my $self = shift;
+    $self->get_param('CURRENT_ARGS');
+}
+
+sub set_current_args {
+    my ($self, $href) = @_;
+    $self->set_param(CURRENT_ARGS => $href);
+}
+
+
 sub get_basedata_ref {
     my $self = shift;
 
     return $self->SUPER::get_basedata_ref // do {
-        my $h = $self->get_param('CURRENT_ARGS');
+        my $h = $self->get_current_args;
         $h->{basedata} || $h->{caller_object};
     };
 }
@@ -139,7 +150,7 @@ sub get_current_coord_id {
     my $type = $args{type} // ($self->is_def_query ? 'proc' : 'nbr');
     croak "Invalid type arg $type" if !($type eq 'proc' || $type eq 'nbr');
 
-    my $h = $self->get_param('CURRENT_ARGS');
+    my $h = $self->get_current_args;
 
     return $type eq 'proc'
         ? $h->{coord_id1}
@@ -152,7 +163,7 @@ sub get_current_coord_array {
     my $type = $args{type} // ($self->is_def_query ? 'proc' : 'nbr');
     croak "Invalid type arg $type" if !($type eq 'proc' || $type eq 'nbr');
 
-    my $h = $self->get_param('CURRENT_ARGS');
+    my $h = $self->get_current_args;
 
     return $type eq 'proc'
         ? $h->{coord_array}
@@ -911,13 +922,13 @@ sub {
         coord_id2 => $coord_id2,
     };
 
-    $self->set_param( CURRENT_ARGS => $current_args );
+    $self->set_current_args ( $current_args );
 
     my $result = eval { CONDITIONS_STRING_GOES_HERE };
     my $error  = $EVAL_ERROR;
 
     #  clear the args, avoid ref cycles
-    $self->set_param( CURRENT_ARGS => undef );
+    $self->set_current_args ( undef );
 
     croak $error if $error;
 

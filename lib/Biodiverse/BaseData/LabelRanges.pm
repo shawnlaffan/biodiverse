@@ -208,8 +208,10 @@ sub get_groups_in_polygon {
 
     my $gp = $self->get_groups_ref;
 
+    my $str_tree = $self->get_strtree_index (axes => \@axes);
+    \my @groups = $str_tree->query_partly_within_rect ($xmin, $ymin, $xmax, $ymax);
+
     my %in_polygon;
-    \my @groups = $self->get_groups;
     GP:
     foreach my $group (@groups) {
         my $coords = $gp->get_element_name_as_array_aa($group);
@@ -240,8 +242,11 @@ sub get_groups_in_circle {
 
     my $gp = $self->get_groups_ref;
 
+    my $str_tree = $self->get_strtree_index (axes => \@axes);
+    \my @groups = $str_tree->query_partly_within_rect ($xmin, $ymin, $xmax, $ymax);
+
     my %in_circumcircle;
-    \my @groups = $self->get_groups;
+    # \my @groups = $self->get_groups;
     GP:
     foreach my $group (@groups) {
         my $coords = $gp->get_element_name_as_array_aa($group);

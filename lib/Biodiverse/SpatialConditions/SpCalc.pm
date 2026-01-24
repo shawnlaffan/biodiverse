@@ -2583,10 +2583,10 @@ sub sp_spatial_output_passed_defq {
 
         # make sure we aren't trying to access ourself
         croak "def_query can't reference itself"
-          if eval $self->is_def_query;
+          if $self->is_def_query;
 
         return 1
-          if !eval $self->is_def_query && $self->get_param('VERIFYING');
+          if !$self->is_def_query && $self->get_param('VERIFYING');
     }
     
     croak "output argument not defined "

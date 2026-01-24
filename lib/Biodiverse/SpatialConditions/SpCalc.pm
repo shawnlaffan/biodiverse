@@ -77,7 +77,7 @@ sub sp_circle {
     my $self = shift;
     my %args = @_;
 
-    my $h = $self->get_param('CURRENT_ARGS');
+    my $h = $self->get_current_args;
 
     my $dist;
     if (my $axes = $args{axes} ) {
@@ -139,7 +139,7 @@ sub sp_circle_cell {
     my $self = shift;
     my %args = @_;
 
-    my $h = $self->get_param('CURRENT_ARGS');
+    my $h = $self->get_current_args;
 
     my $dist;
     if (my $axes = $args{axes}) {
@@ -229,7 +229,7 @@ sub sp_rectangle {
     croak "Too many axes in call to sp_rectangle\n"
       if $#$axes > $#$sizes;
 
-    my $h     = $self->get_param('CURRENT_ARGS');
+    my $h     = $self->get_current_args;
     my $dists = $h->{dists}{D_list};
 
     my $i = -1;  #  @$sizes is in the same order as @$axes
@@ -289,7 +289,7 @@ sub sp_annulus {
     my $self = shift;
     my %args = @_;
 
-    my $h = $self->get_param('CURRENT_ARGS');
+    my $h = $self->get_current_args;
 
     my $dist;
     if ( $args{axes} ) {
@@ -358,7 +358,7 @@ sub sp_square {
 
     my $size = $args{size} / 2;
 
-    my $h = $self->get_param('CURRENT_ARGS');
+    my $h = $self->get_current_args;
     my $aref = $h->{dists}{D_list} // [];
     return List::Util::all {$_ <= $size} @$aref;
 }
@@ -400,7 +400,7 @@ sub sp_square_cell {
 
     my $size = $args{size} / 2;
 
-    my $h = $self->get_param('CURRENT_ARGS');
+    my $h = $self->get_current_args;
     my $aref = $h->{dists}{C_list} // [];
     return List::Util::all {$_ <= $size} @$aref;
 }
@@ -442,7 +442,7 @@ sub sp_block {
     croak "sp_block: argument 'size' not specified\n"
         if not defined $args{size};
 
-    my $h = $self->get_param('CURRENT_ARGS');
+    my $h = $self->get_current_args;
 
     my $coord    = $h->{coord_array};
     my $nbrcoord = $h->{nbrcoord_array};
@@ -539,7 +539,7 @@ sub sp_ellipse {
         $axes = [ 0, 1 ];
     }
 
-    my $h = $self->get_param('CURRENT_ARGS');
+    my $h = $self->get_current_args;
 
     my @d = @{ $h->{dists}{d_list} };
 
@@ -609,7 +609,7 @@ sub get_metadata_sp_self_only {
 sub sp_self_only {
     my $self = shift;
 
-    my $h = $self->get_param('CURRENT_ARGS');
+    my $h = $self->get_current_args;
 
     return $h->{coord_id1} eq $h->{coord_id2};
 }
@@ -905,7 +905,7 @@ sub _sp_side {
 
     \my @axes = $axes_ref // [0,1];
 
-    my $h = $self->get_param('CURRENT_ARGS');
+    my $h = $self->get_current_args;
 
     #  Need to de-ref to get the values
     \my @coord     = $h->{coord_array};
@@ -997,7 +997,7 @@ sub sp_select_sequence {
     my $self = shift;
     my %args = @_;
 
-    my $h           = $self->get_param('CURRENT_ARGS');
+    my $h = $self->get_current_args;
 
     my $bd        = $args{caller_object} || $h->{basedata};
     my $coord_id1 = $h->{coord_id1};
@@ -1197,7 +1197,7 @@ sub sp_select_block {
     my %args = @_;
 
     #  do stuff here
-    my $h = $self->get_param('CURRENT_ARGS');
+    my $h = $self->get_current_args;
 
     my $bd        = $args{caller_object} || $h->{basedata} || $self->get_basedata_ref;
     my $coord_id1 = $h->{coord_id1};
@@ -1338,7 +1338,7 @@ sub get_metadata_sp_point_in_poly {
 sub sp_point_in_poly {
     my $self = shift;
     my %args = @_;
-    my $h = $self->get_param('CURRENT_ARGS');
+    my $h = $self->get_current_args;
 
     my $vertices = $args{polygon};
     my $point = $args{point};
@@ -1402,7 +1402,7 @@ sub get_metadata_sp_point_in_poly_shape {
 sub sp_point_in_poly_shape {
     my $self = shift;
     my %args = @_;
-    my $h = $self->get_param('CURRENT_ARGS');
+    my $h = $self->get_current_args;
 
     my $no_cache = $args{no_cache};
     my $axes = $args{axes} || [0,1];
@@ -1513,7 +1513,7 @@ sub get_metadata_sp_points_in_same_poly_shape {
 sub sp_points_in_same_poly_shape {
     my $self = shift;
     my %args = @_;
-    my $h = $self->get_param('CURRENT_ARGS');
+    my $h = $self->get_current_args;
 
     my $no_cache = $args{no_cache};
     my $axes = $args{axes} || [0,1];
@@ -2020,7 +2020,7 @@ sub get_in_polygon_hash {
     croak "sp_in_label_range: Insufficient group axes for $poly_type"
         if scalar $bd->get_group_axis_count < 2;
 
-    my $h = $self->get_param('CURRENT_ARGS');
+    my $h = $self->get_current_args;
     my $axes = $args{axes} // $h->{axes} // [0,1];
 
     my $label = $args{label} // $self->_process_label_arg();
@@ -2693,7 +2693,7 @@ sub sp_points_in_same_cluster {
     my $cl_name = $args{output}
       // croak "Cluster output name not defined\n";
 
-    my $h = $self->get_param('CURRENT_ARGS');
+    my $h = $self->get_current_args;
 
     my $bd = $self->get_basedata_ref;
     

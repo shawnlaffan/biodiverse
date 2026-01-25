@@ -2227,7 +2227,43 @@ sub test_extent_from_raster {
         'max bounds for basedata matches raster when importing at same resolution';
 }
 
+sub test_basedata_to_geopackage {
+    use experimental qw /for_list/;
 
+    my $bd = get_basedata_object_from_site_data(
+        CELL_SIZES => [100000, 100000],
+    );
+
+    state $i = 0;
+
+    my $gpkg_pts = $bd->get_groups_as_geopackage (
+        as_points => 1,
+    );
+    my $gpkg_polys = $bd->get_groups_as_geopackage (
+        as_points => 0,
+    );
+
+    foreach my ($type, $gpkg) (Point => $gpkg_pts, Polygon => $gpkg_polys) {
+        my $layer = $gpkg->GetLayerByIndex(0);
+        is $layer->GetFeatureCount, $bd->get_group_count, "Got expected feature count for $type";
+        is $layer->GetDefn->GetGeomFieldDefn->GetType, $type, "Got expected type for $type";
+    }
+
+    if ($ENV{BD_GPKG_DUMP_TO_DISK}) {
+        for my ($type, $gpkg) (point => $gpkg_pts, polygon => $gpkg_polys) {
+            my $pfx = "test_basedata_to_geopackage_${type}";
+            my $name = "${pfx}_${i}.gpkg";
+            while (-e $name) {
+                $i++;
+                $name = "${pfx}_${i}.gpkg";
+            }
+            my $on_disk
+                = Geo::GDAL::FFI::GetDriver('GPKG')
+                ->Create($name, { Source => $gpkg });
+        }
+    }
+
+}
 
 sub get_label_remap_data {
     return get_data_section('LABEL_REMAP');

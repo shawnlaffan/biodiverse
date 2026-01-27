@@ -1705,7 +1705,6 @@ sub get_spatial_conditions_arr {
 #  and so are all its predecessors
 sub get_recyclable_nbrhoods {
     my $self = shift;
-    my %args = @_;
 
     my $spatial_conditions_ref = $self->get_spatial_conditions_arr;
 
@@ -1716,7 +1715,7 @@ sub get_recyclable_nbrhoods {
         non_overlapping  => 0,     # only index 0
         always_true      => undef, # any index
         text_match_exact => undef, # any index
-        #always_same      => undef, # any index
+        always_same      => undef, # any index
     );
 
     for my $i (0 .. $#$spatial_conditions_ref) {

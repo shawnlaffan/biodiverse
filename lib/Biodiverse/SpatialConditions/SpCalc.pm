@@ -847,10 +847,9 @@ sub get_metadata_sp_is_right_of {
 
 sub sp_is_right_of {
     my $self = shift;
-    #my %args = @_;
 
     #  no explicit return here for speed reasons
-    $self->_sp_side(@_) > 0; 
+    $self->_sp_side(@_) > 0;
 }
 
 sub get_metadata_sp_in_line_with {
@@ -891,8 +890,7 @@ sub sp_in_line_with {
 
 
 sub _sp_side {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
     my $axes_ref = $args{axes};
     if ( defined $axes_ref ) {
@@ -918,37 +916,33 @@ sub _sp_side {
     );
 
     #  set the default offset as east in radians
-    my $vector_angle = $args{vector_angle};
-    if ( defined $args{vector_angle_deg} && !defined $args{vector_angle} ) {
-        $vector_angle = deg2rad ( $args{vector_angle_deg} );
-    }
+    my $vector_angle = $args{vector_angle} // deg2rad($args{vector_angle_deg} // 0);
 
-    #  get the direction and rotate it so vector_angle is zero
-    my $dir = atan2 (
-        $nbr_coord[$axes[1]] - $coord[$axes[1]],
-        $nbr_coord[$axes[0]] - $coord[$axes[0]],
-    )
-    - ($vector_angle // 0);
+    #  Rotate so easterly vector points north.
+    #  This lets us use the x-axis to check sidedness.
+    $vector_angle = Math::Trig::pip2 - ($vector_angle // 0);
+    my $coord_id     = $h->{coord_id1};
+    my $nbr_coord_id = $h->{coord_id2};
+    my $bd = $self->get_basedata_ref(%args);
+    \my %rotated  = $bd->_get_rotated_scaled_axis_coords_hash (
+        %args,
+        angle => $vector_angle,
+        axes => \@axes,
+    );
 
-    #  Do we need to do this?  Must modify checks below if removed.
-    if ($dir < 0) {
-        $dir += Math::Trig::pi2;
-    };
+    state %cache;  #  global cache, should maybe have one per basedata?
+    \my @rot_coord = $rotated{$coord_id}
+        // ($cache{$coord_id}{join ':', @axes}{$vector_angle} //=
+            $bd->_get_rotated_scaled_coords_aa(@coord, $vector_angle, \@axes)
+        );
+    \my @rot_nbrcoord = $rotated{$nbr_coord_id}
+        // ($cache{$nbr_coord_id}{join ':', @axes}{$vector_angle} //=
+            $bd->_get_rotated_scaled_coords_aa(@nbr_coord, $vector_angle, \@axes)
+        );
 
-    #  Is to the left of the input vector if $dir is < PI,
-    #  to the right if PI < $dir < 2PI,
-    #  otherwise it is in line
-    my $test = 0;
-    if ($dir > 0 && $dir < pi) {
-        $test = -1;
-    }
-    elsif ($dir > pi && $dir < Math::Trig::pi2) {
-        $test = 1;
-    }
-
-    #  no explicit return here for speed reasons
-    $test;
+    return $rot_nbrcoord[0] <=> $rot_coord[0];
 }
+
 
 
 sub get_metadata_sp_select_sequence {

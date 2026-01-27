@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use 5.036;
 use Carp;
 use English qw{
     -no_match_vars
@@ -108,7 +109,7 @@ sub test_case {
     }
 
     is scalar keys %$neighbours, $count,
-       'The correct amount of neighbours was returned';
+       qq{The correct number of neighbours was returned for $cond"};
 
     verify_set_contents (
         set      => $neighbours,

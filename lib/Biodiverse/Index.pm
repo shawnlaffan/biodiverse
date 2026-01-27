@@ -460,11 +460,6 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
         $index_res_precision[$i] = $decimal_len ? (10 ** $decimal_len) : undef;
     }
 
-    my $subset_search_offsets;
-    my $extreme_elements_ref;
-    my $use_subset_search = $args{index_use_subset_search};
-    my $using_cell_units  = undef;
-    my $subset_dist       = $args{index_search_dist};
     #  insert a shortcut for no neighbours
     if ($spatial_conditions->get_result_type eq 'self_only') {
         my $off_array = [(0) x scalar @$index_resolutions];  #  all zeroes
@@ -476,7 +471,38 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
         say "Done (and what's more I cheated)";
         return wantarray ? %valid_offsets : \%valid_offsets;
     }
-    
+    elsif ($spatial_conditions->get_result_type eq 'side') {
+        #  should generalise this
+        use experimental qw /refaliasing/;
+        if (my $bd = $self->get_basedata_ref) {
+            my $bounds = $bd->get_coord_bounds;
+            \my @minima = $bounds->{MIN};
+            \my @maxima = $bounds->{MAX};
+            my $index_max_search_dist = max(map {$maxima[$_] - $minima[$_]} (0 .. $#minima));
+            my $max_off = $self->round_up_to_resolution (values => $index_max_search_dist);
+            my $min_off = [];
+            foreach my $i (0 .. $#$max_off) {
+                #  snap to range of data - avoids crashes
+                my $range = $maxima->[$i] - $minima->[$i];
+                if ($max_off->[$i] > $range) {
+                    $max_off->[$i] = $range;
+                }
+                # minima will be the negated max, so we can get ranges like -2..2.
+                $min_off->[$i] = -1 * $max_off->[$i];
+            }
+            $poss_offset_array = $self->get_poss_elements (
+                minima      => $min_off,
+                maxima      => $max_off,
+                resolutions => $index_resolutions,
+                precision   => \@index_res_precision,
+            );
+            my %valid_offsets;
+            @valid_offsets{@$poss_offset_array} = map {split (':', $_)} @$poss_offset_array;
+            return wantarray ? %valid_offsets : \%valid_offsets;
+        }
+    }
+
+    my $extreme_elements_ref;
     my $index_max_search_dist = $spatial_conditions->get_index_max_dist;
     if ($index_max_search_dist) {
         my $max_off = $self->round_up_to_resolution (values => $index_max_search_dist);
@@ -495,7 +521,6 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
             maxima      => $max_off,
             resolutions => $index_resolutions,
             precision   => \@index_res_precision,
-            #sep_char    => $sep_char,
         );
         if (   $spatial_conditions->get_shape_type ne 'square'
             && $index_max_search_dist > 2 * List::Util::min (@$index_resolutions)
@@ -573,7 +598,6 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     #  works from the eight neighbours of each corner to ensure we allow for data elements near the index boundaries.
     #  Keeps a track of those offsets that have already passed so it does not need to check them again.
     my %valid_index_offsets;
-    my (@min_offset, @max_offset);
 
     my $progress_bar = Biodiverse::Progress->new();
     my $to_do = $total_elements_to_search;
@@ -589,17 +613,11 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
 
         #  loop over the 3x3 nbrs of the extreme element
         foreach my $check_element (@{$element_search_list{$extreme_element}}) {  
-            my $check_ref;
-            if (defined $index_element_arrays{$check_element}) {
-                $check_ref = $index_element_arrays{$check_element};
-            }
-            else {
-                $check_ref = $self->csv2list(
+            my $check_ref = $index_element_arrays{$check_element}
+                // $self->csv2list(
                     string     => $check_element,
                     csv_object => $csv_object,
                 );
-                $index_element_arrays{$check_element} = $check_ref;  #  store it
-            }
 
             #  update progress to GUI
             $count ++;
@@ -616,17 +634,11 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
                 #   to see if they pass the conditions
 
                 #  get it as an array ref
-                my $element_ref;
-                if (defined $index_element_arrays{$element}) {
-                    $element_ref  = $index_element_arrays{$element};
-                }
-                else {
-                    $element_ref = $self->csv2list (
+                my $element_ref = $index_element_arrays{$element}
+                    // $self->csv2list (
                         string => $element,
                         csv_object => $csv_object,
                     );
-                    $index_element_arrays{$element} = $element_ref;  #  store it
-                }
 
                 #  get the correct offset (we are assessing the corners of the one we want)
                 # need to snap to precision of the original index

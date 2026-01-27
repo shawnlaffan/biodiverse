@@ -51,6 +51,7 @@ use parent qw {
     Biodiverse::BaseData::ManageOutputs
     Biodiverse::BaseData::Exclusions
     Biodiverse::BaseData::LabelRanges
+    Biodiverse::BaseData::FeatureData
 };
 
 our $EMPTY_STRING = q{};
@@ -450,6 +451,12 @@ sub _describe {
 sub get_coord_bounds {
     my $self = shift;
 
+    state $cache_key = 'get_coord_bounds';
+    my $cached = $self->get_cached_value ($cache_key);
+
+    return wantarray ? %$cached : $cached
+        if $cached;
+
     #  do we use numeric or string comparison?
     my @numeric_comp;
     my @string_comp;
@@ -523,6 +530,8 @@ sub get_coord_bounds {
         MIN => \@min,
         MAX => \@max,
     );
+
+    $self->set_cached_value ($cache_key => \%bounds);
 
     return wantarray ? %bounds : \%bounds;
 }
@@ -2495,6 +2504,7 @@ sub build_spatial_index {    #  builds GROUPS, not LABELS
     }
     else {
         $index = Biodiverse::Index->new( %args, element_hash => \%groups );
+        $index->set_basedata_ref_aa($self);
         $self->set_param( SPATIAL_INDEX => $index );
     }
 

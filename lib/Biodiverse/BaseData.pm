@@ -2504,6 +2504,7 @@ sub build_spatial_index {    #  builds GROUPS, not LABELS
     }
     else {
         $index = Biodiverse::Index->new( %args, element_hash => \%groups );
+        $index->set_basedata_ref_aa($self);
         $self->set_param( SPATIAL_INDEX => $index );
     }
 

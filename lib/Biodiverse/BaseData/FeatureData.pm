@@ -103,7 +103,7 @@ sub _get_rotated_scaled_axis_coords_hash {
 
     my $angle = ($args{angle} // 0);
 
-    my $cache  = $self->get_cached_value_dor_set_default_href ('get_rotated_axis_coords_hash');
+    my $cache  = $self->get_cached_value_dor_set_default_href ('_get_rotated_scaled_axis_coords_hash');
     $cache     = $cache->{join ':', @axes} //= {};
     my $cached_hash = $cache->{$angle};
     return $cached_hash if $cached_hash;

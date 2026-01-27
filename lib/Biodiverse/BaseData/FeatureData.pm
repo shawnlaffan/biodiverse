@@ -94,5 +94,55 @@ sub get_groups_as_geopackage {
     return $cached_data->{$cache_key} = $gpkg;
 }
 
+#  scales values to the unit interval first,
+#  which is why it is an internal method
+sub _get_rotated_scaled_axis_coords_hash {
+    my ($self, %args) = @_;
+
+    \my @axes = $args{axes} // [0,1];
+
+    my $angle = ($args{angle} // 0);
+
+    my $cache  = $self->get_cached_value_dor_set_default_href ('get_rotated_axis_coords_hash');
+    $cache     = $cache->{join ':', @axes} //= {};
+    my $cached_hash = $cache->{$angle};
+    return $cached_hash if $cached_hash;
+
+    my $gp = $self->get_groups_ref;
+
+    my $bounds = $self->get_coord_bounds;
+    \my @min_extent = $bounds->{MIN};
+    \my @max_extent = $bounds->{MAX};
+    my @ranges = map {$max_extent[$_] - $min_extent[$_]} @axes;
+
+    #  scale and round or we get mismatches in later comparisons
+    my %rotated;
+    foreach my $group ($self->get_groups) {
+        \my @coord = $gp->get_element_name_as_array_aa ($group);
+        my ($x, $y) = @coord[@axes];
+        $x = ($x - $min_extent[$axes[0]]) / $ranges[0];
+        $y = ($y - $min_extent[$axes[1]]) / $ranges[1];
+        my $rx = 0 + $self->round_to_precision_aa( $x * cos ($angle) - $y * sin ($angle));
+        my $ry = 0 + $self->round_to_precision_aa( $x * sin ($angle) + $y * cos ($angle));
+        $rotated{$group} = [$rx, $ry];
+    }
+
+    $cache->{$angle} = \%rotated;
+}
+
+
+sub _get_rotated_scaled_coords_aa {
+    my ($self, $x, $y, $angle, $axes) = @_;
+    $axes //= [0,1];
+    my $bounds = $self->get_coord_bounds;
+    \my @min_extent = $bounds->{MIN};
+    \my @max_extent = $bounds->{MAX};
+    my @ranges = map {$max_extent[$_] - $min_extent[$_]} @$axes;
+    $x = ($x - $min_extent[$axes->[0]]) / $ranges[0];
+    $y = ($y - $min_extent[$axes->[1]]) / $ranges[1];
+    my $rx = 0 + $self->round_to_precision_aa( $x * cos ($angle) - $y * sin ($angle));
+    my $ry = 0 + $self->round_to_precision_aa( $x * sin ($angle) + $y * cos ($angle));
+    return wantarray ? ($rx, $ry) : [$rx, $ry];
+}
 
 1;

@@ -460,11 +460,6 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
         $index_res_precision[$i] = $decimal_len ? (10 ** $decimal_len) : undef;
     }
 
-    my $subset_search_offsets;
-    my $extreme_elements_ref;
-    my $use_subset_search = $args{index_use_subset_search};
-    my $using_cell_units  = undef;
-    my $subset_dist       = $args{index_search_dist};
     #  insert a shortcut for no neighbours
     if ($spatial_conditions->get_result_type eq 'self_only') {
         my $off_array = [(0) x scalar @$index_resolutions];  #  all zeroes
@@ -476,7 +471,8 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
         say "Done (and what's more I cheated)";
         return wantarray ? %valid_offsets : \%valid_offsets;
     }
-    
+
+    my $extreme_elements_ref;
     my $index_max_search_dist = $spatial_conditions->get_index_max_dist;
     if ($index_max_search_dist) {
         my $max_off = $self->round_up_to_resolution (values => $index_max_search_dist);
@@ -495,7 +491,6 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
             maxima      => $max_off,
             resolutions => $index_resolutions,
             precision   => \@index_res_precision,
-            #sep_char    => $sep_char,
         );
         if (   $spatial_conditions->get_shape_type ne 'square'
             && $index_max_search_dist > 2 * List::Util::min (@$index_resolutions)
@@ -573,7 +568,6 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     #  works from the eight neighbours of each corner to ensure we allow for data elements near the index boundaries.
     #  Keeps a track of those offsets that have already passed so it does not need to check them again.
     my %valid_index_offsets;
-    my (@min_offset, @max_offset);
 
     my $progress_bar = Biodiverse::Progress->new();
     my $to_do = $total_elements_to_search;

@@ -451,6 +451,12 @@ sub _describe {
 sub get_coord_bounds {
     my $self = shift;
 
+    state $cache_key = 'get_coord_bounds';
+    my $cached = $self->get_cached_value ($cache_key);
+
+    return wantarray ? %$cached : $cached
+        if $cached;
+
     #  do we use numeric or string comparison?
     my @numeric_comp;
     my @string_comp;
@@ -524,6 +530,8 @@ sub get_coord_bounds {
         MIN => \@min,
         MAX => \@max,
     );
+
+    $self->set_cached_value ($cache_key => \%bounds);
 
     return wantarray ? %bounds : \%bounds;
 }

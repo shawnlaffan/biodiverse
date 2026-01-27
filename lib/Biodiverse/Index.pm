@@ -471,6 +471,36 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
         say "Done (and what's more I cheated)";
         return wantarray ? %valid_offsets : \%valid_offsets;
     }
+    elsif ($spatial_conditions->get_result_type eq 'side') {
+        #  should generalise this
+        use experimental qw /refaliasing/;
+        if (my $bd = $self->get_basedata_ref) {
+            my $bounds = $bd->get_coord_bounds;
+            \my @minima = $bounds->{MIN};
+            \my @maxima = $bounds->{MAX};
+            my $index_max_search_dist = max(map {$maxima[$_] - $minima[$_]} (0 .. $#minima));
+            my $max_off = $self->round_up_to_resolution (values => $index_max_search_dist);
+            my $min_off = [];
+            foreach my $i (0 .. $#$max_off) {
+                #  snap to range of data - avoids crashes
+                my $range = $maxima->[$i] - $minima->[$i];
+                if ($max_off->[$i] > $range) {
+                    $max_off->[$i] = $range;
+                }
+                # minima will be the negated max, so we can get ranges like -2..2.
+                $min_off->[$i] = -1 * $max_off->[$i];
+            }
+            $poss_offset_array = $self->get_poss_elements (
+                minima      => $min_off,
+                maxima      => $max_off,
+                resolutions => $index_resolutions,
+                precision   => \@index_res_precision,
+            );
+            my %valid_offsets;
+            @valid_offsets{@$poss_offset_array} = map {split (':', $_)} @$poss_offset_array;
+            return wantarray ? %valid_offsets : \%valid_offsets;
+        }
+    }
 
     my $extreme_elements_ref;
     my $index_max_search_dist = $spatial_conditions->get_index_max_dist;

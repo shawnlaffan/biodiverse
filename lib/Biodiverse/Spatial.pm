@@ -871,6 +871,11 @@ sub sp_calc {
                   . "Index will be ignored for neighbour set $set_i.";
                 next SPATIAL_PARAMS_LOOP;
             }
+            elsif ($result_type eq 'side') {
+                say "[SPATIAL] Sidedness condition used.  "
+                    . "Index will be ignored for neighbour set $set_i.";
+                next SPATIAL_PARAMS_LOOP;
+            }
             elsif ($ignore_index
                    || $result_type eq 'always_false'
                    || $sp_cond_obj->get_param ('INDEX_NO_USE')) {
@@ -878,9 +883,8 @@ sub sp_calc {
                 say "[SPATIAL] Index set to be ignored for neighbour set $set_i.";
                 next SPATIAL_PARAMS_LOOP;
             }
-            else {
-                say "[SPATIAL] Result type for neighbour set $set_i is $result_type."
-            }
+
+            say "[SPATIAL] Result type for neighbour set $set_i is $result_type.";
 
             my $search_blocks = $search_blocks_arr->[$i];
 

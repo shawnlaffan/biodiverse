@@ -589,17 +589,11 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
 
         #  loop over the 3x3 nbrs of the extreme element
         foreach my $check_element (@{$element_search_list{$extreme_element}}) {  
-            my $check_ref;
-            if (defined $index_element_arrays{$check_element}) {
-                $check_ref = $index_element_arrays{$check_element};
-            }
-            else {
-                $check_ref = $self->csv2list(
+            my $check_ref = $index_element_arrays{$check_element}
+                // $self->csv2list(
                     string     => $check_element,
                     csv_object => $csv_object,
                 );
-                $index_element_arrays{$check_element} = $check_ref;  #  store it
-            }
 
             #  update progress to GUI
             $count ++;
@@ -616,17 +610,11 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
                 #   to see if they pass the conditions
 
                 #  get it as an array ref
-                my $element_ref;
-                if (defined $index_element_arrays{$element}) {
-                    $element_ref  = $index_element_arrays{$element};
-                }
-                else {
-                    $element_ref = $self->csv2list (
+                my $element_ref = $index_element_arrays{$element}
+                    // $self->csv2list (
                         string => $element,
                         csv_object => $csv_object,
                     );
-                    $index_element_arrays{$element} = $element_ref;  #  store it
-                }
 
                 #  get the correct offset (we are assessing the corners of the one we want)
                 # need to snap to precision of the original index

@@ -53,10 +53,11 @@ sub calc_endemism_central_normalised {
     my %args = @_;
 
     my $count = $args{EL_COUNT_ALL} || 0;
-    my %results = (
-        ENDC_CWE_NORM => eval { $args{END_CWE} / $count },
-        ENDC_WE_NORM  => eval { $args{END_WE}  / $count },
-    );
+    my %results = (ENDC_CWE_NORM => undef, ENDC_WE_NORM => undef);
+    if ($count && defined $args{END_WE}) {
+        $results{ENDC_CWE_NORM} = $args{END_CWE} / $count;
+        $results{ENDC_WE_NORM}  = $args{END_WE} / $count;
+    };
 
     return wantarray ? %results : \%results;
 }
@@ -101,10 +102,11 @@ sub calc_endemism_whole_normalised {
     my %args = @_;
 
     my $count = $args{EL_COUNT_ALL} || 0;
-    my %results = (
-        ENDW_CWE_NORM => eval { ($args{END_CWE} || 0) / $count },
-        ENDW_WE_NORM  => eval { ($args{END_WE}  || 0) / $count },
-    );
+    my %results = (ENDW_CWE_NORM => undef, ENDW_WE_NORM => undef);
+    if ($count && defined $args{END_WE}) {
+        $results{ENDW_CWE_NORM} = $args{END_CWE} / $count;
+        $results{ENDW_WE_NORM}  = $args{END_WE} / $count;
+    };
 
     return wantarray ? %results : \%results;
 }

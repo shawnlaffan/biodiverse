@@ -2590,7 +2590,7 @@ sub sp_spatial_output_passed_defq {
     croak "element $element is not in spatial output\n"
       if not $sp->exists_element_aa ($element);
 
-    my $passed_defq = $sp->get_param('PASS_DEF_QUERY');
+    my $passed_defq = $sp->get_pass_def_query;
     return 1 if !$passed_defq;
 
     return exists $passed_defq->{$element};

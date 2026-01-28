@@ -40,7 +40,7 @@ sub test_no_recycling {
         spatial_conditions => ['sp_select_all()'],
     );
 
-    ok (!$sp->get_param ('RESULTS_ARE_RECYCLABLE'), 'recycling flag not set');
+    ok (!$sp->get_results_are_recyclable, 'recycling flag not set');
     
     no autovivification;
 

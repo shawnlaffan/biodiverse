@@ -1030,7 +1030,7 @@ sub build_matrix_elements {
     my $bd = $self->get_param ('BASEDATA_REF');
 
     my $sp = $args{spatial_object};
-    my $pass_def_query = $sp->get_param ('PASS_DEF_QUERY');
+    my $pass_def_query = $sp->get_pass_def_query;
     #my $pass_def_query = {};
 
     my %already_calculated;

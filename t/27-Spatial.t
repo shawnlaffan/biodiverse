@@ -496,10 +496,10 @@ sub test_recycling {
         calculations => [@calculations],
     );
 
-    ok ( $sp1->get_param ('RESULTS_ARE_RECYCLABLE'), 'Recycling flag on for sp1');
-    ok (!$sp2->get_param ('RESULTS_ARE_RECYCLABLE'), 'Recycling flag off for sp2');
-    ok (!$sp3->get_param ('RESULTS_ARE_RECYCLABLE'), 'Recycling flag off for sp3');
-    ok (!$sp4->get_param ('RESULTS_ARE_RECYCLABLE'), 'Recycling flag off for sp4');
+    ok ( $sp1->get_results_are_recyclable, 'Recycling flag on for sp1');
+    ok (!$sp2->get_results_are_recyclable, 'Recycling flag off for sp2');
+    ok (!$sp3->get_results_are_recyclable, 'Recycling flag off for sp3');
+    ok (!$sp4->get_results_are_recyclable, 'Recycling flag off for sp4');
 
     my %tbl_args = (symmetric => 1, list => 'EL_LIST1');
     my $t1 = $sp1->to_table (%tbl_args);

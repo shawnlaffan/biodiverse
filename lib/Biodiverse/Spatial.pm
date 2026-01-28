@@ -1705,28 +1705,25 @@ sub get_spatial_conditions_arr {
 #  and so are all its predecessors
 sub get_recyclable_nbrhoods {
     my $self = shift;
-    my %args = @_;
 
     my $spatial_conditions_ref = $self->get_spatial_conditions_arr;
 
     my @recyclable_nbrhoods;
-    my $results_are_recyclable = 0;
+    my $recyc_result_count = 0;
 
     my %recyc_candidates = (
         non_overlapping  => 0,     # only index 0
         always_true      => undef, # any index
         text_match_exact => undef, # any index
-        #always_same      => undef, # any index
+        always_same      => undef, # any index
     );
 
     for my $i (0 .. $#$spatial_conditions_ref) {
         my $sp_cond     = $spatial_conditions_ref->[$i];
         my $result_type = $sp_cond->get_result_type;
-        
-        my $prev_nbr_is_recyclable = 1;  #  always check first one
-        if ($i > 0) {  #  only check $i if $i-1 is true
-            $prev_nbr_is_recyclable = $recyclable_nbrhoods[$i-1];
-        }
+
+        #  always check first one, otherwise only if prev is true
+        my $prev_nbr_is_recyclable = $i > 0 ? $recyclable_nbrhoods[$i-1] : 1;
 
         next if !(    $prev_nbr_is_recyclable
              && exists $recyc_candidates{$result_type}
@@ -1742,23 +1739,23 @@ sub get_recyclable_nbrhoods {
 
         if ( $is_valid_recyc_index ) { 
             $recyclable_nbrhoods[$i] = 1;
-            $results_are_recyclable ++;
+            $recyc_result_count ++;
         }
 
     }
 
     #  we can only recycle the results if all nbr sets are recyclable 
-    if ($results_are_recyclable != scalar @$spatial_conditions_ref) {
-        $results_are_recyclable = 0;
+    if ($recyc_result_count != scalar @$spatial_conditions_ref) {
+        $recyc_result_count = 0;
     }
 
-    if (1 and $results_are_recyclable) {
+    if (1 and $recyc_result_count) {
         say '[SPATIAL] Results are recyclable.  '
               . 'This will save some processing';
     }
 
     #  need a better name - unique to nbrhood? same_for_whole_nbrhood?
-    $self->set_param( RESULTS_ARE_RECYCLABLE => $results_are_recyclable );
+    $self->set_param( RESULTS_ARE_RECYCLABLE => $recyc_result_count );
 
     return wantarray ? @recyclable_nbrhoods : \@recyclable_nbrhoods;
 }

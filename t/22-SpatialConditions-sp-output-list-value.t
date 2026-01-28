@@ -50,8 +50,9 @@ sub test_sp_get_spatial_output_list_value {
     );
     
     my $expected = {
-        ENDW_CWE    => 1, ENDW_RICHNESS => 5,
-        ENDW_SINGLE => 1, ENDW_WE => 5,
+        ENDW_CWE     => 1, ENDW_RICHNESS => 5,
+        ENDW_SINGLE  => 1, ENDW_WE => 5,
+        RECYCLED_SET => 1,
     };
 
     my $sp_to_test1 = $bd->add_spatial_output (name => 'test_sp_get_spatial_output_list_value');

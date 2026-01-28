@@ -1705,15 +1705,20 @@ sub on_phylogeny_plot_mode_changed {
 sub on_end_phylogeny_hover {
     my ($self) = @_;
 
+    my $grid = $self->{grid};
+
+    #  return if not initialised
+    return if !defined $grid;
+
     return if !$self->do_canvas_hover_flag;
 
-    $self->{grid}->clear_range_convex_hulls;
-    $self->{grid}->clear_range_concave_hulls;
-    $self->{grid}->clear_range_circumcircles;
-    $self->{grid}->clear_range_convex_hull_union;
-    $self->{grid}->clear_range_concave_hull_union;
-    $self->{grid}->clear_range_circumcircle_union;
-    $self->{grid}->mark_with_circles;
+    $grid->clear_range_convex_hulls;
+    $grid->clear_range_concave_hulls;
+    $grid->clear_range_circumcircles;
+    $grid->clear_range_convex_hull_union;
+    $grid->clear_range_concave_hull_union;
+    $grid->clear_range_circumcircle_union;
+    $grid->mark_with_circles;
 }
 
 # Called by dendrogram when user hovers over a node

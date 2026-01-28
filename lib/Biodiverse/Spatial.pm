@@ -31,6 +31,48 @@ my $EMPTY_STRING = q{};
 use Regexp::Common qw /comment/;
 my $RE_COMMENT = $RE{comment}{Perl};
 
+
+#  A few factory methods to clean up some set/get_param calls.
+#  Could generalise this across packages.
+sub _make_param_methods {
+    my ($pkg) = shift || __PACKAGE__;
+    my @methods = qw /
+        PASS_DEF_QUERY
+        INDEX_SEARCH_BLOCKS RESULTS_ARE_RECYCLABLE
+    /;
+    # print "Calling _make_access_methods for $pkg";
+    no strict 'refs';
+    foreach my $param_key (@methods) {
+        my $key    = lc $param_key;
+        my $method = "get_${key}";
+        *{"${pkg}::${method}"} =
+            do {
+                sub {
+                    $_[0]->get_param ($param_key);
+                };
+            };
+        $method = "set_${key}";
+        *{"${pkg}::${method}"} =
+            do {
+                sub {
+                    $_[0]->set_param($param_key => $_[1]);
+                };
+            };
+        $method = "exists_param_${key}";
+        *{"${pkg}::${method}"} =
+            do {
+                sub {
+                    $_[0]->exists_param($param_key);
+                };
+            };
+
+    }
+
+    return;
+}
+
+_make_param_methods();
+
 ########################################################
 #  Compare one spatial output object against another
 #  Works only with lists generated from Indices
@@ -91,8 +133,8 @@ sub compare {
     my %done_comp;
     
     my $recycled_results
-      =    $self->get_param ('RESULTS_ARE_RECYCLABLE')
-        && $comparison->get_param ('RESULTS_ARE_RECYCLABLE');
+      =    $self->get_results_are_recyclable
+        && $comparison->get_results_are_recyclable;
     #if ($recycled_results && exists $args{no_recycle}) {  #  mostly for debug 
     #    $recycled_results = $args{no_recycle};
     #}
@@ -215,8 +257,7 @@ sub calculate_canape {
     
     #  maybe should make this an argument - recycle_if_possible -
     #  and let the caller do the checks, as we don't have $comparison in here
-    my $recycled_results
-      = $self->get_param ('RESULTS_ARE_RECYCLABLE');
+    my $recycled_results = $self->get_results_are_recyclable;
 
     my %done_base;
     if ($recycled_results) {  #  set up some lists
@@ -364,8 +405,7 @@ sub convert_comparisons_to_zscores {
     
     #  maybe should make this an argument - recycle_if_possible -
     #  and let the caller do the checks, as we don't have $comparison in here
-    my $recycled_results
-      = $self->get_param ('RESULTS_ARE_RECYCLABLE');
+    my $recycled_results = $self->get_results_are_recyclable;
 
     my %done_base;
     if ($recycled_results) {  #  set up some lists
@@ -491,8 +531,7 @@ sub convert_comparisons_to_significances {
     
     #  maybe should make this an argument - recycle_if_possible -
     #  and let the caller do the checks, as we don't have $comparison in here
-    my $recycled_results
-      = $self->get_param ('RESULTS_ARE_RECYCLABLE');
+    my $recycled_results = $self->get_results_are_recyclable;
     #if ($recycled_results && exists $args{no_recycle}) {  #  mostly for debug 
     #    $recycled_results = $args{no_recycle};
     #}
@@ -792,20 +831,19 @@ sub sp_calc {
     my $indices_reqd_args = $indices_object->get_required_args_as_flat_array(calculations => $valid_calcs);
 
     my $recyclable_nbrhoods     = $use_recycling ? $self->get_recyclable_nbrhoods : [];
-    my $results_are_recyclable  = $use_recycling && $self->get_param('RESULTS_ARE_RECYCLABLE');
+    my $results_are_recyclable  = $use_recycling && $self->get_results_are_recyclable;
 
     #  These need to be shifted into get_recyclable_nbrhoods:
     #  If we are using neighbours from another spatial object
     #  then we use its recycle setting, and store it for later
     if ($use_nbrs_from && $use_recycling) {
-        $results_are_recyclable =
-          $use_nbrs_from->get_param ('RESULTS_ARE_RECYCLABLE');
-        $self->set_param (RESULTS_ARE_RECYCLABLE => $results_are_recyclable);
+        $results_are_recyclable = $use_nbrs_from->get_results_are_recyclable;
+        $self->set_results_are_recyclable ($results_are_recyclable);
     }
     #  override any recycling setting if we use the processing_element in the calcs
     #  as many results will vary by location
     if (scalar grep {$_ eq 'processing_element'} @$indices_reqd_args) {
-        $self->set_param(RESULTS_ARE_RECYCLABLE => 0);
+        $self->set_results_are_recyclable (0);
         $results_are_recyclable = 0;
     }
 
@@ -837,8 +875,7 @@ sub sp_calc {
 
     #  use existing offsets if they exist
     #  (eg if this is a randomisation based on some original sp_calc)
-    my $search_blocks_arr = $self->get_param ('INDEX_SEARCH_BLOCKS')
-                            || [];
+    my $search_blocks_arr = $self->get_index_search_blocks || [];
     $spatial_conditions_arr = $self->get_spatial_conditions || [];
 
     if (!$use_nbrs_from && $use_recycling) {
@@ -903,7 +940,7 @@ sub sp_calc {
         }
     }
 
-    $self->set_param (INDEX_SEARCH_BLOCKS => $search_blocks_arr);
+    $self->set_index_search_blocks ($search_blocks_arr);
     
     #  maybe we only have a few we need to calculate?
     my %elements_to_use;
@@ -1755,7 +1792,7 @@ sub get_recyclable_nbrhoods {
     }
 
     #  need a better name - unique to nbrhood? same_for_whole_nbrhood?
-    $self->set_param( RESULTS_ARE_RECYCLABLE => $recyc_result_count );
+    $self->set_results_are_recyclable ($recyc_result_count );
 
     return wantarray ? @recyclable_nbrhoods : \@recyclable_nbrhoods;
 }
@@ -1774,7 +1811,7 @@ sub group_passed_def_query {
     croak "Argument 'group' not passed\n"
       if !defined $group;
 
-    my $passed = $self->get_param('PASS_DEF_QUERY');
+    my $passed = $self->get_pass_def_query;
 
     #no autovivification;
 
@@ -1788,10 +1825,10 @@ sub get_groups_that_pass_def_query {
     my %args = @_;
 
     my $definition_query = $self->get_definition_query (%args);
-    my $passed = $self->get_param('PASS_DEF_QUERY') || {};
+    my $passed = $self->get_pass_def_query || {};
     
     return wantarray ? %$passed : $passed
-      if $self->exists_param('PASS_DEF_QUERY') || !$definition_query;
+      if $self->exists_param_pass_def_query || !$definition_query;
 
     my $bd = $self->get_basedata_ref;
 
@@ -1799,8 +1836,8 @@ sub get_groups_that_pass_def_query {
     if (@comparable) {
         my $comp = $comparable[0];
         say "Re-using def query results from " . $comp->get_name;
-        $passed = $comp->get_param('PASS_DEF_QUERY');
-        $self->set_param (PASS_DEF_QUERY => $passed);
+        $passed = $comp->get_pass_def_query;
+        $self->set_pass_def_query ($passed);
         return wantarray ? %$passed : $passed;
     }
 
@@ -1816,7 +1853,7 @@ sub get_groups_that_pass_def_query {
             is_def_query       => 1,
             progress           => $defq_progress,
         );
-    $self->set_param (PASS_DEF_QUERY => $passed);
+    $self->set_pass_def_query ($passed);
 
     if (! scalar keys %$passed) {
         $self->clear_spatial_condition_caches;
@@ -1832,9 +1869,8 @@ sub get_groups_that_pass_def_query {
 #  assumes the def query has already been run
 sub get_groups_that_failed_def_query {
     my $self = shift;
-    my %args = @_;
 
-    my $passed = $self->get_param('PASS_DEF_QUERY');
+    my $passed = $self->get_pass_def_query;
     
     return if !$passed;  #  empty if not run
 

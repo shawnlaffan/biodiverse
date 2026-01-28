@@ -439,7 +439,7 @@ sub cleanup_iei_element_cache {
     my $hash_cache  = $args{IEI_ELEMENT_HASH_CACHE};
     my $array_cache = $args{IEI_ELEMENT_ARRAY_CACHE};
     my $results_are_recyclable          # param will be renamed at some stage
-        = $self->get_param ('RESULTS_ARE_RECYCLABLE');
+        = $self->get_results_are_recyclable;
 
     print $EMPTY_STRING;
 

@@ -283,11 +283,11 @@ sub set_basedata_ref {
 }
 
 sub get_basedata_ref {
-    my $self = shift;
+    $_[0]->get_param ('BASEDATA_REF');
+}
 
-    my $bd = $self->get_param ('BASEDATA_REF');
-
-    return $bd;
+sub exists_basedata_ref {
+    $_[0]->exists_param('BASEDATA_REF');
 }
 
 
@@ -297,10 +297,9 @@ sub weaken_basedata_ref {
     my $success;
 
     #  avoid memory leak probs with circular refs
-    if ($self->exists_param ('BASEDATA_REF')) {
+    if ($self->exists_basedata_ref) {
         $success = $self->weaken_param ('BASEDATA_REF');
-
-        warn "[BaseStruct] Unable to weaken basedata ref\n"
+        warn "Unable to weaken basedata ref\n"
             if ! $success;
     }
 

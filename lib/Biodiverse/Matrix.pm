@@ -104,11 +104,16 @@ sub _duplicate {
 
     say '[MATRIX] Duplicating matrix ' . $self->get_param('NAME');
 
-    my $bd;
-    my $exists = $self->exists_param('BASEDATA_REF');
-    if ($exists) {
-        $bd = $self->get_param('BASEDATA_REF');
-        $self->set_param( BASEDATA_REF => undef );
+    my $bd = $self->get_basedata_ref;
+    if ($bd) {
+        $self->set_basedata_ref_aa ( undef );
+    }
+    use experimental qw /defer/;
+    #  reinstate the basedata on exiting the sub
+    defer {
+        if ($bd) {
+            $self->set_basedata_ref_aa ( $bd );
+        }
     }
 
     my $params = eval { $self->SUPER::clone( data => $self->{PARAMS} ); };
@@ -174,16 +179,8 @@ sub _duplicate {
         $progress->destroy();
     }
 
-    if ($EVAL_ERROR) {
-        if ($exists) {
-            $self->set_param( BASEDATA_REF => $bd );    #  put it back if needed
-        }
-        croak $EVAL_ERROR;
-    }
-
-    if ($exists) {
-        $self->set_param( BASEDATA_REF => $bd );
-        $clone_ref->set_param( BASEDATA_REF => $bd );
+    if ($bd) {
+        $clone_ref->set_basedata_ref_aa ( $bd );
     }
 
     return $clone_ref;

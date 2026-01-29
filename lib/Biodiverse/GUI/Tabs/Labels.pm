@@ -1042,8 +1042,15 @@ sub _highlight_label_range_hull_union {
             $hull_union = $hull_union ? $hull_union->Union ($hull) : $hull;
         }
         $hull_union //= Geo::GDAL::FFI::Geometry->new(WKT => 'POLYGON EMPTY');
-        #  store just the vertices
-        $cache->{$cache_key} = $hull_union = $hull_union->GetPoints(0,0);
+        use Biodiverse::GUI::Overlays::Geometry;
+        my $is_multi = $hull_union->GetType() =~ /Multi/;
+        my $g = $hull_union->GetPoints(0, 0);
+        my $geom = Biodiverse::GUI::Overlays::Geometry->new(
+            extent   => [ @{$hull_union->GetEnvelope}[0, 2, 1, 3] ], #  x1,y1,x2,y2
+            geometry => ($is_multi ? $g : [ $g ]),
+            id       => $node->get_name,
+        );
+        $cache->{$cache_key} = $hull_union = [$geom];
     }
 
     $self->{grid}->set_overlay(
@@ -1115,8 +1122,15 @@ sub highlight_label_range_circumcircle_union {
             $union = $union ? $union->Union ($hull) : $hull;
         }
         $union //= Geo::GDAL::FFI::Geometry->new(WKT => 'POLYGON EMPTY');
-        #  store just the vertices
-        $cache->{$cache_key} = $union = $union->GetPoints(0,0);
+        use Biodiverse::GUI::Overlays::Geometry;
+        my $is_multi = $union->GetType() =~ /Multi/;
+        my $g = $union->GetPoints(0, 0);
+        my $geom = Biodiverse::GUI::Overlays::Geometry->new(
+            extent   => [ @{$union->GetEnvelope}[0, 2, 1, 3] ], #  x1,y1,x2,y2
+            geometry => ($is_multi ? $g : [ $g ]),
+            id       => $node->get_name,
+        );
+        $cache->{$cache_key} = $union = [$geom];
     }
 
     $self->{grid}->set_overlay(

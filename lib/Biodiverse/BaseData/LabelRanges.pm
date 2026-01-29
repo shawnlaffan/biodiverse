@@ -127,7 +127,7 @@ sub _get_label_range_hull {
             $wkt =~ s/, $//;
             $wkt .= ')';
 
-            my $g = Geo::GDAL::FFI::Geometry->new(WKT => $wkt)->UnaryUnion;
+            my $g = Geo::GDAL::FFI::Geometry->new(WKT => $wkt);
 
             my $method = ucfirst ($type) . 'Hull';
             # $hull = $args{is_concave} ? $g : $g->$method(@hull_args);  #  debug

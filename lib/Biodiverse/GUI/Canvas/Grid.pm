@@ -16,7 +16,8 @@ use POSIX qw /floor/;
 use Carp qw /croak confess/;
 use Tree::R;
 
-use constant PI => 3.141592653589793238462643383279;
+use constant PI  => 3.141592653589793238462643383279;
+use constant PI2 => 2 * PI;
 
 use constant COLOUR_BLACK => Gtk3::Gdk::RGBA::parse('black');
 use constant COLOUR_WHITE => Gtk3::Gdk::RGBA::parse('white');
@@ -614,25 +615,28 @@ sub plot_highlights {
     my ($self, $cx) = @_;
 
     my $cellsizes = $self->{cellsizes};
+    my $cellsize_div3 = $cellsizes->[0] / 3;
+    my $cellsize_div4 = $cellsizes->[0] / 4;
 
     $cx->save;
     $cx->set_source_rgba(0, 0, 0, 0.6);
 
+    my $line_width = $cellsizes->[0] / 10;
     if (my $elements = $self->{highlights}{circles}) {
         no autovivification;
-        $cx->set_line_width($cellsizes->[0] / 10);
-        foreach my $c (grep {defined} map {$self->{data}{$_}{centroid}} @$elements) {
-            $cx->arc(@$c, $cellsizes->[0] / 4, 0, 2.0 * PI);
+        $cx->set_line_width($line_width);
+        foreach my \@c (grep {defined} map {$self->{data}{$_}{centroid}} @$elements) {
+            $cx->arc(@c, $cellsize_div4, 0, PI2);
             $cx->close_path;
         };
         $cx->fill;
     };
     if (my $elements = $self->{highlights}{dashes}) {
         no autovivification;
-        $cx->set_line_width($cellsizes->[0] / 10);
-        foreach my $c (grep {defined} map {$self->{data}{$_}{centroid}} @$elements) {
-            $cx->move_to($c->[0] - $cellsizes->[0] / 3, $c->[1]);
-            $cx->line_to($c->[0] + $cellsizes->[0] / 3, $c->[1]);
+        $cx->set_line_width($line_width);
+        foreach my \@c (grep {defined} map {$self->{data}{$_}{centroid}} @$elements) {
+            $cx->move_to($c[0] - $cellsize_div3, $c[1]);
+            $cx->line_to($c[0] + $cellsize_div3, $c[1]);
         }
         $cx->stroke;
     }

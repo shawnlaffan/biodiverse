@@ -117,12 +117,15 @@ sub _get_label_range_hull {
         }
         else {
             $wkt = "MULTIPOLYGON (";
+            my $wkt_cache = $self->get_cached_value_dor_set_default_href ('ELEMENT_COORD_WKT_SNIPPETS');
             foreach my $el (keys %$elements) {
-                my $coords = $gp->get_element_name_as_array_aa($el);
-                my ($x, $y) = @$coords[@axes];
-                my ($x1, $x2) = ($x - $c1, $x + $c1);
-                my ($y1, $y2) = ($y - $c2, $y + $c2);
-                $wkt .= "(($x1 $y1, $x1 $y2, $x2 $y2, $x2 $y1, $x1 $y1)), ";
+                $wkt .= $wkt_cache->{$el} //= do {
+                    my $coords = $gp->get_element_name_as_array_aa($el);
+                    my ($x, $y) = @$coords[@axes];
+                    my ($x1, $x2) = ($x - $c1, $x + $c1);
+                    my ($y1, $y2) = ($y - $c2, $y + $c2);
+                    "(($x1 $y1, $x1 $y2, $x2 $y2, $x2 $y1, $x1 $y1)), ";
+                };
             }
             $wkt =~ s/, $//;
             $wkt .= ')';

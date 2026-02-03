@@ -1147,20 +1147,35 @@ sub highlight_label_range_circumcircle_union {
 sub highlight_label_range_marks {
     my ($self, $node) = @_;
 
-    my $terminal_elements = (defined $node) ? $node->get_terminal_elements : {};
+    #  clear any nbr_set2 highlights
+    $self->{grid}->mark_with_dashes  ( [] );
+
+    if (!defined $node) {
+        $self->{grid}->mark_with_circles ( [] );
+        return;
+    }
+
+    my $cache = $self->get_cached_value_dor_set_default_href ('highlight_label_range_marks');
+    my $node_name = $node->get_name;
+    if (my $cached = $cache->{$node_name}) {
+        $self->{grid}->mark_with_circles ( $cached );
+        return;
+    }
 
     # Hash of groups that have the selected labels
     my %groups;
 
     my $bd = $self->get_base_ref;
-    my $label_hash = $bd->get_labels_ref->get_element_hash;
+    \my %label_hash = $bd->get_labels_ref->get_element_hash;
     my $max_groups = $bd->get_group_count;
 
-    LABEL:
-    foreach my $label (keys %$terminal_elements) {
-        next LABEL if !exists $label_hash->{$label};
+    \my %terminal_elements = $node->get_terminal_elements;
 
-        my $containing = eval {$bd->get_groups_with_label_as_hash_aa($label)};
+    LABEL:
+    foreach my $label (keys %terminal_elements) {
+        next LABEL if !exists $label_hash{$label};
+
+        my $containing = $bd->get_groups_with_label_as_hash_aa($label);
         next LABEL if !$containing;
 
         @groups{keys %$containing} = ();
@@ -1168,8 +1183,19 @@ sub highlight_label_range_marks {
         last LABEL if $max_groups == scalar keys %groups;
     }
 
-    $self->{grid}->mark_with_circles ( [keys %groups] );
-    $self->{grid}->mark_with_dashes  ( [] );  #  clear any nbr_set2 highlights
+    my $aref = $cache->{$node_name} = [keys %groups];
+
+    #  cache on the parents if we have maxed out
+    if ($max_groups == scalar keys %groups) {
+        my $parent = $node;
+        while (my $parent = $parent->get_parent) {
+            my $p_name = $parent->get_name;
+            last if defined $cache->{$p_name};
+            $cache->{$p_name} = $aref;
+        }
+    }
+
+    $self->{grid}->mark_with_circles ( $aref );
 
     return;
 }

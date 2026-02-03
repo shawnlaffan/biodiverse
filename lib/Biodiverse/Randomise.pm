@@ -1851,16 +1851,15 @@ sub rand_structured {
 
     foreach my $group (@sorted_groups) {
 
-        my $progress = $i / $total_to_do;
-
         my $gp_richness = $bd->get_richness_aa ($group) // 0;
         $cloned_bd_gps_remaining{$group} = $gp_richness;
         $bd_has_empty_groups ||= !$gp_richness;
 
+        my $progress = $i / $total_to_do;
         $progress_bar->update (
             "$progress_text\n"
             . "Assigning richness targets\n"
-            . int (100 * $i / $total_to_do)
+            . int (100 * $progress)
             . '%',
               $progress,
         );
@@ -2706,6 +2705,14 @@ sub swap_to_reach_richness_targets {
         cloned_bd_label_hash             => \%cloned_bd_label_hash,
     );
 
+    my $prog_num_size = '%8d';
+    my $prog_fmt = "Total gps:\t\t\t$prog_num_size\n"
+        . "Unfilled groups:\t\t$prog_num_size\n"
+        . "Filled groups:\t\t$prog_num_size\n"
+        . "Labels to assign:\t\t$prog_num_size\n"
+        . "Old gps to empty:\t$prog_num_size\n"
+        . "Swap count:\t\t\t$prog_num_size\n";
+
     #  keep going until we've reached the fill threshold for each group
   BY_UNFILLED_GP:
     while (scalar keys %unfilled_groups) {
@@ -2713,15 +2720,8 @@ sub swap_to_reach_richness_targets {
         my $target_label_count = keys %cloned_bd_as_label_hash;
         my $target_group_count = keys %cloned_bd_gps_remaining;
 
-        my $p = '%8d';
-        my $fmt = "Total gps:\t\t\t$p\n"
-                . "Unfilled groups:\t\t$p\n"
-                . "Filled groups:\t\t$p\n"
-                . "Labels to assign:\t\t$p\n"
-                . "Old gps to empty:\t$p\n"
-                . "Swap count:\t\t\t$p\n";
         my $check_text
-            = sprintf $fmt,
+            = sprintf $prog_fmt,
                 $total_to_do,
                 (scalar keys %unfilled_groups),
                 (scalar keys %filled_groups),
@@ -2729,13 +2729,11 @@ sub swap_to_reach_richness_targets {
                 $target_group_count,
                 $swap_out_count;
 
-        my $progress_i = scalar keys %filled_groups;
-        my $progress = $progress_i / $total_to_do;
         $progress_bar->update (
             "Swapping labels to reach richness targets\n"
             . "$progress_text\n"
             . $check_text,
-            $progress,
+            (scalar keys %filled_groups) / $total_to_do,
         );
 
         if (!$target_label_count) {

@@ -50,7 +50,7 @@ sub get_metadata_sp_circle {
     my $descr = <<~'EOD'
         A circle.  Assessed against all dimensions by default
         (more properly called a hypersphere)
-        but you can use the optional "axes => []" arg to specify a subset.
+        but you can use the optional `axes => []` arg to specify a subset.
         Uses group (map) distances.
         EOD
     ;
@@ -116,7 +116,7 @@ sub get_metadata_sp_circle_cell {
     my $descr = <<~'EOD'
         A circle.  Assessed against all dimensions by default
         (more properly called a hypersphere)
-        but you can use the optional "axes => []" arg to specify a subset.
+        but you can use the optional `axes => []` arg to specify a subset.
         Uses cell (map) distances.
         EOD
     ;
@@ -198,7 +198,7 @@ sub get_metadata_sp_rectangle {
     my $descr = <<~'EOD'
         A rectangle.  Assessed against all dimensions by default
         (more properly called a hyperbox)
-        but use the optional "axes => []" arg to specify a subset.
+        but use the optional `axes => []` arg to specify a subset.
         Uses group (map) distances.
         EOD
     ;
@@ -485,8 +485,8 @@ sub get_metadata_sp_ellipse {
     }
 
     my $description =
-        q{A two dimensional ellipse.  Use the 'axes' argument to control }
-      . q{which are used (default is [0,1]).  The default rotate_angle is 0, }
+        q{A two dimensional ellipse.  Use the `axes` argument to control }
+      . q{which are used (default is `[0,1]`).  The default rotate_angle is 0, }
       . q{such that the major axis is east-west.};
     my $example = <<~'END_ELLIPSE_EX'
         # North-south aligned ellipse
@@ -790,7 +790,7 @@ sub get_metadata_sp_is_left_of {
 
     my $description =<<~'EOD'
         Are we to the left of a vector radiating out from the processing cell?
-        Use the 'axes' argument to control which are used (default is [0,1]).
+        Use the `axes` argument to control which are used (default is `[0,1]`).
         EOD
     ;
 
@@ -828,7 +828,7 @@ sub get_metadata_sp_is_right_of {
 
     my $description =<<~'EOD'
         Are we to the right of a vector radiating out from the processing cell?
-        Use the 'axes' argument to control which are used (default is [0,1]).
+        Use the `axes` argument to control which are used (default is `[0,1]`).
         EOD
     ;
 
@@ -863,7 +863,7 @@ sub get_metadata_sp_in_line_with {
 
     my $description =<<~'EOD'
         Are we in line with a vector radiating out from the processing cell?
-        Use the 'axes' argument to control which are used (default is [0,1]).
+        Use the `axes` argument to control which are used (default is `[0,1]`).
         EOD
     ;
 
@@ -1839,39 +1839,49 @@ sub get_metadata_sp_in_label_range {
     my $self = shift;
 
     my $description = <<~'EOD'
+        (Available from version 5.1)
+
         Is a group within a label's range?
 
         This is by default assessed as a check of whether the
         label is found in the processing group but can
-        be generalised by passing the convex_hull
-        or circumcircle arguments.
+        be generalised by passing the `convex_hull`
+        or `circumcircle` arguments.
 
-        The type argument determines if the
+        The `type` argument determines if the
         processing or neighbour group is assessed.
         Normally this can be left as the default.
 
-        The convex_hull returns true if the processing group
+        The `convex_hull` returns true if the processing group
         is within the convex hull defined by the groups that form
         the label range.
 
-        The circumcircle returns true if the processing group
+        The `circumcircle` returns true if the processing group
         is within the minimum circumscribing circle that
         includes all of the label range groups.
 
+        The `concave_hull` returns true if the processing group
+        is within the concave hull defined by the groups that form
+        the label range.  The concavity can be controlled by the
+        `hull_ratio` argument, and holes can be allowed by setting the
+        boolean argument `allow_holes` to a true value.
+
         Both the latter two arguments use the first two axes by default
-        and will return an error if there is only one axis.
+        and will return an error if there is only one group axis in the basedata.
         If you have more than two axes and wish to assess different ones
         then pass the axes argument. (This argument is ignored for the
-        default case).
+        default case as it does a direct comparison of the group names).
 
-        If both convex_hull and circumcircle arguments are set to true then
-        the circumcircle is used.
+        If more than one of `convex_hull`, `concave_hull` and `circumcircle`
+        arguments are passed then only one i run.  The convex hull takes
+        priority, followed by the circumcircle, and lastly the concave hull.
 
-        An optional buffer_dist argument can be used to adjust the size
-        of the convex hull or circumcircle.  As is standard with GIS buffering,
-        positive values increase the area while negative values decrease it.
+        An optional `buffer_dist` argument can be used to adjust the size
+        of the convex/concave hull or circumcircle.  As is standard with
+        GIS buffering, positive values increase the area while negative
+        values shrink it.
 
-        The label argument should normally be specified but in some
+        The `label` argument should normally be specified but in some
         circumstances a default is set (e.g. when a randomisation
         seed location is set).
         EOD
@@ -1922,6 +1932,14 @@ sub get_metadata_sp_in_label_range {
             label       => 'Genus:Sp1',
             convex_hull => 1,
             axes        => [2,0],
+        )
+
+        #  A convex hull with holes and "half" concave.
+        sp_in_label_range(
+            label        => 'Genus:Sp1',
+            concave_hull => 1,
+            allow_holes  => 1,
+            hull_ratio   => 0.5,
         )
         EOEX
     ;
@@ -2057,6 +2075,8 @@ sub get_metadata_sp_in_label_ancestor_range {
     my $self = shift;
 
     my $description = <<~'EOD'
+        (Available from version 5.1)
+
         Is a group within the range of a label's ancestor?
 
         Returns true if the group falls within the range of
@@ -2066,59 +2086,62 @@ sub get_metadata_sp_in_label_ancestor_range {
         can also be specified (see below).
 
         The ancestor is by default defined by length along the 
-        path to the root node. Setting the by_depth option to true
-        uses the number of ancestors.  The by_tip_count option
+        path to the root node. Setting the `by_depth` option to true
+        uses the number of ancestors.  The `by_tip_count` option
         finds the first ancestor with at least the target number
-        of tips while by_desc_count uses the number of descendants
-        (tips and internals). The by_len_sum finds the first ancestor
+        of tips while `by_desc_count` uses the number of descendants
+        (tips and internals). The `by_len_sum` finds the first ancestor
         for which the sum of its descendant branch lengths plus
         its own length is greater than the target.
 
-        Negative length or depth target values search the path
-        from the root to the specified node. If a by_xxx_count
-        option is used then it is treated as zero and returns the
-        specified label.
+        Negative target values with `by_length` or `by_depth` search the path
+        from the root to the specified node. However, if a `by_*_count`
+        option is used then a negative `target` is treated as
+        zero and returns the specified label range is returned.
 
-        The target argument determines how far up or down the tree
+        The `target` argument determines how far up or down the tree
         the ancestor is searched for.  When using length,
         the distance includes the tipwards extent
         of the branch. The depth is calculated as the number
         of ancestors.
 
-        If the target value exceeds that to (or of) the root node
+        If the `target` value exceeds that to (or of) the root node
         then the root or label node is returned for positive or
         negative dist values, respectively.
 
         An internal branch can be specified as the label.
-        Specifying a target of 0 is one means to use the
-        range of an internal node.
+        Specifying a `target` of 0 for an internal node
+        is one means to use the range of an internal node.
 
         Returns false if the label is not associated with
         a node on the tree.
 
-        When the as_frac argument is true then target is
+        When the `as_frac` argument is true then target is
         treated as a fraction of the distance to the root
         node, the number of tips, or the sum of all branches,
         as appropriate.
 
-        If the eq argument is set then the branch lengths are all
+        If the `eq` argument is true then the branch lengths are all
         treated as of equal length (the mean of the non-zero branch
-        lengths). This is the same as the alternate tree used in
-        CANAPE, and zero length branches remain zero.
+        lengths), although zero length branches remain zero.
+        This is the same as the alternate tree used in CANAPE.
 
-        If the rw argument is set then the branches are range
+        If the `rw` argument is true then the branches are range
         weighted.  This is the same as the range weighted
-        alternate tree in CANAPE.
+        tree in CANAPE.  When both `eq` and `rw` are true then
+        this is the same as the range weighted alternate tree
+        in CANAPE
 
         The underlying algorithm checks each of the terminal
-        ranges using sp_in_label_range().  This means the
-        search can also use the convex/concave hull or circumcircle
-        of each terminal, as well as setting other arguments
-        such as the buffer_dist and using a default label
-        in some circumstances.
+        ranges using [sp_in_label_range()](#sp_in_label_range).
+        This means the search can also use the convex/concave
+        hull or circumcircle of each terminal, as well as
+        setting other arguments such as the `buffer_dist`
+        and using a default label in some circumstances.
 
         Note that the range of each of the ancestor's tips
-        is assessed separately. The ranges are not aggregated
+        is assessed separately, i.e. the union of the
+        hulls/circles is used.  The ranges are not aggregated
         before a hull or circumcircle is calculated.
 
         EOD

@@ -1908,7 +1908,8 @@ sub get_metadata_sp_in_label_range {
             buffer_dist => 100000,
         )
 
-        #  Buffers can be negative, in which case the convex/concave hull or circumcircle is shrunk
+        #  Buffers can be negative, in which case the
+        #  convex/concave hull or circumcircle is shrunk
         sp_in_label_range(
             label       => 'Genus:Sp1',
             convex_hull => 1,

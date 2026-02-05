@@ -1845,7 +1845,7 @@ sub get_metadata_sp_in_label_range {
 
         This is by default assessed as a check of whether the
         label is found in the processing group but can
-        be generalised by passing the `convex_hull`
+        be generalised by using the `convex_hull`, `concave_hull`
         or `circumcircle` arguments.
 
         The `type` argument determines if the

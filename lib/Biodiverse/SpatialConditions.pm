@@ -1104,16 +1104,18 @@ sub get_conditions_metadata_as_markdown {
         push @md_this_sub, $metadata->get_description;
 
         my $required_args = $metadata->get_required_args;
+        my $arg_string = join ', ', map {"`$_`"} sort @$required_args;
         if (!scalar @$required_args) {
-            $required_args = ['*none*'];
+            $arg_string = '*none*';
         }
-        push @md_this_sub, '**Required args:**  ' . join ', ', sort @$required_args;
+        push @md_this_sub, "**Required args:**  $arg_string";
 
         my $optional_args = $metadata->get_optional_args;
+        $arg_string = join ', ', map {"`$_`"} sort @$optional_args;
         if (!scalar @$optional_args) {
-            $optional_args = ['*none*'];
+            $arg_string = '*none*';
         }
-        push @md_this_sub, '**Optional args:**  ' . join ', ', sort @$optional_args;
+        push @md_this_sub, "**Optional args:**  $arg_string";
 
         my $example = $metadata->get_example;
         my @ex = split "\n", $example;

@@ -254,7 +254,7 @@ sub get_metadata_sp_annulus {
 
     my $descr = <<~'EOD'
         An annulus.  Assessed against all dimensions by default
-        but use the optional "axes => []" arg to specify a subset.
+        but use the optional `axes => []` arg to specify a subset.
         Uses group (map) distances.
         EOD
     ;

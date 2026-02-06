@@ -1134,6 +1134,32 @@ sub get_conditions_metadata_as_markdown {
     return $md;
 }
 
+#  we can turn this into a JSON file for ingestion by other tools
+sub get_conditions_metadata_as_struct {
+    my $self = shift;
+
+    my $condition_subs = $self->get_subs_with_prefix (prefix => 'sp_');
+
+    #  maybe also need to know if it uses the index, disables it or has no effect
+
+    my %struct = (
+        title   => 'Pre-defined spatial conditions available in Biodiverse',
+        version => $VERSION,
+    );
+
+    foreach my $sub_name (sort keys %$condition_subs) {
+        say $sub_name;
+        my $metadata = $self->get_metadata (sub => $sub_name);
+        my %substruct;
+        $substruct{description}   = $metadata->get_description;
+        $substruct{required_args} = $metadata->get_required_args;
+        $substruct{optional_args} = $metadata->get_optional_args;
+        $substruct{example}       = $metadata->get_example;
+        $struct{conditions}{$sub_name} = \%substruct;
+    }
+
+    return \%struct;
+}
 
 
 =head1 NAME

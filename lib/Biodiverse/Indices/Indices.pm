@@ -273,7 +273,7 @@ sub get_metadata_calc_kulczynski2 {
         name            => 'Kulczynski 2',
         description     => "Kulczynski 2 dissimilarity between two sets of labels.\n",
         formula         => [
-            '= 1 - 0.5 * (\frac{A}{A + B} + \frac{A}{A + C})',
+            '= 1 - 0.5 \times (\frac{A}{A + B} + \frac{A}{A + C})',
             $self->get_formula_explanation_ABC,
         ],
         indices         => {

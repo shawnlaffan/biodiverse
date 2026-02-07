@@ -30,7 +30,7 @@
                   "Inf"
                ],
                "description" : "Count of labels unique to neighbour set 1",
-               "lumper" : 1
+               "lumper" : 0
             },
             "ABC_C" : {
                "bounds" : [
@@ -38,7 +38,7 @@
                   "Inf"
                ],
                "description" : "Count of labels unique to neighbour set 2",
-               "lumper" : 1
+               "lumper" : 0
             }
          },
          "name" : "Label counts",
@@ -49,28 +49,31 @@
          "uses_nbr_lists" : 2
       },
       "calc_ace" : {
-         "description" : "Abundance Coverage-based Estimator os species richness",
+         "description" : "Abundance Coverage-based Estimator of species richness",
          "indices" : {
             "ACE_CI_LOWER" : {
                "bounds" : [
                   "-Inf",
                   "Inf"
                ],
-               "description" : "ACE lower confidence interval estimate"
+               "description" : "ACE lower confidence interval estimate",
+               "lumper" : 1
             },
             "ACE_CI_UPPER" : {
                "bounds" : [
                   "-Inf",
                   "Inf"
                ],
-               "description" : "ACE upper confidence interval estimate"
+               "description" : "ACE upper confidence interval estimate",
+               "lumper" : 1
             },
             "ACE_ESTIMATE" : {
                "bounds" : [
                   "-Inf",
                   "Inf"
                ],
-               "description" : "ACE score"
+               "description" : "ACE score",
+               "lumper" : 1
             },
             "ACE_ESTIMATE_USED_CHAO" : {
                "bounds" : [
@@ -84,7 +87,8 @@
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Count of infrequent species"
+               "description" : "Count of infrequent species",
+               "lumper" : 1
             },
             "ACE_SE" : {
                "bounds" : [
@@ -98,7 +102,8 @@
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Estimated number of undetected species"
+               "description" : "Estimated number of undetected species",
+               "lumper" : 1
             },
             "ACE_VARIANCE" : {
                "bounds" : [
@@ -110,7 +115,7 @@
          },
          "name" : "ACE",
          "pre_calc" : "calc_abc3",
-         "reference" : "needed",
+         "reference" : "Chao and Lee (1992) https://doi.org/10.1080/01621459.1992.10475194",
          "type" : "Richness estimators",
          "uses_nbr_lists" : 1
       },
@@ -270,14 +275,16 @@
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Lower confidence interval for the Chao1 estimate"
+               "description" : "Lower confidence interval for the Chao1 estimate",
+               "lumper" : 1
             },
             "CHAO1_CI_UPPER" : {
                "bounds" : [
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Upper confidence interval for the Chao1 estimate"
+               "description" : "Upper confidence interval for the Chao1 estimate",
+               "lumper" : 1
             },
             "CHAO1_ESTIMATE" : {
                "bounds" : [
@@ -286,6 +293,7 @@
                ],
                "description" : "Chao1 index",
                "formula" : [],
+               "lumper" : 1,
                "reference" : "NEEDED"
             },
             "CHAO1_F1_COUNT" : {
@@ -293,14 +301,16 @@
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Number of singletons in the sample"
+               "description" : "Number of singletons in the sample",
+               "lumper" : 1
             },
             "CHAO1_F2_COUNT" : {
                "bounds" : [
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Number of doubletons in the sample"
+               "description" : "Number of doubletons in the sample",
+               "lumper" : 1
             },
             "CHAO1_META" : {
                "bounds" : [],
@@ -313,7 +323,7 @@
                   "7" : "#33A02C",
                   "8" : "#FB9A99"
                },
-               "description" : "Metadata indicating which formulae were used in the calculations. Numbers refer to EstimateS equations at http://viceroy.eeb.uconn.edu/EstimateS/EstimateSPages/EstSUsersGuide/EstimateSUsersGuide.htm",
+               "description" : "Metadata indicating which formulae were used in the calculations. Numbers refer to EstimateS equations at https://www.robertkcolwell.org/media_files/63",
                "distribution" : "categorical",
                "labels" : {
                   "0" : "eqn 0",
@@ -331,21 +341,24 @@
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Standard error of the Chao1 estimator [= sqrt(variance)]"
+               "description" : "Standard error of the Chao1 estimator [= sqrt(variance)]",
+               "lumper" : 1
             },
             "CHAO1_UNDETECTED" : {
                "bounds" : [
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Estimated number of undetected species"
+               "description" : "Estimated number of undetected species",
+               "lumper" : 1
             },
             "CHAO1_VARIANCE" : {
                "bounds" : [
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Variance of the Chao1 estimator"
+               "description" : "Variance of the Chao1 estimator",
+               "lumper" : 1
             }
          },
          "name" : "Chao1",
@@ -361,14 +374,16 @@
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Lower confidence interval for the Chao2 estimate"
+               "description" : "Lower confidence interval for the Chao2 estimate",
+               "lumper" : 1
             },
             "CHAO2_CI_UPPER" : {
                "bounds" : [
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Upper confidence interval for the Chao2 estimate"
+               "description" : "Upper confidence interval for the Chao2 estimate",
+               "lumper" : 1
             },
             "CHAO2_ESTIMATE" : {
                "bounds" : [
@@ -377,6 +392,7 @@
                ],
                "description" : "Chao2 index",
                "formula" : [],
+               "lumper" : 1,
                "reference" : "NEEDED"
             },
             "CHAO2_META" : {
@@ -390,7 +406,7 @@
                   "14" : "#FDBF6F",
                   "4" : "#1F78B4"
                },
-               "description" : "Metadata indicating which formulae were used in the calculations. Numbers refer to EstimateS equations at http://viceroy.eeb.uconn.edu/EstimateS/EstimateSPages/EstSUsersGuide/EstimateSUsersGuide.htm",
+               "description" : "Metadata indicating which formulae were used in the calculations. Numbers refer to EstimateS equations at https://www.robertkcolwell.org/media_files/63",
                "distribution" : "categorical",
                "labels" : {
                   "0" : "eqn 0",
@@ -408,35 +424,40 @@
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Number of uniques in the sample"
+               "description" : "Number of uniques in the sample",
+               "lumper" : 1
             },
             "CHAO2_Q2_COUNT" : {
                "bounds" : [
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Number of duplicates in the sample"
+               "description" : "Number of duplicates in the sample",
+               "lumper" : 1
             },
             "CHAO2_SE" : {
                "bounds" : [
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Standard error of the Chao2 estimator [= sqrt (variance)]"
+               "description" : "Standard error of the Chao2 estimator [= sqrt (variance)]",
+               "lumper" : 1
             },
             "CHAO2_UNDETECTED" : {
                "bounds" : [
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Estimated number of undetected species"
+               "description" : "Estimated number of undetected species",
+               "lumper" : 1
             },
             "CHAO2_VARIANCE" : {
                "bounds" : [
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Variance of the Chao2 estimator"
+               "description" : "Variance of the Chao2 estimator",
+               "lumper" : 1
             }
          },
          "name" : "Chao2",
@@ -445,7 +466,7 @@
          "uses_nbr_lists" : 1
       },
       "calc_compare_dissim_matrix_values" : {
-         "description" : "Compare the set of labels in one neighbour set with those in another using their matrix values. Labels not in the matrix are ignored. This calculation assumes a matrix of dissimilarities and uses 0 as identical, so take care).",
+         "description" : "Compare the set of labels in one neighbour set with those in another\nusing their matrix values. Labels not in the matrix are ignored.\n(This calculation assumes a matrix of dissimilarities\nand uses 0 as identical, so take care).\n",
          "indices" : {
             "MXD_COUNT" : {
                "bounds" : [
@@ -475,7 +496,7 @@
                   "-Inf",
                   "Inf"
                ],
-               "cluster" : 1,
+               "cluster" : 0,
                "description" : "Mean dissimilarity of labels in set 1 to those in set 2."
             },
             "MXD_VARIANCE" : {
@@ -504,7 +525,8 @@
                   "Inf"
                ],
                "description" : "The number of labels that are found on the tree, across both neighbour sets",
-               "distribution" : "nonnegative"
+               "distribution" : "nonnegative",
+               "lumper" : 1
             }
          },
          "name" : "Count labels on tree",
@@ -684,7 +706,8 @@
                   0,
                   "Inf"
                ],
-               "description" : "Count of labels entirely endemic to neighbour sets 1 and 2 combined"
+               "description" : "Count of labels entirely endemic to neighbour sets 1 and 2 combined",
+               "lumper" : 1
             },
             "END_ABS_ALL_P" : {
                "bounds" : [
@@ -976,7 +999,8 @@
                   0,
                   "Inf"
                ],
-               "description" : "Richness used in ENDW_CWE (same as index RICHNESS_ALL)"
+               "description" : "Richness used in ENDW_CWE (same as index RICHNESS_ALL)",
+               "lumper" : 1
             },
             "ENDW_SINGLE" : {
                "bounds" : [
@@ -996,6 +1020,7 @@
                   "t",
                   " across the data set (the number of groups it is found in, unless the range is specified at import)."
                ],
+               "lumper" : 1,
                "reference" : "Slatyer et al. (2007) J. Biogeog https://doi.org/10.1111/j.1365-2699.2006.01647.x"
             },
             "ENDW_WE" : {
@@ -1019,7 +1044,8 @@
                   " is the global range of label ",
                   "t",
                   " across the data set (the number of groups it is found in, unless the range is specified at import)."
-               ]
+               ],
+               "lumper" : 1
             }
          },
          "name" : "Endemism whole",
@@ -1194,7 +1220,7 @@
          "uses_nbr_lists" : 1
       },
       "calc_gpprop_hashes" : {
-         "description" : "Hashes of the groups and their property values used in the group properties calculations. Hash keys are the property values, hash values are the property value frequencies.",
+         "description" : "    Hashes of the groups and their property values\n    used in the group properties calculations.\n    Hash keys are the property values,\n    hash values are the property value frequencies.\n    Returns one list for each property, so if your data\n    have properties named 'GPROP1' and 'GPROP2' then\n    it will return two lists named 'GPPROP_STATS_GPROP1_HASH'\n    and 'GPPROP_STATS_GPROP2_HASH', respectively.\n",
          "indices" : {},
          "name" : "Group property hashes",
          "pre_calc" : [
@@ -1204,7 +1230,7 @@
          "uses_nbr_lists" : 1
       },
       "calc_gpprop_lists" : {
-         "description" : "Lists of the groups and their property values used in the group properties calculations",
+         "description" : "    Lists of the groups and their property values\n    used in the group properties calculations.\n    Returns one list for each property, so if your data\n    have properties named 'GPROP1' and 'GPROP2' then\n    it will return two lists named 'GPPROP_STATS_GPROP1_DATA'\n    and 'GPPROP_STATS_GPROP2_DATA', respectively.\n",
          "indices" : {},
          "name" : "Group property data",
          "pre_calc" : [
@@ -1361,21 +1387,24 @@
                   "-Inf",
                   "Inf"
                ],
-               "description" : "ICE lower confidence interval estimate"
+               "description" : "ICE lower confidence interval estimate",
+               "lumper" : 1
             },
             "ICE_CI_UPPER" : {
                "bounds" : [
                   "-Inf",
                   "Inf"
                ],
-               "description" : "ICE upper confidence interval estimate"
+               "description" : "ICE upper confidence interval estimate",
+               "lumper" : 1
             },
             "ICE_ESTIMATE" : {
                "bounds" : [
                   "-Inf",
                   "Inf"
                ],
-               "description" : "ICE score"
+               "description" : "ICE score",
+               "lumper" : 1
             },
             "ICE_ESTIMATE_USED_CHAO" : {
                "bounds" : [
@@ -1389,7 +1418,8 @@
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Count of infrequent species"
+               "description" : "Count of infrequent species",
+               "lumper" : 1
             },
             "ICE_SE" : {
                "bounds" : [
@@ -1403,7 +1433,8 @@
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Estimated number of undetected species"
+               "description" : "Estimated number of undetected species",
+               "lumper" : 1
             },
             "ICE_VARIANCE" : {
                "bounds" : [
@@ -1418,6 +1449,7 @@
             "calc_abc2",
             "calc_nonempty_elements_used"
          ],
+         "reference" : "Gotelli and Chao (2013) https://doi.org/10.1016/b978-0-12-384719-5.00424-x",
          "type" : "Richness estimators",
          "uses_nbr_lists" : 1
       },
@@ -1524,7 +1556,8 @@
                   "Inf"
                ],
                "description" : "Number of labels not on the tree",
-               "distribution" : "nonnegative"
+               "distribution" : "nonnegative",
+               "lumper" : 1
             },
             "PHYLO_LABELS_NOT_ON_TREE_P" : {
                "bounds" : [
@@ -1684,7 +1717,7 @@
          "uses_nbr_lists" : 1
       },
       "calc_lbprop_data" : {
-         "description" : "Lists of the labels and their property values used in the label properties calculations",
+         "description" : "Lists of the labels and their property values\nused in the label properties calculations.\nReturns one list for each property, so if your data\nhave properties named 'PROP1' and 'PROP2' then\nit will return two lists named 'LBPROP_STATS_PROP1_DATA'\nand 'LBPROP_STATS_PROP1_DATA', respectively.\n",
          "indices" : {},
          "name" : "Label property data",
          "pre_calc" : [
@@ -1718,7 +1751,7 @@
          "uses_nbr_lists" : 1
       },
       "calc_lbprop_gistar_abc2" : {
-         "description" : "List of Getis-Ord Gi* statistic for each label property across both neighbour sets (local range weighted)",
+         "description" : "List of Getis-Ord Gi* statistic values for each label property across both neighbour sets (local range weighted)",
          "indices" : {
             "LBPROP_GISTAR_LIST_ABC2" : {
                "bounds" : [
@@ -1745,7 +1778,7 @@
          "uses_nbr_lists" : 1
       },
       "calc_lbprop_hashes" : {
-         "description" : "Hashes of the labels and their property values used in the label properties calculations. Hash keys are the property values, hash values are the property value frequencies.",
+         "description" : "Hashes of the labels and their property values\nused in the label properties calculations.\nHash keys are the property values,\nhash values are the property value frequencies.\nReturns one hash for each property, so if your data\nhave properties named 'PROP1' and 'PROP2' then\nit will return two lists named 'LBPROP_STATS_PROP1_HASH'\nand 'LBPROP_STATS_PROP2_HASH', respectively.\n",
          "indices" : {},
          "name" : "Label property hashes",
          "pre_calc" : [
@@ -1755,7 +1788,7 @@
          "uses_nbr_lists" : 1
       },
       "calc_lbprop_hashes_abc2" : {
-         "description" : "Hashes of the labels and their property values\nused in the local range weighted label properties calculations.\nHash keys are the property values,\nhash values are the property value frequencies.\n",
+         "description" : "Hashes of the labels and their property values\nused in the local range weighted label properties calculations.\nHash keys are the property values,\nhash values are the property value frequencies.\nReturns one hash for each property, so if your data\nhave properties named 'PROP1' and 'PROP2' then\nit will return two lists named 'LBPROP_STATS_PROP1_HASH2'\nand 'LBPROP_STATS_PROP2_HASH2', respectively.\n",
          "indices" : {},
          "name" : "Label property hashes (local range weighted)",
          "pre_calc" : [
@@ -1765,7 +1798,7 @@
          "uses_nbr_lists" : 1
       },
       "calc_lbprop_lists" : {
-         "description" : "Lists of the labels and their property values within the neighbour sets",
+         "description" : "    Lists of the labels and their property values\n    within the neighbour sets.\n    Returns one list for each property, so if your data\n    have properties named 'PROP1' and 'PROP2' then\n    it will return two lists named 'LBPROP_LIST_PROP1'\n    and 'LBPROP_LIST_PROP2', respectively.\n",
          "indices" : {},
          "name" : "Label property lists",
          "pre_calc" : [
@@ -1901,7 +1934,7 @@
                   "Inf"
                ],
                "description" : "Mean label range in both element sets",
-               "lumper" : 1
+               "lumper" : 0
             },
             "ABC2_MEAN_SET1" : {
                "bounds" : [
@@ -1926,7 +1959,7 @@
                   "Inf"
                ],
                "description" : "Standard deviation of label ranges in both element sets",
-               "lumper" : 1,
+               "lumper" : 0,
                "uses_nbr_lists" : 2
             },
             "ABC2_SD_SET1" : {
@@ -2033,7 +2066,7 @@
                   "Inf"
                ],
                "description" : "Mean of label sample counts across both element sets.",
-               "lumper" : 1,
+               "lumper" : 0,
                "uses_nbr_lists" : 2
             },
             "ABC3_MEAN_SET1" : {
@@ -2059,7 +2092,7 @@
                   "Inf"
                ],
                "description" : "Standard deviation of label sample counts in both element sets.",
-               "lumper" : 1,
+               "lumper" : 0,
                "uses_nbr_lists" : 2
             },
             "ABC3_SD_SET1" : {
@@ -2134,7 +2167,8 @@
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Maximum value"
+               "description" : "Maximum value",
+               "lumper" : 1
             },
             "MX_MEAN" : {
                "bounds" : [
@@ -2347,7 +2381,7 @@
                   "Inf"
                ],
                "description" : "Count of non-empty elements in both neighbour sets",
-               "lumper" : 1,
+               "lumper" : 0,
                "uses_nbr_lists" : 1
             },
             "EL_COUNT_NONEMPTY_SET1" : {
@@ -2530,7 +2564,7 @@
                ],
                "description" : "List of Gi* scores",
                "distribution" : "zscore",
-               "lumper" : 1
+               "lumper" : 0
             }
          },
          "name" : "Numeric labels Gi* statistic",
@@ -2812,7 +2846,8 @@
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Maximum value (100th quantile)"
+               "description" : "Maximum value (100th quantile)",
+               "lumper" : 1
             },
             "NUM_MEAN" : {
                "bounds" : [
@@ -2834,7 +2869,8 @@
                   "Inf"
                ],
                "description" : "Number of samples",
-               "distribution" : "nonnegative"
+               "distribution" : "nonnegative",
+               "lumper" : 1
             },
             "NUM_RANGE" : {
                "bounds" : [
@@ -2891,6 +2927,7 @@
                   "c",
                   "."
                ],
+               "lumper" : 1,
                "reference" : "Faith (1992) Biol. Cons. https://doi.org/10.1016/0006-3207(92)91201-3"
             },
             "PD_P" : {
@@ -2910,7 +2947,8 @@
                   " and ",
                   "L_c",
                   " are calculated for all nodes in the tree."
-               ]
+               ],
+               "lumper" : 1
             },
             "PD_P_per_taxon" : {
                "bounds" : [
@@ -3055,7 +3093,8 @@
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Phylogenetic Diversity Endemism"
+               "description" : "Phylogenetic Diversity Endemism",
+               "lumper" : 1
             },
             "PD_ENDEMISM_P" : {
                "bounds" : [
@@ -3063,7 +3102,8 @@
                   1
                ],
                "description" : "Phylogenetic Diversity Endemism, as a proportion of the whole tree",
-               "distribution" : "unit_interval"
+               "distribution" : "unit_interval",
+               "lumper" : 1
             },
             "PD_ENDEMISM_WTS" : {
                "bounds" : [
@@ -3107,7 +3147,8 @@
                   " is the length of branch ",
                   "c",
                   "."
-               ]
+               ],
+               "lumper" : 1
             },
             "PD_LOCAL_P" : {
                "bounds" : [
@@ -3125,7 +3166,8 @@
                   " and ",
                   "L_c",
                   " are calculated for all nodes in the tree."
-               ]
+               ],
+               "lumper" : 1
             }
          },
          "name" : "Phylogenetic Diversity (local)",
@@ -3219,7 +3261,8 @@
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Phylogenetic endemism"
+               "description" : "Phylogenetic endemism",
+               "lumper" : 1
             },
             "PE_WE_P" : {
                "bounds" : [
@@ -3231,7 +3274,8 @@
                "formula" : [
                   "PE\\_WE / L",
                   " where L is the sum of all branch lengths in the trimmed tree"
-               ]
+               ],
+               "lumper" : 1
             }
          },
          "name" : "Phylogenetic Endemism",
@@ -3272,7 +3316,8 @@
                   "Inf"
                ],
                "description" : "Phylogenetic endemism, central variant",
-               "distribution" : "nonnegative"
+               "distribution" : "nonnegative",
+               "lumper" : 1
             },
             "PEC_WE_P" : {
                "bounds" : [
@@ -3280,7 +3325,8 @@
                   1
                ],
                "description" : "Phylogenetic weighted endemism as a proportion of the total tree length, central variant",
-               "distribution" : "unit_interval"
+               "distribution" : "unit_interval",
+               "lumper" : 1
             }
          },
          "name" : "Phylogenetic Endemism central",
@@ -3527,7 +3573,8 @@
                   "Inf"
                ],
                "description" : "Phylogenetic endemism unweighted by the number of neighbours.\nCounts each label only once, regardless of how many groups in the neighbourhood it is found in.\nUseful if your data have sampling biases. Better with small sample windows.",
-               "distribution" : "nonnegative"
+               "distribution" : "nonnegative",
+               "lumper" : 1
             },
             "PE_WE_SINGLE_P" : {
                "bounds" : [
@@ -3535,7 +3582,8 @@
                   1
                ],
                "description" : "Phylogenetic endemism unweighted by the number of neighbours as a proportion of the total tree length.\nCounts each label only once, regardless of how many groups in the neighbourhood it is found.\nUseful if your data have sampling biases.",
-               "distribution" : "unit_interval"
+               "distribution" : "unit_interval",
+               "lumper" : 1
             }
          },
          "name" : "Phylogenetic Endemism single",
@@ -3626,6 +3674,7 @@
                   "A",
                   " is the abundance of that branch (the sum of its descendant label abundances)."
                ],
+               "lumper" : 1,
                "reference" : ""
             },
             "PHYLO_ABUNDANCE_BRANCH_HASH" : {
@@ -3705,6 +3754,7 @@
                   "Inf"
                ],
                "description" : "Abundance weighted ED_t (sum of values in PHYLO_AED_LIST times their abundances). This is equivalent to a phylogenetic rarity score (see phylogenetic endemism)",
+               "lumper" : 1,
                "reference" : "Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x"
             }
          },
@@ -3896,7 +3946,8 @@
                   0,
                   "Inf"
                ],
-               "description" : "Maximum of nearest taxon distances"
+               "description" : "Maximum of nearest taxon distances",
+               "lumper" : 1
             },
             "PNTD1_MEAN" : {
                "bounds" : [
@@ -4023,7 +4074,8 @@
                   0,
                   "Inf"
                ],
-               "description" : "Maximum of nearest taxon distances"
+               "description" : "Maximum of nearest taxon distances",
+               "lumper" : 1
             },
             "PNTD2_MEAN" : {
                "bounds" : [
@@ -4150,7 +4202,8 @@
                   0,
                   "Inf"
                ],
-               "description" : "Maximum of nearest taxon distances"
+               "description" : "Maximum of nearest taxon distances",
+               "lumper" : 1
             },
             "PNTD3_MEAN" : {
                "bounds" : [
@@ -4236,7 +4289,8 @@
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Null model score used as the denominator in the RPD1 calculations"
+               "description" : "Null model score used as the denominator in the RPD1 calculations",
+               "lumper" : 1
             }
          },
          "name" : "Relative Phylogenetic Diversity, type 1",
@@ -4277,7 +4331,8 @@
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Null model score used as the denominator in the RPD2 calculations"
+               "description" : "Null model score used as the denominator in the RPD2 calculations",
+               "lumper" : 1
             }
          },
          "name" : "Relative Phylogenetic Diversity, type 2",
@@ -4323,7 +4378,8 @@
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Null score used as the denominator in the RPE calculations"
+               "description" : "Null score used as the denominator in the RPE calculations",
+               "lumper" : 1
             }
          },
          "name" : "Relative Phylogenetic Endemism, type 1",
@@ -4365,7 +4421,8 @@
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Null score used as the denominator in the RPE2 calculations"
+               "description" : "Null score used as the denominator in the RPE2 calculations",
+               "lumper" : 1
             }
          },
          "name" : "Relative Phylogenetic Endemism, type 2",
@@ -4453,7 +4510,8 @@
                   0,
                   "Inf"
                ],
-               "description" : "Range weighted turnover, shared component"
+               "description" : "Range weighted turnover, shared component",
+               "lumper" : 1
             },
             "PHYLO_RW_TURNOVER_B" : {
                "bounds" : [
@@ -4629,7 +4687,8 @@
                   "-Inf",
                   "Inf"
                ],
-               "description" : "Richness used in RAREW_CWE (same as index RICHNESS_ALL)."
+               "description" : "Richness used in RAREW_CWE (same as index RICHNESS_ALL).",
+               "lumper" : 1
             },
             "RAREW_WE" : {
                "bounds" : [
@@ -4652,7 +4711,8 @@
                   " is the total number of samples across the data set for label ",
                   "t",
                   " (unless the total sample count is specified at import)."
-               ]
+               ],
+               "lumper" : 1
             }
          },
          "name" : "Rarity whole",
@@ -4746,7 +4806,8 @@
                   0,
                   "Inf"
                ],
-               "description" : "for both sets of neighbours"
+               "description" : "for both sets of neighbours",
+               "lumper" : 1
             },
             "RICHNESS_SET1" : {
                "bounds" : [

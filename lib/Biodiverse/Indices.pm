@@ -585,7 +585,7 @@ sub get_calculation_metadata_as_markdown {
                 push @line, $index;
 
                 my $descr = $ref->get_index_description($index) || $SPACE;
-                $description =~ s{\n}{ }gmo;    # purge any newlines
+                $descr =~ s{\n}{ }gmo;    # purge any newlines
                     #$description =~ s/\*/`\*`/;  #  avoid needless bolding
                 push @line, $descr;
 

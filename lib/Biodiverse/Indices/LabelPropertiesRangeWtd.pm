@@ -58,6 +58,18 @@ sub get_metadata_calc_lbprop_hashes_abc2 {
         hash values are the property value frequencies.
         END_OF_DESC
     ;
+    my $desc =<<~'EOD'
+        Hashes of the labels and their property values
+        used in the local range weighted label properties calculations.
+        Hash keys are the property values,
+        hash values are the property value frequencies.
+        Returns one hash for each property, so if your data
+        have properties named 'PROP1' and 'PROP2' then
+        it will return two lists named 'LBPROP_STATS_PROP1_HASH2'
+        and 'LBPROP_STATS_PROP2_HASH2', respectively.
+        EOD
+    ;
+
 
     my %indices;
     my %prop_hash_names = $self->_get_lbprop_stats_hash_keynames;
@@ -200,7 +212,7 @@ sub calc_lbprop_quantiles_abc2 {
 sub get_metadata_calc_lbprop_gistar_abc2 {
     my $self = shift;
 
-    my $desc = 'List of Getis-Ord Gi* statistic for each label property across both neighbour sets (local range weighted)';
+    my $desc = 'List of Getis-Ord Gi* statistic values for each label property across both neighbour sets (local range weighted)';
     my $ref  = 'Getis and Ord (1992) Geographical Analysis. https://doi.org/10.1111/j.1538-4632.1992.tb00261.x';
 
     my %metadata = (

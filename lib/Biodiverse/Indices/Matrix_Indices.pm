@@ -140,13 +140,18 @@ sub calc_matrix_stats {
 
 sub get_metadata_calc_compare_dissim_matrix_values {
     my $self = shift;
-    
+
+    my $desc = <<~'EOD'
+        Compare the set of labels in one neighbour set with those in another
+        using their matrix values. Labels not in the matrix are ignored.
+        (This calculation assumes a matrix of dissimilarities
+        and uses 0 as identical, so take care).
+        EOD
+    ;
+
     my %metadata = (
         name            => 'Compare dissimilarity matrix values',
-        description     => q{Compare the set of labels in one neighbour set with those in another }
-                           . q{using their matrix values. Labels not in the matrix are ignored. }
-                           . q{This calculation assumes a matrix of dissimilarities }
-                           . q{and uses 0 as identical, so take care).},
+        description     => $desc,
         type            => 'Matrix',
         pre_calc        => '_calc_abc_any',
         required_args   => ['matrix_ref'],

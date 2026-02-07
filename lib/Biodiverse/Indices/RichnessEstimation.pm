@@ -83,7 +83,7 @@ sub get_metadata_calc_chao1 {
             CHAO1_META        => {
                 description  => 'Metadata indicating which formulae were used in the '
                     . 'calculations. Numbers refer to EstimateS equations at '
-                    . 'http://viceroy.eeb.uconn.edu/EstimateS/EstimateSPages/EstSUsersGuide/EstimateSUsersGuide.htm',
+                    . 'https://www.robertkcolwell.org/media_files/63',
                 type         => 'list',
                 distribution => 'categorical',
                 colours      => \%colours,
@@ -264,7 +264,7 @@ sub get_metadata_calc_chao2 {
             CHAO2_META        => {
                 description => 'Metadata indicating which formulae were used in the '
                             . 'calculations. Numbers refer to EstimateS equations at '
-                            . 'http://viceroy.eeb.uconn.edu/EstimateS/EstimateSPages/EstSUsersGuide/EstimateSUsersGuide.htm',
+                            . 'https://www.robertkcolwell.org/media_files/63',
                 type        => 'list',
                 distribution => 'categorical',
                 colours      => \%colours,
@@ -444,12 +444,12 @@ sub _calc_chao_confidence_intervals {
 
 sub get_metadata_calc_ace {
     my %metadata = (
-        description     => 'Abundance Coverage-based Estimator os species richness',
+        description     => 'Abundance Coverage-based Estimator of species richness',
         name            => 'ACE',
         type            => 'Richness estimators',
         pre_calc        => 'calc_abc3',
         uses_nbr_lists  => 1,  #  how many lists it must have
-        reference       => 'needed',
+        reference       => 'Chao and Lee (1992) https://doi.org/10.1080/01621459.1992.10475194',
         indices         => {
             ACE_ESTIMATE => {
                 description => 'ACE score',
@@ -667,6 +667,7 @@ sub get_metadata_calc_ice {
         type            => 'Richness estimators',
         pre_calc        => [qw /calc_abc2 calc_nonempty_elements_used/],
         uses_nbr_lists  => 1,  #  how many lists it must have
+        reference       => 'Gotelli and Chao (2013) https://doi.org/10.1016/b978-0-12-384719-5.00424-x',
         indices         => {
             ICE_ESTIMATE => {
                 description => 'ICE score',

@@ -214,6 +214,7 @@ sub get_metadata_calc_rarity_whole {
             },
             RAREW_WE       => {
                 description => 'Weighted rarity',
+                lumper      => 1,
                 formula     => [
                     '= \sum_{t \in T} \frac {s_t} {S_t}',
                     ' where ',
@@ -234,6 +235,7 @@ sub get_metadata_calc_rarity_whole {
             },
             RAREW_RICHNESS => {
                 description => 'Richness used in RAREW_CWE (same as index RICHNESS_ALL).',
+                lumper      => 1,
             },
         },
     );

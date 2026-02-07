@@ -80,8 +80,9 @@ sub get_metadata_calc_numeric_label_stats {
             NUM_SD      => {description => 'Standard deviation',},
             NUM_MEAN    => {description => 'Mean',},
             NUM_N       => {
-                description    => 'Number of samples',
+                description  => 'Number of samples',
                 distribution => 'nonnegative',
+                lumper       => 1,
             },
             NUM_RANGE   => {
                 description    => 'Range (max - min)',
@@ -91,7 +92,10 @@ sub get_metadata_calc_numeric_label_stats {
             NUM_KURT    => {description => 'Kurtosis',},
             NUM_CV      => {description => 'Coefficient of variation (NUM_SD / NUM_MEAN)',},
             NUM_MIN     => {description => 'Minimum value (zero quantile)',},
-            NUM_MAX     => {description => 'Maximum value (100th quantile)',},
+            NUM_MAX     => {
+                description => 'Maximum value (100th quantile)',
+                lumper      => 1,
+            },
         },
     );
 
@@ -534,7 +538,7 @@ sub get_metadata_calc_num_labels_gistar {
         indices         => {
             NUM_GISTAR => {
                 description => 'List of Gi* scores',
-                lumper      => 1,
+                lumper      => 0,
                 distribution => 'zscore',
             },
         },

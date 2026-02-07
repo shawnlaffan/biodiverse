@@ -618,6 +618,7 @@ sub get_metadata_calc_endemism_whole {
             },
             ENDW_WE         => {
                 description => 'Weighted endemism',
+                lumper      => 1,
                 formula     => [
                     '= \sum_{t \in T} \frac {r_t} {R_t}',
                     ' where ',
@@ -638,6 +639,7 @@ sub get_metadata_calc_endemism_whole {
             },
             ENDW_RICHNESS   => {
                 description => 'Richness used in ENDW_CWE (same as index RICHNESS_ALL)',
+                lumper      => 1,
             },
             ENDW_SINGLE     => {
                 description => 'Endemism unweighted by the number of neighbours. '
@@ -645,6 +647,7 @@ sub get_metadata_calc_endemism_whole {
                                . "groups in the neighbourhood it is found in.  \n"
                                . 'Useful if your data have sampling biases and '
                                . 'best applied with a small window.',
+                lumper      => 1,
                 reference   => 'Slatyer et al. (2007) J. Biogeog '
                                . 'https://doi.org/10.1111/j.1365-2699.2006.01647.x',
                 formula     => [
@@ -894,6 +897,7 @@ sub get_metadata_calc_endemism_absolute {
             },
             END_ABS_ALL => {
                 description => 'Count of labels entirely endemic to neighbour sets 1 and 2 combined',
+                lumper      => 1,
             },
             END_ABS1_P => {
                 description  => 'Proportion of labels entirely endemic to neighbour set 1',

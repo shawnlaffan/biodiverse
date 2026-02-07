@@ -50,27 +50,35 @@ sub get_metadata_calc_chao1 {
                 description => 'Chao1 index',
                 reference   => 'NEEDED',
                 formula     => [],
+                lumper      => 1,
             },
             CHAO1_F1_COUNT    => {
                 description => 'Number of singletons in the sample',
+                lumper      => 1,
             },
             CHAO1_F2_COUNT    => {
                 description => 'Number of doubletons in the sample',
+                lumper      => 1,
             },
             CHAO1_SE => {
                 description => 'Standard error of the Chao1 estimator [= sqrt(variance)]',
+                lumper      => 1,
             },
             CHAO1_VARIANCE    => {
                 description => 'Variance of the Chao1 estimator',
+                lumper      => 1,
             },
             CHAO1_UNDETECTED  => {
                 description   => 'Estimated number of undetected species',
+                lumper      => 1,
             },
             CHAO1_CI_LOWER    => {
                 description => 'Lower confidence interval for the Chao1 estimate',
+                lumper      => 1,
             },
             CHAO1_CI_UPPER    => {
                 description => 'Upper confidence interval for the Chao1 estimate',
+                lumper      => 1,
             },
             CHAO1_META        => {
                 description  => 'Metadata indicating which formulae were used in the '
@@ -223,27 +231,35 @@ sub get_metadata_calc_chao2 {
                 description => 'Chao2 index',
                 reference   => 'NEEDED',
                 formula     => [],
+                lumper      => 1,
             },
             CHAO2_Q1_COUNT    => {
                 description => 'Number of uniques in the sample',
+                lumper      => 1,
             },
             CHAO2_Q2_COUNT    => {
                 description => 'Number of duplicates in the sample',
+                lumper      => 1,
             },
             CHAO2_VARIANCE    => {
                 description => 'Variance of the Chao2 estimator',
+                lumper      => 1,
             },
             CHAO2_SE          => {
                 description => 'Standard error of the Chao2 estimator [= sqrt (variance)]',
+                lumper      => 1,
             },
             CHAO2_CI_LOWER    => {
                 description => 'Lower confidence interval for the Chao2 estimate',
+                lumper      => 1,
             },
             CHAO2_CI_UPPER    => {
                 description => 'Upper confidence interval for the Chao2 estimate',
+                lumper      => 1,
             },
             CHAO2_UNDETECTED  => {
                 description   => 'Estimated number of undetected species',
+                lumper      => 1,
             },
             CHAO2_META        => {
                 description => 'Metadata indicating which formulae were used in the '
@@ -437,6 +453,7 @@ sub get_metadata_calc_ace {
         indices         => {
             ACE_ESTIMATE => {
                 description => 'ACE score',
+                lumper      => 1,
             },
             ACE_SE => {
                 description => 'ACE standard error',
@@ -446,15 +463,19 @@ sub get_metadata_calc_ace {
             },
             ACE_CI_UPPER => {
                 description => 'ACE upper confidence interval estimate',
+                lumper      => 1,
             },
             ACE_CI_LOWER => {
                 description => 'ACE lower confidence interval estimate',
+                lumper      => 1,
             },
             ACE_UNDETECTED  => {
                 description => 'Estimated number of undetected species',
+                lumper      => 1,
             },
             ACE_INFREQUENT_COUNT => {
                 description => 'Count of infrequent species',
+                lumper      => 1,
             },
             ACE_ESTIMATE_USED_CHAO => {
                 description => 'Set to 1 when ACE cannot be calculated '
@@ -649,6 +670,7 @@ sub get_metadata_calc_ice {
         indices         => {
             ICE_ESTIMATE => {
                 description => 'ICE score',
+                lumper      => 1,
             },
             ICE_SE => {
                 description => 'ICE standard error',
@@ -658,21 +680,24 @@ sub get_metadata_calc_ice {
             },
             ICE_CI_UPPER => {
                 description => 'ICE upper confidence interval estimate',
+                lumper      => 1,
             },
             ICE_CI_LOWER => {
                 description => 'ICE lower confidence interval estimate',
+                lumper      => 1,
             },
             ICE_UNDETECTED  => {
                 description => 'Estimated number of undetected species',
+                lumper      => 1,
             },
             ICE_INFREQUENT_COUNT => {
                 description => 'Count of infrequent species',
+                lumper      => 1,
             },
             ICE_ESTIMATE_USED_CHAO => {
                 description => 'Set to 1 when ICE cannot be calculated '
                              . 'and so Chao2 estimate is used',
             }
-
         },
     );
 

@@ -51,13 +51,6 @@ sub get_lbp_stats_objects_abc2 {
 sub get_metadata_calc_lbprop_hashes_abc2 {
     my $self = shift;
 
-    my $desc = <<~'END_OF_DESC'
-        Hashes of the labels and their property values
-        used in the local range weighted label properties calculations.
-        Hash keys are the property values,
-        hash values are the property value frequencies.
-        END_OF_DESC
-    ;
     my $desc =<<~'EOD'
         Hashes of the labels and their property values
         used in the local range weighted label properties calculations.

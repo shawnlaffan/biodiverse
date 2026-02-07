@@ -40,6 +40,7 @@ sub get_metadata_calc_phylo_rpd1 {
             },
             PHYLO_RPD_NULL1 => {
                 description => 'Null model score used as the denominator in the RPD1 calculations',
+                lumper      => 1,
             },
             PHYLO_RPD_DIFF1 => {
                 description => 'How much more or less PD is there than expected, in original tree units.',
@@ -106,6 +107,7 @@ sub get_metadata_calc_phylo_rpe1 {
             },
             PHYLO_RPE_NULL1        => {
                 description => 'Null score used as the denominator in the RPE calculations',
+                lumper      => 1,
             },
             PHYLO_RPE_DIFF1 => {
                 description => 'How much more or less PE is there than expected, in original tree units.',
@@ -175,6 +177,7 @@ sub get_metadata_calc_phylo_rpd2 {
             },
             PHYLO_RPD_NULL2 => {
                 description => 'Null model score used as the denominator in the RPD2 calculations',
+                lumper      => 1,
             },
             PHYLO_RPD_DIFF2 => {
                 description => 'How much more or less PD is there than expected, in original tree units.',
@@ -369,6 +372,7 @@ sub get_metadata_calc_phylo_rpe2 {
             },
             PHYLO_RPE_NULL2  => {
                 description => 'Null score used as the denominator in the RPE2 calculations',
+                lumper      => 1,
             },
             PHYLO_RPE_DIFF2  => {
                 description => 'How much more or less PE is there than expected, in original tree units.',

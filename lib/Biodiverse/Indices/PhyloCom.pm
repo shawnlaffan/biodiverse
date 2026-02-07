@@ -79,7 +79,8 @@ sub get_mpd_mntd_metadata {
             distribution => 'nonnegative',
         },
         PNTD_MAX => {
-            description    => 'Maximum of nearest taxon distances',
+            description => 'Maximum of nearest taxon distances',
+            lumper      => 1,
         },
         PNTD_MIN => {
             description    => 'Minimum of nearest taxon distances',

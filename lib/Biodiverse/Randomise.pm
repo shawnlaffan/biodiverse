@@ -1841,7 +1841,7 @@ sub rand_structured {
 
     #  generate a hash with the target richness values
     my %target_richness;
-    my $i = 0;
+    my $group_i = 0;
     my $total_to_do = scalar @sorted_groups;
 
     #  %filled_groups is used to track richness targets
@@ -1855,7 +1855,7 @@ sub rand_structured {
         $cloned_bd_gps_remaining{$group} = $gp_richness;
         $bd_has_empty_groups ||= !$gp_richness;
 
-        my $progress = $i / $total_to_do;
+        my $progress = $group_i / $total_to_do;
         $progress_bar->update (
             "$progress_text\n"
             . "Assigning richness targets\n"
@@ -1878,7 +1878,7 @@ sub rand_structured {
             $filled_groups{$group} = 0;
             delete $cloned_bd_gps_remaining{$group};
         }
-        $i++;
+        $group_i++;
     }
 
     $progress_bar->reset;
@@ -1895,7 +1895,7 @@ sub rand_structured {
     my @unfilled_groups_sorted_arr = sort keys %unfilled_groups;
     my %new_bd_richness;
     my $last_filled     = $EMPTY_STRING;
-    $i = 0;
+    my $label_i = 0;
     my $seed_group_flag;
     $total_to_do = scalar @$rand_label_order;
     say "[RANDOMISE] Target is $total_to_do.  Running.";
@@ -1904,19 +1904,20 @@ sub rand_structured {
         sep_char   => $bd->get_param ('JOIN_CHAR'),
         quote_char => $bd->get_param ('QUOTES'),
     );
+    my $sp_seed_timer;
 
     BY_LABEL:
     foreach my $label (@$rand_label_order) {
 
-        my $progress = $i / $total_to_do;
+        my $progress = $label_i / $total_to_do;
         $progress_bar->update (
             "Allocating labels to groups\n"
             . "$progress_text\n"
-            . "($i / $total_to_do)",
+            . "($label_i / $total_to_do)",
             $progress,
         );
 
-        $i++;
+        $label_i++;
 
         @target_groups = @unfilled_groups_sorted_arr;
         my %cleared_target_gps;
@@ -2072,7 +2073,7 @@ sub rand_structured {
 
                 warn "SELECTING GROUP THAT IS ALREADY FULL $to_group,"
                      . "$filled_groups{$to_group}, $target_richness{$to_group}, "
-                     . "$i\n"
+                     . "$label_i\n"
                         if defined $to_group and exists $filled_groups{$to_group};
                 
                 # Store the group/label count

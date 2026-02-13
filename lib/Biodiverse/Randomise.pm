@@ -1964,7 +1964,8 @@ sub rand_structured {
                     my $seed_groups = $cache->{$label};
                     if (!$seed_groups) {
                         $sp_cond_for_seeding->set_current_label($label);
-                        my $defq_progress = Biodiverse::Progress->new(text => 'def query');
+                        #  progress for first only - could run a timer?
+                        my $defq_progress = $i == 1 ? Biodiverse::Progress->new(text => 'def query') : undef;
                         #  don't pass an exclude list as we cache across rand iterations
                         $seed_groups = $cache->{$label} = $bd->get_neighbours(
                             element            => $target_groups[0],

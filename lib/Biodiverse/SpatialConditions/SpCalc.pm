@@ -1981,9 +1981,13 @@ sub sp_in_label_range {
 
     my $label = $args{label} // $self->_process_label_arg();
 
-    my $bd = $self->get_basedata_ref;
+    state $cache_name_labels = 'sp_in_label_range_labels';
+    my $cache_labels = $self->get_cached_value($cache_name_labels);
+    if (!$cache_labels) {
+        $self->set_cached_value($cache_name_labels, scalar $self->get_basedata_ref->get_labels_as_hash);
+    };
 
-    return 0 if !$bd->exists_label_aa($label);
+    return 0 if !$cache_labels->{$label};
 
     my $group = $self->get_current_coord_id(%args);
 
@@ -1992,7 +1996,12 @@ sub sp_in_label_range {
         return $in_polygon->{$group};
     }
 
-    my $labels_in_group = $bd->get_labels_in_group_as_hash_aa ($group);
+    state $cache_name = 'sp_in_label_range_by_group';
+    my $cache = $self->get_cached_value_dor_set_default_href($cache_name);
+
+    my $labels_in_group
+        =   $cache->{$group}
+        //= $self->get_basedata_ref->get_labels_in_group_as_hash_aa ($group);
 
     return exists $labels_in_group->{$label};
 }

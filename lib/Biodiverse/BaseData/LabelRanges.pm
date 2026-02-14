@@ -278,12 +278,18 @@ sub get_label_range_bbox_2d {
 
     return if !$self->exists_label_aa($label);
 
+    my @res = $self->get_cell_sizes;
+    my $c1 = $res[0] / 2;
+    my $c2 = $res[1] / 2;
+
     my $groups = $self->get_groups_with_label_as_hash_aa($label);
     my (@x, @y);
     foreach my $gp (keys %$groups) {
-        \my @coords = $self->get_group_element_as_array_aa ($gp);
-        push @x, $coords[0];
-        push @y, $coords[1];
+        my ($x, $y) = $self->get_group_element_as_array_aa ($gp);
+        my ($x1, $x2) = ($x - $c1, $x + $c1);
+        my ($y1, $y2) = ($y - $c2, $y + $c2);
+        push @x, ($x1, $x2);
+        push @y, ($y1, $y2);
     }
     my @xx = minmax (@x);
     my @yy = minmax (@y);

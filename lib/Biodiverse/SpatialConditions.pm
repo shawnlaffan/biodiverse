@@ -1080,14 +1080,25 @@ sub get_current_label {
     return $self->get_param('CURRENT_LABEL');
 }
 
+state $re_set_current_label = qr/\s*\$self\s*->\s*set_current_label\s*\((?<q>['"])(?<label>([^(]+?))\k{q}\)\s*;/;
+state $re_in_label_range
+    = qr/\A(?:$re_set_current_label[\r\n]*)?\s*\$self\s*->\s*sp_in_label_range\s*\(\s*\)\s*;?[\n\r]*\z/;
+
 #  a very limited set at the moment - need to generalise and handle via metadata
 sub get_conditions_bbox {
     my ($self) = @_;
     my $conditions = $self->get_conditions_parsed;
+
     return
-        if not $conditions =~ /\A\s*\$self\s*->\s*sp_in_label_range\(\s*\)\s*\z/ms;
+        if not $conditions =~ /$re_in_label_range/ms;
+
+    my $label = $+{label} // $self->get_current_label;
+
+    return if !defined $label;
+
     my $bd = $self->get_basedata_ref;
-    my $bbox = $bd->get_label_range_bbox_2d (label => $self->get_current_label);
+    my $bbox = $bd->get_label_range_bbox_2d (label => $label);
+
     return if !defined $bbox;
     return wantarray ? @$bbox : $bbox;
 }

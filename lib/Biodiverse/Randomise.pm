@@ -1905,6 +1905,7 @@ sub rand_structured {
         quote_char => $bd->get_param ('QUOTES'),
     );
     my $sp_seed_timer;
+    my $sp_seed_show_progress = 1;
 
     BY_LABEL:
     foreach my $label (@$rand_label_order) {
@@ -1965,8 +1966,12 @@ sub rand_structured {
                     my $seed_groups = $cache->{$label};
                     if (!$seed_groups) {
                         $sp_cond_for_seeding->set_current_label($label);
-                        #  progress for first only - could run a timer?
-                        my $defq_progress = $i == 1 ? Biodiverse::Progress->new(text => 'def query') : undef;
+                        #  progress if duration is long
+                        my $defq_progress
+                            = $sp_seed_show_progress
+                            ? Biodiverse::Progress->new(text => 'seed group def query', gui_only => 1)
+                            : undef;
+                        my $t0 = time();
                         #  don't pass an exclude list as we cache across rand iterations
                         $seed_groups = $cache->{$label} = $bd->get_neighbours(
                             element            => $target_groups[0],
@@ -1974,6 +1979,7 @@ sub rand_structured {
                             is_def_query       => 1,
                             progress           => $defq_progress,
                         );
+                        $sp_seed_show_progress = (time() - $t0) > 1;
                     }
 
                     delete local @{$seed_groups}{keys %filled_groups}

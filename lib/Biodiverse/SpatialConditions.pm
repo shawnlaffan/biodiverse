@@ -1080,6 +1080,18 @@ sub get_current_label {
     return $self->get_param('CURRENT_LABEL');
 }
 
+#  a very limited set at the moment - need to generalise and handle via metadata
+sub get_conditions_bbox {
+    my ($self) = @_;
+    my $conditions = $self->get_conditions_parsed;
+    return
+        if not $conditions =~ /\A\s*\$self\s*->\s*sp_in_label_range\(\s*\)\s*\z/ms;
+    my $bd = $self->get_basedata_ref;
+    my $bbox = $bd->get_label_range_bbox_2d (label => $self->get_current_label);
+    return if !defined $bbox;
+    return wantarray ? @$bbox : $bbox;
+}
+
 sub get_conditions_metadata_as_markdown {
     my $self = shift;
 

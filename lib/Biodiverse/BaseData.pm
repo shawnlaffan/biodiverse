@@ -2612,7 +2612,12 @@ sub get_neighbours {
             keys %$index_offsets ) > ( $self->get_group_count / 2 )
       )
     {
-        @compare_list = $self->get_groups;
+        #  applies to very limited cases at the moment
+        if (my $bbox = $spatial_conditions->get_conditions_bbox) {
+            my $str_tree = $self->get_strtree_index();
+            \@compare_list = $str_tree->query_partly_within_rect(@$bbox);
+        }
+        @compare_list = $self->get_groups if !@compare_list;
     }
     else
     { #  We have a spatial index defined and a favourable ratio of offsets to groups
@@ -2673,7 +2678,9 @@ sub get_neighbours {
         }
 
         #  make the neighbour coord available to the spatial_conditions
-        my $coord = $coord_array_cache->{$element2} //= $self->get_group_element_as_array_aa ($element2 );
+        my $coord
+            = $coord_array_cache->{$element2}
+            //= $self->get_group_element_as_array_aa ($element2 );
 
         my %eval_args;
 

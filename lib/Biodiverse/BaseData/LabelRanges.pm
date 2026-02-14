@@ -11,6 +11,7 @@ use experimental qw /refaliasing declared_refs/;
 
 use Geo::GDAL::FFI 0.15;
 use List::Util qw /min max/;
+use List::MoreUtils qw /minmax/;
 
 sub get_label_range_circumcircle {
     my ($self, %args) = @_;
@@ -265,5 +266,31 @@ sub get_groups_in_circle {
     return wantarray ? %in_circumcircle : \%in_circumcircle;
 }
 
+sub get_label_range_bbox_2d {
+    my ($self, %args) = @_;
+    my $label = $args{label} // croak 'label arg is undefined';
+
+    return if $self->get_group_axis_count != 2;
+
+    my $cache
+        = $self->get_cached_value_dor_set_default_href ('get_label_range_bbox_2d');
+    return $cache->{$label} if $cache->{$label};
+
+    return if !$self->exists_label_aa($label);
+
+    my $groups = $self->get_groups_with_label_as_hash_aa($label);
+    my (@x, @y);
+    foreach my $gp (keys %$groups) {
+        \my @coords = $self->get_group_element_as_array_aa ($gp);
+        push @x, $coords[0];
+        push @y, $coords[1];
+    }
+    my @xx = minmax (@x);
+    my @yy = minmax (@y);
+
+    my $bbox = $cache->{$label} = [$xx[0], $yy[0], $xx[1], $yy[1]];
+
+    return wantarray ? @$bbox : $bbox;
+}
 
 1;

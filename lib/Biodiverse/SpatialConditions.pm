@@ -1089,6 +1089,8 @@ sub get_conditions_bbox {
     my ($self) = @_;
     my $conditions = $self->get_conditions_parsed;
 
+    return if $self->get_ignore_spatial_index_flag;
+
     return
         if not $conditions =~ /$re_in_label_range/ms;
 

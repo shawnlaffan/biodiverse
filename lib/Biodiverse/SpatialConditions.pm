@@ -1094,15 +1094,30 @@ sub get_current_label {
     return $self->get_param('CURRENT_LABEL');
 }
 
+#  used in the bbox code, could be moved to Common.pm
+sub _dequote_string_literal {
+    my ($self, $str) = @_;
+    return if !defined $str;
+    #  strip the quotes
+    if (substr ($str, 0, 1) =~ /["']/) {
+        $str =~ s/^(?<q>['"])(?<retain>.*)\k{q}$/$+{retain}/;
+    }
+    elsif ($str =~ /^(qq?)(.)/) {  #  q{}, qq<> etc
+        my $qq = quotemeta "$1$2";
+        $str =~ s/^$qq//;
+        $str =~ s/.$//;
+    }
+    $str = undef if not length $str;
+    return $str;
+}
 
 #  we strip the white space before matching these regexen
 #  match $self->set_current_label
 state $re_set_current_label = qr/
-    \$self->set_current_label\(
-        (?<q>['"])
-            (?<cur_label>([^(]+?))
-        \k{q}
-    \);
+    \$self->set_current_label
+    \( (?<cur_label>(?&PerlLiteral)) \)
+    ;
+    $PPR::GRAMMAR
 /x;
 #  sp_in_label_range with no args, possibly preceded by set_current_label
 state $re_in_label_range = qr/
@@ -1124,10 +1139,13 @@ sub get_conditions_bbox {
 
     return if not $conditions =~ /$re_in_label_range/ms;
 
-    my $label = $+{cur_label} // $self->get_current_label;
+    my $cur_label = $self->_dequote_string_literal($+{cur_label});
+
+    my $label = $cur_label // $self->get_current_label;
 
     return if !defined $label;
-#say STDERR 'BBOX: ' . $conditions;
+say STDERR 'BBOX: ' . $conditions;
+    say STDERR $label;
     my $bd = $self->get_basedata_ref;
     my $bbox = $bd->get_label_range_bbox_2d (label => $label);
 

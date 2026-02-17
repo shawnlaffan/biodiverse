@@ -172,7 +172,7 @@ sub test_sp_in_label_range_convex_hull {
 
     #  check vanilla still works
     my $cond3 = <<~'EOC'
-        $self->set_current_label('Genus:sp4');
+        $self->set_current_label(q{Genus:sp4});
         sp_in_label_range();
         EOC
     ;

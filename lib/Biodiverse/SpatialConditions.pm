@@ -1089,9 +1089,26 @@ sub get_current_label {
     return $self->get_param('CURRENT_LABEL');
 }
 
-state $re_set_current_label = qr/\s*\$self\s*->\s*set_current_label\s*\((?<q>['"])(?<label>([^(]+?))\k{q}\)\s*;/;
-state $re_in_label_range
-    = qr/\A(?:$re_set_current_label[\r\n]*)?\s*\$self\s*->\s*sp_in_label_range\s*\(\s*\)\s*;?[\n\r]*\z/;
+#  match $self->set_current_label
+state $re_set_current_label = qr/
+    \s*
+    \$self\s*->\s*set_current_label\s*\(
+        (?<q>['"])
+            (?<cur_label>([^(]+?))
+        \k{q}
+    \)\s*;
+/x;
+#  sp_in_label_range with no args, possibly preceded by set_current_label
+state $re_in_label_range = qr/
+    \A
+        (?: $re_set_current_label [\r\n]* )?
+        \s*
+            \$self\s*->\s*sp_in_label_range \s*
+            \( \s* \)
+        \s*;?
+        [\n\r]*
+    \z
+/x;
 
 #  a very limited set at the moment - need to generalise and handle via metadata
 sub get_conditions_bbox {
@@ -1103,7 +1120,7 @@ sub get_conditions_bbox {
     return
         if not $conditions =~ /$re_in_label_range/ms;
 
-    my $label = $+{label} // $self->get_current_label;
+    my $label = $+{cur_label} // $self->get_current_label;
 
     return if !defined $label;
 

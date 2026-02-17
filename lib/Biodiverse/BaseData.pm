@@ -2618,6 +2618,13 @@ sub get_neighbours {
                 my $str_tree = $self->get_strtree_index();
                 \@compare_list = $str_tree->query_partly_within_rect(@$bbox);
             }
+            else {
+                #  bbox is empty, no valid nbrs
+                return
+                    wantarray         ? ()
+                    : $args{as_array} ? []
+                    : {};
+            }
         }
         @compare_list = $self->get_groups if !@compare_list;
     }

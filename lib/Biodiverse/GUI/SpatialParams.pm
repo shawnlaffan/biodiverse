@@ -282,7 +282,7 @@ sub run_options_dialogue {
     if (!$options) {
         my ($ignore_spatial_index, $no_recycling);
         if (my $cond_object = eval {$self->get_validated_conditions}) {
-            $ignore_spatial_index = $cond_object->get_ignore_spatial_index_flag;
+            $ignore_spatial_index = $cond_object->ignore_spatial_index;
             $no_recycling = $cond_object->get_no_recycling_flag;
         }
         $self->{options} = {

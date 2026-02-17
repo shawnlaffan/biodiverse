@@ -895,7 +895,7 @@ sub sp_calc {
 
             my $sp_cond_obj  = $spatial_conditions_arr->[$i];
             my $result_type  = $sp_cond_obj->get_result_type;
-            my $ignore_index = $sp_cond_obj->get_ignore_spatial_index_flag;
+            my $ignore_index = $sp_cond_obj->ignore_spatial_index;
 
             if ($result_type eq 'always_true') {
                 #  no point using the index if we have to get them all

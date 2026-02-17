@@ -20,6 +20,7 @@ use Scalar::Util qw /looks_like_number blessed/;
 use List::MoreUtils qw /uniq/;
 use List::Util qw /min max/;
 use Ref::Util qw { :all };
+use PPR;
 
 
 use parent qw /
@@ -429,7 +430,9 @@ sub parse_distances {
                 }
             }
 
-            $method_args{$sub_name_and_args} = \%hash_1;
+            #  should only use compacted version but need to check other uses first
+            my $compacted_sub_name_and_args = $sub_name_and_args =~ s/(?&PerlNWS) $PPR::GRAMMAR//grx;
+            $method_args{$compacted_sub_name_and_args} = \%hash_1;
 
             my $invalid = $self->get_invalid_args_for_sub_call (sub => $sub, args => \%hash_1);
             if (scalar @$invalid) {
@@ -1115,7 +1118,7 @@ sub _dequote_string_literal {
 #  match $self->set_current_label
 state $re_set_current_label = qr/
     \$self->set_current_label
-    \( (?<cur_label>(?&PerlLiteral)) \)
+    \( (?<cur_label> (?&PerlLiteral)) \)
     ;
     $PPR::GRAMMAR
 /x;
@@ -1123,29 +1126,40 @@ state $re_set_current_label = qr/
 state $re_in_label_range = qr/
     \A
         (?: $re_set_current_label )?
-        \$self->sp_in_label_range \( \) ;?
-    \z
+        \$self->
+        (?<range_method> sp_in_label_range )
+        (?<range_args> (?&PerlParenthesesList) )
+        ;?
+    \Z
+    $PPR::GRAMMAR
 /x;
 
 #  a very limited set at the moment - need to generalise and handle via metadata
 sub get_conditions_bbox {
     my ($self) = @_;
 
-    use PPR;
+    return if $self->ignore_spatial_index;
 
     my $conditions = ($self->get_conditions_parsed =~ s/ (?&PerlNWS) $PPR::GRAMMAR//gxr);
-
-    return if $self->ignore_spatial_index;
 
     return if not $conditions =~ /$re_in_label_range/ms;
 
     my $cur_label = $self->_dequote_string_literal($+{cur_label});
 
-    my $label = $cur_label // $self->get_current_label;
+    my $method_args_hash = $self->get_param ('METHOD_ARG_HASHES');
+    my $range_method = $+{range_method};
+    my $range_args   = $+{range_args};
+    my $method_args  = $method_args_hash->{$range_method . $range_args} // {};
+    my $range_label  = delete local $method_args->{label};
+
+    return if keys %$method_args;  #  only the simple case for now
+
+    my $label = $range_label // $cur_label // $self->get_current_label;
 
     return if !defined $label;
-say STDERR 'BBOX: ' . $conditions;
-    say STDERR $label;
+
+#say STDERR 'BBOX: ' . $conditions;
+
     my $bd = $self->get_basedata_ref;
     my $bbox = $bd->get_label_range_bbox_2d (label => $label);
 

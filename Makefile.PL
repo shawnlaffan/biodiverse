@@ -28,6 +28,7 @@ my %common_reqs = (
     "List::Util"                       => "1.54",
     "Math::Polygon"                    => 0,
     "Math::Random::MT::Auto"           => "6.21",
+    "PPR"                              => 0.001010,
     "Readonly"                         => 0,
     "Ref::Util"                        => 0,
     "Ref::Util::XS"                    => 0,

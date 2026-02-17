@@ -2613,7 +2613,7 @@ sub get_neighbours {
       )
     {
         #  applies to very limited cases at the moment
-        if (my $bbox = $spatial_conditions->get_conditions_bbox) {
+        if (my $bbox = $spatial_conditions->get_conditions_bbox (basedata_ref => $self)) {
             my $str_tree = $self->get_strtree_index();
             \@compare_list = $str_tree->query_partly_within_rect(@$bbox);
         }

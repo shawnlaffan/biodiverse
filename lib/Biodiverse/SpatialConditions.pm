@@ -1136,7 +1136,7 @@ state $re_in_label_range = qr/
 
 #  a very limited set at the moment - need to generalise and handle via metadata
 sub get_conditions_bbox {
-    my ($self) = @_;
+    my ($self, %args) = @_;
 
     return if $self->ignore_spatial_index;
 
@@ -1159,12 +1159,9 @@ sub get_conditions_bbox {
     return if !defined $label;
 
 #say STDERR 'BBOX: ' . $conditions;
+    my $bd = $args{basedata_ref} // $self->get_basedata_ref // return;
 
-    my $bd = $self->get_basedata_ref;
-    my $bbox = $bd->get_label_range_bbox_2d (label => $label);
-
-    return if !defined $bbox;
-    return wantarray ? @$bbox : $bbox;
+    return $bd->get_label_range_bbox_2d (label => $label);
 }
 
 sub get_conditions_metadata_as_markdown {

@@ -1094,41 +1094,40 @@ sub get_current_label {
     return $self->get_param('CURRENT_LABEL');
 }
 
+
+#  we strip the white space before matching these regexen
 #  match $self->set_current_label
 state $re_set_current_label = qr/
-    \s*
-    \$self\s*->\s*set_current_label\s*\(
+    \$self->set_current_label\(
         (?<q>['"])
             (?<cur_label>([^(]+?))
         \k{q}
-    \)\s*;
+    \);
 /x;
 #  sp_in_label_range with no args, possibly preceded by set_current_label
 state $re_in_label_range = qr/
     \A
-        (?: $re_set_current_label [\r\n]* )?
-        \s*
-            \$self\s*->\s*sp_in_label_range \s*
-            \( \s* \)
-        \s*;?
-        [\n\r]*
+        (?: $re_set_current_label )?
+        \$self->sp_in_label_range \( \) ;?
     \z
 /x;
 
 #  a very limited set at the moment - need to generalise and handle via metadata
 sub get_conditions_bbox {
     my ($self) = @_;
-    my $conditions = $self->get_conditions_parsed;
+
+    use PPR;
+
+    my $conditions = ($self->get_conditions_parsed =~ s/ (?&PerlNWS) $PPR::GRAMMAR//gxr);
 
     return if $self->ignore_spatial_index;
 
-    return
-        if not $conditions =~ /$re_in_label_range/ms;
+    return if not $conditions =~ /$re_in_label_range/ms;
 
     my $label = $+{cur_label} // $self->get_current_label;
 
     return if !defined $label;
-
+#say STDERR 'BBOX: ' . $conditions;
     my $bd = $self->get_basedata_ref;
     my $bbox = $bd->get_label_range_bbox_2d (label => $label);
 

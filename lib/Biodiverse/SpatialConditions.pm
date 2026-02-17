@@ -372,6 +372,12 @@ sub parse_distances {
     my $str_len = length $conditions;
     pos($conditions) = 0;
 
+    #  Store the args for our sp_ methods.
+    #  Somewhat fragile as the user might change a
+    #  variable between calls with the same args.
+    #  We can deal with that if it arises.
+    my %method_args;
+
     #  loop idea also courtesy Friedl
 
     CHECK_CONDITIONS:
@@ -417,6 +423,8 @@ sub parse_distances {
                     next CHECK_CONDITIONS;          #  and move to the next part
                 }
             }
+
+            $method_args{$sub_name_and_args} = \%hash_1;
 
             my $invalid = $self->get_invalid_args_for_sub_call (sub => $sub, args => \%hash_1);
             if (scalar @$invalid) {
@@ -503,6 +511,7 @@ sub parse_distances {
     $self->set_param( MISSING_OPT_ARGS => \%missing_opt_args );
     $self->set_param( USES             => \%uses_distances );
     $self->set_param( SHAPE_TYPES      => join ' ', sort keys %shape_hash);
+    $self->set_param( METHOD_ARG_HASHES => \%method_args );
     $self->set_volatile_flag($is_volatile);
     $self->set_requires_tree_ref($requires_tree_ref);
 

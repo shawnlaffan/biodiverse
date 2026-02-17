@@ -230,6 +230,11 @@ sub get_ignore_spatial_index_flag {
     return $self->{ignore_spatial_index};    
 }
 
+sub ignore_spatial_index {
+    my $self = shift;
+    return $self->{ignore_spatial_index};
+}
+
 sub set_volatile_flag {
     my ($self, $flag) = @_;
     return $self->{is_volatile} = $flag;

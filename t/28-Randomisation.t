@@ -531,10 +531,16 @@ sub test_rand_spatially_structured_volatile_cond {
             my $alloc = $list->{$label};
             #  seeds end in 0.01 - check is not future proof
             if ((abs ($alloc) - int (abs ($alloc))) == 0) {
-                is (!!exists $label_ranges{$label}{$gp}, !!1, "Non-seed loc $gp is in range of $label, alloc is $alloc");
+                is (!!exists $label_ranges{$label}{$gp},
+                    !!1,
+                    "Non-seed loc $gp is in range of $label, alloc is $alloc, cond is volatile"
+                );
             }
             else {
-                is (!!exists $label_ranges{$label}{$gp}, !!0, "Seed loc $gp is not in range of $label, alloc is $alloc");
+                is (!!exists $label_ranges{$label}{$gp},
+                    !!0,
+                    "Seed loc $gp is not in range of $label, alloc is $alloc, cond is volatile"
+                );
             }
         }
     }

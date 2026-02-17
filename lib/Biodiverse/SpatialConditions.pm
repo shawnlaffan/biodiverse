@@ -1152,16 +1152,18 @@ sub get_conditions_bbox {
     my $method_args  = $method_args_hash->{$range_method . $range_args} // {};
     my $range_label  = delete local $method_args->{label};
 
-    return if keys %$method_args;  #  only the simple case for now
+    #  we only work with axes [0,1] for now.
+    my $axes = $method_args->{axes};
+    return if $axes && (!is_arrayref ($axes) || join (':', @$axes) ne '0:1');
 
     my $label = $range_label // $cur_label // $self->get_current_label;
 
     return if !defined $label;
 
-#say STDERR 'BBOX: ' . $conditions;
     my $bd = $args{basedata_ref} // $self->get_basedata_ref // return;
 
-    return $bd->get_label_range_bbox_2d (label => $label);
+    #  delegate the arg handling
+    return $bd->get_label_range_bbox_2d (%$method_args, label => $label);
 }
 
 sub get_conditions_metadata_as_markdown {

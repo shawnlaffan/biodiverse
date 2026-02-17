@@ -270,13 +270,46 @@ sub get_label_range_bbox_2d {
     my ($self, %args) = @_;
     my $label = $args{label} // croak 'label arg is undefined';
 
+    return if !$self->exists_label_aa($label);
+
+    my $bbox;
+
+    #  could cache these also but then we need to wrangle args
+    if ($args{convex_hull}) {
+        my $hull = $self->get_label_range_convex_hull(%args);
+        $bbox = [@{$hull->GetEnvelope}[0,2,1,3]];
+    }
+    elsif ($args{concave_hull}) {
+        my $hull = $self->get_label_range_concave_hull(%args);
+        $bbox = [@{$hull->GetEnvelope}[0,2,1,3]];
+    }
+    elsif ($args{circumcircle}) {
+        my $circle = $self->get_label_range_circumcircle(%args);
+        $bbox = $circle->bbox;
+    }
+    if ($bbox && $args{buffer_dist}) {
+        my $buf = $args{buffer_dist};
+        my @box = (
+            $bbox->[0] - $buf,
+            $bbox->[1] - $buf,
+            $bbox->[2] + $buf,
+            $bbox->[3] + $buf,
+        );
+        #  Does a -ve buffer cause an empty geometry?
+        #  Return empty array if so.
+        return [] if $buf < 0 && ($box[0] > $box[2]) || ($box[1] > $box[3]);
+        $bbox = \@box;
+    }
+    return $bbox if $bbox;
+
     return if $self->get_group_axis_count != 2;
 
-    my $cache
+    my $cache_href
         = $self->get_cached_value_dor_set_default_href ('get_label_range_bbox_2d');
-    return $cache->{$label} if $cache->{$label};
 
-    return if !$self->exists_label_aa($label);
+    #  in case we cache the other variants
+    my $cache = $cache_href->{vanilla};
+    return $cache->{$label} if $cache->{$label};
 
     my @res = $self->get_cell_sizes;
     my $c1 = $res[0] / 2;
@@ -294,7 +327,7 @@ sub get_label_range_bbox_2d {
     my @xx = minmax (@x);
     my @yy = minmax (@y);
 
-    my $bbox = $cache->{$label} = [$xx[0], $yy[0], $xx[1], $yy[1]];
+    $bbox = $cache->{$label} = [$xx[0], $yy[0], $xx[1], $yy[1]];
 
     return wantarray ? @$bbox : $bbox;
 }

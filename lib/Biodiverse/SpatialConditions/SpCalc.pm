@@ -2249,6 +2249,29 @@ sub get_tree_node_ancestral_range_hash {
     return $self->get_tree_node_range_hash (%args, node => $ancestor);
 }
 
+sub get_tree_node_ancestral_range_bbox {
+    my ($self, %args) = @_;
+
+    $args{tree_ref} //= $self->get_tree_for_ancestral_conditions (%args)
+        // croak 'No tree ref available';
+    my $cache = $args{cache} //= $self->get_tree_node_ancestor_cache (%args);
+
+    my $bbox = $cache->{bbox}{$args{label}};
+    if (!$bbox) {
+        my $range_hash = $self->get_tree_node_ancestral_range_hash(%args);
+        if (!%$range_hash) {
+            $bbox = [];
+        }
+        else {
+            my $bd = $args{basedata_ref} // $self->get_basedata_ref;
+            $bbox = $bd->get_group_list_bbox_2d(groups => $range_hash);
+        }
+        $cache->{bbox}{$args{label}} = $bbox;
+    }
+
+    return wantarray ? @$bbox : $bbox;
+}
+
 sub get_tree_node_range_hash {
     my ($self, %args) = @_;
 

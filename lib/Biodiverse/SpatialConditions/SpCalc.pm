@@ -2228,20 +2228,32 @@ sub get_metadata_sp_in_label_ancestor_range {
 sub sp_in_label_ancestor_range {
     my ($self, %args) = @_;
 
-    my $tree = $args{tree_ref} // $self->get_tree_for_ancestral_conditions (%args)
+    $args{tree_ref} //= $self->get_tree_for_ancestral_conditions (%args)
         // croak 'No tree ref available';
 
-    my $cache = $self->get_tree_node_ancestor_cache (%args, tree_ref => $tree);
+    $args{cache} //= $self->get_tree_node_ancestor_cache (%args);
 
-    my $ancestor = $self->get_tree_node_ancestor (%args, tree_ref => $tree, cache => $cache);
+    my $ancestor = $self->get_tree_node_ancestor (%args);
     return 0 if !defined $ancestor;
+
+    my $range = $self->get_tree_node_range_hash (%args, node => $ancestor);
+    my $coord = $self->get_current_coord_id (%args{type});
+
+    return exists $range->{$coord};
+}
+
+sub get_tree_node_range_hash {
+    my ($self, %args) = @_;
+
+    my $node  = $args{node} // croak 'node argument not defined';
+    my $cache = $args{cache} // $self->get_tree_node_ancestor_cache (%args);
 
     my %range;
     if ($args{convex_hull} || $args{concave_hull} || $args{circumcircle}) {
         my $poly_cache_key = $self->_get_cache_key_for_in_polygon_check(%args);
-        \%range = $cache->{polygon_ranges}{$poly_cache_key}{$ancestor->get_name} //= do {
+        \%range = $cache->{polygon_ranges}{$poly_cache_key}{$node->get_name} //= do {
             my %collated_range;
-            foreach my $tip_label ($ancestor->get_terminal_elements) {
+            foreach my $tip_label ($node->get_terminal_elements) {
                 \my %tip_range = $self->get_in_polygon_hash(%args, label => $tip_label);
                 @collated_range{keys %tip_range} = values %tip_range;
             }
@@ -2250,15 +2262,15 @@ sub sp_in_label_ancestor_range {
     }
     else {
         my $bd = $self->get_basedata_ref;
-        \%range = $cache->{group_ranges}{$bd}{$ancestor->get_name} //= do {
+        \%range = $cache->{group_ranges}{$bd}{$node->get_name} //= do {
             $bd->get_range_union(
                 return_hash => 1,
-                labels      => scalar $ancestor->get_terminal_elements,
+                labels      => scalar $node->get_terminal_elements,
             );
         };
     }
-    my $coord = $self->get_current_coord_id(type => $args{type});
-    return exists $range{$coord};
+
+    return wantarray ? %range : \%range;
 }
 
 #  shared across several methods

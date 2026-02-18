@@ -2228,18 +2228,25 @@ sub get_metadata_sp_in_label_ancestor_range {
 sub sp_in_label_ancestor_range {
     my ($self, %args) = @_;
 
+    my $range = $self->get_tree_node_ancestral_range_hash(%args);
+    my $coord = $self->get_current_coord_id (%args{type});
+
+    return exists $range->{$coord};
+}
+
+sub get_tree_node_ancestral_range_hash {
+    my ($self, %args) = @_;
+
     $args{tree_ref} //= $self->get_tree_for_ancestral_conditions (%args)
         // croak 'No tree ref available';
 
     $args{cache} //= $self->get_tree_node_ancestor_cache (%args);
 
     my $ancestor = $self->get_tree_node_ancestor (%args);
-    return 0 if !defined $ancestor;
+    return wantarray ? () : {}
+        if !defined $ancestor;
 
-    my $range = $self->get_tree_node_range_hash (%args, node => $ancestor);
-    my $coord = $self->get_current_coord_id (%args{type});
-
-    return exists $range->{$coord};
+    return $self->get_tree_node_range_hash (%args, node => $ancestor);
 }
 
 sub get_tree_node_range_hash {

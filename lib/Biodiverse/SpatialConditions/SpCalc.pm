@@ -2228,39 +2228,13 @@ sub get_metadata_sp_in_label_ancestor_range {
 sub sp_in_label_ancestor_range {
     my ($self, %args) = @_;
 
-    my $label = $args{label} // $self->_process_label_arg();
-    my $tree  = $self->get_tree_for_ancestral_conditions (%args)
+    my $tree = $args{tree_ref} // $self->get_tree_for_ancestral_conditions (%args)
         // croak 'No tree ref available';
 
-    my $node = $tree->get_node_ref_or_undef_aa($label);
-    return 0 if !defined $node;
+    my $cache = $self->get_tree_node_ancestor_cache (%args, tree_ref => $tree);
 
-    my $d = $args{target} // croak 'argument "target" not defined';
-
-    #  a lot of setup but saves time for large data sets
-    my $cache = $self->get_cached_value_dor_set_default_href('sp_in_label_ancestor_range');
-    my $cache_key
-        = "d=>$d,"
-        . join ',', map {"$_=>". ($args{$_} // 0)}
-        qw /by_depth by_len_sum by_tip_count by_desc_count as_frac/;
-    $cache = $cache->{$tree}{$cache_key} //= {};
-
-    my $ancestor = $cache->{ancestors}{$label} //= do {
-        if ($args{as_frac}) {
-            $d = $args{by_depth} ? ($d <=> 0) * (1 - abs($d)) * $node->get_depth
-                : $args{by_len_sum} ? $d * $tree->get_total_tree_length
-                : $args{by_tip_count} ? POSIX::ceil($d * $tree->get_terminal_element_count)
-                : $args{by_desc_count} ? POSIX::ceil($d * $tree->get_node_count)
-                : $d * $node->get_distance_to_root_node;
-        }
-
-        my $anc = $args{by_depth} ? $node->get_ancestor_by_depth_aa($d)
-                : $args{by_len_sum} ? $node->get_ancestor_by_sum_of_branch_lengths_aa($d)
-                : $args{by_tip_count} ? $node->get_ancestor_by_ntips_aa($d)
-                : $args{by_desc_count} ? $node->get_ancestor_by_ndescendants_aa($d)
-                : $node->get_ancestor_by_length_aa($d);
-        $anc;
-    };
+    my $ancestor = $self->get_tree_node_ancestor (%args, tree_ref => $tree, cache => $cache);
+    return 0 if !defined $ancestor;
 
     my %range;
     if ($args{convex_hull} || $args{concave_hull} || $args{circumcircle}) {
@@ -2285,6 +2259,59 @@ sub sp_in_label_ancestor_range {
     }
     my $coord = $self->get_current_coord_id(type => $args{type});
     return exists $range{$coord};
+}
+
+#  shared across several methods
+sub get_tree_node_ancestor_cache {
+    my ($self, %args) = @_;
+
+    my $tree = $args{tree_ref} // croak 'tree_ref arg not passed';
+
+    my $d = $args{target} // croak 'target arg not passed';
+
+    #  a lot of setup but saves time for large data sets
+    my $cache = $self->get_cached_value_dor_set_default_href('sp_in_label_ancestor_range');
+    my $cache_key
+        = "d=>$d,"
+        . join ',', map {"$_=>". ($args{$_} // 0)}
+        qw /by_depth by_len_sum by_tip_count by_desc_count as_frac/;
+    $cache = $cache->{$tree}{$cache_key} //= {};
+
+    return $cache;
+}
+
+sub get_tree_node_ancestor {
+    my ($self, %args) = @_;
+
+    my $label = $args{label} // $self->_process_label_arg();
+    my $tree = $args{tree_ref} // $self->get_tree_for_ancestral_conditions (%args)
+        // croak 'No tree ref available';
+
+    my $node = $tree->get_node_ref_or_undef_aa($label);
+    return if !defined $node;
+
+    my $d = $args{target} // croak 'argument "target" not defined';
+
+    my $cache = $args{cache} // $self->get_tree_node_ancestor_cache (%args, tree => $tree);
+
+    my $ancestor = $cache->{ancestors}{$label} //= do {
+        if ($args{as_frac}) {
+            $d = $args{by_depth} ? ($d <=> 0) * (1 - abs($d)) * $node->get_depth
+                : $args{by_len_sum} ? $d * $tree->get_total_tree_length
+                : $args{by_tip_count} ? POSIX::ceil($d * $tree->get_terminal_element_count)
+                : $args{by_desc_count} ? POSIX::ceil($d * $tree->get_node_count)
+                : $d * $node->get_distance_to_root_node;
+        }
+
+        my $anc = $args{by_depth} ? $node->get_ancestor_by_depth_aa($d)
+            : $args{by_len_sum} ? $node->get_ancestor_by_sum_of_branch_lengths_aa($d)
+            : $args{by_tip_count} ? $node->get_ancestor_by_ntips_aa($d)
+            : $args{by_desc_count} ? $node->get_ancestor_by_ndescendants_aa($d)
+            : $node->get_ancestor_by_length_aa($d);
+        $anc;
+    };
+
+    return $ancestor;
 }
 
 sub get_tree_for_ancestral_conditions{

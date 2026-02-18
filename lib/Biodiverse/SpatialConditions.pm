@@ -198,6 +198,25 @@ sub get_conditions_parsed {
     return $conditions;
 }
 
+#  no whitespace
+sub get_conditions_nws {
+    my $self = shift;
+
+    state $cache_key = 'get_conditions_nws';
+    my $conditions = $self->get_cached_value ($cache_key);
+
+    return $conditions if length $conditions;
+
+    $conditions = $self->get_param('PARSED_CONDITIONS');
+    croak "Conditions have not been parsed\n" if !defined $conditions;
+
+    $conditions = $conditions =~ s/ (?&PerlNWS) $PPR::GRAMMAR//gxr;
+
+    $self->set_cached_value ($cache_key => $conditions);
+
+    return $conditions;
+}
+
 sub has_conditions {
     my $self       = shift;
     my $conditions = $self->get_conditions;
@@ -1140,7 +1159,7 @@ sub get_conditions_bbox {
 
     return if $self->ignore_spatial_index;
 
-    my $conditions = ($self->get_conditions_parsed =~ s/ (?&PerlNWS) $PPR::GRAMMAR//gxr);
+    my $conditions = $self->get_conditions_nws;
 
     return if not $conditions =~ /$re_in_label_range/ms;
 

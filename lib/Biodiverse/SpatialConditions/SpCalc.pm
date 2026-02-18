@@ -2229,37 +2229,8 @@ sub sp_in_label_ancestor_range {
     my ($self, %args) = @_;
 
     my $label = $args{label} // $self->_process_label_arg();
-    my $tree  = $self->get_tree_ref // croak 'No tree ref available';
-
-    if (!$args{by_depth}){
-        #  no point weighting if it is a depth thing
-        if (delete $args{eq}) {
-            #  equal branch lengths
-            my $bd = $self->get_basedata_ref;
-            #  should cache by SHA256 or similar, and perhaps use the vcache
-            state $cache_name = 'CLONED_TREE_EQ_B_LENS_' . $bd;
-            if (my $cached = $self->get_cached_value($cache_name)) {
-                $tree = $cached;
-            }
-            else {
-                $tree = $tree->clone_with_equalised_branch_lengths(basedata_ref => $bd);
-                $self->set_cached_value($cache_name => $tree);
-            }
-        }
-        if (delete $args{rw}) {
-            #  range weighting!
-            my $bd = $self->get_basedata_ref;
-            #  should cache by SHA256 or similar, and perhaps use the vcache
-            state $cache_name = 'CLONED_TREE_RANGE_WEIGHTED_' . $bd;
-            if (my $cached = $self->get_cached_value($cache_name)) {
-                $tree = $cached;
-            }
-            else {
-                $tree = $tree->clone_with_range_weighted_branches(basedata_ref => $bd);
-                $self->set_cached_value($cache_name => $tree);
-            }
-        }
-    }
+    my $tree  = $self->get_tree_for_ancestral_conditions (%args)
+        // croak 'No tree ref available';
 
     my $node = $tree->get_node_ref_or_undef_aa($label);
     return 0 if !defined $node;
@@ -2314,6 +2285,44 @@ sub sp_in_label_ancestor_range {
     }
     my $coord = $self->get_current_coord_id(type => $args{type});
     return exists $range{$coord};
+}
+
+sub get_tree_for_ancestral_conditions{
+    my ($self, %args) = @_;
+
+    my $tree  = $self->get_tree_ref // croak 'No tree ref available';
+
+    #  no point weighting if it is a depth thing
+    return $tree if $args{by_depth};
+
+    if (delete $args{eq}) {
+        #  equal branch lengths
+        my $bd = $args{basedata_ref} // $self->get_basedata_ref;
+        #  should cache by SHA256 or similar, and perhaps use the vcache
+        state $cache_name = 'CLONED_TREE_EQ_B_LENS_' . $bd;
+        if (my $cached = $self->get_cached_value($cache_name)) {
+            $tree = $cached;
+        }
+        else {
+            $tree = $tree->clone_with_equalised_branch_lengths(basedata_ref => $bd);
+            $self->set_cached_value($cache_name => $tree);
+        }
+    }
+    if (delete $args{rw}) {
+        #  range weighting!
+        my $bd = $args{basedata_ref} // $self->get_basedata_ref;
+        #  should cache by SHA256 or similar, and perhaps use the vcache
+        state $cache_name = 'CLONED_TREE_RANGE_WEIGHTED_' . $bd;
+        if (my $cached = $self->get_cached_value($cache_name)) {
+            $tree = $cached;
+        }
+        else {
+            $tree = $tree->clone_with_range_weighted_branches(basedata_ref => $bd);
+            $self->set_cached_value($cache_name => $tree);
+        }
+    }
+
+    return $tree;
 }
 
 sub get_example_sp_get_spatial_output_list_value {

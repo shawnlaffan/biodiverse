@@ -423,6 +423,9 @@ sub run_randomisation {
     #print "\n\n\nMAXITERS IS $max_iters\n\n\n";
     my $generate_tree_analyses = !!$args{build_randomised_trees};
 
+    #  an in-place clean up of conditions objects
+    $self->clean_sp_cond_object_args (args => \%args);
+
     #  load any predefined args, overriding user specified ones
     #  unless they are flagged as mutable.
     if (my $ref = $self->get_analysis_args) {
@@ -742,6 +745,26 @@ sub run_randomisation {
     #  return 1 if successful and ran some iterations
     #  return 2 if successful but did not need to run anything
     return $return_success_code;
+}
+
+#  an in-place clean up of conditions objects
+sub clean_sp_cond_object_args {
+    my ($self, %args) = @_;
+    return if !$args{args};
+
+    use experimental qw /for_list/;
+    #  somewhat hirstute...
+    my $href = $args{args} // {};
+    my @delete;
+    foreach my ($key, $obj) (%$href) {
+        next if !blessed $obj;
+        next if !$obj->isa('Biodiverse::SpatialConditions');
+        if (!$obj->has_conditions) {
+            push @delete, $key;
+        }
+    }
+    delete @$href{@delete};
+    return;
 }
 
 
@@ -2533,7 +2556,9 @@ sub get_rand_structured_subset {
         }
         
         # say STDERR "Adding rand ", $self->get_name, " to basedata ", $subset_bd->get_name;
-        my $subset_rand = $subset_bd->add_randomisation_output (name => $self->get_name);
+        my $subset_rand = $subset_bd->add_randomisation_output (
+            name => $self->get_name
+        );
         my $subset_rand_bd = $subset_rand->$rand_function (
             %args,
             rand_object  => $rand_object,

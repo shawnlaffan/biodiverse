@@ -1146,7 +1146,7 @@ state $re_in_label_range = qr/
     \A
         (?: $re_set_current_label )?
         \$self->
-        (?<range_method> sp_in_label_range )
+        (?<range_method> sp_in_label_(?:ancestor_)?range )
         (?<range_args> (?&PerlParenthesesList) )
         ;?
     \Z
@@ -1182,7 +1182,11 @@ sub get_conditions_bbox {
     my $bd = $args{basedata_ref} // $self->get_basedata_ref // return;
 
     #  delegate the arg handling
-    return $bd->get_label_range_bbox_2d (%$method_args, label => $label);
+    return $bd->get_label_range_bbox_2d (%$method_args, label => $label)
+      if $range_method eq 'sp_in_label_range';
+
+    return $self->get_tree_node_ancestral_range_bbox (%$method_args, label => $label)
+        if $range_method eq 'sp_in_label_ancestor_range';
 }
 
 sub get_conditions_metadata_as_markdown {

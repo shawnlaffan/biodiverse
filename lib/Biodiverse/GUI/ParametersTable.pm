@@ -59,6 +59,7 @@ use Gtk3;
 
 use Carp;
 use English qw { -no_match_vars };
+use Scalar::Util qw /blessed/;
 
 our $VERSION = '5.0';
 
@@ -404,13 +405,27 @@ sub generate_spatial_conditions {
     my $get_object_hash = pop;  # clunky way of getting the object back
 
     my $default = $param->get_default || '';
-
-    my $sp = Biodiverse::GUI::SpatialParams->new(
+    my %args_to_pass = (
         initial_text => $default,
-        promise_current_label => $param->{promise_current_label},
+        %{$param}{qw /promise_current_label is_def_query/},
     );
 
-    my $extract = sub { return ($param->{name}, $sp->get_text); };
+    if (blessed $default && $default->isa('Biodiverse::SpatialConditions')) {
+        $args_to_pass{initial_text}     = $default->get_conditions_unparsed;
+        $args_to_pass{condition_object} = $default;
+    }
+
+    my $sp = Biodiverse::GUI::SpatialParams->new(%args_to_pass);
+
+    my $extract = sub {
+        $sp->syntax_check ('no_ok');
+        my $cond_object = $sp->get_validated_conditions;
+        # my $cond_text = $cond_object->get_conditions_parsed;
+        return (
+            $param->{name},
+            $cond_object,
+        );
+    };
 
     $get_object_hash->{$param->get_name} = $sp;
 

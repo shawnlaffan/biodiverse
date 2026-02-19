@@ -219,12 +219,10 @@ sub get_conditions_nws {
 
 sub has_conditions {
     my $self       = shift;
-    my $conditions = $self->get_conditions;
+    my $conditions =  $self->get_param('PARSED_CONDITIONS') || $self->get_conditions;
 
     # anything left after whitespace means it has a condition
-    # - will this always work? nope - comments not handled
-    # update - should do now as comments are stripped in parsing
-    $conditions =~ s/\s//g;
+    $conditions = $conditions =~ s/ (?&PerlNWS) $PPR::GRAMMAR//gxr;
     return length $conditions;
 }
 

@@ -63,6 +63,9 @@ $re_text_in_brackets =
     qr / (?> [^()]+ | \(  (??{ $re_text_in_brackets }) \) )* /xo;
 
 
+use overload
+    '""' => sub { shift->get_conditions_unparsed; };
+
 sub new {
     my $class = shift;
     my $self = bless {}, $class;

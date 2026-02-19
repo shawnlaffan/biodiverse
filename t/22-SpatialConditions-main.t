@@ -72,6 +72,8 @@ exit main( @ARGV );
 sub main {
     my @args  = @_;
 
+    test_overload();
+
     test_result_types();
 
     test_sp_square_with_array_ref ();
@@ -95,6 +97,12 @@ sub main {
 
     done_testing;
     return 0;
+}
+
+sub test_overload {
+    my $cond = 'sp_self_only()';
+    my $obj = Biodiverse::SpatialConditions->new (conditions => $cond);
+    is "$obj", $cond, 'String overloading returns expected string';
 }
 
 sub test_ellipse_angles_match {

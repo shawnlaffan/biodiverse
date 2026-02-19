@@ -38,7 +38,7 @@ sub new {
     my $initial_text = $args{initial_text} // '';
     my $start_hidden = $args{start_hidden};
     my $is_def_query = $args{is_def_query};
-    my $condition_object = $args{condition_object};
+    my $condition_object = $args{condition_object} // $args{conditions_object};
     my $promise_current_label = $args{promise_current_label};
 
     my $hbox = Gtk3::HBox->new(0,2);

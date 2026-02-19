@@ -101,6 +101,40 @@ sub new {
     return $self;
 }
 
+sub clone {
+    my ($self) = @_;
+
+    use Clone qw //;
+    use experimental qw /defer/;
+
+    #  don't clone the cache
+    my $cache = delete local $self->{_cache};
+    defer {
+        $self->{_cache} = $cache if $cache
+    }
+
+    my $bd = $self->get_basedata_ref;
+    $self->set_basedata_ref_aa() if $bd;
+    defer {
+        $self->set_basedata_ref_aa($bd) if $bd;
+    }
+    #  Don't recursively clone the tree.
+    #  (Changing the tree clears the cache so
+    #  this must be after that is stored).
+    my $tree_ref = $self->get_tree_ref;
+    $self->set_tree_ref (undef) if $tree_ref;
+
+    my $clone = Clone::clone ($self);
+
+    if ($tree_ref) {
+        $self->set_tree_ref($tree_ref);
+        $clone->set_tree_ref($tree_ref);
+    }
+    $clone->set_basedata_ref_aa($bd) if $bd;
+
+    return $clone;
+}
+
 sub get_type {return 'spatial conditions'};
 
 sub is_def_query {return}

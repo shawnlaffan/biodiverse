@@ -37,9 +37,7 @@ use Biodiverse::Metadata::Export;
 my $export_metadata_class = 'Biodiverse::Metadata::Export';
 
 use Biodiverse::Metadata::Parameter;
-my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
-
-use Biodiverse::Metadata::Parameter;
+my $parameter_metadata_class      = 'Biodiverse::Metadata::Parameter';
 my $parameter_rand_metadata_class = 'Biodiverse::Metadata::Parameter';
 
 
@@ -1231,12 +1229,13 @@ sub get_seed_location_sp_condition_metadata {
     ;
 
     my $spatial_condition_param = bless {
-        name       => 'spatial_conditions_for_seed_location',
-        label_text => "Spatial condition\nto define seed locations",
-        default    => '',
-        type       => 'spatial_conditions',
-        tooltip    => $tooltip,
+        name                  => 'spatial_conditions_for_seed_location',
+        label_text            => "Spatial condition\nto define seed locations",
+        default               => '',
+        type                  => 'spatial_conditions',
+        tooltip               => $tooltip,
         promise_current_label => 1,
+        is_def_query          => 1,
     }, $parameter_rand_metadata_class;
 
     return $spatial_condition_param;
@@ -1437,16 +1436,27 @@ sub get_spatial_condition_for_seeding {
 
     return $cond if $cond || (!$cond && $self->exists_param($param_name));
 
-    my $cond_string = $args{spatial_conditions_for_seed_location};
+    my $cond_arg = $args{spatial_conditions_for_seed_location};
 
-    return if !defined $cond_string;
+    return if !defined $cond_arg;
 
-    my $bd = $args{basedata_ref} || $self->get_basedata_ref || $self->get_param ('BASEDATA_REF');
-
-    $cond = Biodiverse::SpatialConditions::DefQuery->new (
-        conditions   => $cond_string,
-        basedata_ref => $bd,
-    );
+    if (!blessed $cond_arg) {
+        my $bd = $args{basedata_ref}
+            || $self->get_basedata_ref
+            || $self->get_param('BASEDATA_REF');
+        $cond = Biodiverse::SpatialConditions::DefQuery->new(
+            conditions   => $cond_arg,
+            basedata_ref => $bd,
+        );
+    }
+    elsif (!$cond_arg->isa('Biodiverse::SpatialConditions::DefQuery')) {
+        my $class = blessed $cond_arg;
+        croak "spatial_conditions_for_seed_location is not a def query, "
+            . "got: $class";
+    }
+    else {
+        $cond = $cond_arg;
+    }
 
     #  override any always-false conditions
     if ($cond->get_param('RESULT_TYPE') eq 'always_false') {

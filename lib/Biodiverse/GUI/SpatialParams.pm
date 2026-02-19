@@ -38,7 +38,7 @@ sub new {
     my $initial_text = $args{initial_text} // '';
     my $start_hidden = $args{start_hidden};
     my $is_def_query = $args{is_def_query};
-    my $condition_object = $args{condition_object};
+    my $condition_object = $args{condition_object} // $args{conditions_object};
     my $promise_current_label = $args{promise_current_label};
 
     my $hbox = Gtk3::HBox->new(0,2);
@@ -282,7 +282,7 @@ sub run_options_dialogue {
     if (!$options) {
         my ($ignore_spatial_index, $no_recycling);
         if (my $cond_object = eval {$self->get_validated_conditions}) {
-            $ignore_spatial_index = $cond_object->get_ignore_spatial_index_flag;
+            $ignore_spatial_index = $cond_object->ignore_spatial_index;
             $no_recycling = $cond_object->get_no_recycling_flag;
         }
         $self->{options} = {

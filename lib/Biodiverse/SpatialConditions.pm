@@ -20,6 +20,7 @@ use Scalar::Util qw /looks_like_number blessed/;
 use List::MoreUtils qw /uniq/;
 use List::Util qw /min max/;
 use Ref::Util qw { :all };
+use PPR;
 
 
 use parent qw /
@@ -197,6 +198,25 @@ sub get_conditions_parsed {
     return $conditions;
 }
 
+#  no whitespace
+sub get_conditions_nws {
+    my $self = shift;
+
+    state $cache_key = 'get_conditions_nws';
+    my $conditions = $self->get_cached_value ($cache_key);
+
+    return $conditions if length $conditions;
+
+    $conditions = $self->get_param('PARSED_CONDITIONS');
+    croak "Conditions have not been parsed\n" if !defined $conditions;
+
+    $conditions = $conditions =~ s/ (?&PerlNWS) $PPR::GRAMMAR//gxr;
+
+    $self->set_cached_value ($cache_key => $conditions);
+
+    return $conditions;
+}
+
 sub has_conditions {
     my $self       = shift;
     my $conditions = $self->get_conditions;
@@ -228,6 +248,11 @@ sub set_ignore_spatial_index_flag {
 sub get_ignore_spatial_index_flag {
     my $self = shift;
     return $self->{ignore_spatial_index};    
+}
+
+sub ignore_spatial_index {
+    my $self = shift;
+    return $self->{ignore_spatial_index};
 }
 
 sub set_volatile_flag {
@@ -372,6 +397,12 @@ sub parse_distances {
     my $str_len = length $conditions;
     pos($conditions) = 0;
 
+    #  Store the args for our sp_ methods.
+    #  Somewhat fragile as the user might change a
+    #  variable between calls with the same args.
+    #  We can deal with that if it arises.
+    my %method_args;
+
     #  loop idea also courtesy Friedl
 
     CHECK_CONDITIONS:
@@ -417,6 +448,10 @@ sub parse_distances {
                     next CHECK_CONDITIONS;          #  and move to the next part
                 }
             }
+
+            #  should only use compacted version but need to check other uses first
+            my $compacted_sub_name_and_args = $sub_name_and_args =~ s/(?&PerlNWS) $PPR::GRAMMAR//grx;
+            $method_args{$compacted_sub_name_and_args} = \%hash_1;
 
             my $invalid = $self->get_invalid_args_for_sub_call (sub => $sub, args => \%hash_1);
             if (scalar @$invalid) {
@@ -503,6 +538,7 @@ sub parse_distances {
     $self->set_param( MISSING_OPT_ARGS => \%missing_opt_args );
     $self->set_param( USES             => \%uses_distances );
     $self->set_param( SHAPE_TYPES      => join ' ', sort keys %shape_hash);
+    $self->set_param( METHOD_ARG_HASHES => \%method_args );
     $self->set_volatile_flag($is_volatile);
     $self->set_requires_tree_ref($requires_tree_ref);
 
@@ -1078,6 +1114,79 @@ sub set_current_label {
 sub get_current_label {
     my ($self) = @_;
     return $self->get_param('CURRENT_LABEL');
+}
+
+#  used in the bbox code, could be moved to Common.pm
+sub _dequote_string_literal {
+    my ($self, $str) = @_;
+    return if !defined $str;
+    #  strip the quotes
+    if (substr ($str, 0, 1) =~ /["']/) {
+        $str =~ s/^(?<q>['"])(?<retain>.*)\k{q}$/$+{retain}/;
+    }
+    elsif ($str =~ /^(qq?)(.)/) {  #  q{}, qq<> etc
+        my $qq = quotemeta "$1$2";
+        $str =~ s/^$qq//;
+        $str =~ s/.$//;
+    }
+    $str = undef if not length $str;
+    return $str;
+}
+
+#  we strip the white space before matching these regexen
+#  match $self->set_current_label
+state $re_set_current_label = qr/
+    \$self->set_current_label
+    \( (?<cur_label> (?&PerlLiteral)) \)
+    ;
+    $PPR::GRAMMAR
+/x;
+#  sp_in_label_range with no args, possibly preceded by set_current_label
+state $re_in_label_range = qr/
+    \A
+        (?: $re_set_current_label )?
+        \$self->
+        (?<range_method> sp_in_label_(?:ancestor_)?range )
+        (?<range_args> (?&PerlParenthesesList) )
+        ;?
+    \Z
+    $PPR::GRAMMAR
+/x;
+
+#  a very limited set at the moment - need to generalise and handle via metadata
+sub get_conditions_bbox {
+    my ($self, %args) = @_;
+
+    return if $self->ignore_spatial_index;
+
+    my $conditions = $self->get_conditions_nws;
+
+    return if not $conditions =~ /$re_in_label_range/ms;
+
+    my $cur_label = $self->_dequote_string_literal($+{cur_label});
+
+    my $method_args_hash = $self->get_param ('METHOD_ARG_HASHES');
+    my $range_method = $+{range_method};
+    my $range_args   = $+{range_args};
+    my $method_args  = $method_args_hash->{$range_method . $range_args} // {};
+    my $range_label  = delete local $method_args->{label};
+
+    #  we only work with axes [0,1] for now.
+    my $axes = $method_args->{axes};
+    return if $axes && (!is_arrayref ($axes) || join (':', @$axes) ne '0:1');
+
+    my $label = $range_label // $cur_label // $self->get_current_label;
+
+    return if !defined $label;
+
+    my $bd = $args{basedata_ref} // $self->get_basedata_ref // return;
+
+    #  delegate the arg handling
+    return $bd->get_label_range_bbox_2d (%$method_args, label => $label)
+      if $range_method eq 'sp_in_label_range';
+
+    return $self->get_tree_node_ancestral_range_bbox (%$method_args, label => $label)
+        if $range_method eq 'sp_in_label_ancestor_range';
 }
 
 sub get_conditions_metadata_as_markdown {

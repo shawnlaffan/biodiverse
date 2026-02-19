@@ -1981,9 +1981,13 @@ sub sp_in_label_range {
 
     my $label = $args{label} // $self->_process_label_arg();
 
-    my $bd = $self->get_basedata_ref;
+    state $cache_name_labels = 'sp_in_label_range_labels';
+    my $cache_labels = $self->get_cached_value($cache_name_labels);
+    if (!$cache_labels) {
+        $self->set_cached_value($cache_name_labels, scalar $self->get_basedata_ref->get_labels_as_hash);
+    };
 
-    return 0 if !$bd->exists_label_aa($label);
+    return 0 if !$cache_labels->{$label};
 
     my $group = $self->get_current_coord_id(%args);
 
@@ -1992,7 +1996,12 @@ sub sp_in_label_range {
         return $in_polygon->{$group};
     }
 
-    my $labels_in_group = $bd->get_labels_in_group_as_hash_aa ($group);
+    state $cache_name = 'sp_in_label_range_by_group';
+    my $cache = $self->get_cached_value_dor_set_default_href($cache_name);
+
+    my $labels_in_group
+        =   $cache->{$group}
+        //= $self->get_basedata_ref->get_labels_in_group_as_hash_aa ($group);
 
     return exists $labels_in_group->{$label};
 }
@@ -2219,43 +2228,88 @@ sub get_metadata_sp_in_label_ancestor_range {
 sub sp_in_label_ancestor_range {
     my ($self, %args) = @_;
 
-    my $label = $args{label} // $self->_process_label_arg();
-    my $tree  = $self->get_tree_ref // croak 'No tree ref available';
+    my $range = $self->get_tree_node_ancestral_range_hash(%args);
+    my $coord = $self->get_current_coord_id (%args{type});
 
-    if (!$args{by_depth}){
-        #  no point weighting if it is a depth thing
-        if (delete $args{eq}) {
-            #  equal branch lengths
-            my $bd = $self->get_basedata_ref;
-            #  should cache by SHA256 or similar, and perhaps use the vcache
-            state $cache_name = 'CLONED_TREE_EQ_B_LENS_' . $bd;
-            if (my $cached = $self->get_cached_value($cache_name)) {
-                $tree = $cached;
-            }
-            else {
-                $tree = $tree->clone_with_equalised_branch_lengths(basedata_ref => $bd);
-                $self->set_cached_value($cache_name => $tree);
-            }
+    return exists $range->{$coord};
+}
+
+sub get_tree_node_ancestral_range_hash {
+    my ($self, %args) = @_;
+
+    $args{tree_ref} //= $self->get_tree_for_ancestral_conditions (%args)
+        // croak 'No tree ref available';
+
+    $args{cache} //= $self->get_tree_node_ancestor_cache (%args);
+
+    my $ancestor = $self->get_tree_node_ancestor (%args);
+    return wantarray ? () : {}
+        if !defined $ancestor;
+
+    return $self->get_tree_node_range_hash (%args, node => $ancestor);
+}
+
+sub get_tree_node_ancestral_range_bbox {
+    my ($self, %args) = @_;
+
+    $args{tree_ref} //= $self->get_tree_for_ancestral_conditions (%args)
+        // croak 'No tree ref available';
+    my $cache = $args{cache} //= $self->get_tree_node_ancestor_cache (%args);
+
+    my $bbox = $cache->{bbox}{$args{label}};
+    if (!$bbox) {
+        my $range_hash = $self->get_tree_node_ancestral_range_hash(%args);
+        if (!%$range_hash) {
+            $bbox = [];
         }
-        if (delete $args{rw}) {
-            #  range weighting!
-            my $bd = $self->get_basedata_ref;
-            #  should cache by SHA256 or similar, and perhaps use the vcache
-            state $cache_name = 'CLONED_TREE_RANGE_WEIGHTED_' . $bd;
-            if (my $cached = $self->get_cached_value($cache_name)) {
-                $tree = $cached;
-            }
-            else {
-                $tree = $tree->clone_with_range_weighted_branches(basedata_ref => $bd);
-                $self->set_cached_value($cache_name => $tree);
-            }
+        else {
+            my $bd = $args{basedata_ref} // $self->get_basedata_ref;
+            $bbox = $bd->get_group_list_bbox_2d(groups => $range_hash);
         }
+        $cache->{bbox}{$args{label}} = $bbox;
     }
 
-    my $node = $tree->get_node_ref_or_undef_aa($label);
-    return 0 if !defined $node;
+    return wantarray ? @$bbox : $bbox;
+}
 
-    my $d = $args{target} // croak 'argument "target" not defined';
+sub get_tree_node_range_hash {
+    my ($self, %args) = @_;
+
+    my $node  = $args{node} // croak 'node argument not defined';
+    my $cache = $args{cache} // $self->get_tree_node_ancestor_cache (%args);
+
+    my %range;
+    if ($args{convex_hull} || $args{concave_hull} || $args{circumcircle}) {
+        my $poly_cache_key = $self->_get_cache_key_for_in_polygon_check(%args);
+        \%range = $cache->{polygon_ranges}{$poly_cache_key}{$node->get_name} //= do {
+            my %collated_range;
+            foreach my $tip_label ($node->get_terminal_elements) {
+                \my %tip_range = $self->get_in_polygon_hash(%args, label => $tip_label);
+                @collated_range{keys %tip_range} = values %tip_range;
+            }
+            \%collated_range;
+        }
+    }
+    else {
+        my $bd = $self->get_basedata_ref;
+        \%range = $cache->{group_ranges}{$bd}{$node->get_name} //= do {
+            $bd->get_range_union(
+                return_hash => 1,
+                labels      => scalar $node->get_terminal_elements,
+            );
+        };
+    }
+
+    return wantarray ? %range : \%range;
+}
+
+#  shared across several methods
+sub get_tree_node_ancestor_cache {
+    my ($self, %args) = @_;
+
+    my $tree = $args{tree_ref} // croak 'tree_ref arg not passed';
+
+    my $d = $args{target} // croak 'target arg not passed';
 
     #  a lot of setup but saves time for large data sets
     my $cache = $self->get_cached_value_dor_set_default_href('sp_in_label_ancestor_range');
@@ -2264,6 +2318,23 @@ sub sp_in_label_ancestor_range {
         . join ',', map {"$_=>". ($args{$_} // 0)}
         qw /by_depth by_len_sum by_tip_count by_desc_count as_frac/;
     $cache = $cache->{$tree}{$cache_key} //= {};
+
+    return $cache;
+}
+
+sub get_tree_node_ancestor {
+    my ($self, %args) = @_;
+
+    my $label = $args{label} // $self->_process_label_arg();
+    my $tree = $args{tree_ref} // $self->get_tree_for_ancestral_conditions (%args)
+        // croak 'No tree ref available';
+
+    my $node = $tree->get_node_ref_or_undef_aa($label);
+    return if !defined $node;
+
+    my $d = $args{target} // croak 'argument "target" not defined';
+
+    my $cache = $args{cache} // $self->get_tree_node_ancestor_cache (%args, tree => $tree);
 
     my $ancestor = $cache->{ancestors}{$label} //= do {
         if ($args{as_frac}) {
@@ -2275,36 +2346,52 @@ sub sp_in_label_ancestor_range {
         }
 
         my $anc = $args{by_depth} ? $node->get_ancestor_by_depth_aa($d)
-                : $args{by_len_sum} ? $node->get_ancestor_by_sum_of_branch_lengths_aa($d)
-                : $args{by_tip_count} ? $node->get_ancestor_by_ntips_aa($d)
-                : $args{by_desc_count} ? $node->get_ancestor_by_ndescendants_aa($d)
-                : $node->get_ancestor_by_length_aa($d);
+            : $args{by_len_sum} ? $node->get_ancestor_by_sum_of_branch_lengths_aa($d)
+            : $args{by_tip_count} ? $node->get_ancestor_by_ntips_aa($d)
+            : $args{by_desc_count} ? $node->get_ancestor_by_ndescendants_aa($d)
+            : $node->get_ancestor_by_length_aa($d);
         $anc;
     };
 
-    my %range;
-    if ($args{convex_hull} || $args{concave_hull} || $args{circumcircle}) {
-        my $poly_cache_key = $self->_get_cache_key_for_in_polygon_check(%args);
-        \%range = $cache->{polygon_ranges}{$poly_cache_key}{$ancestor->get_name} //= do {
-            my %collated_range;
-            foreach my $tip_label ($ancestor->get_terminal_elements) {
-                \my %tip_range = $self->get_in_polygon_hash(%args, label => $tip_label);
-                @collated_range{keys %tip_range} = values %tip_range;
-            }
-            \%collated_range;
+    return $ancestor;
+}
+
+sub get_tree_for_ancestral_conditions{
+    my ($self, %args) = @_;
+
+    my $tree  = $self->get_tree_ref // croak 'No tree ref available';
+
+    #  no point weighting if it is a depth thing
+    return $tree if $args{by_depth};
+
+    if (delete $args{eq}) {
+        #  equal branch lengths
+        my $bd = $args{basedata_ref} // $self->get_basedata_ref;
+        #  should cache by SHA256 or similar, and perhaps use the vcache
+        state $cache_name = 'CLONED_TREE_EQ_B_LENS_' . $bd;
+        if (my $cached = $self->get_cached_value($cache_name)) {
+            $tree = $cached;
+        }
+        else {
+            $tree = $tree->clone_with_equalised_branch_lengths(basedata_ref => $bd);
+            $self->set_cached_value($cache_name => $tree);
         }
     }
-    else {
-        my $bd = $self->get_basedata_ref;
-        \%range = $cache->{group_ranges}{$bd}{$ancestor->get_name} //= do {
-            $bd->get_range_union(
-                return_hash => 1,
-                labels      => scalar $ancestor->get_terminal_elements,
-            );
-        };
+    if (delete $args{rw}) {
+        #  range weighting!
+        my $bd = $args{basedata_ref} // $self->get_basedata_ref;
+        #  should cache by SHA256 or similar, and perhaps use the vcache
+        state $cache_name = 'CLONED_TREE_RANGE_WEIGHTED_' . $bd;
+        if (my $cached = $self->get_cached_value($cache_name)) {
+            $tree = $cached;
+        }
+        else {
+            $tree = $tree->clone_with_range_weighted_branches(basedata_ref => $bd);
+            $self->set_cached_value($cache_name => $tree);
+        }
     }
-    my $coord = $self->get_current_coord_id(type => $args{type});
-    return exists $range{$coord};
+
+    return $tree;
 }
 
 sub get_example_sp_get_spatial_output_list_value {

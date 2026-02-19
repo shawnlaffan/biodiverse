@@ -172,7 +172,7 @@ sub test_sp_in_label_range_convex_hull {
 
     #  check vanilla still works
     my $cond3 = <<~'EOC'
-        $self->set_current_label('Genus:sp4');
+        $self->set_current_label(q{Genus:sp4});
         sp_in_label_range();
         EOC
     ;
@@ -189,6 +189,24 @@ sub test_sp_in_label_range_convex_hull {
 
     my $passed3 = $sp3->get_groups_that_pass_def_query();
     isnt $passed3, $exp, 'Expected def query not same as normal range check';
+
+    {
+        #  check vanilla still works but with label as an arg instead of via current label
+        my $cond3a = <<~'EOC'
+            sp_in_label_range(label => q{Genus:sp4});
+            EOC
+        ;
+
+        my $sp3a = $bd->add_spatial_output (name => 'test_3a');
+        $sp3a->run_analysis (
+            calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
+            spatial_conditions => ['sp_self_only()'],
+            definition_query   => $cond3a,
+        );
+
+        my $passed3a = $sp3a->get_groups_that_pass_def_query();
+        isnt $passed3a, $exp, 'Expected def query not same as normal range check';
+    }
 
     my $cond_b0 = <<~'EOC'
         $self->set_current_label('Genus:sp4');

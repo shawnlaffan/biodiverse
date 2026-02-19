@@ -2593,8 +2593,13 @@ sub get_neighbours {
         @exclude_hash{@{$args{exclude_list}}} = (1) x @{$args{exclude_list}};
     }
 
-    my $centre_coord_ref =
-      $self->get_group_element_as_array( element => $element1 );
+
+    #  Some spatial conditions go to town with their evaluations,
+    #  so caching these saves internal method calls and thus time.
+    my $coord_array_cache = $self->get_cached_value_dor_set_default_href ('COORD_ARRAYS');
+
+    my $centre_coord_ref
+        = $coord_array_cache->{$element1} //= $self->get_group_element_as_array_aa( $element1 );
 
 #  Get the list of possible neighbours - should allow this as an arg?
 #  Don't check the index unless it will result in fewer loop iterations overall.
@@ -2607,7 +2612,21 @@ sub get_neighbours {
             keys %$index_offsets ) > ( $self->get_group_count / 2 )
       )
     {
-        @compare_list = $self->get_groups;
+        #  applies to very limited cases at the moment
+        if (my $bbox = $spatial_conditions->get_conditions_bbox (basedata_ref => $self)) {
+            if (@$bbox) {
+                my $str_tree = $self->get_strtree_index();
+                \@compare_list = $str_tree->query_partly_within_rect(@$bbox);
+            }
+            else {
+                #  bbox is empty, no valid nbrs
+                return
+                    wantarray         ? ()
+                    : $args{as_array} ? []
+                    : {};
+            }
+        }
+        @compare_list = $self->get_groups if !@compare_list;
     }
     else
     { #  We have a spatial index defined and a favourable ratio of offsets to groups
@@ -2668,7 +2687,9 @@ sub get_neighbours {
         }
 
         #  make the neighbour coord available to the spatial_conditions
-        my @coord = $self->get_group_element_as_array_aa ($element2 );
+        my $coord
+            = $coord_array_cache->{$element2}
+            //= $self->get_group_element_as_array_aa ($element2 );
 
         my %eval_args;
 
@@ -2677,7 +2698,7 @@ sub get_neighbours {
         #  partly for cleaner logic.
         if ($is_def_query) {
             %eval_args = (
-                coord_array1 => \@coord,
+                coord_array1 => $coord,
                 coord_id1    => $element2,
                 coord_id2    => $element2,
             );
@@ -2685,7 +2706,7 @@ sub get_neighbours {
         else {
             %eval_args = (
                 coord_array1 => $centre_coord_ref,
-                coord_array2 => \@coord,
+                coord_array2 => $coord,
                 coord_id1    => $element1,
                 coord_id2    => $element2,
             );

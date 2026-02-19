@@ -11,6 +11,8 @@ use experimental qw /refaliasing declared_refs/;
 
 use Geo::GDAL::FFI 0.15;
 use List::Util qw /min max/;
+use List::MoreUtils qw /minmax/;
+use Ref::Util qw /is_hashref/;
 
 sub get_label_range_circumcircle {
     my ($self, %args) = @_;
@@ -263,6 +265,114 @@ sub get_groups_in_circle {
     }
 
     return wantarray ? %in_circumcircle : \%in_circumcircle;
+}
+
+sub get_label_range_bbox_2d {
+    my ($self, %args) = @_;
+    my $label = $args{label} // croak 'label arg is undefined';
+
+    return if !$self->exists_label_aa($label);
+
+    my $bbox;
+
+    #  could cache these also but then we need to wrangle args
+    if ($args{convex_hull}) {
+        my $hull = $self->get_label_range_convex_hull(%args);
+        $bbox = [@{$hull->GetEnvelope}[0,2,1,3]];
+    }
+    elsif ($args{concave_hull}) {
+        my $hull = $self->get_label_range_concave_hull(%args);
+        $bbox = [@{$hull->GetEnvelope}[0,2,1,3]];
+    }
+    elsif ($args{circumcircle}) {
+        my $circle = $self->get_label_range_circumcircle(%args);
+        $bbox = $circle->bbox;
+    }
+    if ($bbox && $args{buffer_dist}) {
+        my $buf = $args{buffer_dist};
+        my @box = (
+            $bbox->[0] - $buf,
+            $bbox->[1] - $buf,
+            $bbox->[2] + $buf,
+            $bbox->[3] + $buf,
+        );
+        #  Does a -ve buffer cause an empty geometry?
+        #  Return empty array if so.
+        return [] if $buf < 0 && ($box[0] > $box[2]) || ($box[1] > $box[3]);
+        $bbox = \@box;
+    }
+    return $bbox if $bbox;
+
+    return if $self->get_group_axis_count != 2;
+
+    my $cache_href
+        = $self->get_cached_value_dor_set_default_href ('get_label_range_bbox_2d');
+
+    #  in case we cache the other variants
+    my $cache = $cache_href->{vanilla};
+    return $cache->{$label} if $cache->{$label};
+
+    my @res = $self->get_cell_sizes;
+    my $c1 = $res[0] / 2;
+    my $c2 = $res[1] / 2;
+
+    my $groups = $self->get_groups_with_label_as_hash_aa($label);
+    my (@x, @y);
+    foreach my $gp (keys %$groups) {
+        my ($x, $y) = $self->get_group_element_as_array_aa ($gp);
+        my ($x1, $x2) = ($x - $c1, $x + $c1);
+        my ($y1, $y2) = ($y - $c2, $y + $c2);
+        push @x, ($x1, $x2);
+        push @y, ($y1, $y2);
+    }
+    my @xx = minmax (@x);
+    my @yy = minmax (@y);
+
+    $bbox = $cache->{$label} = [$xx[0], $yy[0], $xx[1], $yy[1]];
+
+    return wantarray ? @$bbox : $bbox;
+}
+
+#  an arbitrary set
+sub get_group_list_bbox_2d {
+    my ($self, %args) = @_;
+
+    my $groups = $args{groups} // croak 'groups arg not defined';
+
+    if (is_hashref $groups) {
+        $groups = [keys %$groups];
+    }
+
+    my $cache_href
+        = $self->get_cached_value_dor_set_default_href ('get_group_list_bbox_2d');
+
+    use Digest::SHA qw/sha256_hex/;
+    #  Join using ascii file separator control character,
+    #  which is also the default value for $;
+    my $sha = sha256_hex join "\034", sort @$groups;
+
+    #  in case we cache the other variants
+    my $cache = $cache_href->{vanilla};
+    return $cache->{$sha} if $cache->{$sha};
+
+    my @res = $self->get_cell_sizes;
+    my $c1 = $res[0] / 2;
+    my $c2 = $res[1] / 2;
+
+    my (@x, @y);
+    foreach my $gp (@$groups) {
+        my ($x, $y) = $self->get_group_element_as_array_aa ($gp);
+        my ($x1, $x2) = ($x - $c1, $x + $c1);
+        my ($y1, $y2) = ($y - $c2, $y + $c2);
+        push @x, ($x1, $x2);
+        push @y, ($y1, $y2);
+    }
+    my @xx = minmax (@x);
+    my @yy = minmax (@y);
+
+    my $bbox = $cache->{$sha} = [$xx[0], $yy[0], $xx[1], $yy[1]];
+
+    return wantarray ? @$bbox : $bbox;
 }
 
 

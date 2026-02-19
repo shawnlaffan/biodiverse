@@ -37,9 +37,7 @@ use Biodiverse::Metadata::Export;
 my $export_metadata_class = 'Biodiverse::Metadata::Export';
 
 use Biodiverse::Metadata::Parameter;
-my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
-
-use Biodiverse::Metadata::Parameter;
+my $parameter_metadata_class      = 'Biodiverse::Metadata::Parameter';
 my $parameter_rand_metadata_class = 'Biodiverse::Metadata::Parameter';
 
 
@@ -1231,12 +1229,13 @@ sub get_seed_location_sp_condition_metadata {
     ;
 
     my $spatial_condition_param = bless {
-        name       => 'spatial_conditions_for_seed_location',
-        label_text => "Spatial condition\nto define seed locations",
-        default    => '',
-        type       => 'spatial_conditions',
-        tooltip    => $tooltip,
+        name                  => 'spatial_conditions_for_seed_location',
+        label_text            => "Spatial condition\nto define seed locations",
+        default               => '',
+        type                  => 'spatial_conditions',
+        tooltip               => $tooltip,
         promise_current_label => 1,
+        is_def_query          => 1,
     }, $parameter_rand_metadata_class;
 
     return $spatial_condition_param;
@@ -1437,16 +1436,27 @@ sub get_spatial_condition_for_seeding {
 
     return $cond if $cond || (!$cond && $self->exists_param($param_name));
 
-    my $cond_string = $args{spatial_conditions_for_seed_location};
+    my $cond_arg = $args{spatial_conditions_for_seed_location};
 
-    return if !defined $cond_string;
+    return if !defined $cond_arg;
 
-    my $bd = $args{basedata_ref} || $self->get_basedata_ref || $self->get_param ('BASEDATA_REF');
-
-    $cond = Biodiverse::SpatialConditions::DefQuery->new (
-        conditions   => $cond_string,
-        basedata_ref => $bd,
-    );
+    if (!blessed $cond_arg) {
+        my $bd = $args{basedata_ref}
+            || $self->get_basedata_ref
+            || $self->get_param('BASEDATA_REF');
+        $cond = Biodiverse::SpatialConditions::DefQuery->new(
+            conditions   => $cond_arg,
+            basedata_ref => $bd,
+        );
+    }
+    elsif (!$cond_arg->isa('Biodiverse::SpatialConditions::DefQuery')) {
+        my $class = blessed $cond_arg;
+        croak "spatial_conditions_for_seed_location is not a def query, "
+            . "got: $class";
+    }
+    else {
+        $cond = $cond_arg;
+    }
 
     #  override any always-false conditions
     if ($cond->get_param('RESULT_TYPE') eq 'always_false') {
@@ -1841,7 +1851,7 @@ sub rand_structured {
 
     #  generate a hash with the target richness values
     my %target_richness;
-    my $i = 0;
+    my $group_i = 0;
     my $total_to_do = scalar @sorted_groups;
 
     #  %filled_groups is used to track richness targets
@@ -1855,7 +1865,7 @@ sub rand_structured {
         $cloned_bd_gps_remaining{$group} = $gp_richness;
         $bd_has_empty_groups ||= !$gp_richness;
 
-        my $progress = $i / $total_to_do;
+        my $progress = $group_i / $total_to_do;
         $progress_bar->update (
             "$progress_text\n"
             . "Assigning richness targets\n"
@@ -1878,7 +1888,7 @@ sub rand_structured {
             $filled_groups{$group} = 0;
             delete $cloned_bd_gps_remaining{$group};
         }
-        $i++;
+        $group_i++;
     }
 
     $progress_bar->reset;
@@ -1895,7 +1905,7 @@ sub rand_structured {
     my @unfilled_groups_sorted_arr = sort keys %unfilled_groups;
     my %new_bd_richness;
     my $last_filled     = $EMPTY_STRING;
-    $i = 0;
+    my $label_i = 0;
     my $seed_group_flag;
     $total_to_do = scalar @$rand_label_order;
     say "[RANDOMISE] Target is $total_to_do.  Running.";
@@ -1904,19 +1914,21 @@ sub rand_structured {
         sep_char   => $bd->get_param ('JOIN_CHAR'),
         quote_char => $bd->get_param ('QUOTES'),
     );
+    my $sp_seed_timer;
+    my $sp_seed_show_progress = 1;
 
     BY_LABEL:
     foreach my $label (@$rand_label_order) {
 
-        my $progress = $i / $total_to_do;
+        my $progress = $label_i / $total_to_do;
         $progress_bar->update (
             "Allocating labels to groups\n"
             . "$progress_text\n"
-            . "($i / $total_to_do)",
+            . "($label_i / $total_to_do)",
             $progress,
         );
 
-        $i++;
+        $label_i++;
 
         @target_groups = @unfilled_groups_sorted_arr;
         my %cleared_target_gps;
@@ -1964,7 +1976,12 @@ sub rand_structured {
                     my $seed_groups = $cache->{$label};
                     if (!$seed_groups) {
                         $sp_cond_for_seeding->set_current_label($label);
-                        my $defq_progress = Biodiverse::Progress->new(text => 'def query');
+                        #  progress if duration is long
+                        my $defq_progress
+                            = $sp_seed_show_progress
+                            ? Biodiverse::Progress->new(text => 'seed group def query', gui_only => 1)
+                            : undef;
+                        my $t0 = time();
                         #  don't pass an exclude list as we cache across rand iterations
                         $seed_groups = $cache->{$label} = $bd->get_neighbours(
                             element            => $target_groups[0],
@@ -1972,6 +1989,7 @@ sub rand_structured {
                             is_def_query       => 1,
                             progress           => $defq_progress,
                         );
+                        $sp_seed_show_progress = (time() - $t0) > 1;
                     }
 
                     delete local @{$seed_groups}{keys %filled_groups}
@@ -2071,7 +2089,7 @@ sub rand_structured {
 
                 warn "SELECTING GROUP THAT IS ALREADY FULL $to_group,"
                      . "$filled_groups{$to_group}, $target_richness{$to_group}, "
-                     . "$i\n"
+                     . "$label_i\n"
                         if defined $to_group and exists $filled_groups{$to_group};
                 
                 # Store the group/label count

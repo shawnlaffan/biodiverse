@@ -2478,6 +2478,8 @@ sub get_rand_structured_subset {
 
     my $cached_subset_basedatas
       = $self->get_cached_value_dor_set_default_href ('SUBSET_BASEDATAS');
+    my $cached_arg_hashes
+        = $self->get_cached_value_dor_set_default_href ('SUBSET_BASEDATA_ARG_HASHES');
 
     my $failed_def_query = $sp->get_groups_that_failed_def_query;
     my $bd_failed_def_query = $cached_subset_basedatas->{failed_def_query};
@@ -2547,8 +2549,10 @@ sub get_rand_structured_subset {
         my $subset_rand = $subset_bd->add_randomisation_output (
             name => $self->get_name
         );
+        my $subset_args = $cached_arg_hashes->{$group}
+            //= $self->clone_and_clean_sp_cond_object_args (%args, assign_bd_ref => $subset_bd);
         my $subset_rand_bd = $subset_rand->$rand_function (
-            %args,
+            %$subset_args,
             rand_object  => $rand_object,
             basedata_ref => $subset_bd,
         );
@@ -2594,8 +2598,10 @@ sub get_rand_structured_subset {
         };
 
         my $subset_rand = $subset_bd->add_randomisation_output (name => $self->get_name);
+        my $subset_args = $cached_arg_hashes->{$group}
+            //= $self->clone_and_clean_sp_cond_object_args (%args, assign_bd_ref => $subset_bd);
         my $subset_rand_bd = $subset_rand->$rand_function (
-            %args,
+            %$subset_args,
             rand_object  => $rand_object,
             basedata_ref => $subset_bd,
         );
@@ -2645,6 +2651,30 @@ sub get_basedata_subset {
     return $subset_bd;
 }
 
+
+#  avoids potential cache issues when passing sp cond objects to subsets
+sub clone_and_clean_sp_cond_object_args {
+    my ($self, %args) = @_;
+
+    use experimental qw /for_list isa/;
+
+    my $bd = delete $args{assign_bd_ref};
+
+    my %res;
+    foreach my ($key, $val) (%args) {
+        if ($val isa 'Biodiverse::SpatialConditions') {
+            next if !$val->has_conditions;  #  elide "empty" conditions
+            my $clone = $val->clone;
+            $clone->set_basedata_ref_aa($bd);  #  need a new basedata ref
+            $res{$key} = $clone;
+        }
+        else {
+            $res{$key} = $val;
+        }
+    }
+
+    return wantarray ? %res : \%res;
+}
 
 sub swap_to_reach_richness_targets {
     my $self = shift;

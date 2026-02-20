@@ -922,6 +922,15 @@ sub test_rand_structured_subset_richness_same {
 
     $bd->build_spatial_index (resolutions => [100000, 100000]);
 
+    #  work with an object so we exercise some internal code that clones these
+    if ($def_query) {
+        $def_query = Biodiverse::SpatialConditions::DefQuery->new (
+            conditions   => $def_query,
+            basedata_ref => $bd,
+        );
+    }
+
+
     #  name is short for test_rand_calc_per_node_uses_orig_bd
     my $sp = $bd->add_spatial_output (name => 'sp');
 

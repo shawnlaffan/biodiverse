@@ -149,13 +149,11 @@ sub get_metadata {
 }
 
 sub get_current_args {
-    my $self = shift;
-    $self->get_param('CURRENT_ARGS');
+    $_[0]{current_args};
 }
 
 sub set_current_args {
-    my ($self, $href) = @_;
-    $self->set_param(CURRENT_ARGS => $href);
+    $_[0]{current_args} = $_[1];
 }
 
 

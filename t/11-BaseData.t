@@ -112,7 +112,7 @@ sub test_sha {
         allow_empty_labels => 1,
     );
 
-    my $exp = 'cf35da75db07866f73f984507e4e3cb8fcba7f69390098e2f64c373d3f3fd7c3';
+    my $exp = '967cde9c3c7e88305a3528348d4ea2b669c217dd88db93378799ad3046a17f9d';
     is $bd->get_sha256, $exp, 'simple basedata sha256';
     is $bd->get_sha256, $exp, 'simple basedata sha256, second call';  #  cached
 

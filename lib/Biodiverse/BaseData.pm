@@ -211,6 +211,8 @@ sub get_sha256 {
             $data{label_props}{$label} = $p;
         }
     }
+    $data{cell_sizes}   = $self->get_cell_sizes;
+    $data{cell_origins} = $self->get_cell_origins;
 
     use JSON::MaybeXS;
     my $json = JSON::MaybeXS->new(utf8 => 1, canonical => 1, pretty => 0);

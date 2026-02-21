@@ -941,6 +941,8 @@ sub {
     my $self = shift;
     my %args = @_;
 
+    use experimental qw /refaliasing declared_refs/;
+
     #  CHEATING... should use a generic means of getting at the caller object
     my $basedata = $args{basedata} || $args{caller_object}; 
 
@@ -971,7 +973,7 @@ sub {
     my $coord_id1 = $args{coord_id1};
     my $coord_id2 = $args{coord_id2};
 
-    my @coord = @{ $args{coord_array1} };
+    \my @coord = ($args{coord_array1} // []);
 
     #  shorthands - most cases will be 2D
     my ( $x, $y, $z ) = @coord[0,1,2];

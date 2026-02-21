@@ -996,8 +996,8 @@ sub {
     my $result = eval { CONDITIONS_STRING_GOES_HERE };
     my $error  = $EVAL_ERROR;
 
-    #  clear the args, avoid ref cycles
-    $self->set_current_args ( undef );
+    #  clear basedata to avoid ref cycles
+    $current_args->{basedata} = undef;
 
     croak $error if $error;
 

@@ -364,15 +364,21 @@ sub update_dendrogram_combo {
     my $model = Gtk3::ListStore->new('Glib::String', 'Glib::Scalar');
 
     my @combo_items;
+    my $default_iter = 0;
 
     my $output_ref = eval {$self->get_validated_conditions};
-    if ($output_ref && $output_ref->can('get_tree_ref') && $output_ref->get_tree_ref) {
-        my $iter = $model->append();
-        $model->set( $iter, 0 => 'analysis', 1 =>  $output_ref->get_tree_ref);
-        push @combo_items, 'analysis';
+    if ($output_ref) {
+        if ($output_ref->can('get_tree_ref') && $output_ref->get_tree_ref) {
+            my $iter = $model->append();
+            $model->set($iter, 0 => 'analysis', 1 => $output_ref->get_tree_ref);
+            push @combo_items, 'analysis';
+        }
+        else {
+            $default_iter = 1;  #  no tree
+        }
     }
 
-    foreach my $option ('no tree', 'project') {
+    foreach my $option ('project', 'no tree') {
         my $iter = $model->append();
         $model->set( $iter, 0 => $option, 1 => $option );
         push @combo_items, $option;
@@ -398,7 +404,7 @@ sub update_dendrogram_combo {
     ;
 
     $combobox->set_tooltip_text ($tooltip);
-    $combobox->set_active(0);
+    $combobox->set_active($default_iter);
     # $combobox->show_all;
 
     return $combobox;

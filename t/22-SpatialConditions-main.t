@@ -72,6 +72,9 @@ exit main( @ARGV );
 sub main {
     my @args  = @_;
 
+    test_overload();
+    test_clone();
+
     test_result_types();
 
     test_sp_square_with_array_ref ();
@@ -95,6 +98,41 @@ sub main {
 
     done_testing;
     return 0;
+}
+
+sub test_overload {
+    my $cond = 'sp_self_only()';
+    my $obj = Biodiverse::SpatialConditions->new (conditions => $cond);
+    is "$obj", $cond, 'String overloading returns expected string';
+}
+
+sub test_clone {
+
+    my $bd = {pretend_basedata => 1};
+    my $obj = Biodiverse::SpatialConditions->new (
+        conditions   => 'sp_self_only()',
+        basedata_ref => $bd,
+    );
+    $obj->set_tree_ref ({ 1 .. 6 });  #  any structure will do for the test
+    my $clone = $obj->clone;
+    is (
+        ref $clone->get_tree_ref,
+        ref $obj->get_tree_ref,
+        'tree is same object ref after cloning',
+    );
+    is (
+        ref $clone->get_basedata_ref,
+        ref $obj->get_basedata_ref,
+        'basedata is same object ref after cloning',
+    );
+    is ($clone, $obj, 'Cloned');
+
+    my $blorb = [1..3];
+    $obj->set_cached_value (blorb => $blorb);
+    is $obj->get_cached_value ('blorb'), $blorb, 'cached value on orig before clone';
+    $clone = $obj->clone;
+    is $obj->get_cached_value ('blorb'), $blorb, 'cached value on orig after clone';
+    is $clone->get_cached_value ('blorb'), undef, 'cached value on clone';
 }
 
 sub test_ellipse_angles_match {

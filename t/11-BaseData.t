@@ -100,6 +100,29 @@ sub main {
     return 0;
 }
 
+sub test_sha {
+    my $bd = get_basedata_object (
+        CELL_SIZES => [1,1],
+        x_max => 5,
+        y_max => 2,
+    );
+    $bd->add_element (
+        label => 'zobnob',
+        count => 0,
+        allow_empty_labels => 1,
+    );
+
+    my $exp = '967cde9c3c7e88305a3528348d4ea2b669c217dd88db93378799ad3046a17f9d';
+    is $bd->get_sha256, $exp, 'simple basedata sha256';
+    is $bd->get_sha256, $exp, 'simple basedata sha256, second call';  #  cached
+
+    #  disabled
+    # is $bd->get_sha256, "$bd", 'string overload';
+
+    #  add_element and friends don't clear the cache - it would be too costly
+    # $bd->add_element (label => 'zobnob', group => "1.52.5");
+    # isnt $bd->get_sha256, $exp, 'sha recalculated after adding data';
+}
 
 sub test_import_unicode_name {
     use utf8;

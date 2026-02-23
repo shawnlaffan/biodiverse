@@ -63,6 +63,9 @@ $re_text_in_brackets =
     qr / (?> [^()]+ | \(  (??{ $re_text_in_brackets }) \) )* /xo;
 
 
+use overload
+    '""' => sub { shift->get_conditions_unparsed; };
+
 sub new {
     my $class = shift;
     my $self = bless {}, $class;
@@ -98,6 +101,40 @@ sub new {
     return $self;
 }
 
+sub clone {
+    my ($self) = @_;
+
+    use Clone qw //;
+    use experimental qw /defer/;
+
+    #  don't clone the cache
+    my $cache = delete local $self->{_cache};
+    defer {
+        $self->{_cache} = $cache if $cache
+    }
+
+    my $bd = $self->get_basedata_ref;
+    $self->set_basedata_ref_aa() if $bd;
+    defer {
+        $self->set_basedata_ref_aa($bd) if $bd;
+    }
+    #  Don't recursively clone the tree.
+    #  (Changing the tree clears the cache so
+    #  this must be after that is stored).
+    my $tree_ref = $self->get_tree_ref;
+    $self->set_tree_ref (undef) if $tree_ref;
+
+    my $clone = Clone::clone ($self);
+
+    if ($tree_ref) {
+        $self->set_tree_ref($tree_ref);
+        $clone->set_tree_ref($tree_ref);
+    }
+    $clone->set_basedata_ref_aa($bd) if $bd;
+
+    return $clone;
+}
+
 sub get_type {return 'spatial conditions'};
 
 sub is_def_query {return}
@@ -112,13 +149,11 @@ sub get_metadata {
 }
 
 sub get_current_args {
-    my $self = shift;
-    $self->get_param('CURRENT_ARGS');
+    $_[0]{current_args};
 }
 
 sub set_current_args {
-    my ($self, $href) = @_;
-    $self->set_param(CURRENT_ARGS => $href);
+    $_[0]{current_args} = $_[1];
 }
 
 
@@ -219,12 +254,10 @@ sub get_conditions_nws {
 
 sub has_conditions {
     my $self       = shift;
-    my $conditions = $self->get_conditions;
+    my $conditions =  $self->get_param('PARSED_CONDITIONS') || $self->get_conditions;
 
     # anything left after whitespace means it has a condition
-    # - will this always work? nope - comments not handled
-    # update - should do now as comments are stripped in parsing
-    $conditions =~ s/\s//g;
+    $conditions = $conditions =~ s/ (?&PerlNWS) $PPR::GRAMMAR//gxr;
     return length $conditions;
 }
 
@@ -908,6 +941,8 @@ sub {
     my $self = shift;
     my %args = @_;
 
+    use experimental qw /refaliasing declared_refs/;
+
     #  CHEATING... should use a generic means of getting at the caller object
     my $basedata = $args{basedata} || $args{caller_object}; 
 
@@ -938,7 +973,7 @@ sub {
     my $coord_id1 = $args{coord_id1};
     my $coord_id2 = $args{coord_id2};
 
-    my @coord = @{ $args{coord_array1} };
+    \my @coord = ($args{coord_array1} // []);
 
     #  shorthands - most cases will be 2D
     my ( $x, $y, $z ) = @coord[0,1,2];
@@ -963,8 +998,8 @@ sub {
     my $result = eval { CONDITIONS_STRING_GOES_HERE };
     my $error  = $EVAL_ERROR;
 
-    #  clear the args, avoid ref cycles
-    $self->set_current_args ( undef );
+    #  clear basedata to avoid ref cycles
+    $current_args->{basedata} = undef;
 
     croak $error if $error;
 

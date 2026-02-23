@@ -423,6 +423,9 @@ sub run_randomisation {
     #print "\n\n\nMAXITERS IS $max_iters\n\n\n";
     my $generate_tree_analyses = !!$args{build_randomised_trees};
 
+    #  an in-place clean up of conditions objects
+    $self->clean_sp_cond_object_args (args => \%args);
+
     #  load any predefined args, overriding user specified ones
     #  unless they are flagged as mutable.
     if (my $ref = $self->get_analysis_args) {
@@ -742,6 +745,26 @@ sub run_randomisation {
     #  return 1 if successful and ran some iterations
     #  return 2 if successful but did not need to run anything
     return $return_success_code;
+}
+
+#  an in-place clean up of conditions objects
+sub clean_sp_cond_object_args {
+    my ($self, %args) = @_;
+    return if !$args{args};
+
+    use experimental qw /for_list/;
+    #  somewhat hirsute...
+    my $href = $args{args} // {};
+    my @delete;
+    foreach my ($key, $obj) (%$href) {
+        next if !blessed $obj;
+        next if !$obj->isa('Biodiverse::SpatialConditions');
+        if (!$obj->has_conditions) {
+            push @delete, $key;
+        }
+    }
+    delete @$href{@delete};
+    return;
 }
 
 
@@ -2396,8 +2419,6 @@ sub get_rand_structured_subset {
     
     my $def_query = $args{definition_query};
 
-    my $progress_bar = Biodiverse::Progress->new();
-
     #  can't store MRMA objects to all output formats and then recreate
     my $rand_object = delete $args{rand_object};  
 
@@ -2456,11 +2477,14 @@ sub get_rand_structured_subset {
     my $to_do = $bd->get_group_count;
 
     my $cached_subset_basedatas
-      = $self->get_cached_value_dor_set_default_aa ('SUBSET_BASEDATAS', {});
+      = $self->get_cached_value_dor_set_default_href ('SUBSET_BASEDATAS');
+    my $cached_arg_hashes
+        = $self->get_cached_value_dor_set_default_href ('SUBSET_BASEDATA_ARG_HASHES');
 
     my $failed_def_query = $sp->get_groups_that_failed_def_query;
     my $bd_failed_def_query = $cached_subset_basedatas->{failed_def_query};
 
+    #  create if not already stored
     if (!$bd_failed_def_query && $failed_def_query) {
         $bd_failed_def_query = Biodiverse::BaseData->new ($bd->get_params_hash);
 
@@ -2512,30 +2536,23 @@ sub get_rand_structured_subset {
 
             $progress->update ($progress_text, (scalar keys %done) / $to_do);
 
-            $subset_bd = Biodiverse::BaseData->new ($bd->get_params_hash);
-            $subset_bd->rename (new_name => "subset $group");
-
-            for my $nbr_group (@nbrs_to_check) {
-                my $tmp = $bd->get_labels_in_group_as_hash_aa ($nbr_group);
-                $subset_bd->add_elements_collated (
-                    data => {$nbr_group => $tmp},
-                    csv_object => $csv_object,
-                    allow_empty_groups => 1,
-                );
-            }
-            $bd->transfer_group_properties (
-                receiver => $subset_bd,
+            $subset_bd = $self->get_basedata_subset (
+                basedata_ref => $bd,
+                name         => $group,
+                groups       => \@nbrs_to_check,
+                csv_object   => $csv_object,
             );
-            #  tests dont trigger index-related errors,
-            #  but we need to play safe nonetheless
-            $subset_bd->rebuild_spatial_index;
             $cached_subset_basedatas->{$group} = $subset_bd;
         }
         
         # say STDERR "Adding rand ", $self->get_name, " to basedata ", $subset_bd->get_name;
-        my $subset_rand = $subset_bd->add_randomisation_output (name => $self->get_name);
+        my $subset_rand = $subset_bd->add_randomisation_output (
+            name => $self->get_name
+        );
+        my $subset_args = $cached_arg_hashes->{$group}
+            //= $self->clone_and_clean_sp_cond_object_args (%args, assign_bd_ref => $subset_bd);
         my $subset_rand_bd = $subset_rand->$rand_function (
-            %args,
+            %$subset_args,
             rand_object  => $rand_object,
             basedata_ref => $subset_bd,
         );
@@ -2570,33 +2587,21 @@ sub get_rand_structured_subset {
             #  do not clash with pre-existing group name
             $group .= '!';
         }
-        my $subset_bd = $cached_subset_basedatas->{$group};
-
-        if (!$subset_bd) {
+        my $subset_bd = $cached_subset_basedatas->{$group} //= do {
             my @nbrs_to_check = grep !exists $done{$_}, $bd->get_groups;
-            $subset_bd = Biodiverse::BaseData->new ($bd->get_params_hash);
-            $subset_bd->rename (new_name => "subset $group");
-
-            for my $nbr_group (@nbrs_to_check) {
-                my $tmp = $bd->get_labels_in_group_as_hash_aa ($nbr_group);
-                $subset_bd->add_elements_collated (
-                    data => {$nbr_group => $tmp},
-                    csv_object => $csv_object,
-                    allow_empty_groups => 1,
-                );
-            }
-            $bd->transfer_group_properties (
-                receiver => $subset_bd,
+            $self->get_basedata_subset(
+                basedata_ref => $bd,
+                name         => $group,
+                csv_object   => $csv_object,
+                groups       => \@nbrs_to_check,
             );
-            #  tests don't trigger index-related errors,
-            #  but we need to play safe nonetheless
-            $subset_bd->rebuild_spatial_index;
-            $cached_subset_basedatas->{$group} = $subset_bd;
-        }
-        
+        };
+
         my $subset_rand = $subset_bd->add_randomisation_output (name => $self->get_name);
+        my $subset_args = $cached_arg_hashes->{$group}
+            //= $self->clone_and_clean_sp_cond_object_args (%args, assign_bd_ref => $subset_bd);
         my $subset_rand_bd = $subset_rand->$rand_function (
-            %args,
+            %$subset_args,
             rand_object  => $rand_object,
             basedata_ref => $subset_bd,
         );
@@ -2615,6 +2620,60 @@ sub get_rand_structured_subset {
     }
 
     return $new_bd;
+}
+
+sub get_basedata_subset {
+    my ($self, %args) = @_;
+
+    my $bd   = $args{basedata_ref} // $self->get_basedata_ref;
+    my $name = $args{name};
+    \my @nbrs_to_check = $args{groups};
+    my $csv_object = $args{csv_object};
+
+    my $subset_bd = Biodiverse::BaseData->new ($bd->get_params_hash);
+    $subset_bd->rename (new_name => "subset $name");
+
+    for my $nbr_group (@nbrs_to_check) {
+        my $tmp = $bd->get_labels_in_group_as_hash_aa ($nbr_group);
+        $subset_bd->add_elements_collated (
+            data => {$nbr_group => $tmp},
+            csv_object => $csv_object,
+            allow_empty_groups => 1,
+        );
+    }
+    $bd->transfer_group_properties (
+        receiver => $subset_bd,
+    );
+    #  tests dont trigger index-related errors,
+    #  but we need to play safe nonetheless
+    $subset_bd->rebuild_spatial_index;
+
+    return $subset_bd;
+}
+
+
+#  avoids potential cache issues when passing sp cond objects to subsets
+sub clone_and_clean_sp_cond_object_args {
+    my ($self, %args) = @_;
+
+    use experimental qw /for_list isa/;
+
+    my $bd = delete $args{assign_bd_ref};
+
+    my %res;
+    foreach my ($key, $val) (%args) {
+        if ($val isa 'Biodiverse::SpatialConditions') {
+            next if !$val->has_conditions;  #  elide "empty" conditions
+            my $clone = $val->clone;
+            $clone->set_basedata_ref_aa($bd);  #  need a new basedata ref
+            $res{$key} = $clone;
+        }
+        else {
+            $res{$key} = $val;
+        }
+    }
+
+    return wantarray ? %res : \%res;
 }
 
 sub swap_to_reach_richness_targets {

@@ -56,6 +56,10 @@ use parent qw {
 
 our $EMPTY_STRING = q{};
 
+#  not a good idea as we have mixed caching approaches - some need the ref
+# use overload
+#     '""' => sub { shift->get_sha256; };
+
 sub new {
     my $class = shift;
 
@@ -174,6 +178,49 @@ sub get_file_suffix {
 
 sub get_file_suffix_yaml {
     return 'bdy';
+}
+
+#  unique ID based on groups, labels, counts and properties
+sub get_sha256 {
+    my $self = shift;
+
+    my $cache_name = 'SHA256_BASIC';
+    my $cached = $self->get_cached_value ($cache_name);
+
+    return $cached if $cached;
+
+    use Digest::SHA qw/sha256_hex/;
+
+    my $gp = $self->get_groups_ref;
+    my $lb = $self->get_labels_ref;
+
+    my %data;
+    foreach my $group ($self->get_groups) {
+        $data{groups}{$group} = $self->get_labels_in_group_as_hash_aa($group);
+        my $p = $gp->get_element_properties (element => $group);
+        if ($p && %$p) {
+            $data{group_props}{$group} = $p;
+        }
+    }
+    foreach my $label ($self->get_labels) {
+        if (!$lb->get_variety_aa($label)) {
+            $data{empty_labels}{$label} = undef;
+        }
+        my $p = $lb->get_element_properties (element => $label);
+        if ($p && %$p) {
+            $data{label_props}{$label} = $p;
+        }
+    }
+    $data{cell_sizes}   = $self->get_cell_sizes;
+    $data{cell_origins} = $self->get_cell_origins;
+
+    use JSON::MaybeXS;
+    my $json = JSON::MaybeXS->new(utf8 => 1, canonical => 1, pretty => 0);
+    my $string = $json->encode(\%data);
+    my $sha = sha256_hex $string;
+    $self->set_cached_value($cache_name => $sha);
+
+    return $sha;
 }
 
 sub binarise_sample_counts {

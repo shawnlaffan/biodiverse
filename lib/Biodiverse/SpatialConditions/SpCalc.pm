@@ -2277,11 +2277,12 @@ sub get_tree_node_range_hash {
 
     my $node  = $args{node} // croak 'node argument not defined';
     my $cache = $args{cache} // $self->get_tree_node_ancestor_cache (%args);
+    my $bd    = $args{basedata_ref} // $self->get_basedata_ref;
 
     my %range;
     if ($args{convex_hull} || $args{concave_hull} || $args{circumcircle}) {
         my $poly_cache_key = $self->_get_cache_key_for_in_polygon_check(%args);
-        \%range = $cache->{polygon_ranges}{$poly_cache_key}{$node->get_name} //= do {
+        \%range = $cache->{polygon_ranges}{$bd->get_sha256}{$poly_cache_key}{$node->get_name} //= do {
             my %collated_range;
             foreach my $tip_label ($node->get_terminal_elements) {
                 \my %tip_range = $self->get_in_polygon_hash(%args, label => $tip_label);
@@ -2291,8 +2292,7 @@ sub get_tree_node_range_hash {
         }
     }
     else {
-        my $bd = $self->get_basedata_ref;
-        \%range = $cache->{group_ranges}{$bd}{$node->get_name} //= do {
+        \%range = $cache->{group_ranges}{$bd->get_sha256}{$node->get_name} //= do {
             $bd->get_range_union(
                 return_hash => 1,
                 labels      => scalar $node->get_terminal_elements,

@@ -2334,7 +2334,7 @@ sub get_tree_node_ancestor {
 
     my $d = $args{target} // croak 'argument "target" not defined';
 
-    my $cache = $args{cache} // $self->get_tree_node_ancestor_cache (%args, tree => $tree);
+    my $cache = $args{cache} // $self->get_tree_node_ancestor_cache (%args, tree_ref => $tree);
 
     my $ancestor = $cache->{ancestors}{$label} //= do {
         if ($args{as_frac}) {

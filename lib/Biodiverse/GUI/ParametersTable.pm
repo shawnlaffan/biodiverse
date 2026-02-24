@@ -417,8 +417,12 @@ sub generate_spatial_conditions {
 
     my $sp = Biodiverse::GUI::SpatialParams->new(%args_to_pass);
 
+    my $label = $param->get_label_text =~ s/\n/ /gr;
+
     my $extract = sub {
-        $sp->syntax_check ('no_ok');
+        my $ret = $sp->syntax_check ('no_ok');
+        croak qq{Spatial condition "$label" is not valid}
+            if $ret eq 'error';
         my $cond_object = $sp->get_validated_conditions;
         # my $cond_text = $cond_object->get_conditions_parsed;
         return (

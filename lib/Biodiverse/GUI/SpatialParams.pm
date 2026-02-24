@@ -219,7 +219,7 @@ sub get_validated_conditions {
     my $self = shift;
 
     my $conditions = $self->{validated_conditions};
-    return if !defined $conditions;
+    return if !defined $conditions || !$conditions->has_conditions;
     # croak "Conditions not yet validated\n" if !defined $conditions;
 
     my $options = $self->get_options;

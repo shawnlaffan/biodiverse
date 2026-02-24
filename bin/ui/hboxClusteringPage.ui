@@ -601,7 +601,7 @@ Colours are currently taken from the outer ring.</property>
                                               </packing>
                                             </child>
                                             <child>
-                                              <object class="GtkLabel" id="label7">
+                                              <object class="GtkLabel" id="label_defq">
                                                 <property name="visible">True</property>
                                                 <property name="can-focus">False</property>
                                                 <property name="has-tooltip">True</property>
@@ -621,7 +621,7 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                                               </packing>
                                             </child>
                                             <child>
-                                              <object class="GtkLabel" id="label104">
+                                              <object class="GtkLabel" id="label_spcond1">
                                                 <property name="visible">True</property>
                                                 <property name="can-focus">False</property>
                                                 <property name="tooltip-text" translatable="yes">Specify the set of neighbours that will be used when constructing the matrix.
@@ -719,7 +719,7 @@ and all other groups be calculated?</property>
                                               </packing>
                                             </child>
                                             <child>
-                                              <object class="GtkLabel" id="label145">
+                                              <object class="GtkLabel" id="label_spcond2">
                                                 <property name="visible">True</property>
                                                 <property name="can-focus">False</property>
                                                 <property name="tooltip-text" translatable="yes">Specify a second set of neighbours to use in the analysis.

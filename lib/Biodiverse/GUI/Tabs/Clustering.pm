@@ -187,30 +187,39 @@ sub new {
     $self->set_label_widget_tooltip;
 
 
+    my $lb_text = $xml_page->get_object('label_spcond1')->get_text =~ s/\n/ /gr;
     $self->{spatialParams1} = Biodiverse::GUI::SpatialParams->new(
-        initial_text => $sp_initial1,
+        initial_text     => $sp_initial1,
         condition_object => $spatial_conditions[0],
+        label            => $lb_text,
+        name             => "Cluster $lb_text",
     );
     $self->get_xmlpage_object('frameClusterSpatialParams1')->add(
         $self->{spatialParams1}->get_object,
     );
 
     my $start_hidden = not (length $sp_initial2);
+    $lb_text = $xml_page->get_object('label_spcond2')->get_text =~ s/\n/ /gr;
     $self->{spatialParams2} = Biodiverse::GUI::SpatialParams->new(
         initial_text => $sp_initial2,
         start_hidden => $start_hidden,
         condition_object => $spatial_conditions[1],
+        label            => $lb_text,
+        name             => "Cluster $lb_text",
     );
     $self->get_xmlpage_object('frameClusterSpatialParams2')->add(
         $self->{spatialParams2}->get_object
     );
 
     $start_hidden = not (length $def_query_init1);
+    $lb_text = $xml_page->get_object('label_defq')->get_text =~ s/\n/ /gr;
     $self->{definition_query1} = Biodiverse::GUI::SpatialParams->new(
         initial_text => $def_query_init1,
         start_hidden => $start_hidden,
         is_def_query => 'is_def_query',
         condition_object => $defq_object,
+        label            => $lb_text,
+        name             => "Cluster $lb_text",
     );
     $self->get_xmlpage_object('frameClusterDefinitionQuery1')->add(
         $self->{definition_query1}->get_object

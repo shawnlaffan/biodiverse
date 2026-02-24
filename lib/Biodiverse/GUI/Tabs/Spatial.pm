@@ -189,15 +189,21 @@ sub new {
           : $NULL_STRING;
     }
 
+    my $lb_text = $self->get_xmlpage_object('labelNbrSet1')->get_text =~ s/\n/ /gr;
     $self->{spatial1} = Biodiverse::GUI::SpatialParams->new(
         initial_text => $initial_sp1,
         condition_object => $spatial_conditions[0],
+        label            => $lb_text,
+        name             => "Spatial $lb_text",
     );
     my $start_hidden = not (length $initial_sp2);
+    $lb_text = $self->get_xmlpage_object('labelNbrSet2')->get_text =~ s/\n/ /gr;
     $self->{spatial2} = Biodiverse::GUI::SpatialParams->new(
         initial_text => $initial_sp2,
         start_hidden => $start_hidden,
         condition_object => $spatial_conditions[1],
+        label            => $lb_text,
+        name             => "Spatial $lb_text",
     );
 
     $self->get_xmlpage_object('frameSpatialParams1')->add(
@@ -208,12 +214,15 @@ sub new {
     );
 
     $start_hidden = not (length $initial_def1);
+    $lb_text = $self->get_xmlpage_object('labelDefQuery1')->get_text =~ s/\n/ /gr;
     $self->{definition_query1}
         = Biodiverse::GUI::SpatialParams->new(
             initial_text => $initial_def1,
             start_hidden => $start_hidden,
             is_def_query => 'is_def_query',
             condition_object => $defq_object,
+            label            => $lb_text,
+            name             => "Spatial $lb_text",
         );
     $self->get_xmlpage_object('frameDefinitionQuery1')->add(
         $self->{definition_query1}->get_object

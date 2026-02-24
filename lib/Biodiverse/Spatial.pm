@@ -1358,8 +1358,10 @@ sub get_nbrs_for_element {
     my @exclude;
 
     state $cache_name_nbrs_always_same = 'NBRS_FROM_ALWAYS_SAME';
+    state $cache_name_nbrs_always_same_current_label = 'NBRS_FROM_ALWAYS_SAME_CURRENT_LABEL';
     my $nbr_sets_are_volatile = $self->spatial_conditions_are_volatile;
     my $current_label         = $self->get_current_label;
+    my $cache_for_always_same;
 
     foreach my $i (0 .. $#$spatial_conditions_arr) {
         my $nbr_list_name = '_NBR_SET' . ($i+1);
@@ -1400,11 +1402,20 @@ sub get_nbrs_for_element {
                     $list = $bd->get_groups;
                 }
                 #  if nbrs are always the same
-                elsif ($result_type eq 'always_same') {
-                    my $tmp
-                      = $self->get_cached_value_dor_set_default_aref($cache_name_nbrs_always_same);
-                    if ($tmp->[$i]) {
-                        $list = [keys %{$tmp->[$i]}];
+                elsif ($result_type =~ /^always_same(?:_current_label)?$/) {
+                    if ($result_type eq 'always_same') {
+                        $cache_for_always_same
+                            = $self->get_cached_value_dor_set_default_aref($cache_name_nbrs_always_same);
+                    }
+                    elsif ($result_type eq 'always_same_current_label' and defined $current_label) {
+                        my $c
+                            = $self->get_cached_value_dor_set_default_href($cache_name_nbrs_always_same_current_label);
+                        $cache_for_always_same = $c->{$current_label} //= [];
+                    }
+                    if (!!$cache_for_always_same) {
+                        if (my $href = $cache_for_always_same->[$i]) {
+                            $list = [ keys %$href ];
+                        }
                     }
                 }
                 #  nothing to work with
@@ -1440,19 +1451,22 @@ sub get_nbrs_for_element {
                     );
                     my $exclude_list = [@exclude, @$elements_to_exclude];
 
-                    if ($result_type eq 'always_same') {
-                        my $progr = Biodiverse::Progress->new(
-                            text => 'Neighbour comparisons for first always_same condition'
-                        );
+                    if ($cache_for_always_same) {
+                        my $prog_text = "Neighbour comparisons for first $result_type condition";
+                        if ($result_type =~ /current_label$/) {
+                            $prog_text .= " ($current_label)";
+                        }
+                        #  actually, don't show current label as it generates too much noise
+                        my $progr = $result_type =~ /current_label$/
+                            ? undef
+                            : Biodiverse::Progress->new(text => $prog_text);
                         my $tmp = $bd->get_neighbours (
                             %args_for_nbr_list,
                             progress => $progr,
                         );
                         $progr = undef;
-                        my $cached_arr
-                          = $self->get_cached_value_dor_set_default_aref($cache_name_nbrs_always_same);
 
-                        $cached_arr->[$i] = $tmp;
+                        $cache_for_always_same->[$i] = $tmp;
                         {
                             delete local @$tmp{@$exclude_list};
                             $nbr_list[$i] = [ keys %$tmp ];

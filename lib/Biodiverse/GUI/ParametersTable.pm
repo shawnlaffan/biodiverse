@@ -415,9 +415,14 @@ sub generate_spatial_conditions {
         $args_to_pass{condition_object} = $default;
     }
 
-    my $sp = Biodiverse::GUI::SpatialParams->new(%args_to_pass);
-
     my $label = $param->get_label_text =~ s/\n/ /gr;
+    my $name  = $param->get_name;
+
+    my $sp = Biodiverse::GUI::SpatialParams->new(
+        name  => $name,
+        label => $label,
+        %args_to_pass,
+    );
 
     my $extract = sub {
         my $ret = $sp->syntax_check ('no_ok');
@@ -431,7 +436,7 @@ sub generate_spatial_conditions {
         );
     };
 
-    $get_object_hash->{$param->get_name} = $sp;
+    $get_object_hash->{$name} = $sp;
 
     return ($sp->get_object, $extract);
 }

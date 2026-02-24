@@ -61,6 +61,8 @@ sub new {
         current_text_view     => 'Frame',
         validated_conditions  => $condition_object, #  assumes it works
         promise_current_label => $promise_current_label,
+        name                  => $args{name},
+        label                 => $args{label},
     };
     bless $self, $class;
 
@@ -197,12 +199,18 @@ sub on_syntax_check {
     my $result_hash = $spatial_conditions->verify;
 
     if (! ($result_hash->{ret} eq 'ok' and $show_ok eq 'no_ok')) {
+        my $msg = $result_hash->{msg};
+
+        if (my $label = $self->{label}) {
+            $msg =~ s/^(Syntax error)/$1 in parameter "$label"/;
+        }
+
         my $dlg = Gtk3::MessageDialog->new(
             $gui->get_object('wndMain'),
             'destroy-with-parent',
             $result_hash->{type},
             'ok',
-            $result_hash->{msg},
+            $msg,
         );
 
         $dlg->run();

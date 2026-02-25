@@ -1361,6 +1361,7 @@ sub get_nbrs_for_element {
     state $cache_name_nbrs_always_same_current_label = 'NBRS_FROM_ALWAYS_SAME_CURRENT_LABEL';
     my $nbr_sets_are_volatile = $self->spatial_conditions_are_volatile;
     my $current_label         = $self->get_current_label;
+    my $current_label_ancestor;  #  only needed for tree based range stuff
     my $cache_for_always_same;
 
     foreach my $i (0 .. $#$spatial_conditions_arr) {
@@ -1410,6 +1411,10 @@ sub get_nbrs_for_element {
                     elsif ($result_type eq 'always_same_current_label' and defined $current_label) {
                         my $c
                             = $self->get_cached_value_dor_set_default_href($cache_name_nbrs_always_same_current_label);
+                        #  ancestral jiggery-pokery
+                        if ($current_label_ancestor = $sp_cond_obj->_get_ancestral_node_from_parsed_conditions) {
+                            $c->{$current_label} //= $c->{$current_label_ancestor->get_name} //= [];
+                        }
                         $cache_for_always_same = $c->{$current_label} //= [];
                     }
                     if (!!$cache_for_always_same) {

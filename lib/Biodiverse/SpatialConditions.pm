@@ -1224,6 +1224,34 @@ sub get_conditions_bbox {
         if $range_method eq 'sp_in_label_ancestor_range';
 }
 
+sub _get_ancestral_node_from_parsed_conditions {
+    my ($self, %args) = @_;
+
+    my $conditions = $self->get_conditions_nws;
+
+    return if not $conditions =~ /$re_in_label_range/ms;
+
+    my $range_method = $+{range_method};
+    return if $range_method ne 'sp_in_label_ancestor_range';
+
+    my $cur_label    = $self->_dequote_string_literal($+{cur_label});
+    my $range_args   = $+{range_args};
+    my $method_args_hash = $self->get_param ('METHOD_ARG_HASHES');
+    my $method_args  = $method_args_hash->{$range_method . $range_args} // {};
+    my $range_label  = delete local $method_args->{label};
+
+    #  we only work with axes [0,1] for now.
+    my $axes = $method_args->{axes};
+    return if $axes && (!is_arrayref ($axes) || join (':', @$axes) ne '0:1');
+
+    my $label = $range_label // $cur_label // $self->get_current_label;
+
+    return if !defined $label;
+
+    #  delegate the arg handling
+    return $self->get_tree_node_ancestor (%$method_args, label => $label);
+}
+
 sub get_conditions_metadata_as_markdown {
     my $self = shift;
 

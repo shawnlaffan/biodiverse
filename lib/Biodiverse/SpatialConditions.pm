@@ -435,6 +435,7 @@ sub parse_distances {
     #  variable between calls with the same args.
     #  We can deal with that if it arises.
     my %method_args;
+    my @substitute_methods_to_check;
 
     #  loop idea also courtesy Friedl
 
@@ -555,6 +556,11 @@ sub parse_distances {
             #  Should we not use a spatial index?  True if any of the conditions say so
             $index_no_use ||= $metadata->get_index_no_use;
 
+            if (my $substitute_method = $metadata->get_aggregate_substitute_method) {
+                push @substitute_methods_to_check, $substitute_method
+                    if %$substitute_method;  #  default is a hash now, so skip empties
+            }
+
         }
         else {    #  bumpalong by one
             $conditions =~ m/ \G (.) /xgcs;
@@ -612,6 +618,17 @@ sub parse_distances {
 
     #print $conditions;
     $self->set_param( PARSED_CONDITIONS => $conditions );
+
+    my $conditions_nws = $self->get_conditions_nws;
+
+    my $substitute_method;
+    foreach my $metadata (@substitute_methods_to_check) {
+        my $re = $self->get_regex (name => $metadata->{re_name});
+        if ($conditions_nws =~ $re) {
+            $substitute_method = $metadata->{method};
+        }
+    }
+    $self->set_param( AGGREGATE_SUBSTITUTE_METHOD => $substitute_method );
 
     return;
 }
@@ -1177,7 +1194,7 @@ state $re_set_current_label = qr/
     $PPR::GRAMMAR
 /x;
 #  sp_in_label_range with no args, possibly preceded by set_current_label
-state $re_in_label_range = qr/
+state $re_in_label_or_ancestor_range = qr/
     \A
         (?: $re_set_current_label )?
         \$self->
@@ -1188,6 +1205,41 @@ state $re_in_label_range = qr/
     $PPR::GRAMMAR
 /x;
 
+sub get_regex {
+    my ($self, %args) = @_;
+    state $re_in_label_ancestor_range = qr/
+        \A
+            (?: $re_set_current_label )?
+            \$self->
+            (?<range_method> sp_in_label_ancestor_range )
+            (?<range_args> (?&PerlParenthesesList) )
+            ;?
+        \Z
+        $PPR::GRAMMAR
+    /x;
+    state $re_in_label_range = qr/
+        \A
+            (?: $re_set_current_label )?
+            \$self->
+            (?<range_method> sp_in_label_range )
+            (?<range_args> (?&PerlParenthesesList) )
+            ;?
+        \Z
+        $PPR::GRAMMAR
+    /x;
+
+    state %re_hash = (
+        set_current_label          => $re_set_current_label,
+        in_label_range             => $re_in_label_range,
+        in_label_ancestor_range    => $re_in_label_ancestor_range,
+        in_label_or_ancestor_range => $re_in_label_or_ancestor_range,
+    );
+    croak 'name arg not defined' if !defined $args{name};
+    my $re = $re_hash{$args{name}} // croak "no regular expression of this name $args{name}";
+
+    return $re;
+}
+
 #  a very limited set at the moment - need to generalise and handle via metadata
 sub get_conditions_bbox {
     my ($self, %args) = @_;
@@ -1196,7 +1248,7 @@ sub get_conditions_bbox {
 
     my $conditions = $self->get_conditions_nws;
 
-    return if not $conditions =~ /$re_in_label_range/ms;
+    return if not $conditions =~ /$re_in_label_or_ancestor_range/ms;
 
     my $cur_label = $self->_dequote_string_literal($+{cur_label});
 
@@ -1229,7 +1281,7 @@ sub _get_ancestral_node_from_parsed_conditions {
 
     my $conditions = $self->get_conditions_nws;
 
-    return if not $conditions =~ /$re_in_label_range/ms;
+    return if not $conditions =~ /$re_in_label_or_ancestor_range/ms;
 
     my $range_method = $+{range_method};
     return if $range_method ne 'sp_in_label_ancestor_range';

@@ -2222,6 +2222,12 @@ sub get_metadata_sp_in_label_ancestor_range {
     $meta->{description} = $description;
     $meta->{example}     = $example;
     $meta->{requires_tree_ref} = 1;
+    $meta->{aggregate_substitute_method} = {
+        #  If condition matches regex then we can generate a hash
+        #  of all nbr results and skip any per-group search.
+        re_name => 'in_label_ancestor_range',
+        method  => 'aggregate_sp_in_label_ancestor_range',
+    };
     return wantarray ? %$meta : $meta;
 }
 
@@ -2232,6 +2238,34 @@ sub sp_in_label_ancestor_range {
     my $coord = $self->get_current_coord_id (%args{type});
 
     return exists $range->{$coord};
+}
+
+#  a lot of duplicated code in here
+sub aggregate_sp_in_label_ancestor_range {
+    my ($self) = @_;
+
+    my $conditions = $self->get_conditions_nws;
+
+    my $re = $self->get_regex (name => 'in_label_ancestor_range');
+    return if not $conditions =~ /$re/ms;
+
+    my $cur_label = $self->_dequote_string_literal($+{cur_label});
+
+    my $method_args_hash = $self->get_param ('METHOD_ARG_HASHES');
+    my $range_method = $+{range_method};
+    my $range_args   = $+{range_args};
+    my $method_args  = $method_args_hash->{$range_method . $range_args} // {};
+    my $range_label  = delete local $method_args->{label};
+
+    #  we only work with axes [0,1] for now.
+    my $axes = $method_args->{axes};
+    return if $axes && (!is_arrayref ($axes) || join (':', @$axes) ne '0:1');
+
+    my $label = $range_label // $cur_label // $self->get_current_label;
+
+    return if !defined $label;
+
+    return $self->get_tree_node_ancestral_range_hash (%$method_args, label => $label);
 }
 
 sub get_tree_node_ancestral_range_hash {

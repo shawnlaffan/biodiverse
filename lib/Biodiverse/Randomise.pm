@@ -1937,6 +1937,7 @@ sub rand_structured {
     );
     my $sp_seed_timer;
     my $sp_seed_show_progress = 1;
+    my $using_diffusion_allocation_order = ($spatial_allocation_order eq 'diffusion');
 
     BY_LABEL:
     foreach my $label (@$rand_label_order) {
@@ -2070,7 +2071,7 @@ sub rand_structured {
                            && $_ ne $to_groups[0]
                           } @$list_ref;
 
-                        if ($spatial_allocation_order eq 'diffusion') {
+                        if ($using_diffusion_allocation_order) {
                             #  need uniques only for uniform random selection
                             @sublist = grep !exists $to_groups_hash{$_}, @sublist;
                         }
@@ -2194,7 +2195,7 @@ sub rand_structured {
                            && $_ ne $to_group
                           } @$list_ref;
 
-                        if ($spatial_allocation_order eq 'diffusion') {
+                        if ($using_diffusion_allocation_order) {
                             #  need to ensure one entry for each group
                             #  for uniform random selection
                             @sublist = grep !exists $to_groups_hash{$_}, @sublist;
@@ -2219,10 +2220,10 @@ sub rand_structured {
                     #  By default we will work backwards,
                     #  but if we are using random backtracking then we
                     #  need to select one and push it to the front.
-                    if (    $spatial_allocation_order eq 'diffusion'
+                    if (    $using_diffusion_allocation_order
                         || (!$valid_nbr_count && $label_alloc_backtracking eq 'random')) {
 
-                        if ($spatial_allocation_order ne 'diffusion') {
+                        if (!$using_diffusion_allocation_order) {
                         #  uniq ensures it is equal probability for each group
                         #  Needs to be faster, but we need to retain the order
                         #  for the random walk

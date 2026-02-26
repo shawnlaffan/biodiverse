@@ -2196,8 +2196,10 @@ sub rand_structured {
                           } @$list_ref;
 
                         if ($using_diffusion_allocation_order) {
-                            #  need to ensure one entry for each group
-                            #  for uniform random selection
+                            #  Need to ensure one entry for each group
+                            #  for uniform random selection.
+                            #  Seems to empty the list if return type is
+                            #  always_same but need to check further before skipping the grep
                             @sublist = grep !exists $to_groups_hash{$_}, @sublist;
                         }
 

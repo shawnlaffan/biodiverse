@@ -1974,6 +1974,11 @@ sub rand_structured {
         my $using_random_propagation = ($spatial_allocation_order =~ /^(?:random_walk|diffusion)$/);
         my %to_groups_hash;  #  used in the spatial allocations
 
+        #  per-label caching (volatility needs work, though)
+        if ($sp_for_label_allocation and $sp_for_label_allocation->spatial_conditions_are_volatile) {
+            $sp_alloc_nbr_list_args{cache} = $sp_alloc_nbr_list_cache->{$label} //= {};
+        }
+
       BY_GROUP:
         while (scalar @$tmp_rand_order && scalar @target_groups) {
 

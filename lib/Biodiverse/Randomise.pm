@@ -2338,8 +2338,7 @@ sub rand_structured {
 }
 
 sub get_sp_alloc_nbr_list {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
     my $target_element = $args{target_element}
       // croak "target_element argument is undefined\n";
@@ -2356,7 +2355,6 @@ sub get_sp_alloc_nbr_list {
     
     #  avoid double sorting as proximity does its own
     my $sort_lists = $spatial_allocation_order ne 'proximity';
-    my $volatile = $sp_for_label_allocation->spatial_conditions_are_volatile;
 
     $sp_alloc_nbr_list
       = $sp_for_label_allocation->get_calculated_nbr_lists_for_element (
@@ -2371,8 +2369,23 @@ sub get_sp_alloc_nbr_list {
         );
     }
     #  no cache if conditions are volatile
-    if (!$volatile) {
+    if (!$sp_for_label_allocation->spatial_conditions_are_volatile) {
         $sp_alloc_nbr_list_cache->{$target_element} = $sp_alloc_nbr_list;
+    }
+    #  pre-cache if conditions are always_same
+    #  (volatility needs work and we handle per-label caching above)
+    my $arr = $sp_for_label_allocation->get_spatial_conditions_arr;
+    if (List::Util::all {$_->get_result_type =~ /^always_(?:same|true)/} @$arr) {
+        my $bd = $self->get_basedata_ref;
+        #  no cache on basedata due to add/remove elements and caching
+        #  hopefully only need second get_basedata_ref once per variant
+        my $groups = $self->get_cached_value ('BASEDATA_GROUP_ARRAY_' . $bd->get_sha256)
+            // do {
+                my $aref = $bd->get_groups;
+                $self->set_cached_value (('BASEDATA_GROUP_ARRAY_' . $bd->get_sha256) => $aref);
+                $aref;
+            };
+        @{$sp_alloc_nbr_list_cache}{@$groups} = ($sp_alloc_nbr_list) x @$groups;
     }
 
     return $sp_alloc_nbr_list;

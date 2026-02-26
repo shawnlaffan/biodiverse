@@ -2013,6 +2013,9 @@ sub sp_in_label_range {
 sub _aggregate_get_groups_in_label_range {
     my ($self) = @_;
 
+    #  no point continuing if no basedata
+    my $bd = $self->get_basedata_ref // return;
+
     my $conditions = $self->get_conditions_nws;
 
     my $re = $self->get_regex (name => 'in_label_range');
@@ -2037,14 +2040,14 @@ sub _aggregate_get_groups_in_label_range {
 
     #  label not in basedata
     return wantarray ? () : {}
-        if !$self->get_basedata_ref->exists_label_aa($label);
+        if !$bd->exists_label_aa($label);
 
     if ($method_args->{convex_hull} || $method_args->{circumcircle} || $method_args->{concave_hull}) {
         my $in_polygon = $self->get_in_polygon_hash (%$method_args, label => $label);
         return wantarray ? %$in_polygon : $in_polygon;
     }
 
-    my $tmp = $self->get_basedata_ref->get_groups_with_label_as_hash_aa ($label);
+    my $tmp = $bd->get_groups_with_label_as_hash_aa ($label);
     my %groups_with_label;
     @groups_with_label{keys %$tmp} = (1) x keys %$tmp;
 

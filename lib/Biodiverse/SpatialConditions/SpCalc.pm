@@ -2043,6 +2043,9 @@ sub _aggregate_get_groups_in_label_range {
         if !$bd->exists_label_aa($label);
 
     if ($method_args->{convex_hull} || $method_args->{circumcircle} || $method_args->{concave_hull}) {
+        #  these only work with axes [0,1].
+        my $axes = $method_args->{axes};
+        return if defined $axes && (!is_arrayref ($axes) || join (':', @$axes) ne '0:1');
         my $in_polygon = $self->get_in_polygon_hash (%$method_args, label => $label);
         return wantarray ? %$in_polygon : $in_polygon;
     }

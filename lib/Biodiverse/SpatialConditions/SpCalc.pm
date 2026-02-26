@@ -583,23 +583,6 @@ sub sp_ellipse {
     return $test;
 }
 
-sub get_metadata_sp_select_all {
-    my $self = shift;
-
-    my %metadata = (
-        description    => 'Select all elements as neighbours',
-        result_type    => 'always_true',
-        example        => 'sp_select_all() #  select every group',
-        index_max_dist => -1,  #  search whole index if using this in a complex condition
-    );
-
-    return $self->metadata_class->new (\%metadata);
-}
-
-sub sp_select_all {
-    return 1;    #  always returns true
-}
-
 sub get_metadata_sp_self_only {
     my $self = shift;
 
@@ -620,46 +603,6 @@ sub sp_self_only {
 
     return $h->{coord_id1} eq $h->{coord_id2};
 }
-
-sub get_metadata_sp_select_element {
-    my $self = shift;
-
-    my $example =<<~'END_SP_SELECT_ELEMENT'
-        # match where the whole coordinate ID (element name)
-        # is 'Biome1:savannah forest'
-        sp_select_element (element => 'Biome1:savannah forest')
-        END_SP_SELECT_ELEMENT
-    ;
-
-    my %metadata = (
-        description => 'Select a specific element.  Basically the same as sp_match_text, but with optimisations enabled',
-        index_max_dist => undef,
-
-        required_args => [
-            'element',  #  the element name
-        ],
-        optional_args => [
-            'type',  #  nbr or proc to control use of nbr or processing groups
-        ],
-        index_no_use => 1,
-        result_type  => 'always_same',
-        example => $example,
-    );
-
-    return $self->metadata_class->new (\%metadata);
-}
-
-sub sp_select_element {
-    my $self = shift;
-    my %args = @_;
-
-    delete $args{axes};  #  remove the axes arg if set
-
-    my $comparator = $self->get_comparator_for_text_matching (%args);
-
-    return $args{element} eq $comparator;
-}
-
 
 sub get_metadata_sp_match_text {
     my $self = shift;

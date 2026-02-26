@@ -23,12 +23,6 @@ use Ref::Util qw { :all };
 
 sub get_metadata_sp_is_left_of {
     my $self = shift;
-    my %args = @_;
-
-    my $axes = $args{axes};
-    if ( is_arrayref($axes) ) {
-        $axes = [ 0, 1 ];
-    }
 
     my $description =<<~'EOD'
         Are we to the left of a vector radiating out from the processing cell?
@@ -61,12 +55,6 @@ sub sp_is_left_of {
 
 sub get_metadata_sp_is_right_of {
     my $self = shift;
-    my %args = @_;
-
-    my $axes = $args{axes};
-    if ( !is_arrayref($axes) ) {
-        $axes = [ 0, 1 ];
-    }
 
     my $description =<<~'EOD'
         Are we to the right of a vector radiating out from the processing cell?
@@ -96,12 +84,6 @@ sub sp_is_right_of {
 
 sub get_metadata_sp_in_line_with {
     my $self = shift;
-    my %args = @_;
-
-    my $axes = $args{axes};
-    if ( !is_arrayref($axes) ) {
-        $axes = [ 0, 1 ];
-    }
 
     my $description =<<~'EOD'
         Are we in line with a vector radiating out from the processing cell?

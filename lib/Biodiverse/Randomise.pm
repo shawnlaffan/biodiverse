@@ -1795,11 +1795,9 @@ sub rand_structured {
         $reseed_prob = $args{spatial_allocation_reseed_prob} || 0;
     }
 
-    my $sp_alloc_nbr_list_cache = $self->get_cached_value ('sp_alloc_nbr_list_cache');
-    if (!$sp_alloc_nbr_list_cache) {
-        $sp_alloc_nbr_list_cache = {};
-        $self->set_cached_value (sp_alloc_nbr_list_cache => $sp_alloc_nbr_list_cache);
-    }
+    my $sp_alloc_nbr_list_cache
+        = $self->get_cached_value_dor_set_default_href ('sp_alloc_nbr_list_cache');
+
     #  avoid some duplication below when used
     my %sp_alloc_nbr_list_args = (
         cache          => $sp_alloc_nbr_list_cache,

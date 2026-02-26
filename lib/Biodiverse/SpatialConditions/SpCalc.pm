@@ -1809,34 +1809,6 @@ sub _process_label_arg {
     return $label;
 }
 
-sub get_common_metadata_in_label_range {
-    my ($self) = @_;
-
-    my $uses_current_label = $self->get_promise_current_label;
-    my $bool = $self->is_def_query || $uses_current_label;
-
-    my $is_volatile_cb = sub {
-        my ($self, %args) = @_;
-        $self->get_promise_current_label && !$args{label};
-    };
-
-    my %metadata = (
-        required_args  => [
-            $bool ? () : 'label',
-        ],
-        optional_args  => [
-            $bool ? 'label' : (),
-            'type', #  nbr or proc to control use of nbr or processing groups
-            'axes',
-        ],
-        result_type    => $uses_current_label ? 'always_same_current_label' : 'always_same',
-        index_no_use   => 1, #  turn index off since this doesn't cooperate with the search method
-        is_volatile_cb => $is_volatile_cb,
-    );
-
-    return wantarray ? %metadata : \%metadata;
-}
-
 sub get_metadata_sp_in_label_range {
     my $self = shift;
 

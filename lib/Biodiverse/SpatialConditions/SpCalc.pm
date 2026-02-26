@@ -23,6 +23,8 @@ use List::MoreUtils qw /uniq/;
 use List::Util qw /min max any/;
 use Ref::Util qw { :all };
 
+use parent qw /Biodiverse::SpatialConditions::LabelRanges/;
+
 
 use Biodiverse::Metadata::SpatialConditions;
 
@@ -2029,10 +2031,6 @@ sub _aggregate_get_groups_in_label_range {
     my $range_args   = $+{range_args};
     my $method_args  = $method_args_hash->{$range_method . $range_args} // {};
     my $range_label  = delete local $method_args->{label};
-
-    #  we only work with axes [0,1] for now.
-    my $axes = $method_args->{axes};
-    return if $axes && (!is_arrayref ($axes) || join (':', @$axes) ne '0:1');
 
     my $label = $range_label // $cur_label // $self->get_current_label;
 

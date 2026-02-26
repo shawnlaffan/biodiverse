@@ -2640,6 +2640,20 @@ sub get_neighbours {
         @exclude_hash{@{$args{exclude_list}}} = (1) x @{$args{exclude_list}};
     }
 
+    #  do we have a substitute method that allows us to skip the per-element search?
+    if (my $aggregate_sub_method = $spatial_conditions->get_param('AGGREGATE_SUBSTITUTE_METHOD')) {
+        if (my $aggregate_result = $spatial_conditions->$aggregate_sub_method) {
+            my %valid_nbrs = %$aggregate_result;
+            delete @valid_nbrs{ keys %exclude_hash };
+            if ( $args{as_array} ) {
+                return wantarray ? keys %valid_nbrs : [ keys %valid_nbrs ];
+            }
+            else {
+                return wantarray ? %valid_nbrs : \%valid_nbrs;
+            }
+        }
+    }
+
 
     #  Some spatial conditions go to town with their evaluations,
     #  so caching these saves internal method calls and thus time.

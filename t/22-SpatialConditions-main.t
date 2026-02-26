@@ -125,6 +125,7 @@ sub test_clone {
         ref $obj->get_basedata_ref,
         'basedata is same object ref after cloning',
     );
+    $obj->delete_cached_values;  #  clones clear these
     is ($clone, $obj, 'Cloned');
 
     my $blorb = [1..3];

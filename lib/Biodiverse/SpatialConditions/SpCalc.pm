@@ -1827,7 +1827,7 @@ sub get_common_metadata_in_label_range {
             'type', #  nbr or proc to control use of nbr or processing groups
             'axes',
         ],
-        result_type    => $uses_current_label ? 'complex' : 'always_same',
+        result_type    => $uses_current_label ? 'always_same_current_label' : 'always_same',
         index_no_use   => 1, #  turn index off since this doesn't cooperate with the search method
         is_volatile_cb => $is_volatile_cb,
     );
@@ -1967,9 +1967,13 @@ sub get_metadata_sp_in_label_range {
                 buffer_dist
             /,
         ],
-        result_type    => $uses_current_label ? 'complex' : 'always_same',
+        result_type    => $uses_current_label ? 'always_same_current_label' : 'always_same',
         index_no_use   => 1, #  turn index off since this doesn't cooperate with the search method
         is_volatile_cb => $is_volatile_cb,
+        aggregate_substitute_method => {
+            re_name => 'in_label_range',
+            method  => '_aggregate_get_groups_in_label_range',
+        },
     );
 
     return $self->metadata_class->new (\%metadata);
@@ -2004,6 +2008,50 @@ sub sp_in_label_range {
         //= $self->get_basedata_ref->get_labels_in_group_as_hash_aa ($group);
 
     return exists $labels_in_group->{$label};
+}
+
+sub _aggregate_get_groups_in_label_range {
+    my ($self) = @_;
+
+    #  no point continuing if no basedata
+    my $bd = $self->get_basedata_ref // return;
+
+    my $conditions = $self->get_conditions_nws;
+
+    my $re = $self->get_regex (name => 'in_label_range');
+
+    return if not $conditions =~ /$re/ms;
+
+    my $cur_label = $self->_dequote_string_literal($+{cur_label});
+
+    my $method_args_hash = $self->get_param ('METHOD_ARG_HASHES');
+    my $range_method = $+{range_method};
+    my $range_args   = $+{range_args};
+    my $method_args  = $method_args_hash->{$range_method . $range_args} // {};
+    my $range_label  = delete local $method_args->{label};
+
+    #  we only work with axes [0,1] for now.
+    my $axes = $method_args->{axes};
+    return if $axes && (!is_arrayref ($axes) || join (':', @$axes) ne '0:1');
+
+    my $label = $range_label // $cur_label // $self->get_current_label;
+
+    return if !defined $label;
+
+    #  label not in basedata
+    return wantarray ? () : {}
+        if !$bd->exists_label_aa($label);
+
+    if ($method_args->{convex_hull} || $method_args->{circumcircle} || $method_args->{concave_hull}) {
+        my $in_polygon = $self->get_in_polygon_hash (%$method_args, label => $label);
+        return wantarray ? %$in_polygon : $in_polygon;
+    }
+
+    my $tmp = $bd->get_groups_with_label_as_hash_aa ($label);
+    my %groups_with_label;
+    @groups_with_label{keys %$tmp} = (1) x keys %$tmp;
+
+    return wantarray ? %groups_with_label : \%groups_with_label;
 }
 
 use constant DEFAULT_CONVEX_HULL_RATIO => 0.00001;
@@ -2222,6 +2270,12 @@ sub get_metadata_sp_in_label_ancestor_range {
     $meta->{description} = $description;
     $meta->{example}     = $example;
     $meta->{requires_tree_ref} = 1;
+    $meta->{aggregate_substitute_method} = {
+        #  If condition matches regex then we can generate a hash
+        #  of all nbr results and skip any per-group search.
+        re_name => 'in_label_ancestor_range',
+        method  => '_aggregate_sp_in_label_ancestor_range',
+    };
     return wantarray ? %$meta : $meta;
 }
 
@@ -2232,6 +2286,34 @@ sub sp_in_label_ancestor_range {
     my $coord = $self->get_current_coord_id (%args{type});
 
     return exists $range->{$coord};
+}
+
+#  a lot of duplicated code in here
+sub _aggregate_sp_in_label_ancestor_range {
+    my ($self) = @_;
+
+    my $conditions = $self->get_conditions_nws;
+
+    my $re = $self->get_regex (name => 'in_label_ancestor_range');
+    return if not $conditions =~ /$re/ms;
+
+    my $cur_label = $self->_dequote_string_literal($+{cur_label});
+
+    my $method_args_hash = $self->get_param ('METHOD_ARG_HASHES');
+    my $range_method = $+{range_method};
+    my $range_args   = $+{range_args};
+    my $method_args  = $method_args_hash->{$range_method . $range_args} // {};
+    my $range_label  = delete local $method_args->{label};
+
+    #  we only work with axes [0,1] for now.
+    my $axes = $method_args->{axes};
+    return if $axes && (!is_arrayref ($axes) || join (':', @$axes) ne '0:1');
+
+    my $label = $range_label // $cur_label // $self->get_current_label;
+
+    return if !defined $label;
+
+    return $self->get_tree_node_ancestral_range_hash (%$method_args, label => $label);
 }
 
 sub get_tree_node_ancestral_range_hash {
@@ -2334,7 +2416,7 @@ sub get_tree_node_ancestor {
 
     my $d = $args{target} // croak 'argument "target" not defined';
 
-    my $cache = $args{cache} // $self->get_tree_node_ancestor_cache (%args, tree => $tree);
+    my $cache = $args{cache} // $self->get_tree_node_ancestor_cache (%args, tree_ref => $tree);
 
     my $ancestor = $cache->{ancestors}{$label} //= do {
         if ($args{as_frac}) {

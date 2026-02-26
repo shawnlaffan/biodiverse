@@ -25,6 +25,7 @@ my %methods_and_defaults = (
     is_volatile_cb         => sub {},
     requires_tree_ref      => undef,
     is_def_query           => undef,
+    aggregate_substitute_method => { },  #  can use a substitute method with same args for aggregate results
 );
 
 sub _get_method_default_hash {

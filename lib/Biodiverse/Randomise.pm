@@ -1795,11 +1795,9 @@ sub rand_structured {
         $reseed_prob = $args{spatial_allocation_reseed_prob} || 0;
     }
 
-    my $sp_alloc_nbr_list_cache = $self->get_cached_value ('sp_alloc_nbr_list_cache');
-    if (!$sp_alloc_nbr_list_cache) {
-        $sp_alloc_nbr_list_cache = {};
-        $self->set_cached_value (sp_alloc_nbr_list_cache => $sp_alloc_nbr_list_cache);
-    }
+    my $sp_alloc_nbr_list_cache
+        = $self->get_cached_value_dor_set_default_href ('sp_alloc_nbr_list_cache');
+
     #  avoid some duplication below when used
     my %sp_alloc_nbr_list_args = (
         cache          => $sp_alloc_nbr_list_cache,
@@ -1939,6 +1937,7 @@ sub rand_structured {
     );
     my $sp_seed_timer;
     my $sp_seed_show_progress = 1;
+    my $using_diffusion_allocation_order = ($spatial_allocation_order eq 'diffusion');
 
     BY_LABEL:
     foreach my $label (@$rand_label_order) {
@@ -1975,6 +1974,11 @@ sub rand_structured {
         #  could generalise this name as it could be used for other cases 
         my $using_random_propagation = ($spatial_allocation_order =~ /^(?:random_walk|diffusion)$/);
         my %to_groups_hash;  #  used in the spatial allocations
+
+        #  per-label caching (volatility needs work, though)
+        if ($sp_for_label_allocation and $sp_for_label_allocation->spatial_conditions_are_volatile) {
+            $sp_alloc_nbr_list_args{cache} = $sp_alloc_nbr_list_cache->{$label} //= {};
+        }
 
       BY_GROUP:
         while (scalar @$tmp_rand_order && scalar @target_groups) {
@@ -2067,7 +2071,7 @@ sub rand_structured {
                            && $_ ne $to_groups[0]
                           } @$list_ref;
 
-                        if ($spatial_allocation_order eq 'diffusion') {
+                        if ($using_diffusion_allocation_order) {
                             #  need uniques only for uniform random selection
                             @sublist = grep !exists $to_groups_hash{$_}, @sublist;
                         }
@@ -2191,9 +2195,11 @@ sub rand_structured {
                            && $_ ne $to_group
                           } @$list_ref;
 
-                        if ($spatial_allocation_order eq 'diffusion') {
-                            #  need to ensure one entry for each group
-                            #  for uniform random selection
+                        if ($using_diffusion_allocation_order) {
+                            #  Need to ensure one entry for each group
+                            #  for uniform random selection.
+                            #  Seems to empty the list if return type is
+                            #  always_same but need to check further before skipping the grep
                             @sublist = grep !exists $to_groups_hash{$_}, @sublist;
                         }
 
@@ -2216,10 +2222,10 @@ sub rand_structured {
                     #  By default we will work backwards,
                     #  but if we are using random backtracking then we
                     #  need to select one and push it to the front.
-                    if (    $spatial_allocation_order eq 'diffusion'
+                    if (    $using_diffusion_allocation_order
                         || (!$valid_nbr_count && $label_alloc_backtracking eq 'random')) {
 
-                        if ($spatial_allocation_order ne 'diffusion') {
+                        if (!$using_diffusion_allocation_order) {
                         #  uniq ensures it is equal probability for each group
                         #  Needs to be faster, but we need to retain the order
                         #  for the random walk
@@ -2335,8 +2341,7 @@ sub rand_structured {
 }
 
 sub get_sp_alloc_nbr_list {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
     my $target_element = $args{target_element}
       // croak "target_element argument is undefined\n";
@@ -2353,7 +2358,6 @@ sub get_sp_alloc_nbr_list {
     
     #  avoid double sorting as proximity does its own
     my $sort_lists = $spatial_allocation_order ne 'proximity';
-    my $volatile = $sp_for_label_allocation->spatial_conditions_are_volatile;
 
     $sp_alloc_nbr_list
       = $sp_for_label_allocation->get_calculated_nbr_lists_for_element (
@@ -2368,8 +2372,23 @@ sub get_sp_alloc_nbr_list {
         );
     }
     #  no cache if conditions are volatile
-    if (!$volatile) {
+    if (!$sp_for_label_allocation->spatial_conditions_are_volatile) {
         $sp_alloc_nbr_list_cache->{$target_element} = $sp_alloc_nbr_list;
+    }
+    #  pre-cache if conditions are always_same
+    #  (volatility needs work and we handle per-label caching above)
+    my $arr = $sp_for_label_allocation->get_spatial_conditions_arr;
+    if (List::Util::all {$_->get_result_type =~ /^always_(?:same|true)/} @$arr) {
+        my $bd = $self->get_basedata_ref;
+        #  no cache on basedata due to add/remove elements and caching
+        #  hopefully only need second get_basedata_ref once per variant
+        my $groups = $self->get_cached_value ('BASEDATA_GROUP_ARRAY_' . $bd->get_sha256)
+            // do {
+                my $aref = $bd->get_groups;
+                $self->set_cached_value (('BASEDATA_GROUP_ARRAY_' . $bd->get_sha256) => $aref);
+                $aref;
+            };
+        @{$sp_alloc_nbr_list_cache}{@$groups} = ($sp_alloc_nbr_list) x @$groups;
     }
 
     return $sp_alloc_nbr_list;

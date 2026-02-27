@@ -24,8 +24,16 @@ use PPR;
 
 
 use parent qw /
-    Biodiverse::Common
     Biodiverse::SpatialConditions::SpCalc
+    Biodiverse::SpatialConditions::GeometricWindows
+    Biodiverse::SpatialConditions::LabelRanges
+    Biodiverse::SpatialConditions::Polygons
+    Biodiverse::SpatialConditions::Sidedness
+    Biodiverse::SpatialConditions::Select
+    Biodiverse::SpatialConditions::CalculatedOutputs
+    Biodiverse::SpatialConditions::TextMatch
+    Biodiverse::SpatialConditions::GroupVals
+    Biodiverse::Common
 /;
 
 our $VERSION = '5.0';

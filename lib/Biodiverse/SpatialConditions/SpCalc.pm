@@ -16,17 +16,6 @@ use Scalar::Util qw /looks_like_number/;
 use List::Util qw /min max any/;
 use Ref::Util qw { is_arrayref };
 
-use parent qw /
-    Biodiverse::SpatialConditions::GeometricWindows
-    Biodiverse::SpatialConditions::LabelRanges
-    Biodiverse::SpatialConditions::Polygons
-    Biodiverse::SpatialConditions::Sidedness
-    Biodiverse::SpatialConditions::Select
-    Biodiverse::SpatialConditions::CalculatedOutputs
-    Biodiverse::SpatialConditions::TextMatch
-    Biodiverse::SpatialConditions::GroupVals
-/;
-
 sub get_metadata_sp_block {
     my $self = shift;
     my %args = @_;

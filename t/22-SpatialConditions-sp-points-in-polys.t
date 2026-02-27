@@ -73,9 +73,10 @@ sub _create_polygon_file {
         ->CreateLayer({
         Name => 'for_testing_' . time(),
         GeometryType => 'Polygon',
-        Fields => [],
+        Fields => ['name'],
     });
 
+    my $name = 'a';
     foreach my $b (@$bounds) {
         my $x1 = $b->[0] + 0.5;
         my $x2 = $b->[2] + 0.5;
@@ -85,18 +86,20 @@ sub _create_polygon_file {
         my $wkt = "POLYGON (($x1 $y1, $x1 $y2, $x2 $y2, $x2 $y1, $x1 $y1))";
 
         my $f = Geo::GDAL::FFI::Feature->new($layer->GetDefn);
+        $f->SetField(name => $name);
         my $g = Geo::GDAL::FFI::Geometry->new(WKT => $wkt);
         $f->SetGeomField($g);
         $layer->CreateFeature($f);
+        $name ++;
     }
 
     return $file;
 }
 
 
-sub test_points_in_same_poly {
+sub test_points_in_polygons {
     my $bd = Biodiverse::BaseData->new (
-        NAME       => 'test_points_in_same_poly_shape',
+        NAME       => 'test_points_in_poly_shapes',
         CELL_SIZES => [1,1],
     );
     my %all_gps;
@@ -134,6 +137,52 @@ sub test_points_in_same_poly {
         is ([sort @$list_ref], $expected_nbrs{$el}, "sp_points_in_same_poly_shape correct nbrs for $el");
     }
 
+    my $sp_to_test2 = $bd->add_spatial_output (name => 'test_sp_point_in_poly_shape');
+    $sp_to_test2->run_analysis (
+        calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
+        spatial_conditions => ["sp_point_in_poly_shape (file => '$polygon_file')"],
+    );
+
+    my $expected = [qw /
+        1:1 1:2 1:3
+        2:1 2:2 2:3
+        3:1 3:2 3:3
+        4:1 4:2 4:3
+        5:1 5:2 5:4 5:5
+    /];
+
+    #  should all be the same
+    foreach my $el (keys %expected_nbrs) {
+        my $list_ref = $sp_to_test2->get_list_ref (element => $el, list => '_NBR_SET1');
+        is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el");
+    }
+
+    my $cond = <<~"EOC"
+        sp_point_in_poly_shape (
+            file       => '$polygon_file',
+            field_name => 'name',
+            field_val  => 'b',
+        )
+    EOC
+    ;
+
+    my $sp_to_test3 = $bd->add_spatial_output (name => 'test_sp_point_in_poly_shape3');
+    $sp_to_test3->run_analysis (
+        calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
+        spatial_conditions => [$cond],
+    );
+
+    $expected = [qw /
+        3:1 3:2
+        4:1 4:2
+        5:1 5:2
+    /];
+
+    #  should all be the same
+    foreach my $el (keys %expected_nbrs) {
+        my $list_ref = $sp_to_test3->get_list_ref (element => $el, list => '_NBR_SET1');
+        is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el with fild name and val");
+    }
 
 }
 

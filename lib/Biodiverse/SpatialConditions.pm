@@ -1235,12 +1235,32 @@ sub get_regex {
         \Z
         $PPR::GRAMMAR
     /x;
-
+    #  should loop on these given similarities
+    state $re_point_in_poly_shape = qr /
+        \A
+            \$self->
+            (?<method> sp_point_in_poly_shape )
+            (?<args> (?&PerlParenthesesList) )
+            ;?
+        \Z
+        $PPR::GRAMMAR
+    /x;
+    state $re_point_in_cluster = qr /
+        \A
+            \$self->
+            (?<method> sp_point_in_cluster )
+            (?<args> (?&PerlParenthesesList) )
+            ;?
+        \Z
+        $PPR::GRAMMAR
+    /x;
     state %re_hash = (
         set_current_label          => $re_set_current_label,
         in_label_range             => $re_in_label_range,
         in_label_ancestor_range    => $re_in_label_ancestor_range,
         in_label_or_ancestor_range => $re_in_label_or_ancestor_range,
+        point_in_poly_shape        => $re_point_in_poly_shape,
+        point_in_cluster           => $re_point_in_cluster,
     );
     croak 'name arg not defined' if !defined $args{name};
     my $re = $re_hash{$args{name}} // croak "no regular expression of this name $args{name}";

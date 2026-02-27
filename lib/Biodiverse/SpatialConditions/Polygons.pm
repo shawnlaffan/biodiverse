@@ -5,7 +5,7 @@ use 5.036;
 
 our $VERSION = '5.0';
 
-use experimental qw /refaliasing for_list/;
+use experimental qw /refaliasing for_list isa/;
 
 use Carp;
 use English qw /-no_match_vars/;
@@ -15,6 +15,7 @@ use Geo::ShapeFile 3.00 ();
 use Tree::STR ();
 use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max any/;
+use Ref::Util qw /is_arrayref/;
 
 use Biodiverse::Metadata::SpatialConditions;
 
@@ -53,15 +54,12 @@ sub get_metadata_sp_point_in_poly {
 
 
 sub sp_point_in_poly {
-    my $self = shift;
-    my %args = @_;
-    my $h = $self->get_current_args;
+    my ($self, %args) = @_;
 
     my $vertices = $args{polygon};
-    my $point = $args{point};
-    $point ||= eval {$self->is_def_query} ? $h->{coord_array} : $h->{nbrcoord_array};
+    my $point = $args{point} // $self->get_current_coord_array;
 
-    my $poly = (blessed ($vertices) || $NULL_STRING) eq 'Math::Polygon'
+    my $poly = $vertices isa 'Math::Polygon'
         ? $vertices
         : Math::Polygon->new( points => $vertices );
 
@@ -110,6 +108,10 @@ sub get_metadata_sp_point_in_poly_shape {
         index_no_use => 1,
         result_type  => 'always_same',
         example => $examples,
+        aggregate_substitute_method => {
+            re_name => 'point_in_poly_shape',
+            method  => '_aggregate_point_in_poly_shape',
+        },
     );
 
     return $self->metadata_class->new (\%metadata);
@@ -117,17 +119,18 @@ sub get_metadata_sp_point_in_poly_shape {
 
 
 sub sp_point_in_poly_shape {
-    my $self = shift;
-    my %args = @_;
-    my $h = $self->get_current_args;
+    my ($self, %args) = @_;
+
+    croak 'axes arg must have only two axes'
+        if $args{axes} && is_arrayref $args{axes} && @{$args{axes}} != 2;
+
+    \my @axes = $args{axes} // [0,1];
 
     my $no_cache = $args{no_cache};
-    my $axes = $args{axes} || [0,1];
 
-    my $point = $args{point} // ($self->is_def_query ? $h->{coord_array} : $h->{nbrcoord_array});
+    my $point = $args{point} // $self->get_current_coord_array;
 
-    my $x_coord = $point->[$axes->[0]];
-    my $y_coord = $point->[$axes->[1]];
+    my ($x_coord, $y_coord) = @{$point}[@axes];
 
     my $cached_results = $self->get_cache_sp_point_in_poly_shape(%args);
     my $point_string = join (':', $x_coord, $y_coord);
@@ -140,9 +143,9 @@ sub sp_point_in_poly_shape {
     my $pointshape = Geo::ShapeFile::Point->new(X => $x_coord, Y => $y_coord);
 
     my $rtree = $self->get_rtree_for_polygons_from_shapefile (%args, shapes => $polys);
-    my $bd = $h->{basedata};
+    my $bd = $self->get_basedata_ref;
     my @cell_sizes = $bd->get_cell_sizes;
-    my ($cell_x, $cell_y) = ($cell_sizes[$axes->[0]], $cell_sizes[$axes->[1]]);
+    my ($cell_x, $cell_y) = @cell_sizes[@axes];
     my @rect = (
         $x_coord - $cell_x / 2,
         $y_coord - $cell_y / 2,
@@ -152,15 +155,7 @@ sub sp_point_in_poly_shape {
 
     my $rtree_polys = $rtree->query_partly_within_rect(@rect);
 
-    #  need a progress dialogue for involved searches
-    #my $progress = Biodiverse::Progress->new(text => 'Point in poly search');
-    # my ($i, $target) = (1, scalar @$rtree_polys);
-
     foreach my $poly (@$rtree_polys) {
-        #$progress->update(
-        #    "Checking if point $point_string\nis in polygon\n$i of $target",
-        #    $i / $target,
-        #);
         if ($poly->contains_point($pointshape, 0)) {
             if (!$no_cache) {
                 $cached_results->{$point_string} = 1;
@@ -176,7 +171,64 @@ sub sp_point_in_poly_shape {
     return;
 }
 
+sub _aggregate_point_in_poly_shape {
+    my ($self, %args) = @_;
 
+    #  no point continuing if no basedata
+    my $bd = $self->get_basedata_ref // return;
+
+    my $conditions = $self->get_conditions_nws;
+
+    my $re = $self->get_regex (name => 'point_in_poly_shape');
+
+    return if not $conditions =~ /$re/ms;
+
+    my $method_args_hash = $self->get_param ('METHOD_ARG_HASHES');
+    my $method_name      = $+{method};
+    my $method_args_text = $+{args};
+    my $method_args  = $method_args_hash->{$method_name . $method_args_text} // {};
+
+    #  no aggregate if user specified the point to use
+    return if defined $method_args->{point};
+
+    \my @axes = $method_args->{axes} // [0,1];
+
+    return if join (':', @axes) ne '0:1';  #  only axes 0,1 for now
+
+    my $polys = $self->get_polygons_from_shapefile (%$method_args);
+    my $shape_rtree = $self->get_rtree_for_polygons_from_shapefile(%$method_args, shapes => $polys);
+
+    my $bd_str_tree = $bd->get_strtree_index;
+
+    my @cell_sizes = $bd->get_cell_sizes;
+    my ($cell_x2, $cell_y2) = map {$_ / 2} @cell_sizes[@axes];
+
+    my %intersects;
+
+    my $groups = $bd_str_tree->query_partly_within_rect (@{$shape_rtree->bbox});
+    foreach my $group (@$groups) {
+        my $point = $bd->get_group_element_as_array_aa($group);
+        my ($x_coord, $y_coord) = @{$point}[@axes];
+        my $pointshape = Geo::ShapeFile::Point->new(X => $x_coord, Y => $y_coord);
+
+        my @rect = (
+            $x_coord - $cell_x2,
+            $y_coord - $cell_y2,
+            $x_coord + $cell_x2,
+            $y_coord + $cell_y2,
+        );
+
+        my $rtree_polys = $shape_rtree->query_partly_within_rect(@rect);
+
+        foreach my $poly (@$rtree_polys) {
+            next if !$poly->contains_point($pointshape, 0);
+            $intersects{$group}++;
+            last;
+        }
+    }
+
+    return wantarray ? %intersects : \%intersects;
+}
 
 sub get_metadata_sp_points_in_same_poly_shape {
     my $self = shift;

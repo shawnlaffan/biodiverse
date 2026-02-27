@@ -8,19 +8,11 @@ use feature 'unicode_strings';
 
 use English qw ( -no_match_vars );
 
-use Carp;
-use POSIX qw /fmod floor ceil/;
-use Math::Trig;
-use Math::Trig ':pi';
-use Math::Polygon;
-#use Geo::ShapeFile;
-#use Tree::R;
-use Biodiverse::Progress;
-use Scalar::Util qw /looks_like_number blessed/;
-use List::MoreUtils qw /uniq/;
+use Carp qw /carp croak/;
+use Scalar::Util qw /looks_like_number/;
 use List::Util qw /min max/;
-use Ref::Util qw { :all };
-use PPR;
+use Ref::Util qw / is_arrayref is_coderef /;
+use PPR ();
 
 
 use parent qw /
@@ -112,7 +104,7 @@ sub new {
 sub clone {
     my ($self) = @_;
 
-    use Clone qw //;
+    use Clone ();
     use experimental qw /defer/;
 
     #  don't clone the cache

@@ -11,14 +11,8 @@ use experimental qw /refaliasing for_list/;
 use Carp;
 use English qw /-no_match_vars/;
 
-use POSIX qw /fmod floor ceil/;
-# use Math::Trig;
-use Math::Trig qw/deg2rad :pi/;
-use Biodiverse::Progress;
-use Scalar::Util qw /looks_like_number blessed/;
-use List::MoreUtils qw /uniq/;
-use List::Util qw /min max any/;
-use Ref::Util qw { :all };
+use Math::Trig qw/deg2rad/;
+use Ref::Util qw / is_arrayref /;
 
 
 sub get_metadata_sp_is_left_of {

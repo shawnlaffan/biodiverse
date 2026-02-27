@@ -10,10 +10,8 @@ use experimental qw /refaliasing for_list/;
 use Carp;
 use English qw /-no_match_vars/;
 
-use Scalar::Util qw /looks_like_number blessed/;
-use List::MoreUtils qw /uniq/;
-use List::Util qw /min max any/;
-use Ref::Util qw { :all };
+use List::Util qw /min max/;
+use Ref::Util qw / is_arrayref /;
 
 use Biodiverse::Metadata::SpatialConditions;
 

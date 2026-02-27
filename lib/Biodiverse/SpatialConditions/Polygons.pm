@@ -10,13 +10,11 @@ use experimental qw /refaliasing for_list/;
 use Carp;
 use English qw /-no_match_vars/;
 
-use Math::Polygon;
-use Geo::ShapeFile 3.00;
-use Tree::R;
+use Math::Polygon ();
+use Geo::ShapeFile 3.00 ();
+use Tree::R ();
 use Scalar::Util qw /looks_like_number blessed/;
-use List::MoreUtils qw /uniq/;
 use List::Util qw /min max any/;
-use Ref::Util qw { :all };
 
 use Biodiverse::Metadata::SpatialConditions;
 
@@ -296,7 +294,7 @@ sub sp_points_in_same_poly_shape {
     #  get the list of common polys
     my @rtree_polys_common = grep {
         my $check = $_;
-        List::MoreUtils::any {$_ eq $check} @$rtree_polys2
+        List::Util::any {$_ eq $check} @$rtree_polys2
     } @$rtree_polys1;
 
     my $point1_str = join ':', $x_coord1, $y_coord1;

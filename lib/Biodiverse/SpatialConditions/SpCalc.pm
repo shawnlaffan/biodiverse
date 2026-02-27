@@ -13,7 +13,6 @@ use English qw /-no_match_vars/;
 
 use POSIX qw /fmod floor/;
 use Scalar::Util qw /looks_like_number/;
-use List::Util qw /min max any/;
 use Ref::Util qw { is_arrayref };
 
 sub get_metadata_sp_block {

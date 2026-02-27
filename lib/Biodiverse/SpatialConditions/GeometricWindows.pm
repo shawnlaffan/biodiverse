@@ -8,9 +8,7 @@ our $VERSION = '5.0';
 use Carp;
 use English qw /-no_match_vars/;
 
-use POSIX qw /fmod floor ceil/;
-use Math::Trig;
-use Math::Trig ':pi';
+use Math::Trig qw /deg2rad/;
 use Scalar::Util qw /looks_like_number/;
 use List::MoreUtils qw /uniq/;
 use List::Util qw /min max any/;

@@ -378,6 +378,10 @@ sub get_metadata_sp_point_in_cluster {
         index_no_use => 1,
         result_type  => 'always_same',
         example => $examples,
+        aggregate_substitute_method => {
+            re_name => 'point_in_cluster',
+            method  => '_aggregate_points_in_cluster',
+        },
     );
 
     return $self->metadata_class->new (\%metadata);
@@ -407,7 +411,7 @@ sub sp_point_in_cluster {
     $cache_name   .= join $SUBSEP, %args{sort keys %args}; # $SUBSEP is \034 by default
     my $terminal_elements = $self->get_cached_value ($cache_name);
     if (!$terminal_elements) {
-        my $root = $args{from_node}
+        my $root = defined $args{from_node}
             ? $cl->get_node_ref_aa($args{from_node})
             : $cl->get_root_node;
         #  tree object also caches
@@ -416,6 +420,43 @@ sub sp_point_in_cluster {
     }
 
     return !!$terminal_elements->{$element};
+}
+
+sub _aggregate_points_in_cluster {
+    my ($self, %args) = @_;
+
+    #  no point continuing if no basedata
+    my $bd = $self->get_basedata_ref // return;
+
+    my $conditions = $self->get_conditions_nws;
+
+    my $re = $self->get_regex (name => 'point_in_cluster');
+
+    return if not $conditions =~ /$re/ms;
+
+    my $method_args_hash = $self->get_param ('METHOD_ARG_HASHES');
+    my $method_name      = $+{method};
+    my $method_args_text = $+{args};
+    my $method_args  = $method_args_hash->{$method_name . $method_args_text} // {};
+
+    my $cl_name = $method_args->{output}
+        // croak "Cluster output name not defined\n";
+    my $cl = $bd->get_cluster_output_ref (name => $cl_name)
+        or croak "Spatial output $cl_name does not exist in basedata "
+        . $bd->get_name
+        . "\n";
+
+    my $root = defined $method_args->{from_node}
+        ? $cl->get_node_ref_aa($method_args->{from_node})
+        : $cl->get_root_node;
+    #  tree object caches
+    my $terminal_elements = $root->get_terminal_elements;
+
+    #  ensure values of 1
+    my %intersects;
+    @intersects{keys %$terminal_elements} = (1) x keys %$terminal_elements;
+
+    return wantarray ? %intersects : \%intersects;
 }
 
 1;

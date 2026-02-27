@@ -108,6 +108,10 @@ sub get_metadata_sp_point_in_poly_shape {
         index_no_use => 1,
         result_type  => 'always_same',
         example => $examples,
+        aggregate_substitute_method => {
+            re_name => 'point_in_poly_shape',
+            method  => '_aggregate_point_in_poly_shape',
+        },
     );
 
     return $self->metadata_class->new (\%metadata);
@@ -167,7 +171,64 @@ sub sp_point_in_poly_shape {
     return;
 }
 
+sub _aggregate_point_in_poly_shape {
+    my ($self, %args) = @_;
 
+    #  no point continuing if no basedata
+    my $bd = $self->get_basedata_ref // return;
+
+    my $conditions = $self->get_conditions_nws;
+
+    my $re = $self->get_regex (name => 'point_in_poly_shape');
+
+    return if not $conditions =~ /$re/ms;
+
+    my $method_args_hash = $self->get_param ('METHOD_ARG_HASHES');
+    my $method_name      = $+{method};
+    my $method_args_text = $+{args};
+    my $method_args  = $method_args_hash->{$method_name . $method_args_text} // {};
+
+    #  no aggregate if user specified the point to use
+    return if defined $method_args->{point};
+
+    \my @axes = $method_args->{axes} // [0,1];
+
+    return if join (':', @axes) ne '0:1';  #  only axes 0,1 for now
+
+    my $polys = $self->get_polygons_from_shapefile (%$method_args);
+    my $shape_rtree = $self->get_rtree_for_polygons_from_shapefile(%$method_args, shapes => $polys);
+
+    my $bd_str_tree = $bd->get_strtree_index;
+
+    my @cell_sizes = $bd->get_cell_sizes;
+    my ($cell_x2, $cell_y2) = map {$_ / 2} @cell_sizes[@axes];
+
+    my %intersects;
+
+    my $groups = $bd_str_tree->query_partly_within_rect (@{$shape_rtree->bbox});
+    foreach my $group (@$groups) {
+        my $point = $bd->get_group_element_as_array_aa($group);
+        my ($x_coord, $y_coord) = @{$point}[@axes];
+        my $pointshape = Geo::ShapeFile::Point->new(X => $x_coord, Y => $y_coord);
+
+        my @rect = (
+            $x_coord - $cell_x2,
+            $y_coord - $cell_y2,
+            $x_coord + $cell_x2,
+            $y_coord + $cell_y2,
+        );
+
+        my $rtree_polys = $shape_rtree->query_partly_within_rect(@rect);
+
+        foreach my $poly (@$rtree_polys) {
+            next if !$poly->contains_point($pointshape, 0);
+            $intersects{$group}++;
+            last;
+        }
+    }
+
+    return wantarray ? %intersects : \%intersects;
+}
 
 sub get_metadata_sp_points_in_same_poly_shape {
     my $self = shift;

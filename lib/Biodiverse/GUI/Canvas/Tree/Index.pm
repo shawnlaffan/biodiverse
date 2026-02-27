@@ -5,7 +5,8 @@ use 5.036;
 
 our $VERSION = '5.0';
 
-use Tree::R;
+use Tree::R ();  #  keep for now as old data might contain cached trees
+use Tree::STR 0.06 ();
 use POSIX qw /floor/;
 use List::Util qw /min max reduce/;
 use List::MoreUtils qw /minmax/;
@@ -77,13 +78,13 @@ sub populate_from_tree {
 
     # use DDP; p %boxes;
     #  rtree with no empties
-    my $rtree = Tree::R->new;
+    my $rtree = Tree::STR->new;
     foreach my $boxkey (keys %boxes) {
         my ($x, $y) = split ':', $boxkey;
         $rtree->insert($boxes{$boxkey}, $x, $y, $x + $box_size, $y + $box_size);
     }
 
-    my $elapsed = time() - $start_time;
+    # my $elapsed = time() - $start_time;
     # say "Done in $elapsed s";
     # say scalar keys %boxes;
 

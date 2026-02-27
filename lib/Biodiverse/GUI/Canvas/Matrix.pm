@@ -12,7 +12,6 @@ use List::Util qw /min max any/;
 use List::MoreUtils qw /minmax/;
 use POSIX qw /floor/;
 use Carp qw /croak confess/;
-use Tree::R;
 
 use parent 'Biodiverse::GUI::Canvas::Grid';
 

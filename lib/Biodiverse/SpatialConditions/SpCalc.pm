@@ -106,7 +106,7 @@ sub get_metadata_sp_self_only {
         description    => 'Select only the processing group',
         result_type    => 'self_only',
         index_max_dist => 0,    #  search only self if using index
-        example        => 'sp_self_only() #  only use the proceessing cell',
+        example        => 'sp_self_only() #  only use the processing cell',
     );
 
     return $self->metadata_class->new (\%metadata);

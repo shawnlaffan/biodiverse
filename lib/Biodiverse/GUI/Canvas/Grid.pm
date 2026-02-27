@@ -14,7 +14,6 @@ use List::MoreUtils qw /minmax/;
 use Ref::Util qw /is_hashref is_arrayref is_blessed_ref/;
 use POSIX qw /floor/;
 use Carp qw /croak confess/;
-use Tree::R;
 
 use constant PI  => 3.141592653589793238462643383279;
 use constant PI2 => 2 * PI;

@@ -7,7 +7,7 @@ use English qw ( -no_match_vars );
 
 use Carp;
 
-use parent qw /Biodiverse::SpatialParams Biodiverse::Common/;
+use parent qw /Biodiverse::SpatialConditions/;
 
 our $VERSION = '5.0';
 

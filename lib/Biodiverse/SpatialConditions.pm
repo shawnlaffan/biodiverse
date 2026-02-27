@@ -8,24 +8,24 @@ use feature 'unicode_strings';
 
 use English qw ( -no_match_vars );
 
-use Carp;
-use POSIX qw /fmod floor ceil/;
-use Math::Trig;
-use Math::Trig ':pi';
-use Math::Polygon;
-#use Geo::ShapeFile;
-#use Tree::R;
-use Biodiverse::Progress;
-use Scalar::Util qw /looks_like_number blessed/;
-use List::MoreUtils qw /uniq/;
+use Carp qw /carp croak/;
+use Scalar::Util qw /looks_like_number/;
 use List::Util qw /min max/;
-use Ref::Util qw { :all };
-use PPR;
+use Ref::Util qw / is_arrayref is_coderef /;
+use PPR ();
 
 
 use parent qw /
-    Biodiverse::Common
     Biodiverse::SpatialConditions::SpCalc
+    Biodiverse::SpatialConditions::GeometricWindows
+    Biodiverse::SpatialConditions::LabelRanges
+    Biodiverse::SpatialConditions::Polygons
+    Biodiverse::SpatialConditions::Sidedness
+    Biodiverse::SpatialConditions::Select
+    Biodiverse::SpatialConditions::CalculatedOutputs
+    Biodiverse::SpatialConditions::TextMatch
+    Biodiverse::SpatialConditions::GroupVals
+    Biodiverse::Common
 /;
 
 our $VERSION = '5.0';
@@ -104,7 +104,7 @@ sub new {
 sub clone {
     my ($self) = @_;
 
-    use Clone qw //;
+    use Clone ();
     use experimental qw /defer/;
 
     #  don't clone the cache
@@ -183,10 +183,14 @@ sub set_tree_ref {
 sub get_current_coord_id {
     my ($self, %args) = @_;
 
-    my $type = $args{type} // ($self->is_def_query ? 'proc' : 'nbr');
-    croak "Invalid type arg $type" if !($type eq 'proc' || $type eq 'nbr');
-
+    #  most common case is called without args
     my $h = $self->get_current_args;
+    return $h->{coord_id2}
+        if !defined $args{type};
+
+    my $type = $args{type};
+    croak "Invalid type arg $type"
+        if !($type eq 'proc' || $type eq 'nbr');
 
     return $type eq 'proc'
         ? $h->{coord_id1}
@@ -196,10 +200,14 @@ sub get_current_coord_id {
 sub get_current_coord_array {
     my ($self, %args) = @_;
 
-    my $type = $args{type} // ($self->is_def_query ? 'proc' : 'nbr');
-    croak "Invalid type arg $type" if !($type eq 'proc' || $type eq 'nbr');
-
+    #  most common case is called without args
     my $h = $self->get_current_args;
+    return $h->{nbrcoord_array}
+        if !defined $args{type};
+
+    my $type = $args{type} // 'nbr';
+    croak "Invalid type arg $type"
+        if !($type eq 'proc' || $type eq 'nbr');
 
     return $type eq 'proc'
         ? $h->{coord_array}

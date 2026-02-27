@@ -7,7 +7,7 @@ use English qw ( -no_match_vars );
 
 use Carp;
 
-use parent qw /Biodiverse::SpatialParams Biodiverse::Common/;
+use parent qw /Biodiverse::SpatialConditions/;
 
 our $VERSION = '5.0';
 
@@ -15,6 +15,38 @@ sub get_type {return 'definition query'};
 
 sub is_def_query {return 1};
 
+sub get_current_coord_id {
+    my ($self, %args) = @_;
+
+    #  most common case is called without args
+    my $h = $self->get_current_args;
+    return $h->{coord_id1}
+        if !defined $args{type};
+
+    my $type = $args{type};
+    croak "Invalid type arg $type"
+        if $type && !($type eq 'proc' || $type eq 'nbr');
+
+    return $type eq 'proc'
+        ? $h->{coord_id1}
+        : $h->{coord_id2};
+}
+
+sub get_current_coord_array {
+    my ($self, %args) = @_;
+
+    #  most common case is called without args
+    my $h = $self->get_current_args;
+    return $h->{coord_array}
+        if !defined $args{type};
+
+    my $type = $args{type} // 'proc';
+    croak "Invalid type arg $type" if !($type eq 'proc' || $type eq 'nbr');
+
+    return $type eq 'proc'
+        ? $h->{coord_array}
+        : $h->{nbrcoord_array};
+}
 
 =head1 NAME
 

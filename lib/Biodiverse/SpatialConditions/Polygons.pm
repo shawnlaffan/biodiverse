@@ -15,6 +15,7 @@ use Geo::ShapeFile 3.00 ();
 use Tree::STR ();
 use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max any/;
+use Ref::Util qw /is_arrayref/;
 
 use Biodiverse::Metadata::SpatialConditions;
 
@@ -114,17 +115,18 @@ sub get_metadata_sp_point_in_poly_shape {
 
 
 sub sp_point_in_poly_shape {
-    my $self = shift;
-    my %args = @_;
-    my $h = $self->get_current_args;
+    my ($self, %args) = @_;
+
+    croak 'axes arg must have only two axes'
+        if $args{axes} && is_arrayref $args{axes} && @{$args{axes}} != 2;
+
+    \my @axes = $args{axes} // [0,1];
 
     my $no_cache = $args{no_cache};
-    my $axes = $args{axes} || [0,1];
 
-    my $point = $args{point} // ($self->is_def_query ? $h->{coord_array} : $h->{nbrcoord_array});
+    my $point = $args{point} // $self->get_current_coord_array;
 
-    my $x_coord = $point->[$axes->[0]];
-    my $y_coord = $point->[$axes->[1]];
+    my ($x_coord, $y_coord) = @{$point}[@axes];
 
     my $cached_results = $self->get_cache_sp_point_in_poly_shape(%args);
     my $point_string = join (':', $x_coord, $y_coord);
@@ -137,9 +139,9 @@ sub sp_point_in_poly_shape {
     my $pointshape = Geo::ShapeFile::Point->new(X => $x_coord, Y => $y_coord);
 
     my $rtree = $self->get_rtree_for_polygons_from_shapefile (%args, shapes => $polys);
-    my $bd = $h->{basedata};
+    my $bd = $self->get_basedata_ref;
     my @cell_sizes = $bd->get_cell_sizes;
-    my ($cell_x, $cell_y) = ($cell_sizes[$axes->[0]], $cell_sizes[$axes->[1]]);
+    my ($cell_x, $cell_y) = @cell_sizes[@axes];
     my @rect = (
         $x_coord - $cell_x / 2,
         $y_coord - $cell_y / 2,
@@ -149,15 +151,7 @@ sub sp_point_in_poly_shape {
 
     my $rtree_polys = $rtree->query_partly_within_rect(@rect);
 
-    #  need a progress dialogue for involved searches
-    #my $progress = Biodiverse::Progress->new(text => 'Point in poly search');
-    # my ($i, $target) = (1, scalar @$rtree_polys);
-
     foreach my $poly (@$rtree_polys) {
-        #$progress->update(
-        #    "Checking if point $point_string\nis in polygon\n$i of $target",
-        #    $i / $target,
-        #);
         if ($poly->contains_point($pointshape, 0)) {
             if (!$no_cache) {
                 $cached_results->{$point_string} = 1;

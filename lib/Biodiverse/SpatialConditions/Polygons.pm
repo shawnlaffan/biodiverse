@@ -12,7 +12,7 @@ use English qw /-no_match_vars/;
 
 use Math::Polygon ();
 use Geo::ShapeFile 3.00 ();
-use Tree::R ();
+use Tree::STR ();
 use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max any/;
 
@@ -150,8 +150,7 @@ sub sp_point_in_poly_shape {
         $y_coord + $cell_y / 2,
     );
 
-    my $rtree_polys = [];
-    $rtree->query_partly_within_rect(@rect, $rtree_polys);
+    my $rtree_polys = $rtree->query_partly_within_rect(@rect);
 
     #  need a progress dialogue for involved searches
     #my $progress = Biodiverse::Progress->new(text => 'Point in poly search');
@@ -271,8 +270,7 @@ sub sp_points_in_same_poly_shape {
         $x_coord1 + $dx,
         $y_coord1 + $dy,
     );
-    my $rtree_polys1 = [];
-    $rtree->query_partly_within_rect(@rect1, $rtree_polys1);
+    my $rtree_polys1 = $rtree->query_partly_within_rect(@rect1);
 
     my @rect2 = (
         $x_coord2 - $dx,
@@ -280,8 +278,7 @@ sub sp_points_in_same_poly_shape {
         $x_coord2 + $dx,
         $y_coord2 + $dy,
     );
-    my $rtree_polys2 = [];
-    $rtree->query_partly_within_rect(@rect2, $rtree_polys2);
+    my $rtree_polys2 = $rtree->query_partly_within_rect(@rect2);
 
     #  neither is in a polygon
     if (!@$rtree_polys1 && !@$rtree_polys2) {
@@ -452,7 +449,7 @@ sub get_rtree_for_polygons_from_shapefile {
 sub get_cache_name_rtree {
     my ($self, %args) = @_;
     my $cache_name = join ':',
-        'RTREE',
+        'STRTREE',
         $args{file},
         ($args{field} || $NULL_STRING),
         ($args{field_val} // $NULL_STRING);
@@ -464,11 +461,13 @@ sub build_rtree_for_shapepolys {
 
     my $shapes = $args{shapes};
 
-    my $rtree = Tree::R->new();
-    foreach my $shape (@$shapes) {
-        my @bbox = ($shape->x_min, $shape->y_min, $shape->x_max, $shape->y_max);
-        $rtree->insert($shape, @bbox);
-    }
+    my $rtree = Tree::STR->new(
+        [map {[$_->x_min, $_->y_min, $_->x_max, $_->y_max, $_]} @$shapes]
+    );
+    # foreach my $shape (@$shapes) {
+    #     my @bbox = ($shape->x_min, $shape->y_min, $shape->x_max, $shape->y_max);
+    #     $rtree->insert($shape, @bbox);
+    # }
 
     return $rtree;
 }

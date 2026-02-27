@@ -11,17 +11,10 @@ use experimental qw /refaliasing for_list/;
 use Carp;
 use English qw /-no_match_vars/;
 
-use POSIX qw /fmod floor ceil/;
-use Math::Trig;
-use Math::Trig ':pi';
-use Math::Polygon;
-use Geo::ShapeFile 3.00;
-use Tree::R;
-use Biodiverse::Progress;
-use Scalar::Util qw /looks_like_number blessed/;
-use List::MoreUtils qw /uniq/;
+use POSIX qw /fmod floor/;
+use Scalar::Util qw /looks_like_number/;
 use List::Util qw /min max any/;
-use Ref::Util qw { :all };
+use Ref::Util qw { is_arrayref };
 
 use parent qw /
     Biodiverse::SpatialConditions::GeometricWindows
@@ -33,17 +26,7 @@ use parent qw /
     Biodiverse::SpatialConditions::TextMatch
 /;
 
-
-use Biodiverse::Metadata::SpatialConditions;
-
 our $NULL_STRING = q{};
-
-################################################################################
-#  now for a set of shortcut subs so people don't have to learn so much perl syntax,
-#    and it doesn't have to guess things
-
-#  process still needs thought - eg the metadata
-
 
 sub get_metadata_sp_block {
     my $self = shift;

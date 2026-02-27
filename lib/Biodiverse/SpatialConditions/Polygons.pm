@@ -5,7 +5,7 @@ use 5.036;
 
 our $VERSION = '5.0';
 
-use experimental qw /refaliasing for_list/;
+use experimental qw /refaliasing for_list isa/;
 
 use Carp;
 use English qw /-no_match_vars/;
@@ -53,15 +53,12 @@ sub get_metadata_sp_point_in_poly {
 
 
 sub sp_point_in_poly {
-    my $self = shift;
-    my %args = @_;
-    my $h = $self->get_current_args;
+    my ($self, %args) = @_;
 
     my $vertices = $args{polygon};
-    my $point = $args{point};
-    $point ||= eval {$self->is_def_query} ? $h->{coord_array} : $h->{nbrcoord_array};
+    my $point = $args{point} // $self->get_current_coord_array;
 
-    my $poly = (blessed ($vertices) || $NULL_STRING) eq 'Math::Polygon'
+    my $poly = $vertices isa 'Math::Polygon'
         ? $vertices
         : Math::Polygon->new( points => $vertices );
 

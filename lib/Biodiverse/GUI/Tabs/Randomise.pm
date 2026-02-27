@@ -34,6 +34,10 @@ sub get_type {
     return 'randomisation';
 }
 
+sub get_canvas_list {
+    return ();
+}
+
 sub new {
     my $class = shift;
     my $output_ref = shift; # will be undef if none specified

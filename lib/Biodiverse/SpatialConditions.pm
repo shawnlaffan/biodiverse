@@ -191,10 +191,14 @@ sub set_tree_ref {
 sub get_current_coord_id {
     my ($self, %args) = @_;
 
-    my $type = $args{type} // ($self->is_def_query ? 'proc' : 'nbr');
-    croak "Invalid type arg $type" if !($type eq 'proc' || $type eq 'nbr');
-
+    #  most common case is called without args
     my $h = $self->get_current_args;
+    return $h->{coord_id2}
+        if !defined $args{type};
+
+    my $type = $args{type};
+    croak "Invalid type arg $type"
+        if !($type eq 'proc' || $type eq 'nbr');
 
     return $type eq 'proc'
         ? $h->{coord_id1}
@@ -204,10 +208,14 @@ sub get_current_coord_id {
 sub get_current_coord_array {
     my ($self, %args) = @_;
 
-    my $type = $args{type} // ($self->is_def_query ? 'proc' : 'nbr');
-    croak "Invalid type arg $type" if !($type eq 'proc' || $type eq 'nbr');
-
+    #  most common case is called without args
     my $h = $self->get_current_args;
+    return $h->{nbrcoord_array}
+        if !defined $args{type};
+
+    my $type = $args{type} // 'nbr';
+    croak "Invalid type arg $type"
+        if !($type eq 'proc' || $type eq 'nbr');
 
     return $type eq 'proc'
         ? $h->{coord_array}

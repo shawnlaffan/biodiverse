@@ -25,6 +25,10 @@ sub radius ($self, @r) {
     return $self->{radius};
 }
 
+sub get_centroid ($self) {
+    $self->{centre};
+}
+
 sub bbox ($self) {
     my $c = $self->centre;
     my $r = $self->radius;

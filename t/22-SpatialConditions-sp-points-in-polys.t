@@ -878,7 +878,7 @@ sub test_sp_shape_of_label_range {
     #  limited set
     my $defq = undef;
     $defq = '$y > 1000000 && $y < 1200000 && $x >= 3350000 && $x <= 3550000';
-    # $defq = '$y > 1000000 && $y < 1500000';
+    $defq = '$y > 1000000 && $y < 1500000';
 
 
     foreach my $cond_substring (sort keys %cond_args) {
@@ -908,5 +908,5 @@ sub test_sp_shape_of_label_range {
             );
         }
     }
-    # $bd->save;
+    $bd->save;
 }

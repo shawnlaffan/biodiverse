@@ -754,55 +754,62 @@ sub sp_shape_of_label_range {
     my $h = $self->get_current_args;
     my $axes = $args{axes} // $h->{axes} // [0,1];
 
-    my %extra_args;
-    if ($args{concave_hull}) {
-        $extra_args{allow_holes} = !!$args{allow_holes};
-        $extra_args{ratio}       = max (min (1, $args{hull_ratio} // DEFAULT_CONVEX_HULL_RATIO), 0);
-    }
-
-    my $cache_key = $self->_get_cache_key_for_in_polygon_check(%args);
-    my $cache = $self->get_cached_href('sp_shape_of_label_range_base_polygon');
-    my $base_polygon
-        = $cache->{$cache_key}{$label}
-        //= do {
-        my $method = "get_label_range_${poly_type}";
-        my $polygon = $bd->$method(label => $label, axes => $axes, %extra_args);
-        if (my $buff_dist = $args{buffer_dist}) {
-            $polygon = $polygon->Buffer($buff_dist, 30);
-        };
-        if ($polygon->isa('Geo::GDAL::FFI::Geometry')) {
-            #  store vertices as we cannot easily shift them in GDAL
-            my $is_multi = $polygon->GetType() =~ /Multi/;
-            my $g = $polygon->GetPoints(0, 0);
-            $polygon = Biodiverse::Geometry::Polygon->new(
-                extent   => [ @{$polygon->GetEnvelope}[0, 2, 1, 3] ], #  x1,y1,x2,y2
-                id       => $label,
-                type     => $polygon->GetType,
-                geometry => $is_multi ? $g : [ $g ]
-            );
-        }
-        $polygon;
-    };
-
-    #  create an offset version of the polygon (or circle)
-    #  from the processing group (coord_array, not nbr variant)
     my $coord = $h->{coord_array};
-    my $centroid = $base_polygon->get_centroid;
-    my @offset = (
-        $coord->[0] - $centroid->[0],
-        $coord->[1] - $centroid->[1],
-    );
 
-    my $polygon = ($offset[0] || $offset[1])
-        ? $base_polygon->shift(@offset)
-        : $base_polygon;
+    #  avoid serialising potentially large data
+    my $vcache = $self->get_volatile_cache;
+    my $cached_groups = $vcache->get_cached_href ('sp_shape_of_label_range_base_polygon_by_label');
+    my $groups_in_polygon = $cached_groups->{$label}{$coord};
 
-    if ($polygon->isa('Biodiverse::Geometry::Polygon')) {
-        $polygon = $polygon->as_gdal_geometry;
+    if (!$groups_in_polygon) {
+        my $cache_key = $self->_get_cache_key_for_in_polygon_check(%args);
+        my $cache = $self->get_cached_href('sp_shape_of_label_range_base_polygon');
+        my $base_polygon = $cache->{$cache_key}{$label};
+        if (!$base_polygon) {
+            my %extra_args;
+            if ($args{concave_hull}) {
+                $extra_args{allow_holes} = !!$args{allow_holes};
+                $extra_args{ratio}       = max (min (1, $args{hull_ratio} // DEFAULT_CONVEX_HULL_RATIO), 0);
+            }
+            my $method = "get_label_range_${poly_type}";
+            my $polygon = $bd->$method(label => $label, axes => $axes, %extra_args);
+            if (my $buff_dist = $args{buffer_dist}) {
+                $polygon = $polygon->Buffer($buff_dist, 30);
+            };
+            if ($polygon->isa('Geo::GDAL::FFI::Geometry')) {
+                #  store vertices as we cannot easily shift them in GDAL
+                my $is_multi = $polygon->GetType() =~ /Multi/;
+                my $g = $polygon->GetPoints(0, 0);
+                $polygon = Biodiverse::Geometry::Polygon->new(
+                    extent   => [ @{$polygon->GetEnvelope}[0, 2, 1, 3] ], #  x1,y1,x2,y2
+                    id       => $label,
+                    type     => $polygon->GetType,
+                    geometry => $is_multi ? $g : [ $g ]
+                );
+            }
+            $base_polygon = $cache->{$cache_key}{$label} = $polygon;
+        };
+
+        #  create an offset version of the polygon (or circle)
+        #  from the processing group (coord_array, not nbr variant)
+        my $centroid = $base_polygon->get_centroid;
+        my @offset = (
+            $coord->[0] - $centroid->[0],
+            $coord->[1] - $centroid->[1],
+        );
+
+        my $polygon = ($offset[0] || $offset[1])
+            ? $base_polygon->shift(@offset)
+            : $base_polygon;
+        if ($polygon->isa('Biodiverse::Geometry::Polygon')) {
+            $polygon = $polygon->as_gdal_geometry;
+        }
+
+        $groups_in_polygon
+            = $cached_groups->{$label}{$coord}
+            = $bd->get_groups_in_polygon (polygon => $polygon, axes => $axes);
     }
 
-    #  need to vcache by centroid of offset
-    my $groups_in_polygon = $bd->get_groups_in_polygon (polygon => $polygon, axes => $axes);
 
     my $group = $self->get_current_coord_id(%args);
     return $groups_in_polygon->{$group};

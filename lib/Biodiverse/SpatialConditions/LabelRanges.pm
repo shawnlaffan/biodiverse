@@ -727,9 +727,9 @@ sub get_metadata_sp_shape_of_label_range {
     my $meta = $self->get_metadata_sp_in_label_range;
     $meta->{description} = $description;
     $meta->{example}     = $example;
-    $meta->{local_aggregate_substitute_method} = {
-        # re_name => 'in_label_range',
-        # method  => '_aggregate_get_groups_in_label_range',
+    $meta->{aggregate_substitute_method} = {
+        re_name => 'shape_of_label_range',
+        method  => '_aggregate_sp_shape_of_label_range',
     };
 
     return wantarray ? %$meta : $meta;
@@ -746,9 +746,41 @@ sub sp_shape_of_label_range {
 
     my $groups_in_polygon = $self->get_group_hash_sp_shape_of_label_range(%args);
 
-    my $group = $self->get_current_coord_id(%args);
+    my $group = $self->get_current_coord_id();
 
     return $groups_in_polygon->{$group};
+}
+
+sub _aggregate_sp_shape_of_label_range {
+    my ($self, %args) = @_;
+
+    #  non-constant
+    return if $self->is_def_query;
+
+    my $conditions = $self->get_conditions_nws;
+
+    my $re = $self->get_regex (name => 'shape_of_label_range');
+    return if not $conditions =~ /$re/ms;
+
+    my $cur_label = $self->_dequote_string_literal($+{cur_label});
+
+    my $method_args_hash = $self->get_param ('METHOD_ARG_HASHES');
+    my $range_method = $+{method};
+    my $range_args   = $+{args};
+    my $method_args  = $method_args_hash->{$range_method . $range_args} // {};
+    my $range_label  = delete local $method_args->{label};
+
+    #  we only work with axes [0,1] for now.
+    my $axes = $method_args->{axes};
+    return if $axes && (!is_arrayref ($axes) || join (':', @$axes) ne '0:1');
+
+    my $label = $range_label // $cur_label // $self->get_current_label;
+
+    return if !defined $label;
+
+    $method_args->{label} //= $label;
+
+    return $self->get_group_hash_sp_shape_of_label_range(%$method_args);
 }
 
 sub get_group_hash_sp_shape_of_label_range {
@@ -756,13 +788,15 @@ sub get_group_hash_sp_shape_of_label_range {
 
     my $label = $args{label} // $self->_process_label_arg();
 
+    #  we only work with the processing group here
     my $h = $self->get_current_args;
-    my $coord = $h->{coord_array};
+    my $coord    = $h->{coord_array};
+    my $coord_id = $h->{coord_id1};
 
     #  avoid serialising potentially large data
     my $vcache = $self->get_volatile_cache;
     my $cached_groups = $vcache->get_cached_href ('sp_shape_of_label_range_base_polygon_by_label');
-    my $groups_in_polygon = $cached_groups->{$label}{$coord};
+    my $groups_in_polygon = $cached_groups->{$label}{$coord_id};
 
     if (!$groups_in_polygon) {
         my $bd = $self->get_basedata_ref;
@@ -820,7 +854,7 @@ sub get_group_hash_sp_shape_of_label_range {
         }
 
         $groups_in_polygon
-            = $cached_groups->{$label}{$coord}
+            = $cached_groups->{$label}{$coord_id}
             = $bd->get_groups_in_polygon (polygon => $polygon, axes => $axes);
     }
 

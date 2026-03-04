@@ -738,22 +738,25 @@ sub get_metadata_sp_shape_of_label_range {
 sub sp_shape_of_label_range {
     my ($self, %args) = @_;
 
-    my $label = $args{label} // $self->_process_label_arg();
+    my $label = $args{label} //= $self->_process_label_arg();
 
     my $bd = $self->get_basedata_ref;
 
     return 0 if !$bd->exists_label_aa($label);
 
-    my $poly_type
-        = $args{convex_hull}  ? 'convex_hull'
-        : $args{concave_hull} ? 'concave_hull'
-        : 'circumcircle';
-    croak "sp_shape_of_label_range: Insufficient group axes for $poly_type"
-        if scalar $bd->get_group_axis_count < 2;
+    my $groups_in_polygon = $self->get_group_hash_sp_shape_of_label_range(%args);
+
+    my $group = $self->get_current_coord_id(%args);
+
+    return $groups_in_polygon->{$group};
+}
+
+sub get_group_hash_sp_shape_of_label_range {
+    my ($self, %args) = @_;
+
+    my $label = $args{label} // $self->_process_label_arg();
 
     my $h = $self->get_current_args;
-    my $axes = $args{axes} // $h->{axes} // [0,1];
-
     my $coord = $h->{coord_array};
 
     #  avoid serialising potentially large data
@@ -762,6 +765,9 @@ sub sp_shape_of_label_range {
     my $groups_in_polygon = $cached_groups->{$label}{$coord};
 
     if (!$groups_in_polygon) {
+        my $bd = $self->get_basedata_ref;
+        my $axes = $args{axes} // $h->{axes} // [0,1];
+
         my $cache_key = $self->_get_cache_key_for_in_polygon_check(%args);
         my $cache = $self->get_cached_href('sp_shape_of_label_range_base_polygon');
         my $base_polygon = $cache->{$cache_key}{$label};
@@ -771,6 +777,14 @@ sub sp_shape_of_label_range {
                 $extra_args{allow_holes} = !!$args{allow_holes};
                 $extra_args{ratio}       = max (min (1, $args{hull_ratio} // DEFAULT_CONVEX_HULL_RATIO), 0);
             }
+
+            my $poly_type
+                = $args{convex_hull}  ? 'convex_hull'
+                : $args{concave_hull} ? 'concave_hull'
+                : 'circumcircle';
+            croak "sp_shape_of_label_range: Insufficient group axes for $poly_type"
+                if scalar $bd->get_group_axis_count < 2;
+
             my $method = "get_label_range_${poly_type}";
             my $polygon = $bd->$method(label => $label, axes => $axes, %extra_args);
             if (my $buff_dist = $args{buffer_dist}) {
@@ -810,9 +824,7 @@ sub sp_shape_of_label_range {
             = $bd->get_groups_in_polygon (polygon => $polygon, axes => $axes);
     }
 
-
-    my $group = $self->get_current_coord_id(%args);
-    return $groups_in_polygon->{$group};
+    return wantarray ? %$groups_in_polygon : $groups_in_polygon;
 }
 
 1;

@@ -14,6 +14,7 @@ use List::Util qw /min max/;
 use Ref::Util qw / is_arrayref /;
 
 use Biodiverse::Metadata::SpatialConditions;
+use Biodiverse::Geometry::Polygon ();
 
 
 #  sets the volatile flag if needed
@@ -673,5 +674,138 @@ sub get_tree_for_ancestral_conditions{
     return $tree;
 }
 
+sub get_metadata_sp_shape_of_label_range {
+    my $self = shift;
+
+    my $description = <<~'EOD'
+        (Available from version 5.1)
+
+        Is a neighbouring group within an area surrounding the
+        processing group, where that area is equivalent to
+        a label's range?
+
+        This is a generalisation of the sp_in_label_range()
+        method where, instead of only identifying groups within
+        the range, it uses the range as a cookie-cutter shape
+        around the processing group.
+
+        Note that only the polygon methods are supported,
+        i.e. circumcircle, convex and concave hulls.  The
+        default is the circumcircle.
+
+        Buffering is also supported.
+
+        EOD
+    ;
+
+    my $example = <<~'EOEX'
+        # Are we in the circumcircle range extent of label
+        # called Genus:Sp1, where the range is centred on
+        # the processing group?
+        sp_shape_of_label_range(label => 'Genus:Sp1')
+
+        #  Are we in the convex hull?
+        sp_shape_of_label_range(label => 'Genus:Sp1', convex_hull => 1)
+
+        #  Are we in the maximally concave hull?
+        sp_shape_of_label_range(label => 'Genus:Sp1', concave_hull => 1)
+
+        #  Are we in the circumscribing circle?
+        #  This is the default.
+        sp_shape_of_label_range(label => 'Genus:Sp1', circumcircle => 1)
+
+        #  Are we in the convex hull with a buffer of 100,000 units?
+        sp_shape_of_label_range(
+            label       => 'Genus:Sp1',
+            convex_hull => 1,
+            buffer_dist => 100000,
+        )
+
+        EOEX
+    ;
+
+    my $meta = $self->get_metadata_sp_in_label_range;
+    $meta->{description} = $description;
+    $meta->{example}     = $example;
+    $meta->{local_aggregate_substitute_method} = {
+        # re_name => 'in_label_range',
+        # method  => '_aggregate_get_groups_in_label_range',
+    };
+
+    return wantarray ? %$meta : $meta;
+}
+
+sub sp_shape_of_label_range {
+    my ($self, %args) = @_;
+
+    my $label = $args{label} // $self->_process_label_arg();
+
+    my $bd = $self->get_basedata_ref;
+
+    return 0 if !$bd->exists_label_aa($label);
+
+    my $poly_type
+        = $args{convex_hull}  ? 'convex_hull'
+        : $args{concave_hull} ? 'concave_hull'
+        : 'circumcircle';
+    croak "sp_shape_of_label_range: Insufficient group axes for $poly_type"
+        if scalar $bd->get_group_axis_count < 2;
+
+    my $h = $self->get_current_args;
+    my $axes = $args{axes} // $h->{axes} // [0,1];
+
+    my %extra_args;
+    if ($args{concave_hull}) {
+        $extra_args{allow_holes} = !!$args{allow_holes};
+        $extra_args{ratio}       = max (min (1, $args{hull_ratio} // DEFAULT_CONVEX_HULL_RATIO), 0);
+    }
+
+    my $cache_key = $self->_get_cache_key_for_in_polygon_check(%args);
+    my $cache = $self->get_cached_href('sp_shape_of_label_range_base_polygon');
+    my $base_polygon
+        = $cache->{$cache_key}{$label}
+        //= do {
+        my $method = "get_label_range_${poly_type}";
+        my $polygon = $bd->$method(label => $label, axes => $axes, %extra_args);
+        if (my $buff_dist = $args{buffer_dist}) {
+            $polygon = $polygon->Buffer($buff_dist, 30);
+        };
+        if ($polygon->isa('Geo::GDAL::FFI::Geometry')) {
+            #  store vertices as we cannot easily shift them in GDAL
+            my $is_multi = $polygon->GetType() =~ /Multi/;
+            my $g = $polygon->GetPoints(0, 0);
+            $polygon = Biodiverse::Geometry::Polygon->new(
+                extent   => [ @{$polygon->GetEnvelope}[0, 2, 1, 3] ], #  x1,y1,x2,y2
+                id       => $label,
+                type     => $polygon->GetType,
+                geometry => $is_multi ? $g : [ $g ]
+            );
+        }
+        $polygon;
+    };
+
+    #  create an offset version of the polygon (or circle)
+    #  from the processing group (coord_array, not nbr variant)
+    my $coord = $h->{coord_array};
+    my $centroid = $base_polygon->get_centroid;
+    my @offset = (
+        $coord->[0] - $centroid->[0],
+        $coord->[1] - $centroid->[1],
+    );
+
+    my $polygon = ($offset[0] || $offset[1])
+        ? $base_polygon->shift(@offset)
+        : $base_polygon;
+
+    if ($polygon->isa('Biodiverse::Geometry::Polygon')) {
+        $polygon = $polygon->as_gdal_geometry;
+    }
+
+    #  need to vcache by centroid of offset
+    my $groups_in_polygon = $bd->get_groups_in_polygon (polygon => $polygon, axes => $axes);
+
+    my $group = $self->get_current_coord_id(%args);
+    return $groups_in_polygon->{$group};
+}
 
 1;

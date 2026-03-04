@@ -820,3 +820,93 @@ sub test_sp_in_tree_ancestor_range {
     }
 
 }
+
+
+sub test_sp_shape_of_label_range {
+    my $bd = get_basedata_object_from_site_data (
+        CELL_SIZES => [100000, 100000],
+    );
+
+    my %common_sp_args = (
+        calculations       => [ 'calc_element_lists_used', 'calc_richness' ],
+        spatial_conditions => [ 'sp_self_only()' ],
+    );
+    my %common_cond_args = (
+        basedata_ref => $bd,
+        promise_current_label => 1,
+    );
+
+    my $exp_circumcircle = [qw /
+        3250000:850000  3250000:950000  3350000:850000
+        3350000:950000  3350000:1050000 3350000:1150000
+        3350000:1250000 3450000:850000  3450000:950000
+        3450000:1050000 3450000:1150000 3450000:1250000
+        3550000:950000  3550000:1050000 3550000:1150000
+    /];
+    my %cond_args = (
+        '' => {
+            '3350000:1050000' => $exp_circumcircle,
+        },
+        'circumcircle => 1' => {
+            '3350000:1050000' => $exp_circumcircle,
+        },
+        'convex_hull  => 1' => {
+            '3350000:1050000' => [qw /
+                3250000:850000 3250000:950000  3350000:850000
+                3350000:950000 3350000:1050000 3350000:1150000
+                3450000:850000 3450000:950000
+            /],
+        },
+        'concave_hull => 1' => {
+            '3350000:1050000' => [qw/
+                3250000:850000 3250000:950000 3350000:850000
+                3350000:950000 3450000:850000 3450000:950000
+            /],
+            #  this does not include processing group
+            '3550000:1150000' => [qw /
+                3450000:950000  3450000:1050000 3450000:1150000
+                3450000:1250000 3450000:1350000 3550000:950000
+                3550000:1050000
+            /],
+        },
+    );
+    my $cond_base = <<~'EOC'
+        sp_shape_of_label_range(label => 'Genus:sp4', %{CONDITION}%);
+        EOC
+    ;
+
+    #  limited set
+    my $defq = undef;
+    $defq = '$y > 1000000 && $y < 1200000 && $x >= 3350000 && $x <= 3550000';
+    # $defq = '$y > 1000000 && $y < 1500000';
+
+
+    foreach my $cond_substring (sort keys %cond_args) {
+        my $cond = $cond_base =~ s/\Q%{CONDITION}%\E/$cond_substring/r;
+
+        my $condition = Biodiverse::SpatialConditions->new(
+            conditions => $cond,
+            %common_cond_args,
+        );
+        my $sp_name = "test_ancestor_range_($cond_substring)";
+        my $sp = $bd->add_spatial_output(name => $sp_name);
+        $sp->run_analysis(
+            %common_sp_args,
+            spatial_conditions => [ $condition ],
+            definition_query   => $defq,
+        );
+
+        my $exp_hash = $cond_args{$cond_substring};
+        use experimental qw /for_list/;
+        foreach my ($el, $list) (%$exp_hash) {
+            my $got = $sp->get_list_ref_aa($el, 'EL_LIST_SET1');
+            my %exp = map {$_ => 1} @$list;
+            is (
+                $got,
+                \%exp,
+                "sp_shape_of_label_range: Expected elements for $el, $sp_name",
+            );
+        }
+    }
+    # $bd->save;
+}

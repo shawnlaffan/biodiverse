@@ -250,14 +250,37 @@ sub get_groups_in_circle {
     my $str_tree = $self->get_strtree_index (axes => \@axes);
     \my @groups = $str_tree->query_partly_within_rect ($xmin, $ymin, $xmax, $ymax);
 
+    #  If we are in the inner square then we are in the circle.
+    #  Will save a few cycles for larger sets.
+    #  Could do a second strtree search but this will probably be quicker.
+    my (@inner_square, $use_inner_square);
+    if (@groups > 30) {
+        use Math::Trig qw/pip4/;
+        my $centre = $circle->centre;
+        my $r_inner = sin(pip4) * $circle->radius; # same for x and y
+        @inner_square = (
+            $centre->[0] - $r_inner, $centre->[1] - $r_inner,
+            $centre->[0] + $r_inner, $centre->[1] + $r_inner,
+        );
+        $use_inner_square = !!@inner_square;
+    }
+
     my %in_circumcircle;
-    # \my @groups = $self->get_groups;
     GP:
     foreach my $group (@groups) {
         my $coords = $gp->get_element_name_as_array_aa($group);
         my ($x, $y) = @$coords[@axes];
 
         next GP if $x < $xmin || $x > $xmax || $y < $ymin || $y > $ymax;
+
+        if ($use_inner_square
+            && $x > $inner_square[0] && $x < $inner_square[2]
+            && $y > $inner_square[1] && $y < $inner_square[3]
+        ) {
+            #  should save some cycles with large circles
+            $in_circumcircle{$group}++;
+            next GP;
+        }
 
         next GP if !$circle->contains_point([$x,$y]);
 

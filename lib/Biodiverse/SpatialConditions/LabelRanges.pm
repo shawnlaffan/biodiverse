@@ -805,8 +805,8 @@ sub get_group_hash_sp_shape_of_label_range {
         my $axes = $args{axes} // $h->{axes} // [0,1];
         my $bd = $self->get_basedata_ref;
 
-        my $cache = $self->get_cached_href('sp_shape_of_label_range_base_polygon');
-        my $base_polygon = $cache->{$cache_key}{$label};
+        my $base_poly_cache = $self->get_cached_href('sp_shape_of_label_range_base_polygon');
+        my $base_polygon = $base_poly_cache->{$cache_key}{$label};
         if (!$base_polygon) {
             my %extra_args;
             if ($args{concave_hull}) {
@@ -837,7 +837,7 @@ sub get_group_hash_sp_shape_of_label_range {
                     geometry => $is_multi ? $g : [ $g ]
                 );
             }
-            $base_polygon = $cache->{$cache_key}{$label} = $polygon;
+            $base_polygon = $base_poly_cache->{$cache_key}{$label} = $polygon;
         };
 
         #  create an offset version of the polygon (or circle)

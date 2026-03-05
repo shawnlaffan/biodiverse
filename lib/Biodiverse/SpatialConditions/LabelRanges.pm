@@ -794,16 +794,17 @@ sub get_group_hash_sp_shape_of_label_range {
     my $coord    = $h->{coord_array};
     my $coord_id = $h->{coord_id1};
 
+    my $cache_key = $self->_get_cache_key_for_in_polygon_check(%args);
+
     #  avoid serialising potentially large data
     my $vcache = $self->get_volatile_cache;
     my $cached_groups = $vcache->get_cached_href ('sp_shape_of_label_range_base_polygon_by_label');
-    my $groups_in_polygon = $cached_groups->{$label}{$coord_id};
+    my $groups_in_polygon = $cached_groups->{$cache_key}{$label}{$coord_id};
 
     if (!$groups_in_polygon) {
-        my $bd = $self->get_basedata_ref;
         my $axes = $args{axes} // $h->{axes} // [0,1];
+        my $bd = $self->get_basedata_ref;
 
-        my $cache_key = $self->_get_cache_key_for_in_polygon_check(%args);
         my $cache = $self->get_cached_href('sp_shape_of_label_range_base_polygon');
         my $base_polygon = $cache->{$cache_key}{$label};
         if (!$base_polygon) {
@@ -855,7 +856,7 @@ sub get_group_hash_sp_shape_of_label_range {
         }
 
         $groups_in_polygon
-            = $cached_groups->{$label}{$coord_id}
+            = $cached_groups->{$cache_key}{$label}{$coord_id}
             = $bd->get_groups_in_polygon (polygon => $polygon, axes => $axes);
     }
 

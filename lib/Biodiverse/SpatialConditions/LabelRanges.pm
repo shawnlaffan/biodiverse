@@ -170,8 +170,8 @@ sub get_metadata_sp_in_label_range {
         index_no_use   => 1, #  turn index off since this doesn't cooperate with the search method
         is_volatile_cb => $is_volatile_cb,
         aggregate_substitute_method => {
-            # re_name => 'in_label_range',
-            # method  => '_aggregate_get_groups_in_label_range',
+            re_name => 'in_label_range',
+            method  => '_aggregate_get_groups_in_label_range',
         },
     );
 

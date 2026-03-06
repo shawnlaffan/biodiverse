@@ -255,9 +255,8 @@ sub get_groups_in_circle {
     #  Could do a second strtree search but this will probably be quicker.
     my (@inner_square, $use_inner_square);
     if (@groups > 30) {
-        use Math::Trig qw/pip4/;
-        my $centre = $circle->centre;
-        my $r_inner = sin(pip4) * $circle->radius; # same for x and y
+        my $centre  = $circle->centre;
+        my $r_inner = $circle->radius / sqrt(2);
         @inner_square = (
             $centre->[0] - $r_inner, $centre->[1] - $r_inner,
             $centre->[0] + $r_inner, $centre->[1] + $r_inner,

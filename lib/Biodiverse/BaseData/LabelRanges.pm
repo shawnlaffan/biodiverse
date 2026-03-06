@@ -281,9 +281,8 @@ sub get_groups_in_circle {
             next GP;
         }
 
-        next GP if !$circle->contains_point([$x,$y]);
-
-        $in_circumcircle{$group}++;
+        $in_circumcircle{$group}++
+            if $circle->contains_point([$x,$y]);
     }
 
     return wantarray ? %in_circumcircle : \%in_circumcircle;

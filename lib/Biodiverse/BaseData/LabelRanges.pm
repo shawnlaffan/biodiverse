@@ -272,17 +272,12 @@ sub get_groups_in_circle {
 
         next GP if $x < $xmin || $x > $xmax || $y < $ymin || $y > $ymax;
 
-        if ($use_inscr_sq
-            && $x > $inscr_sq[0] && $x < $inscr_sq[2]
-            && $y > $inscr_sq[1] && $y < $inscr_sq[3]
-        ) {
-            #  should save some cycles with large circles
-            $in_circumcircle{$group}++;
-            next GP;
-        }
-
+        #  check inscribed square then run the circle test
         $in_circumcircle{$group}++
-            if $circle->contains_point([$x,$y]);
+            if ($use_inscr_sq
+                && $x > $inscr_sq[0] && $x < $inscr_sq[2]
+                && $y > $inscr_sq[1] && $y < $inscr_sq[3])
+            || $circle->contains_point([$x,$y]);
     }
 
     return wantarray ? %in_circumcircle : \%in_circumcircle;

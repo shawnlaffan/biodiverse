@@ -250,18 +250,18 @@ sub get_groups_in_circle {
     my $str_tree = $self->get_strtree_index (axes => \@axes);
     \my @groups = $str_tree->query_partly_within_rect ($xmin, $ymin, $xmax, $ymax);
 
-    #  If we are in the inner square then we are in the circle.
+    #  If we are in the inscribed square then we are in the circle.
     #  Will save a few cycles for larger sets.
-    #  Could do a second strtree search but this will probably be quicker.
-    my (@inner_square, $use_inner_square);
+    #  A second strtree search would be no quicker.
+    my (@inscr_sq, $use_inscr_sq);
     if (@groups > 30) {
         my $centre  = $circle->centre;
         my $r_inner = $circle->radius / sqrt(2);
-        @inner_square = (
+        @inscr_sq = (
             $centre->[0] - $r_inner, $centre->[1] - $r_inner,
             $centre->[0] + $r_inner, $centre->[1] + $r_inner,
         );
-        $use_inner_square = !!@inner_square;
+        $use_inscr_sq = !!@inscr_sq;
     }
 
     my %in_circumcircle;
@@ -272,9 +272,9 @@ sub get_groups_in_circle {
 
         next GP if $x < $xmin || $x > $xmax || $y < $ymin || $y > $ymax;
 
-        if ($use_inner_square
-            && $x > $inner_square[0] && $x < $inner_square[2]
-            && $y > $inner_square[1] && $y < $inner_square[3]
+        if ($use_inscr_sq
+            && $x > $inscr_sq[0] && $x < $inscr_sq[2]
+            && $y > $inscr_sq[1] && $y < $inscr_sq[3]
         ) {
             #  should save some cycles with large circles
             $in_circumcircle{$group}++;

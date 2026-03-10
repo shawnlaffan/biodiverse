@@ -250,8 +250,21 @@ sub get_groups_in_circle {
     my $str_tree = $self->get_strtree_index (axes => \@axes);
     \my @groups = $str_tree->query_partly_within_rect ($xmin, $ymin, $xmax, $ymax);
 
+    #  If we are in the inscribed square then we are in the circle.
+    #  Will save a few cycles for larger sets.
+    #  A second strtree search would be no quicker.
+    my (@inscr_sq, $use_inscr_sq);
+    if (@groups > 30) {
+        my $centre  = $circle->centre;
+        my $r_inner = $circle->radius / sqrt(2);
+        @inscr_sq = (
+            $centre->[0] - $r_inner, $centre->[1] - $r_inner,
+            $centre->[0] + $r_inner, $centre->[1] + $r_inner,
+        );
+        $use_inscr_sq = !!@inscr_sq;
+    }
+
     my %in_circumcircle;
-    # \my @groups = $self->get_groups;
     GP:
     foreach my $group (@groups) {
         my $coords = $gp->get_element_name_as_array_aa($group);
@@ -259,9 +272,12 @@ sub get_groups_in_circle {
 
         next GP if $x < $xmin || $x > $xmax || $y < $ymin || $y > $ymax;
 
-        next GP if !$circle->contains_point([$x,$y]);
-
-        $in_circumcircle{$group}++;
+        #  check inscribed square then run the circle test
+        $in_circumcircle{$group}++
+            if ($use_inscr_sq
+                && $x > $inscr_sq[0] && $x < $inscr_sq[2]
+                && $y > $inscr_sq[1] && $y < $inscr_sq[3])
+            || $circle->contains_point([$x,$y]);
     }
 
     return wantarray ? %in_circumcircle : \%in_circumcircle;

@@ -38,6 +38,15 @@ sub get_cached_value_dor_set_default_aref {
     $_[0]->{_cache}{$_[1]} //= [];
 }
 
+#  shorter variants
+sub get_cached_href {
+    $_[0]->{_cache}{$_[1]} //= {};
+}
+
+sub get_cached_aref {
+    $_[0]->{_cache}{$_[1]} //= [];
+}
+
 
 
 sub get_cached_value_keys {

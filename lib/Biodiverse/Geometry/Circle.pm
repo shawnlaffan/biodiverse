@@ -25,6 +25,10 @@ sub radius ($self, @r) {
     return $self->{radius};
 }
 
+sub get_centroid ($self) {
+    $self->{centre};
+}
+
 sub bbox ($self) {
     my $c = $self->centre;
     my $r = $self->radius;
@@ -142,17 +146,24 @@ sub get_circumcircle ($self, $p) {
     return welzl_helper([List::Util::shuffle @$p], [], scalar @$p);
 }
 
-sub clone {
-    my $self = shift;
+sub clone ($self) {
     use Clone;
     return Clone::clone ($self);
 }
 
 #  named for consistency with Geo::GDAL::FFI
-sub Buffer {
-    my ($self, $buffer) = @_;
+#  trailing @ is because Geo::GDAL::FFI has extra args
+#  and perl croaks if incorrect number passed
+sub Buffer ($self, $buffer, @) {
     my $clone = $self->clone;
     $clone->{radius} += $buffer;
+    $clone;
+}
+
+sub shift ($self, $x_off, $y_off) {
+    my $clone = $self->clone;
+    $clone->{centre}[0] += $x_off;
+    $clone->{centre}[1] += $y_off;
     $clone;
 }
 

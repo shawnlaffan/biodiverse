@@ -1254,6 +1254,16 @@ sub get_regex {
         \Z
         $PPR::GRAMMAR
     /x;
+    state $re_shape_of_label_range = qr /
+        \A
+            (?: $re_set_current_label )?
+            \$self->
+            (?<method> sp_shape_of_label_range )
+            (?<args> (?&PerlParenthesesList) )
+            ;?
+        \Z
+        $PPR::GRAMMAR
+    /x;
     state %re_hash = (
         set_current_label          => $re_set_current_label,
         in_label_range             => $re_in_label_range,
@@ -1261,6 +1271,7 @@ sub get_regex {
         in_label_or_ancestor_range => $re_in_label_or_ancestor_range,
         point_in_poly_shape        => $re_point_in_poly_shape,
         point_in_cluster           => $re_point_in_cluster,
+        shape_of_label_range       => $re_shape_of_label_range,
     );
     croak 'name arg not defined' if !defined $args{name};
     my $re = $re_hash{$args{name}} // croak "no regular expression of this name $args{name}";

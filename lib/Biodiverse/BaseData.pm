@@ -2640,8 +2640,22 @@ sub get_neighbours {
         @exclude_hash{@{$args{exclude_list}}} = (1) x @{$args{exclude_list}};
     }
 
+    #  Some spatial conditions go to town with their evaluations,
+    #  so caching these saves internal method calls and thus time.
+    my $coord_array_cache = $self->get_cached_value_dor_set_default_href ('COORD_ARRAYS');
+
+    my $centre_coord_ref
+        = $coord_array_cache->{$element1} //= $self->get_group_element_as_array_aa( $element1 );
+
     #  do we have a substitute method that allows us to skip the per-element search?
     if (my $aggregate_sub_method = $spatial_conditions->get_param('AGGREGATE_SUBSTITUTE_METHOD')) {
+        #  no special special casing for def queries at the moment
+        $spatial_conditions->set_current_args (
+            {
+                coord_array => $centre_coord_ref,
+                coord_id1   => $element1,
+            }
+        );
         if (my $aggregate_result = $spatial_conditions->$aggregate_sub_method) {
             my %valid_nbrs = %$aggregate_result;
             delete @valid_nbrs{ keys %exclude_hash };
@@ -2654,13 +2668,6 @@ sub get_neighbours {
         }
     }
 
-
-    #  Some spatial conditions go to town with their evaluations,
-    #  so caching these saves internal method calls and thus time.
-    my $coord_array_cache = $self->get_cached_value_dor_set_default_href ('COORD_ARRAYS');
-
-    my $centre_coord_ref
-        = $coord_array_cache->{$element1} //= $self->get_group_element_as_array_aa( $element1 );
 
 #  Get the list of possible neighbours - should allow this as an arg?
 #  Don't check the index unless it will result in fewer loop iterations overall.

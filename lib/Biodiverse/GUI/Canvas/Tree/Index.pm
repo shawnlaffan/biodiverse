@@ -78,11 +78,12 @@ sub populate_from_tree {
 
     # use DDP; p %boxes;
     #  rtree with no empties
-    my $rtree = Tree::STR->new;
+    my @bboxen;
     foreach my $boxkey (keys %boxes) {
         my ($x, $y) = split ':', $boxkey;
-        $rtree->insert($boxes{$boxkey}, $x, $y, $x + $box_size, $y + $box_size);
+        push @bboxen, [$x, $y, $x + $box_size, $y + $box_size, $boxes{$boxkey}];
     }
+    my $rtree = Tree::STR->new(\@bboxen);
 
     # my $elapsed = time() - $start_time;
     # say "Done in $elapsed s";

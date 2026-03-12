@@ -1547,12 +1547,6 @@ sub set_selected_list_cols {
 
 sub on_sorted {
     my $self = shift;
-    my %args;
-    #  a massive bodge since we can be called as a
-    #  gtk callback and it then has only one arg
-    if ((@_ % 2) == 0) {
-        %args = @_;
-    }
 
     my $mx       = $self->{matrix_ref};
     my $mg       = $self->{matrix_grid};
@@ -1575,7 +1569,6 @@ sub on_sorted {
         # clear matrix
         my $str = '<i>No selected matrix</i>';
         $label_widget->set_markup($str);
-        $mg->set_visible(0);
     }
     $mg->queue_draw;
 

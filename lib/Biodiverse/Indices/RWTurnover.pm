@@ -64,7 +64,7 @@ sub calc_rw_turnover {
         #  very similar to the phyloRW case but we need the values from %weights
         #  or inverse of ranges
         my $cache
-            = $self->get_cached_value_dor_set_default_href ('_calc_phylo_rwt_pairwise_branch_sum_cache');
+            = $self->get_cached_value_dor_set_default_href ('_calc_rw_turnover_cache');
         #  Could use a reduce call to collapse the "sum map {} @list" idiom,
         #  thus avoiding a list generation.  These are only run once per group,
         #  though, so it might not matter.

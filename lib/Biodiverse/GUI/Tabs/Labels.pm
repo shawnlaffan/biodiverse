@@ -1569,7 +1569,6 @@ sub on_sorted {
         # clear matrix
         my $str = '<i>No selected matrix</i>';
         $label_widget->set_markup($str);
-        $mg->set_visible(0);
     }
     $mg->queue_draw;
 

@@ -215,7 +215,7 @@ sub export_nexus {
         my $colour_hex = sprintf "#%02X%02X%02X", @rgb_arr;
 
         if (!exists $colour_table{$colour_hex}) {
-            my $n = scalar keys %colour_table;  #  this will start at 0
+            my $n = scalar keys %class_table;  #  we already have 0
             $colour_table{$colour_hex} = $n;
             $class_table{$n}     = \@rgb_arr;
         }

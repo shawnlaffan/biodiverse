@@ -205,8 +205,9 @@ sub export_nexus {
 
     #  sort for consistency of class nums across runs
     my %nc;  #  name cache
+    my $meth = 'get_terminal_node_first_number';
     foreach my $node_ref (
-            sort {($nc{$a} //= $a->get_name) cmp ($nc{$b} //= $b->get_name)}
+            sort {($nc{$a} //= $a->$meth) <=> ($nc{$b} //= $b->$meth)}
                  $self->get_terminal_node_refs
             ) {
         my $element = $node_ref->get_name;
@@ -215,7 +216,7 @@ sub export_nexus {
         my $colour_hex = sprintf "#%02X%02X%02X", @rgb_arr;
 
         if (!exists $colour_table{$colour_hex}) {
-            my $n = scalar keys %colour_table;  #  this will start at 0
+            my $n = scalar keys %class_table;  #  we already have 0
             $colour_table{$colour_hex} = $n;
             $class_table{$n}     = \@rgb_arr;
         }

@@ -1,3 +1,4 @@
+use 5.036;
 use strict;
 use warnings;
 use Carp;
@@ -72,6 +73,8 @@ exit main( @ARGV );
 sub main {
     my @args  = @_;
 
+    test_remove_whitespace_from_code();
+
     test_overload();
     test_clone();
 
@@ -99,6 +102,62 @@ sub main {
     done_testing;
     return 0;
 }
+
+sub test_remove_whitespace_from_code {
+    my $sc = Biodiverse::SpatialConditions->new(conditions => '1');
+
+    {
+        my $base_code = <<~'EOC'
+            !     $self->sp_point_in_poly_shape(
+               file => qq'C:\a \b \c .shp' ,
+               buffer => 10
+              );
+              my $x = my $y =     1;
+              my $z=$x and not $y;
+              my %h;$h{a b c} = 5;
+            EOC
+        ;
+        my $exp = <<'EOC'
+!$self->sp_point_in_poly_shape(file=>qq'C:\a \b \c .shp',buffer=>10);
+my$x=my$y=1;my$z=$x and not$y;
+my%h;$h{a b c}=5;
+EOC
+;
+        $exp = join '', split /[\n\r]+/, $exp;
+        my $got = $sc->_remove_whitespace_from_code($base_code);
+        is $got, $exp, 'strip WS, complex case';
+    }
+
+    {
+        my $base_code = <<~'EOC'
+          !   $self->sp_point_in_poly_shape(
+           file => qq'C:\a \b \c .shp' ,
+           buffer => 10
+          );
+        EOC
+        ;
+        my $exp = <<'EOC'
+!$self->sp_point_in_poly_shape(file=>qq'C:\a \b \c .shp',buffer=>10);
+EOC
+;
+        $exp = join '', split /[\n\r]+/, $exp;
+        my $got = $sc->_remove_whitespace_from_code($base_code);
+        is $got, $exp, 'strip WS, less complex case';
+    }
+
+    {
+        my $base_code = <<~'EOC'
+              my $x = my $y =     1;
+              my $z=$x and not $y;
+              my %h;$h{a b c} = 5;
+            EOC
+        ;
+        my $exp = 'my$x=my$y=1;my$z=$x and not$y;my%h;$h{a b c}=5;';
+        my $got = $sc->_remove_whitespace_from_code($base_code);
+        is $got, $exp, 'strip WS from variables';
+    }
+}
+
 
 sub test_overload {
     my $cond = 'sp_self_only()';

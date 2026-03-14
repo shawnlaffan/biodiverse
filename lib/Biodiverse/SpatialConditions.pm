@@ -253,12 +253,56 @@ sub get_conditions_nws {
     $conditions = $self->get_param('PARSED_CONDITIONS');
     croak "Conditions have not been parsed\n" if !defined $conditions;
 
-    $conditions = $conditions =~ s/ (?&PerlNWS) $PPR::GRAMMAR//gxr;
-
+    # $conditions = $conditions =~ s/ (?&PerlNWS) $PPR::GRAMMAR//gxr;
+    $conditions = $self->_remove_whitespace_from_code($conditions);
     $self->set_cached_value ($cache_key => $conditions);
 
     return $conditions;
 }
+
+sub _remove_whitespace_from_code {
+    my ($self, $code) = @_;
+    state $re_quotelike = qr/
+        \bmy\b\s+ |  #  "my $x...$" is otherwise treated as "m y$x...$"
+        (?&PerlVariableScalar)?  #  avoid $y getting similar treatment
+        (?<quoted>
+             (?: (?<! [\$\@%]) (?&PerlQuotelike) )
+             | (?&PerlHashIndexer)
+             | (?: \s not \s)
+             | (?: \s (?&PerlLowPrecedenceInfixOperator) \s)
+        )
+        $PPR::GRAMMAR
+    /x;
+
+    #  find the whitespace that is not in quotes or quotelike code
+    my @to_change;
+    while ($code =~ /$re_quotelike/gx) {
+        next if !defined $+{quoted};
+        my $from = $+{quoted};
+        #  whitespace to char 034 as \s does not match it
+        my $to = $from =~ s/\s/\034/gr; #  could map chars using tr///
+        push @to_change, [ $from, $to ];
+    }
+
+    #  replace the quotelike parts
+    my $code2 = $code;
+    foreach my $pair (@to_change) {
+        my ($from, $to) = @$pair;
+        $code2 =~ s/\Q$from\E/$to/;
+    }
+
+    #  strip whitespace
+    $code2 =~ s/(?&PerlOWS) $PPR::GRAMMAR//gx;
+
+    #  put the quotelike code back
+    foreach my $pair (@to_change) {
+        my ($orig, $now) = @$pair;
+        $code2 =~ s/\Q$now\E/$orig/;
+    }
+
+    return $code2;
+}
+
 
 sub has_conditions {
     my $self       = shift;
@@ -491,8 +535,8 @@ sub parse_distances {
                 }
             }
 
-            #  should only use compacted version but need to check other uses first
-            my $compacted_sub_name_and_args = $sub_name_and_args =~ s/(?&PerlNWS) $PPR::GRAMMAR//grx;
+            #  should perhaps only use compacted version but need to check other uses first
+            my $compacted_sub_name_and_args = $self->_remove_whitespace_from_code($sub_name_and_args);
             $method_args{$compacted_sub_name_and_args} = \%hash_1;
 
             my $invalid = $self->get_invalid_args_for_sub_call (sub => $sub, args => \%hash_1);
@@ -627,11 +671,10 @@ sub parse_distances {
     #print $conditions;
     $self->set_param( PARSED_CONDITIONS => $conditions );
 
-    my $conditions_nws = $self->get_conditions_nws;
-
     my $substitute_method;
     foreach my $metadata (@substitute_methods_to_check) {
         my $re = $self->get_regex (name => $metadata->{re_name});
+        my $conditions_nws = $self->get_conditions_nws;
         if ($conditions_nws =~ $re) {
             $substitute_method = $metadata->{method};
         }

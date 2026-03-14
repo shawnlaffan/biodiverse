@@ -1281,6 +1281,7 @@ sub get_regex {
     #  should loop on these given similarities
     state $re_point_in_poly_shape = qr /
         \A
+            (?<negated>!|not\s?)
             \$self->
             (?<method> sp_point_in_poly_shape )
             (?<args> (?&PerlParenthesesList) )

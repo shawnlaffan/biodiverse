@@ -184,6 +184,26 @@ sub test_points_in_polygons {
         is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el with fild name and val");
     }
 
+    my $sp_to_test4 = $bd->add_spatial_output (name => 'test_sp_point_in_poly_shape4 negated');
+    $sp_to_test4->run_analysis (
+        calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
+        spatial_conditions => ["! $cond"],
+    );
+# diag "! $cond";
+    $expected = [qw /
+        1:1 1:2 1:3 1:4 1:5
+        2:1 2:2 2:3 2:4 2:5
+        3:3 3:4 3:5
+        4:3 4:4 4:5
+        5:3 5:4 5:5
+    /];
+
+    #  should all be the same
+    foreach my $el (keys %expected_nbrs) {
+        my $list_ref = $sp_to_test4->get_list_ref (element => $el, list => '_NBR_SET1');
+        is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el with fild name and val");
+    }
+
 }
 
 

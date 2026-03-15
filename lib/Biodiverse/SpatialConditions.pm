@@ -1271,6 +1271,7 @@ sub get_regex {
     state $re_in_label_range = qr/
         \A
             (?: $re_set_current_label )?
+            (?<negated> !|not\s? )?
             \$self->
             (?<range_method> sp_in_label_range )
             (?<range_args> (?&PerlParenthesesList) )
@@ -1281,7 +1282,7 @@ sub get_regex {
     #  should loop on these given similarities
     state $re_point_in_poly_shape = qr /
         \A
-            (?<negated>!|not\s?)
+            (?<negated> !|not\s? )?
             \$self->
             (?<method> sp_point_in_poly_shape )
             (?<args> (?&PerlParenthesesList) )

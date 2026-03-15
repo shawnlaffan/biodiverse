@@ -277,6 +277,29 @@ sub test_sp_in_label_range_convex_hull {
         isnt $passed3a, $exp, 'Expected def query not same as normal range check';
     }
 
+    {
+        #  check negation
+        my $tmp = $bd->get_groups_ref->get_element_hash;
+        delete local @$tmp{keys %$exp};
+        my %exp_compl = %$tmp;
+        $_ = 1 for values %exp_compl;
+
+        my $cond_neg_ch = 'sp_in_label_range(label => q{Genus:sp4}, convex_hull => 1)';
+
+        foreach my $bool_op ('!', 'not') {
+            my $cond = "$bool_op $cond_neg_ch";
+            my $sp = $bd->add_spatial_output(name => "test_3a_negated $bool_op");
+            $sp->run_analysis(
+                calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
+                spatial_conditions => [ 'sp_self_only()' ],
+                definition_query   => $cond,
+            );
+
+            my $passed3a = $sp->get_groups_that_pass_def_query();
+            is $passed3a, \%exp_compl, 'Negated def query';
+        }
+    }
+
     my $cond_b0 = <<~'EOC'
         $self->set_current_label('Genus:sp4');
         sp_in_label_range(convex_hull => 1, buffer_dist => 0);

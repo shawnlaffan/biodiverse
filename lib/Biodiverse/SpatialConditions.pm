@@ -1325,6 +1325,23 @@ sub get_regex {
     return $re;
 }
 
+#  get the complement of the set if we negate
+#  The set universe is the basedata groups.
+sub _return_aggregate_hash {
+    my ($self, $href, $negated) = @_;
+
+    #  direct return
+    return wantarray ? %$href : $href
+        if !$negated;
+
+    my $gps = $self->get_basedata_ref->get_groups_ref->get_element_hash;
+    delete local @{$gps}{keys %$href};
+    my %complement = %$gps;
+    $_ = 1 for values %complement;  #  set values to 1
+
+    return wantarray ? %complement : \%complement;
+}
+
 #  a very limited set at the moment - need to generalise and handle via metadata
 sub get_conditions_bbox {
     my ($self, %args) = @_;

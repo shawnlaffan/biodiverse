@@ -254,23 +254,6 @@ sub _aggregate_get_groups_in_label_range {
     return $self->_return_aggregate_hash (\%groups_with_label, $negated);
 }
 
-#  get the complement of the set if we negate
-#  The set universe is the basedata groups.
-sub _return_aggregate_hash {
-    my ($self, $href, $negated) = @_;
-
-    #  direct return
-    return wantarray ? %$href : $href
-        if !$negated;
-
-    my $gps = $self->get_basedata_ref->get_groups_ref->get_element_hash;
-    delete local @{$gps}{keys %$href};
-    my %complement = %$gps;
-    $_ = 1 for values %complement;  #  set values to 1
-
-    return wantarray ? %complement : \%complement;
-}
-
 use constant DEFAULT_CONVEX_HULL_RATIO => 0.00001;
 
 sub _get_cache_key_for_in_polygon_check {

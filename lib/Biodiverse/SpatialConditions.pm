@@ -1292,6 +1292,7 @@ sub get_regex {
     /x;
     state $re_point_in_cluster = qr /
         \A
+            (?<negated> !|not\s? )?
             \$self->
             (?<method> sp_point_in_cluster )
             (?<args> (?&PerlParenthesesList) )

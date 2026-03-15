@@ -499,6 +499,8 @@ sub _aggregate_sp_in_label_ancestor_range {
 
     my $cur_label = $self->_dequote_string_literal($+{cur_label});
 
+    my $negated = !!$+{negated};
+
     my $method_args_hash = $self->get_param ('METHOD_ARG_HASHES');
     my $range_method = $+{range_method};
     my $range_args   = $+{range_args};
@@ -513,7 +515,8 @@ sub _aggregate_sp_in_label_ancestor_range {
 
     return if !defined $label;
 
-    return $self->get_tree_node_ancestral_range_hash (%$method_args, label => $label);
+    my $href = $self->get_tree_node_ancestral_range_hash (%$method_args, label => $label);
+    return $self->_return_aggregate_hash ($href, $negated);
 }
 
 sub get_tree_node_ancestral_range_hash {

@@ -1261,6 +1261,7 @@ sub get_regex {
     state $re_in_label_ancestor_range = qr/
         \A
             (?: $re_set_current_label )?
+            (?<negated> !|not\s? )?
             \$self->
             (?<range_method> sp_in_label_ancestor_range )
             (?<range_args> (?&PerlParenthesesList) )

@@ -1304,6 +1304,7 @@ sub get_regex {
     state $re_shape_of_label_range = qr /
         \A
             (?: $re_set_current_label )?
+            (?<negated> !|not\s? )?
             \$self->
             (?<method> sp_shape_of_label_range )
             (?<args> (?&PerlParenthesesList) )

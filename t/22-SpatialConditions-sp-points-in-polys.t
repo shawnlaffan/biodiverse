@@ -923,6 +923,9 @@ sub test_sp_shape_of_label_range {
         'circumcircle => 1' => {
             '3350000:1050000' => $exp_circumcircle,
         },
+        'circumcircle => 2' => {  #  gets negated
+            '3350000:1050000' => $exp_circumcircle,
+        },
         'convex_hull  => 1' => {
             '3350000:1050000' => [qw /
                 3250000:850000 3250000:950000  3350000:850000
@@ -957,6 +960,18 @@ sub test_sp_shape_of_label_range {
     foreach my $cond_substring (sort keys %cond_args) {
         my $cond = $cond_base =~ s/\Q%{CONDITION}%\E/$cond_substring/r;
 
+        my $exp_hash = $cond_args{$cond_substring};
+
+        #  test negation for second circumcircle
+        #  hard coding element name is not ideal
+        if ($cond =~ /circumcircle => 2/) {
+            my %exp = map {$_ => 1} $bd->get_groups;
+            my $exp_for_el = $exp_hash->{'3350000:1050000'};
+            delete @exp{@$exp_for_el};
+            $exp_hash->{'3350000:1050000'} = [sort keys %exp];
+            $cond = "! $cond";
+        }
+
         my $condition = Biodiverse::SpatialConditions->new(
             conditions => $cond,
             %common_cond_args,
@@ -969,7 +984,6 @@ sub test_sp_shape_of_label_range {
             definition_query   => $defq,
         );
 
-        my $exp_hash = $cond_args{$cond_substring};
         use experimental qw /for_list/;
         foreach my ($el, $list) (%$exp_hash) {
             my $got = $sp->get_list_ref_aa($el, 'EL_LIST_SET1');
@@ -981,5 +995,5 @@ sub test_sp_shape_of_label_range {
             );
         }
     }
-    $bd->save;
+    # $bd->save;
 }

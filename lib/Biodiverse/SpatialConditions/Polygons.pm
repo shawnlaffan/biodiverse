@@ -183,6 +183,7 @@ sub _aggregate_point_in_poly_shape {
 
     return if not $conditions =~ /$re/ms;
 
+    my $negated          = $+{negated};
     my $method_args_hash = $self->get_param ('METHOD_ARG_HASHES');
     my $method_name      = $+{method};
     my $method_args_text = $+{args};
@@ -225,6 +226,13 @@ sub _aggregate_point_in_poly_shape {
             $intersects{$group}++;
             last;
         }
+    }
+
+    if ($negated) {
+        my $gps = $bd->get_groups_ref->get_element_hash;
+        delete local @{$gps}{keys %intersects};
+        %intersects = %$gps;
+        $_ = 1 for values %intersects;  #  set values to 1
     }
 
     return wantarray ? %intersects : \%intersects;

@@ -1261,6 +1261,7 @@ sub get_regex {
     state $re_in_label_ancestor_range = qr/
         \A
             (?: $re_set_current_label )?
+            (?<negated> !|not\s? )?
             \$self->
             (?<range_method> sp_in_label_ancestor_range )
             (?<range_args> (?&PerlParenthesesList) )
@@ -1271,6 +1272,7 @@ sub get_regex {
     state $re_in_label_range = qr/
         \A
             (?: $re_set_current_label )?
+            (?<negated> !|not\s? )?
             \$self->
             (?<range_method> sp_in_label_range )
             (?<range_args> (?&PerlParenthesesList) )
@@ -1281,6 +1283,7 @@ sub get_regex {
     #  should loop on these given similarities
     state $re_point_in_poly_shape = qr /
         \A
+            (?<negated> !|not\s? )?
             \$self->
             (?<method> sp_point_in_poly_shape )
             (?<args> (?&PerlParenthesesList) )
@@ -1290,6 +1293,7 @@ sub get_regex {
     /x;
     state $re_point_in_cluster = qr /
         \A
+            (?<negated> !|not\s? )?
             \$self->
             (?<method> sp_point_in_cluster )
             (?<args> (?&PerlParenthesesList) )
@@ -1300,6 +1304,7 @@ sub get_regex {
     state $re_shape_of_label_range = qr /
         \A
             (?: $re_set_current_label )?
+            (?<negated> !|not\s? )?
             \$self->
             (?<method> sp_shape_of_label_range )
             (?<args> (?&PerlParenthesesList) )
@@ -1320,6 +1325,23 @@ sub get_regex {
     my $re = $re_hash{$args{name}} // croak "no regular expression of this name $args{name}";
 
     return $re;
+}
+
+#  get the complement of the set if we negate
+#  The set universe is the basedata groups.
+sub _return_aggregate_hash {
+    my ($self, $href, $negated) = @_;
+
+    #  direct return
+    return wantarray ? %$href : $href
+        if !$negated;
+
+    my $gps = $self->get_basedata_ref->get_groups_ref->get_element_hash;
+    delete local @{$gps}{keys %$href};
+    my %complement = %$gps;
+    $_ = 1 for values %complement;  #  set values to 1
+
+    return wantarray ? %complement : \%complement;
 }
 
 #  a very limited set at the moment - need to generalise and handle via metadata

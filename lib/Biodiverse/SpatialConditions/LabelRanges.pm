@@ -223,6 +223,8 @@ sub _aggregate_get_groups_in_label_range {
 
     my $cur_label = $self->_dequote_string_literal($+{cur_label});
 
+    my $negated = !!$+{negated};
+
     my $method_args_hash = $self->get_param ('METHOD_ARG_HASHES');
     my $range_method = $+{range_method};
     my $range_args   = $+{range_args};
@@ -234,7 +236,7 @@ sub _aggregate_get_groups_in_label_range {
     return if !defined $label;
 
     #  label not in basedata
-    return wantarray ? () : {}
+    return $self->_return_aggregate_hash ({}, $negated)
         if !$bd->exists_label_aa($label);
 
     if ($method_args->{convex_hull} || $method_args->{circumcircle} || $method_args->{concave_hull}) {
@@ -242,14 +244,14 @@ sub _aggregate_get_groups_in_label_range {
         my $axes = $method_args->{axes};
         return if defined $axes && (!is_arrayref ($axes) || join (':', @$axes) ne '0:1');
         my $in_polygon = $self->get_in_polygon_hash (%$method_args, label => $label);
-        return wantarray ? %$in_polygon : $in_polygon;
+        return $self->_return_aggregate_hash ($in_polygon, $negated);
     }
 
     my $tmp = $bd->get_groups_with_label_as_hash_aa ($label);
     my %groups_with_label;
     @groups_with_label{keys %$tmp} = (1) x keys %$tmp;
 
-    return wantarray ? %groups_with_label : \%groups_with_label;
+    return $self->_return_aggregate_hash (\%groups_with_label, $negated);
 }
 
 use constant DEFAULT_CONVEX_HULL_RATIO => 0.00001;
@@ -497,6 +499,8 @@ sub _aggregate_sp_in_label_ancestor_range {
 
     my $cur_label = $self->_dequote_string_literal($+{cur_label});
 
+    my $negated = !!$+{negated};
+
     my $method_args_hash = $self->get_param ('METHOD_ARG_HASHES');
     my $range_method = $+{range_method};
     my $range_args   = $+{range_args};
@@ -511,7 +515,8 @@ sub _aggregate_sp_in_label_ancestor_range {
 
     return if !defined $label;
 
-    return $self->get_tree_node_ancestral_range_hash (%$method_args, label => $label);
+    my $href = $self->get_tree_node_ancestral_range_hash (%$method_args, label => $label);
+    return $self->_return_aggregate_hash ($href, $negated);
 }
 
 sub get_tree_node_ancestral_range_hash {
@@ -765,6 +770,8 @@ sub _aggregate_sp_shape_of_label_range {
 
     my $cur_label = $self->_dequote_string_literal($+{cur_label});
 
+    my $negated = !!$+{negated};
+
     my $method_args_hash = $self->get_param ('METHOD_ARG_HASHES');
     my $range_method = $+{method};
     my $range_args   = $+{args};
@@ -781,7 +788,8 @@ sub _aggregate_sp_shape_of_label_range {
 
     $method_args->{label} //= $label;
 
-    return $self->get_group_hash_sp_shape_of_label_range(%$method_args);
+    my $href = $self->get_group_hash_sp_shape_of_label_range(%$method_args);
+    return $self->_return_aggregate_hash ($href, $negated);
 }
 
 sub get_group_hash_sp_shape_of_label_range {

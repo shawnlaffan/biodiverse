@@ -434,6 +434,8 @@ sub _aggregate_points_in_cluster {
 
     return if not $conditions =~ /$re/ms;
 
+    my $negated = !!$+{negated};
+
     my $method_args_hash = $self->get_param ('METHOD_ARG_HASHES');
     my $method_name      = $+{method};
     my $method_args_text = $+{args};
@@ -456,7 +458,7 @@ sub _aggregate_points_in_cluster {
     my %intersects;
     @intersects{keys %$terminal_elements} = (1) x keys %$terminal_elements;
 
-    return wantarray ? %intersects : \%intersects;
+    $self->_return_aggregate_hash (\%intersects, $negated)
 }
 
 1;

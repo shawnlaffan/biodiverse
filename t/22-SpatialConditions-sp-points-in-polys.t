@@ -184,6 +184,26 @@ sub test_points_in_polygons {
         is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el with fild name and val");
     }
 
+    my $sp_to_test4 = $bd->add_spatial_output (name => 'test_sp_point_in_poly_shape4 negated');
+    $sp_to_test4->run_analysis (
+        calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
+        spatial_conditions => ["! $cond"],
+    );
+# diag "! $cond";
+    $expected = [qw /
+        1:1 1:2 1:3 1:4 1:5
+        2:1 2:2 2:3 2:4 2:5
+        3:3 3:4 3:5
+        4:3 4:4 4:5
+        5:3 5:4 5:5
+    /];
+
+    #  should all be the same
+    foreach my $el (keys %expected_nbrs) {
+        my $list_ref = $sp_to_test4->get_list_ref (element => $el, list => '_NBR_SET1');
+        is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el with fild name and val");
+    }
+
 }
 
 
@@ -255,6 +275,29 @@ sub test_sp_in_label_range_convex_hull {
 
         my $passed3a = $sp3a->get_groups_that_pass_def_query();
         isnt $passed3a, $exp, 'Expected def query not same as normal range check';
+    }
+
+    {
+        #  check negation
+        my $tmp = $bd->get_groups_ref->get_element_hash;
+        delete local @$tmp{keys %$exp};
+        my %exp_compl = %$tmp;
+        $_ = 1 for values %exp_compl;
+
+        my $cond_neg_ch = 'sp_in_label_range(label => q{Genus:sp4}, convex_hull => 1)';
+
+        foreach my $bool_op ('!', 'not') {
+            my $cond = "$bool_op $cond_neg_ch";
+            my $sp = $bd->add_spatial_output(name => "test_3a_negated $bool_op");
+            $sp->run_analysis(
+                calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
+                spatial_conditions => [ 'sp_self_only()' ],
+                definition_query   => $cond,
+            );
+
+            my $passed3a = $sp->get_groups_that_pass_def_query();
+            is $passed3a, \%exp_compl, 'Negated def query';
+        }
     }
 
     my $cond_b0 = <<~'EOC'
@@ -781,6 +824,36 @@ sub test_sp_in_tree_ancestor_range {
     }
 
     {
+        #  Negated condition
+        my %exp_negated = map {$_ => 1} $bd->get_groups;
+        delete @exp_negated{keys %$exp_circumcircle};
+
+        my $cond = <<~'EOC'
+            !sp_in_label_ancestor_range(
+                label    => 'Genus:sp4',
+                by_depth => 2,
+                target   => 2,
+                circumcircle => 1,
+            );
+            EOC
+        ;
+        my $defq = Biodiverse::SpatialConditions::DefQuery->new(
+            conditions => $cond,
+            %common_cond_args,
+        );
+        my $sp_depth_cc = $bd->add_spatial_output(
+            name => "test_ancestor_range_depth_cc_negated"
+        );
+        $sp_depth_cc->run_analysis(
+            %common_sp_args,
+            definition_query => $defq,
+        );
+        is scalar $sp_depth_cc->get_groups_that_pass_def_query(),
+            \%exp_negated,
+            "Expected def query passes";
+    }
+
+    {
         #  terminals should be the same as a call to in_label_range
         my $cond = <<~'EOC'
             $self->set_current_label('Genus:sp4');
@@ -850,6 +923,9 @@ sub test_sp_shape_of_label_range {
         'circumcircle => 1' => {
             '3350000:1050000' => $exp_circumcircle,
         },
+        'circumcircle => 2' => {  #  gets negated
+            '3350000:1050000' => $exp_circumcircle,
+        },
         'convex_hull  => 1' => {
             '3350000:1050000' => [qw /
                 3250000:850000 3250000:950000  3350000:850000
@@ -884,6 +960,18 @@ sub test_sp_shape_of_label_range {
     foreach my $cond_substring (sort keys %cond_args) {
         my $cond = $cond_base =~ s/\Q%{CONDITION}%\E/$cond_substring/r;
 
+        my $exp_hash = $cond_args{$cond_substring};
+
+        #  test negation for second circumcircle
+        #  hard coding element name is not ideal
+        if ($cond =~ /circumcircle => 2/) {
+            my %exp = map {$_ => 1} $bd->get_groups;
+            my $exp_for_el = $exp_hash->{'3350000:1050000'};
+            delete @exp{@$exp_for_el};
+            $exp_hash->{'3350000:1050000'} = [sort keys %exp];
+            $cond = "! $cond";
+        }
+
         my $condition = Biodiverse::SpatialConditions->new(
             conditions => $cond,
             %common_cond_args,
@@ -896,7 +984,6 @@ sub test_sp_shape_of_label_range {
             definition_query   => $defq,
         );
 
-        my $exp_hash = $cond_args{$cond_substring};
         use experimental qw /for_list/;
         foreach my ($el, $list) (%$exp_hash) {
             my $got = $sp->get_list_ref_aa($el, 'EL_LIST_SET1');
@@ -908,5 +995,5 @@ sub test_sp_shape_of_label_range {
             );
         }
     }
-    $bd->save;
+    # $bd->save;
 }

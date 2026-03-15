@@ -156,6 +156,24 @@ EOC
         my $got = $sc->_remove_whitespace_from_code($base_code);
         is $got, $exp, 'strip WS from variables';
     }
+
+    {
+        my $base_code = <<~'EOC'
+            not     $self->sp_point_in_poly_shape(
+               file => qq'C:\a \b \c .shp' ,
+               buffer => 10
+              );
+            EOC
+        ;
+        my $exp = <<'EOC'
+not$self->sp_point_in_poly_shape(file=>qq'C:\a \b \c .shp',buffer=>10);
+EOC
+        ;
+        $exp = join '', split /[\n\r]+/, $exp;
+        my $got = $sc->_remove_whitespace_from_code($base_code);
+        is $got, $exp, 'strip WS, less complex case, lower precedence not';
+    }
+
 }
 
 

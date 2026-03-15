@@ -246,6 +246,21 @@ sub test_point_in_cluster {
         is ([sort @$list_ref], $expected_nbrs, "sp_points_in_cluster correct nbrs for $el");
     }
 
+    {
+        my %exp_pos;
+        @exp_pos{@$expected_nbrs} = (1) x @$expected_nbrs;
+        my @exp_neg = sort grep {!$exp_pos{$_}} $bd->get_groups;
+        my $sp_to_test3_neg = $bd->add_spatial_output(name => 'test_3_neg');
+        $sp_to_test3_neg->run_analysis(
+            calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
+            spatial_conditions => [ '!sp_point_in_cluster (output => "checker", from_node => "22___")' ],
+        );
+        foreach my $el ($bd->get_groups) {
+            my $list_ref = $sp_to_test3_neg->get_list_ref(element => $el, list => '_NBR_SET1');
+            is([ sort @$list_ref ], \@exp_neg, "negated sp_points_in_cluster correct nbrs for $el");
+        }
+    }
+
     #  now a def query
     my $sp_to_test4 = $bd->add_spatial_output (name => 'test_4_defq');
     $sp_to_test4->run_analysis (

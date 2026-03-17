@@ -779,7 +779,7 @@ sub _aggregate_sp_shape_of_label_range {
 
     my $conditions = $self->get_conditions_nws;
 
-    my $re = $self->get_regex (name => 'shape_of_label_range');
+    my $re = $self->get_regex (name => $args{regex_name} // 'shape_of_label_range');
     return if not $conditions =~ /$re/ms;
 
     my $cur_label = $self->_dequote_string_literal($+{cur_label});
@@ -801,8 +801,8 @@ sub _aggregate_sp_shape_of_label_range {
     return if !defined $label;
 
     $method_args->{label} //= $label;
-
-    my $href = $self->get_group_hash_sp_shape_of_label_range(%$method_args);
+    my $gh_method = $args{group_hash_method} // 'get_group_hash_sp_shape_of_label_range';
+    my $href = $self->$gh_method(%$method_args);
     return $self->_return_aggregate_hash ($href, $negated);
 }
 
@@ -961,8 +961,8 @@ sub get_metadata_sp_shape_of_label_ancestor_range {
     push @{$meta->{optional_args}}, (qw /by_depth as_frac by_tip_count/);
     $meta->{requires_tree_ref} = 1;
     $meta->{aggregate_substitute_method} = {  #  disable for now
-        # re_name => 'shape_of_label_ancestor_range',
-        # method  => '_aggregate_sp_shape_of_label_ancestor_range',
+        re_name => 'shape_of_label_ancestor_range',
+        method  => '_aggregate_sp_shape_of_label_ancestor_range',
     };
     $meta->{result_type} = 'complex';
 
@@ -986,7 +986,14 @@ sub sp_shape_of_label_ancestor_range {
     return $groups_in_polygon->{$group};
 }
 
-
+sub _aggregate_sp_shape_of_label_ancestor_range {
+    my ($self, %args) = @_;
+    return $self->_aggregate_sp_shape_of_label_range (
+        %args,
+        regex_name => 'shape_of_label_ancestor_range',
+        group_hash_method => 'get_group_hash_sp_shape_of_label_ancestor_range',
+    );
+}
 
 sub get_group_hash_sp_shape_of_label_ancestor_range {
     my ($self, %args) = @_;

@@ -997,3 +997,144 @@ sub test_sp_shape_of_label_range {
     }
     # $bd->save;
 }
+
+
+sub test_sp_shape_of_label_ancestor_range {
+    my $bd = get_basedata_object_from_site_data (
+        CELL_SIZES => [100000, 100000],
+    );
+    my $tree = get_tree_object_from_sample_data();
+
+    my %common_sp_args = (
+        calculations       => [ 'calc_element_lists_used', 'calc_richness' ],
+        spatial_conditions => [ 'sp_self_only()' ],
+    );
+    my %common_cond_args = (
+        basedata_ref => $bd,
+        tree_ref     => $tree,
+        promise_current_label => 1,
+    );
+
+    my $exp_circumcircle_target_0 = [qw /
+        3250000:850000  3250000:950000  3350000:850000
+        3350000:950000  3350000:1050000 3350000:1150000
+        3350000:1250000 3450000:850000  3450000:950000
+        3450000:1050000 3450000:1150000 3450000:1250000
+        3550000:950000  3550000:1050000 3550000:1150000
+    /];
+    my $exp_circumcircle_target_1 = [
+        qw /
+            2550000:850000  2550000:950000  2550000:1050000 2650000:650000
+            2650000:750000  2650000:850000  2650000:950000  2750000:650000
+            2750000:750000  2750000:850000  2750000:950000  2850000:650000
+            2850000:750000  2950000:350000  2950000:650000  2950000:750000
+            3050000:250000  3050000:350000  3050000:550000  3050000:650000
+            3050000:750000  3050000:850000  3150000:250000  3150000:350000
+            3150000:550000  3150000:650000  3150000:750000  3150000:850000
+            3250000:250000  3250000:350000  3250000:450000  3250000:650000
+            3250000:750000  3250000:850000  3250000:950000  3350000:650000
+            3350000:750000  3350000:850000  3350000:950000  3350000:1050000
+            3350000:1150000 3350000:1250000 3350000:1350000 3450000:650000
+            3450000:750000  3450000:850000  3450000:950000  3450000:1050000
+            3450000:1150000 3450000:1250000 3450000:1350000 3450000:1450000
+            3450000:1550000 3550000:950000  3550000:1050000 3550000:1150000
+            3550000:1250000 3550000:1450000 3550000:1550000 3650000:1150000
+            3650000:1250000 3650000:1350000 3650000:1450000 3650000:1550000
+            3650000:1650000 3650000:1750000 3750000:1250000 3750000:1350000
+            3750000:1450000 3750000:1550000 3750000:1650000 3850000:1350000
+            3850000:1450000 3850000:1550000
+        /
+    ];
+    my %cond_args = (
+        'target => 0' => {  #  should be same as just the label
+            '3350000:1050000' => $exp_circumcircle_target_0,
+        },
+        'circumcircle => 1' => {
+            '3350000:1050000' => $exp_circumcircle_target_1,
+        },
+        'circumcircle => 2' => {  #  gets negated
+            '3350000:1050000' => $exp_circumcircle_target_1,
+        },
+        'convex_hull  => 1' => {
+            '3350000:1050000' => [qw /
+                3150000:850000  3250000:750000  3250000:850000  3250000:950000
+                3350000:650000  3350000:750000  3350000:850000  3350000:950000
+                3350000:1050000 3350000:1150000 3350000:1250000 3350000:1350000
+                3450000:650000  3450000:750000  3450000:850000  3450000:950000
+                3450000:1050000 3450000:1150000 3450000:1250000 3550000:950000
+                3550000:1050000
+            /],
+        },
+        'concave_hull => 1' => {
+            '3350000:1050000' => [qw/
+                3150000:850000  3250000:850000  3250000:950000  3350000:750000
+                3350000:850000  3350000:950000  3350000:1050000 3350000:1150000
+                3450000:650000  3450000:750000  3450000:850000  3450000:950000
+                3450000:1050000 3450000:1150000 3550000:950000
+            /],
+            #  this does not include processing group
+            '3550000:1150000' => [qw /
+                3350000:950000  3350000:1050000 3350000:1150000 3350000:1250000
+                3350000:1350000 3450000:950000  3450000:1050000 3450000:1150000
+                3450000:1250000 3450000:1350000 3450000:1450000 3450000:1550000
+                3550000:950000  3550000:1050000 3550000:1150000 3550000:1250000
+                3650000:1150000 3650000:1250000
+            /],
+        },
+    );
+    my $cond_base = <<~'EOC'
+        sp_shape_of_label_ancestor_range(
+          label    => 'Genus:sp4',
+          target   => 2,
+          by_depth => 1,
+          %{CONDITION}%
+        );
+        EOC
+    ;
+
+    #  limited set
+    my $defq = undef;
+    $defq = '$y > 1000000 && $y < 1200000 && $x >= 3350000 && $x <= 3550000';
+    $defq = '$y > 1000000 && $y < 1500000';
+
+
+    foreach my $cond_substring (sort keys %cond_args) {
+        my $cond = $cond_base =~ s/\Q%{CONDITION}%\E/$cond_substring/r;
+
+        my $exp_hash = $cond_args{$cond_substring};
+
+        #  test negation for second circumcircle
+        #  hard coding element name is not ideal
+        if ($cond =~ /circumcircle => 2/sm) {
+            my %exp = map {$_ => 1} $bd->get_groups;
+            my $exp_for_el = $exp_hash->{'3350000:1050000'};
+            delete @exp{@$exp_for_el};
+            $exp_hash->{'3350000:1050000'} = [sort keys %exp];
+            $cond = "! $cond";
+        }
+
+        my $condition = Biodiverse::SpatialConditions->new(
+            conditions => $cond,
+            %common_cond_args,
+        );
+        my $sp_name = "test_ancestor_range_($cond_substring)";
+        my $sp = $bd->add_spatial_output(name => $sp_name);
+        $sp->run_analysis(
+            %common_sp_args,
+            spatial_conditions => [ $condition ],
+            definition_query   => $defq,
+        );
+
+        use experimental qw /for_list/;
+        foreach my ($el, $list) (%$exp_hash) {
+            my $got = $sp->get_list_ref_aa($el, 'EL_LIST_SET1');
+            my %exp = map {$_ => 1} @$list;
+            is (
+                $got,
+                \%exp,
+                "sp_shape_of_label_range: Expected elements for $el, $sp_name",
+            );
+        }
+    }
+    # $bd->save;
+}

@@ -224,11 +224,9 @@ sub get_groups_in_polygon {
 
         next GP if $x < $xmin || $x > $xmax || $y < $ymin || $y > $ymax;
 
-        my $wkt = "POINT($x $y)";
-        my $point = Geo::GDAL::FFI::Geometry->new(WKT => $wkt);
-        if ($point->Intersects($polygon)) {
-            $in_polygon{$group}++;
-        }
+        my $point = Geo::GDAL::FFI::Geometry->new(WKT => "POINT($x $y)");
+        $in_polygon{$group}++
+            if $point->Intersects($polygon);
     }
 
     return wantarray ? %in_polygon : \%in_polygon;

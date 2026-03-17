@@ -4,14 +4,27 @@ use warnings;
 use 5.036;
 use Carp qw /croak/;
 
-use experimental /for_list declared_refs refaliasing/;
+use experimental /for_list declared_refs refaliasing isa/;
 
 our $VERSION = '5.0';
 
+use constant GDAL_GEOM => 'Geo::GDAL::FFI::Geometry';
+
 sub new {
     my ($class, %args) = @_;
-    croak 'No extent argument' if !$args{extent};
+    croak 'No extent argument' if !$args{extent} && !($args{geometry} isa GDAL_GEOM);
     croak 'No id argument' if !defined $args{id};
+    if ($args{geometry} isa GDAL_GEOM) {
+        my $polygon = $args{geometry};
+        my $is_multi = $polygon->GetType() =~ /Multi/;
+        my $g = $polygon->GetPoints(0, 0);
+        %args = (
+            extent   => [ @{$polygon->GetEnvelope}[0, 2, 1, 3] ], #  x1,y1,x2,y2
+            id       => $args{id},
+            type     => $polygon->GetType,
+            geometry => $is_multi ? $g : [ $g ]
+        );
+    }
     bless \%args, $class || __PACKAGE__;
 }
 

@@ -607,6 +607,20 @@ sub get_tree_node_ancestor_cache {
     return $cache;
 }
 
+sub get_tree_node_ancestor_cache_key {
+    my ($self, %args) = @_;
+
+    my $d = $args{target} // croak 'target arg not passed';
+
+    #  a lot of setup but saves time for large data sets
+    my $cache_key
+        = "d=>$d,"
+        . join ',', map {"$_=>". ($args{$_} // 0)}
+        qw /by_depth by_len_sum by_tip_count by_desc_count as_frac/;
+
+    return $cache_key;
+}
+
 sub get_tree_node_ancestor {
     my ($self, %args) = @_;
 
@@ -836,13 +850,9 @@ sub get_group_hash_sp_shape_of_label_range {
             };
             if ($polygon->isa('Geo::GDAL::FFI::Geometry')) {
                 #  store vertices as we cannot easily shift them in GDAL
-                my $is_multi = $polygon->GetType() =~ /Multi/;
-                my $g = $polygon->GetPoints(0, 0);
                 $polygon = Biodiverse::Geometry::Polygon->new(
-                    extent   => [ @{$polygon->GetEnvelope}[0, 2, 1, 3] ], #  x1,y1,x2,y2
+                    geometry => $polygon,
                     id       => $label,
-                    type     => $polygon->GetType,
-                    geometry => $is_multi ? $g : [ $g ]
                 );
             }
             $base_polygon = $base_poly_cache->{$cache_key}{$label} = $polygon;

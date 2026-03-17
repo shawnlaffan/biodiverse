@@ -607,6 +607,20 @@ sub get_tree_node_ancestor_cache {
     return $cache;
 }
 
+sub get_tree_node_ancestor_cache_key {
+    my ($self, %args) = @_;
+
+    my $d = $args{target} // croak 'target arg not passed';
+
+    #  a lot of setup but saves time for large data sets
+    my $cache_key
+        = "d=>$d,"
+        . join ',', map {"$_=>". ($args{$_} // 0)}
+        qw /by_depth by_len_sum by_tip_count by_desc_count as_frac/;
+
+    return $cache_key;
+}
+
 sub get_tree_node_ancestor {
     my ($self, %args) = @_;
 
@@ -765,7 +779,7 @@ sub _aggregate_sp_shape_of_label_range {
 
     my $conditions = $self->get_conditions_nws;
 
-    my $re = $self->get_regex (name => 'shape_of_label_range');
+    my $re = $self->get_regex (name => $args{regex_name} // 'shape_of_label_range');
     return if not $conditions =~ /$re/ms;
 
     my $cur_label = $self->_dequote_string_literal($+{cur_label});
@@ -787,8 +801,8 @@ sub _aggregate_sp_shape_of_label_range {
     return if !defined $label;
 
     $method_args->{label} //= $label;
-
-    my $href = $self->get_group_hash_sp_shape_of_label_range(%$method_args);
+    my $gh_method = $args{group_hash_method} // 'get_group_hash_sp_shape_of_label_range';
+    my $href = $self->$gh_method(%$method_args);
     return $self->_return_aggregate_hash ($href, $negated);
 }
 
@@ -836,13 +850,9 @@ sub get_group_hash_sp_shape_of_label_range {
             };
             if ($polygon->isa('Geo::GDAL::FFI::Geometry')) {
                 #  store vertices as we cannot easily shift them in GDAL
-                my $is_multi = $polygon->GetType() =~ /Multi/;
-                my $g = $polygon->GetPoints(0, 0);
                 $polygon = Biodiverse::Geometry::Polygon->new(
-                    extent   => [ @{$polygon->GetEnvelope}[0, 2, 1, 3] ], #  x1,y1,x2,y2
+                    geometry => $polygon,
                     id       => $label,
-                    type     => $polygon->GetType,
-                    geometry => $is_multi ? $g : [ $g ]
                 );
             }
             $base_polygon = $base_poly_cache->{$cache_key}{$label} = $polygon;
@@ -866,6 +876,215 @@ sub get_group_hash_sp_shape_of_label_range {
         $groups_in_polygon
             = $cached_groups->{$cache_key}{$label}{$coord_id}
             = $bd->get_groups_in_polygon (polygon => $polygon, axes => $axes);
+    }
+
+    return wantarray ? %$groups_in_polygon : $groups_in_polygon;
+}
+
+
+
+sub get_metadata_sp_shape_of_label_ancestor_range {
+    my $self = shift;
+
+    my $description = <<~'EOD'
+        (Available from version 5.1)
+
+        Is a neighbouring group within an area surrounding the
+        processing group, where that area is equivalent to
+        the range of a label's ancestor?
+
+        This is a generalisation of the sp_in_label_ancestor_range()
+        method where, instead of only identifying groups within
+        the range, it uses the range as a cookie-cutter shape
+        around the processing group.
+
+        Note that only the polygon methods are supported,
+        i.e. circumcircle, convex and concave hulls.  The
+        default is the circumcircle.
+
+        Buffering is also supported.
+
+        EOD
+    ;
+
+    my $example = <<~'EOEX'
+        # Are we in the circumcircle range extent of the ancestor
+        # two ancestors above a label called Genus:Sp1, where
+        # the range is centred on the processing group?
+        sp_shape_of_label_range(
+          label    => 'Genus:Sp1',
+          by_depth => 1,
+          target   => 2,
+        )
+
+        #  Are we in the convex hull?
+        sp_shape_of_label_ancestor_range(
+          label       => 'Genus:Sp1',
+          by_depth    => 1,
+          target      => 2,
+          convex_hull => 1,
+        )
+
+        #  Are we in the maximally concave hull?
+        sp_shape_of_label_ancestor_range(
+          label        => 'Genus:Sp1',
+          by_depth     => 1,
+          target       => 2,
+          concave_hull => 1,
+        )
+
+        #  Are we in the circumscribing circle?
+        #  This is the default.
+        sp_shape_of_label_ancestor_range(
+          label        => 'Genus:Sp1',
+          circumcircle => 1,
+          by_depth     => 1,
+          target       => 2,
+        )
+
+        #  Are we in the convex hull with a buffer of 100,000 units?
+        sp_shape_of_label_ancestor_range(
+          label       => 'Genus:Sp1',
+          convex_hull => 1,
+          buffer_dist => 100000,
+          by_depth    => 1,
+          target      => 2,
+        )
+
+        EOEX
+    ;
+
+    my $meta = $self->get_metadata_sp_shape_of_label_range;
+    $meta->{description} = $description;
+    $meta->{example}     = $example;
+    push @{$meta->{required_args}}, 'target';
+    push @{$meta->{optional_args}}, (qw /by_depth as_frac by_tip_count/);
+    $meta->{requires_tree_ref} = 1;
+    $meta->{aggregate_substitute_method} = {  #  disable for now
+        re_name => 'shape_of_label_ancestor_range',
+        method  => '_aggregate_sp_shape_of_label_ancestor_range',
+    };
+    $meta->{result_type} = 'complex';
+
+
+    return wantarray ? %$meta : $meta;
+}
+
+sub sp_shape_of_label_ancestor_range {
+    my ($self, %args) = @_;
+
+    my $label = $args{label} //= $self->_process_label_arg();
+
+    my $bd = $self->get_basedata_ref;
+
+    return 0 if !$bd->exists_label_aa($label);
+
+    my $groups_in_polygon = $self->get_group_hash_sp_shape_of_label_ancestor_range(%args);
+
+    my $group = $self->get_current_coord_id();
+
+    return $groups_in_polygon->{$group};
+}
+
+sub _aggregate_sp_shape_of_label_ancestor_range {
+    my ($self, %args) = @_;
+    return $self->_aggregate_sp_shape_of_label_range (
+        %args,
+        regex_name => 'shape_of_label_ancestor_range',
+        group_hash_method => 'get_group_hash_sp_shape_of_label_ancestor_range',
+    );
+}
+
+sub get_group_hash_sp_shape_of_label_ancestor_range {
+    my ($self, %args) = @_;
+
+    my $label = $args{label} //= $self->_process_label_arg();
+
+    #  we only work with the processing group here
+    my $h = $self->get_current_args;
+    my $coord = $h->{coord_array};
+    my $coord_id = $h->{coord_id1};
+
+    my $poly_cache_key = $self->_get_cache_key_for_in_polygon_check(%args);
+    my $anc_cache_key  = $self->get_tree_node_ancestor_cache_key(%args);
+
+    #  avoid serialising potentially large data
+    my $vcache = $self->get_volatile_cache;
+    my $cached_groups = $vcache->get_cached_href('sp_shape_of_label_ancestor_range_base_polygon_by_label');
+    my $groups_in_polygon = $cached_groups->{$poly_cache_key}{$anc_cache_key}{$label}{$coord_id};
+
+    if (!$groups_in_polygon) {
+        #  get the ancestor polygons
+        my $bd = $self->get_basedata_ref;
+
+        my $base_poly_cache = $self->get_cached_href('sp_shape_of_label_range_ancestor_base_polygon');
+        my $base_polygon = $base_poly_cache->{$poly_cache_key}{$anc_cache_key}{$label};
+        if (!$base_polygon) {
+
+            my $poly_type
+                = $args{convex_hull} ? 'convex_hull'
+                : $args{concave_hull} ? 'concave_hull'
+                : 'circumcircle';
+            croak "sp_shape_of_label_range: Insufficient group axes for $poly_type"
+                if scalar $bd->get_group_axis_count < 2;
+
+            my $ancestral_node = $self->get_tree_node_ancestor(%args);
+            my $tip_labels = $ancestral_node->get_terminal_elements;
+
+            my $hull_method = "get_label_range_${poly_type}";
+            my %extra_args;
+            if ($args{concave_hull}) {
+                $extra_args{allow_holes} = !!$args{allow_holes};
+                $extra_args{ratio} = max(min(1, $args{hull_ratio} // DEFAULT_CONVEX_HULL_RATIO), 0);
+            }
+
+            my $upoly;
+            foreach my $tip_label (keys %$tip_labels) {
+                next if !$bd->exists_label_aa($tip_label);
+                my $hull = $poly_type ne 'circumcircle'
+                    ? $bd->$hull_method(%extra_args, label => $tip_label)
+                    : do {
+                        my $circle = $bd->get_label_range_circumcircle(label => $tip_label);
+                        my $wkt = sprintf "POINT (%s %s)", @{$circle->centre};
+                        #  default of 30 seems to work and is suggested in the GDAL docs
+                        Geo::GDAL::FFI::Geometry->new(WKT => $wkt)->Buffer($circle->radius, 30);
+                    };
+                $upoly = $upoly ? $upoly->Union($hull) : $hull;
+            }
+            $upoly //= Geo::GDAL::FFI::Geometry->new(WKT => 'POLYGON EMPTY');
+
+            if (my $buff_dist = $args{buffer_dist}) {
+                $upoly = $upoly->Buffer($buff_dist, 30);
+            };
+            if ($upoly->isa('Geo::GDAL::FFI::Geometry')) {
+                #  store vertices as we cannot easily shift them in GDAL
+                $upoly = Biodiverse::Geometry::Polygon->new(
+                    id       => $label,
+                    geometry => $upoly,
+                );
+            }
+            $base_polygon = $base_poly_cache->{$poly_cache_key}{$anc_cache_key}{$label} = $upoly;
+        };
+
+        #  create an offset version of the polygon (or circle)
+        #  from the processing group (coord_array, not nbr variant)
+        my $centroid = $base_polygon->get_centroid;
+        my @offset = (
+            $coord->[0] - $centroid->[0],
+            $coord->[1] - $centroid->[1],
+        );
+
+        my $polygon = ($offset[0] || $offset[1])
+            ? $base_polygon->shift(@offset)
+            : $base_polygon;
+        if ($polygon->isa('Biodiverse::Geometry::Polygon')) {
+            $polygon = $polygon->as_gdal_geometry;
+        }
+
+        my $axes = $args{axes} // $h->{axes} // [ 0, 1 ];
+        $groups_in_polygon
+            = $cached_groups->{$poly_cache_key}{$anc_cache_key}{$label}{$coord_id}
+            = $bd->get_groups_in_polygon(polygon => $polygon, axes => $axes);
     }
 
     return wantarray ? %$groups_in_polygon : $groups_in_polygon;

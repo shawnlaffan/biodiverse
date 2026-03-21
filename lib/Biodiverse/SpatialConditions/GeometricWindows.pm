@@ -517,18 +517,6 @@ sub sp_ellipse {
     }
 
     my $h = $self->get_current_args;
-    my $xd = $h->{dists}{d_list};
-    if (!defined $xd) {
-        use DDP;
-        p $xd;
-        my $xx = $h->{dists};
-        p $xx;
-        say STDERR $h->{coord_id1};
-        say STDERR $h->{coord_id2} // 'coord2 is undef';
-        use Devel::StackTrace;
-        my $trace = Devel::StackTrace->new;
-        say STDERR $trace->as_string;
-    }
     my @d = @{ $h->{dists}{d_list} };
 
     my $major_radius = $args{major_radius};    #  longest axis

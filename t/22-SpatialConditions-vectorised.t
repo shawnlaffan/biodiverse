@@ -51,7 +51,7 @@ sub main {
     return 0;
 }
 
-sub test_points_in_polygons {
+sub test_vectorised_conditions {
     my $bd = Biodiverse::BaseData->new (
         NAME       => 'test_spcond_listification',
         CELL_SIZES => [1,1],

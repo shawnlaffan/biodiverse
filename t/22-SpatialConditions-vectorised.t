@@ -68,6 +68,25 @@ sub test_points_in_polygons {
         }
     }
 
+    my $tree = Biodiverse::Tree->new (name => 'for testing');
+
+    my @nodes;
+    foreach my $name (1..6) {
+        my $node = $tree->add_node(name => $name);
+        push @nodes, $node;
+    }
+    my @nodes_l1;
+    foreach my $n (1,3,5) {
+        my $node = $tree->add_node(name => "inner_$n");
+        $node->add_children(children => [@nodes[$n-1, $n]]);
+        push @nodes_l1, $node;
+    }
+    my $root = $tree->add_node(name => 'root');
+    $root->add_children(children => \@nodes_l1);
+    # say STDERR $tree->to_newick;
+
+
+
     my $sp_to_test1 = $bd->add_spatial_output (name => 'test_1');
     $sp_to_test1->run_analysis (
         calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
@@ -146,7 +165,9 @@ sub test_points_in_polygons {
         q{sp_circle(radius => 2)},
         q{sp_circle(radius => 2, axes => [0])},
         q{sp_square(size => 2)},
-        q{sp_get_spatial_output_list_value(output => 'test_1', index => 'ENDW_WE') >= .12}
+        q{sp_get_spatial_output_list_value(output => 'test_1', index => 'ENDW_WE') >= .12},
+        q{sp_in_label_ancestor_range(label => '1', by_depth => 1, target => 1)},
+        q{sp_in_label_ancestor_range(label => 'not_in_tree', by_depth => 1, target => 1)},
     );
     push @conditions, <<~'EOC'
         sp_get_spatial_output_list_value(output => 'test_1', index => 'ENDW_WE') >= .15
@@ -171,126 +192,41 @@ sub test_points_in_polygons {
 
         diag $cond;
 
+        my %common_spcond_args = (
+            conditions   => $cond,
+            tree_ref     => $tree,
+            basedata_ref => $bd,
+        );
+        my %common_sp_args = (
+            calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
+        );
+
         my $sp_cond = Biodiverse::SpatialConditions->new (
-            conditions => $cond,
+            %common_spcond_args,
             vectorise  => 0,
         );
         my $sp_novec = $bd->add_spatial_output(name => "sp_circle novec $cond_i");
         $sp_novec->run_analysis (
-            calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
+            %common_sp_args,
             spatial_conditions => [$sp_cond],
         );
         #  delete the sp or an optimisation means the vectorised version is not run
         $bd->delete_output(output => $sp_novec);
 
         $sp_cond = Biodiverse::SpatialConditions->new (
-            conditions => $cond,
+            %common_spcond_args,
             vectorise  => 1,
         );
         my $sp_vec = $bd->add_spatial_output(name => "sp_circle vec $cond_i");
         $sp_vec->run_analysis (
-            calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
+            %common_sp_args,
             spatial_conditions => [$sp_cond],
         );
         my $exp_nbrs = $sp_novec->get_list_ref (element => '4:2', list => 'EL_LIST_SET1');
         my $got_nbrs = $sp_vec->get_list_ref (element => '4:2', list => 'EL_LIST_SET1');
         is [sort keys %$got_nbrs], [sort keys %$exp_nbrs], "expected nbrs for $cond";
-
     }
 
-    # {
-    #     $cond_i++;
-    #     my $cond = q{sp_get_spatial_output_list_value(output => 'test_1', index => 'ENDW_WE') >= .12};
-    #     my $sp_cond = Biodiverse::SpatialConditions->new (conditions => $cond);
-    #     my $sp = $bd->add_spatial_output(name => "sp_get_spatial_output_list_value $cond_i");
-    #     $sp->run_analysis (
-    #         calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
-    #         spatial_conditions => [$sp_cond],
-    #     );
-    #
-    #     my $exp_nbrs = [qw /
-    #         2:1 2:2 2:3 2:4 2:5
-    #         3:1 3:2 3:3 3:4 3:5
-    #         4:1 4:2 4:3 4:4 4:5
-    #         5:1 5:2 5:3 5:4 5:5
-    #     /];
-    #     my $got_nbrs = $sp->get_list_ref (element => '4:2', list => 'EL_LIST_SET1');
-    #     is [sort keys %$got_nbrs], $exp_nbrs, "expected nbrs for $cond";
-    # }
+    # $bd->save;
 
-#     {
-#         $cond_i ++;
-#         my $cond =<<~'EOC'
-#             sp_get_spatial_output_list_value(output => 'test_1', index => 'ENDW_WE') >= .15
-#             && sp_in_label_range (label => '5')
-#             EOC
-#         ;
-# diag $cond;
-#         my $sp_cond = Biodiverse::SpatialConditions->new (conditions => $cond);
-#         my $sp = $bd->add_spatial_output(name => "sp_get_spatial_output_list_value $cond_i");
-#         $sp->run_analysis (
-#             calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
-#             spatial_conditions => [$sp_cond],
-#         );
-#
-#         my $exp_nbrs = [qw /
-#             5:1 5:2 5:3 5:4 5:5
-#         /];
-#         my $got_nbrs = $sp->get_list_ref (element => '4:2', list => 'EL_LIST_SET1');
-#         is [sort keys %$got_nbrs], $exp_nbrs, "expected nbrs for $cond";
-#     }
-
-    # {
-    #     $cond_i ++;
-    #     my $cond =<<~'EOC'
-    #         sp_in_label_range (label => '5') || sp_in_label_range (label => '1')
-    #         EOC
-    #     ;
-    #
-    #     diag $cond;
-    #     # my $sp_cond = Biodiverse::SpatialConditions->new (conditions => $cond);
-    #     my $sp = $bd->add_spatial_output(name => "sp_get_spatial_output_list_value $cond_i");
-    #     $sp->run_analysis (
-    #         calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
-    #         spatial_conditions => [$cond],
-    #     );
-    #
-    #     my $exp_nbrs = [qw /
-    #         1:1 1:2 1:3 1:4 1:5
-    #         2:1 2:2 2:3 2:4 2:5
-    #         5:1 5:2 5:3 5:4 5:5
-    #     /];
-    #     my $got_nbrs = $sp->get_list_ref (element => '4:2', list => 'EL_LIST_SET1');
-    #     is [sort keys %$got_nbrs], $exp_nbrs, "expected nbrs for $cond";
-    # }
-
-    # {
-    #     $cond_i ++;
-    #     my $cond =<<~'EOC'
-    #         sp_in_label_range (label => '1')
-    #         && sp_in_label_range (label => '2')
-    #         || sp_in_label_range (label => '5')
-    #         EOC
-    #     ;
-    #
-    #     diag $cond;
-    #     my $sp_cond = Biodiverse::SpatialConditions->new (conditions => $cond);
-    #     my $sp = $bd->add_spatial_output(name => "sp_get_spatial_output_list_value $cond_i");
-    #     $sp->run_analysis (
-    #         calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
-    #         spatial_conditions => [$sp_cond],
-    #     );
-    #
-    #     my $exp_nbrs = [qw /
-    #         2:1 2:2 2:3 2:4 2:5
-    #         5:1 5:2 5:3 5:4 5:5
-    #     /];
-    #     my $got_nbrs = $sp->get_list_ref (element => '4:2', list => 'EL_LIST_SET1');
-    #     is [sort keys %$got_nbrs], $exp_nbrs, "expected nbrs for $cond";
-    # }
-
-
-    $bd->save;
-
-    ok (1);
 }

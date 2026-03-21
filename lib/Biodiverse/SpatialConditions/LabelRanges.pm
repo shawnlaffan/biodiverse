@@ -540,6 +540,20 @@ sub _aggregate_sp_in_label_ancestor_range {
     return $self->_return_aggregate_hash ($href, $negated);
 }
 
+sub vec_sp_in_label_ancestor_range {
+    my ($self, %args) = @_;
+
+    my $label = $args{label} //= $self->get_current_label;
+
+    return $self->_aggregate_hash_to_pdl ({})
+        if !defined $label;
+
+    my $href = $self->get_tree_node_ancestral_range_hash (%args);
+
+    return $self->_aggregate_hash_to_pdl ($href);
+}
+
+
 sub get_tree_node_ancestral_range_hash {
     my ($self, %args) = @_;
 

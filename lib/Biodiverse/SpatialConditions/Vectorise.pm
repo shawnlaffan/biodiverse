@@ -117,12 +117,10 @@ sub vectorise_condition {
     # %valid_sp_methods = map {my $m = $_ =~ s/^vec_//r; ($m => $_)} @vec_methods;
     ###
 
-    # use DDP; p %sp_methods; p @vec_methods;
-    # return;
 
     #  we only work with sp_ methods that have vec_sp equivalents
     if (%invalid) {
-        my $re_invalid = join '|', map {quotemeta "\b$_\b"} sort keys %invalid;
+        my $re_invalid = join '|', map {"\\b$_\\b"} sort keys %invalid;
         return if $code1 =~ /$re_invalid/;
     }
 
@@ -148,7 +146,6 @@ sub vectorise_condition {
     my $code5 = $code4 =~
         s[(?<gotone> $re_spvalid )]
          [$valid_sp_methods{$+{gotone}}]gxre;
-
     return $code5;
 }
 

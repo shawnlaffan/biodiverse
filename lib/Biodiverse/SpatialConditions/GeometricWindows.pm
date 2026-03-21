@@ -517,7 +517,18 @@ sub sp_ellipse {
     }
 
     my $h = $self->get_current_args;
-
+    my $xd = $h->{dists}{d_list};
+    if (!defined $xd) {
+        use DDP;
+        p $xd;
+        my $xx = $h->{dists};
+        p $xx;
+        say STDERR $h->{coord_id1};
+        say STDERR $h->{coord_id2} // 'coord2 is undef';
+        use Devel::StackTrace;
+        my $trace = Devel::StackTrace->new;
+        say STDERR $trace->as_string;
+    }
     my @d = @{ $h->{dists}{d_list} };
 
     my $major_radius = $args{major_radius};    #  longest axis
@@ -552,5 +563,77 @@ sub sp_ellipse {
 
     return $test;
 }
+
+#  disabled due to issues matching the precision in the non-vec case
+sub __vec_sp_ellipse {
+    my ($self, %args) = @_;
+
+    my $axes = $args{axes};
+    if ( defined $axes ) {
+        croak "sp_ellipse:  axes arg is not an array ref\n"
+            if (! is_arrayref($axes));
+        my $axis_count = scalar @$axes;
+        croak
+            "sp_ellipse:  axes array needs two axes, you have given $axis_count\n"
+            if $axis_count != 2;
+    }
+    else {
+        $axes = [ 0, 1 ];
+    }
+
+    use PDL::Lite;
+
+    my $h = $self->get_current_args;
+    my $this_coord_pdl = pdl ($h->{coord_array});
+
+    my $all_coord_pdl = $self->get_vector_set_coords_pdl;
+
+    #  should check if not 0,1 and compare with cell sizes
+    if ($axes) {
+        $all_coord_pdl = $all_coord_pdl->dice($axes);
+        $this_coord_pdl = pdl (@{$h->{coord_array}}[@$axes]);
+    }
+
+    my $major_radius = $args{major_radius};    #  longest axis
+    my $minor_radius = $args{minor_radius};    #  shortest axis
+
+    #  set the default offset as east-west in radians (anticlockwise 1.57 is north)
+    my $rotate_angle = $args{rotate_angle};
+    if ( defined $args{rotate_angle_deg} and not defined $rotate_angle ) {
+        $rotate_angle = deg2rad ( $args{rotate_angle_deg} );
+    }
+    $rotate_angle //= 0;
+
+    my $d = ($all_coord_pdl - $this_coord_pdl)**2;
+    my $D = $d->sumover->transpose;
+
+    #  now calc the bearing to rotate the coords by
+    my $bearing = atan2( $d->dice(0), $d->dice(1) ) + $rotate_angle;
+
+    my $precision = (1.4 * (10 ** 10));
+
+    my $r_x = sin($bearing) * $D;    #  rotated x coord
+    my $r_y = cos($bearing) * $D;    #  rotated y coord
+    # $r_x = ($r_x * $precision)->floor / $precision;
+    # $r_y = ($r_y * $precision)->floor / $precision;
+
+    my $a_dist = ( $r_y ** 2 ) / ( $major_radius ** 2 );
+    my $b_dist = ( $r_x ** 2 ) / ( $minor_radius ** 2 );
+    # my $xx = $a_dist;
+    # say STDERR $a_dist->transpose;
+    #  round precision
+    # my $precision = (1.4 * (10 ** 10));
+    # $a_dist = ($a_dist * $precision)->floor / $precision;
+    $a_dist = ($a_dist * $precision)->floor / $precision;
+    $b_dist = ($b_dist * $precision)->floor / $precision;
+    # $b_dist = ($b_dist * $precision)->floor / $precision;
+
+    my $test = 1 >= ( $a_dist + $b_dist );
+    $test = $test->transpose;
+
+# say STDERR $test;
+    return $test;
+}
+
 
 1;

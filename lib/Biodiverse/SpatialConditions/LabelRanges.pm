@@ -841,6 +841,19 @@ sub _aggregate_sp_shape_of_label_range {
     return $self->_return_aggregate_hash ($href, $negated);
 }
 
+sub vec_sp_shape_of_label_range {
+    my ($self, %args) = @_;
+
+    my $label = $args{label} //= $self->get_current_label;
+
+    return $self->_aggregate_hash_to_pdl ({})
+        if !defined $label;
+    my $gh_method = $args{group_hash_method} // 'get_group_hash_sp_shape_of_label_range';
+    my $href = $self->$gh_method(%args);
+
+    return $self->_aggregate_hash_to_pdl ($href);
+}
+
 sub get_group_hash_sp_shape_of_label_range {
     my ($self, %args) = @_;
 
@@ -1026,6 +1039,14 @@ sub _aggregate_sp_shape_of_label_ancestor_range {
     return $self->_aggregate_sp_shape_of_label_range (
         %args,
         regex_name => 'shape_of_label_ancestor_range',
+        group_hash_method => 'get_group_hash_sp_shape_of_label_ancestor_range',
+    );
+}
+
+sub vec_sp_shape_of_label_ancestor_range {
+    my ($self, %args) = @_;
+    return $self->vec_sp_shape_of_label_range (
+        %args,
         group_hash_method => 'get_group_hash_sp_shape_of_label_ancestor_range',
     );
 }

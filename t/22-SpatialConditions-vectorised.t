@@ -172,7 +172,14 @@ sub test_points_in_polygons {
         q{sp_get_spatial_output_list_value(output => 'test_1', index => 'ENDW_WE') >= .12},
         q{sp_in_label_ancestor_range(label => '1', by_depth => 1, target => 1)},
         q{sp_in_label_ancestor_range(label => 'not_in_tree', by_depth => 1, target => 1)},
+        q{sp_shape_of_label_range (label => '1')},
+        q{sp_shape_of_label_ancestor_range (label => '1', by_depth => 1, target => 1)},
     );
+    push @conditions, <<~'EOC'
+        sp_shape_of_label_ancestor_range (label => '1', by_depth => 1, target => 1)
+        && !sp_shape_of_label_range (label => '1', buffer_dist => -2)
+        EOC
+    ;
     push @conditions, <<~'EOC'
         sp_get_spatial_output_list_value(output => 'test_1', index => 'ENDW_WE') >= .15
         && sp_in_label_range (label => '5')
@@ -209,7 +216,7 @@ sub test_points_in_polygons {
             %common_spcond_args,
             vectorise  => 0,
         );
-        my $sp_novec = $bd->add_spatial_output(name => "sp_circle novec $cond_i");
+        my $sp_novec = $bd->add_spatial_output(name => "novec $cond_i");
         $sp_novec->run_analysis (
             %common_sp_args,
             spatial_conditions => [$sp_cond],
@@ -221,16 +228,19 @@ sub test_points_in_polygons {
             %common_spcond_args,
             vectorise  => 1,
         );
-        my $sp_vec = $bd->add_spatial_output(name => "sp_circle vec $cond_i");
+        my $sp_vec = $bd->add_spatial_output(name => "vec $cond_i");
         $sp_vec->run_analysis (
             %common_sp_args,
             spatial_conditions => [$sp_cond],
         );
-        my $exp_nbrs = $sp_novec->get_list_ref (element => '4:2', list => 'EL_LIST_SET1');
-        my $got_nbrs = $sp_vec->get_list_ref (element => '4:2', list => 'EL_LIST_SET1');
-        is [sort keys %$got_nbrs], [sort keys %$exp_nbrs], "expected nbrs for $cond";
+        my (%exp, %got);
+        foreach my $element (sort $sp_novec->get_element_list) {
+            $exp{$element} = scalar $sp_novec->get_list_ref(element => $element, list => 'EL_LIST_SET1');
+            $got{$element} = scalar $sp_vec->get_list_ref(element => $element, list => 'EL_LIST_SET1');
+        }
+        is \%got, \%exp, "expected nbrs for $cond";
     }
 
-    # $bd->save;
+    $bd->save;
 
 }

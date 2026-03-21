@@ -30,6 +30,17 @@ sub sp_select_all {
     return 1;    #  always returns true
 }
 
+sub vec_sp_select_all {
+    my ($self) = @_;
+
+    use PDL::Lite;
+
+    my $u_hash = $self->get_vector_set_universe;
+
+    my $n = scalar keys %$u_hash;
+    return PDL->ones($n);
+}
+
 sub get_metadata_sp_select_element {
     my $self = shift;
 

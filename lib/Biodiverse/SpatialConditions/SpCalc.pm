@@ -102,6 +102,22 @@ sub sp_self_only {
     return $h->{coord_id1} eq $h->{coord_id2};
 }
 
+sub vec_sp_self_only {
+    my ($self, %args) = @_;
+
+    use PDL::Lite;
+
+    my $h = $self->get_current_args;
+    my $this_coord = $h->{coord_id1};
+
+    my $u_hash = $self->get_vector_set_universe;
+
+    my $n = scalar keys %$u_hash;
+    my $pdl = PDL->zeroes($n);
+    $pdl->index(pdl (PDL::indx, $u_hash->{$this_coord})) .= 1;
+
+    return $pdl;
+}
 
 
 

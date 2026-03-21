@@ -164,6 +164,8 @@ sub test_points_in_polygons {
     my @conditions = (
         q{sp_circle(radius => 2)},
         q{sp_circle(radius => 2, axes => [0])},
+        q{sp_circle(radius => 2) || sp_self_only()},
+        q{sp_circle(radius => 2) || sp_select_all()},
         q{sp_square(size => 2)},
         q{sp_annulus(inner_radius => 1, outer_radius => 2.3)},
         q{sp_ellipse(minor_radius => 1, major_radius => 3)},

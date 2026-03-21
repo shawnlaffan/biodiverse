@@ -25,6 +25,7 @@ use parent qw /
     Biodiverse::SpatialConditions::CalculatedOutputs
     Biodiverse::SpatialConditions::TextMatch
     Biodiverse::SpatialConditions::GroupVals
+    Biodiverse::SpatialConditions::Vectorise
     Biodiverse::Common
 /;
 
@@ -92,6 +93,7 @@ sub new {
     );
     $self->set_promise_current_label($args{promise_current_label});
     $self->set_tree_ref($args{tree_ref});
+    $self->set_vectorise ($args{vectorise});
 
     eval {$self->parse_distances};
     croak $EVAL_ERROR if $EVAL_ERROR;
@@ -375,6 +377,20 @@ sub set_requires_tree_ref {
     return $self->{requires_tree_ref} = $bool;
 }
 
+sub set_vectorise {
+    my ($self, $bool) = @_;
+    $self->{vectorise} = !!$bool;
+}
+
+sub get_vectorise {
+    my ($self) = @_;
+    $self->{vectorise};
+}
+
+sub vectorise {
+    my ($self) = @_;
+    $self->{vectorise};
+}
 
 sub get_used_dists {
     my $self = shift;

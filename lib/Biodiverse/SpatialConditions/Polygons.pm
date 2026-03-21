@@ -238,6 +238,52 @@ sub _aggregate_point_in_poly_shape {
     return wantarray ? %intersects : \%intersects;
 }
 
+#  a lot of duplicate code here
+sub vec_sp_point_in_poly_shape {
+    my ($self, %args) = @_;
+
+    #  no point continuing if no basedata
+    my $bd = $self->get_basedata_ref // return;
+
+    \my @axes = $args{axes} // [0,1];
+
+    return if join (':', @axes) ne '0:1';  #  only axes 0,1 for now
+
+    my $polys = $self->get_polygons_from_shapefile (%args);
+    my $shape_rtree = $self->get_rtree_for_polygons_from_shapefile(%args, shapes => $polys);
+
+    my $bd_str_tree = $bd->get_strtree_index;
+
+    my @cell_sizes = $bd->get_cell_sizes;
+    my ($cell_x2, $cell_y2) = map {$_ / 2} @cell_sizes[@axes];
+
+    my %intersects;
+
+    my $groups = $args{point} ? [$args{point}] : $bd_str_tree->query_partly_within_rect (@{$shape_rtree->bbox});
+    foreach my $group (@$groups) {
+        my $point = $bd->get_group_element_as_array_aa($group);
+        my ($x_coord, $y_coord) = @{$point}[@axes];
+        my $pointshape = Geo::ShapeFile::Point->new(X => $x_coord, Y => $y_coord);
+
+        my @rect = (
+            $x_coord - $cell_x2,
+            $y_coord - $cell_y2,
+            $x_coord + $cell_x2,
+            $y_coord + $cell_y2,
+        );
+
+        my $rtree_polys = $shape_rtree->query_partly_within_rect(@rect);
+
+        foreach my $poly (@$rtree_polys) {
+            next if !$poly->contains_point($pointshape, 0);
+            $intersects{$group}++;
+            last;
+        }
+    }
+say STDERR '++++++ VEC';
+    return $self->_aggregate_hash_to_pdl(\%intersects);
+}
+
 sub get_metadata_sp_points_in_same_poly_shape {
     my $self = shift;
 

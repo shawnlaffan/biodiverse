@@ -254,6 +254,27 @@ sub _aggregate_get_groups_in_label_range {
     return $self->_return_aggregate_hash (\%groups_with_label, $negated);
 }
 
+sub vec_sp_in_label_range {
+    my ($self, %args) = @_;
+
+    my $label = $args{label} //= $self->get_current_label;
+    if ($args{convex_hull} || $args{circumcircle} || $args{concave_hull}) {
+        #  these only work with axes [0,1].
+        my $axes = $args{axes};
+        return if defined $axes && (!is_arrayref ($axes) || join (':', @$axes) ne '0:1');
+        my $in_polygon = $self->get_in_polygon_hash (%args);
+        return $self->_aggregate_hash_to_pdl ($in_polygon);
+    }
+
+    my $bd = $self->get_basedata_ref;
+
+    my $tmp = $bd->get_groups_with_label_as_hash_aa ($label);
+    my %groups_with_label;
+    @groups_with_label{keys %$tmp} = (1) x keys %$tmp;
+
+    return $self->_aggregate_hash_to_pdl (\%groups_with_label);
+}
+
 use constant DEFAULT_CONVEX_HULL_RATIO => 0.00001;
 
 sub _get_cache_key_for_in_polygon_check {

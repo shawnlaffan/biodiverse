@@ -2647,6 +2647,23 @@ sub get_neighbours {
     my $centre_coord_ref
         = $coord_array_cache->{$element1} //= $self->get_group_element_as_array_aa( $element1 );
 
+    if ($spatial_conditions->vectorise && $spatial_conditions->get_vectorised_conditions_code_ref) {
+        my $valid_nbrs = $spatial_conditions->evaluate_vectorised (
+            basedata    => $self,
+            coord_array => $centre_coord_ref,
+            coord_id1   => $element1,
+        );
+
+        if ($valid_nbrs) {
+            if ($args{as_array}) {
+                return wantarray ? keys %$valid_nbrs : [ keys %$valid_nbrs ];
+            }
+            else {
+                return wantarray ? %$valid_nbrs : $valid_nbrs;
+            }
+        }
+    }
+
     #  do we have a substitute method that allows us to skip the per-element search?
     if (my $aggregate_sub_method = $spatial_conditions->get_param('AGGREGATE_SUBSTITUTE_METHOD')) {
         #  no special special casing for def queries at the moment

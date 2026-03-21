@@ -81,6 +81,30 @@ sub sp_circle {
     return $dist <= $args{radius};
 }
 
+sub vec_sp_circle {
+    my ($self, %args) = @_;
+
+    use PDL::Lite;
+
+    my $h = $self->get_current_args;
+    my $this_coord_pdl = pdl ($h->{coord_array});
+
+    my $all_coord_pdl = $self->get_vector_set_coords_pdl;
+
+    if (my $axes = $args{axes} ) {
+        return if !is_arrayref $axes;  #  croak?
+
+        $all_coord_pdl = $all_coord_pdl->dice($axes);
+        $this_coord_pdl = pdl (@{$h->{coord_array}}[@$axes]);
+    }
+
+    my $in_circle
+        = (($all_coord_pdl - $this_coord_pdl)**2)->sumover
+        <= $args{radius} ** 2;
+    # say STDERR $in_circle;
+    return $in_circle;
+}
+
 sub get_metadata_sp_circle_cell {
     my $self = shift;
     my %args = @_;
@@ -342,6 +366,24 @@ sub sp_square {
     my $h = $self->get_current_args;
     my $aref = $h->{dists}{D_list} // [];
     return List::Util::all {$_ <= $size} @$aref;
+}
+
+
+sub vec_sp_square {
+    my ($self, %args) = @_;
+
+    use PDL::Lite;
+
+    my $h = $self->get_current_args;
+    my $this_coord_pdl = pdl ($h->{coord_array});
+
+    my $all_coord_pdl = $self->get_vector_set_coords_pdl;
+
+    my $in_square
+        = (($all_coord_pdl - $this_coord_pdl)**2)->maxover
+        <= $args{size};
+
+    return $in_square;
 }
 
 sub get_metadata_sp_square_cell {

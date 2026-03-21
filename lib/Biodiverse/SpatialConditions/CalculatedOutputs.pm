@@ -119,6 +119,79 @@ sub sp_get_spatial_output_list_value {
     return $list->{$index};
 }
 
+sub vec_sp_get_spatial_output_list_value {
+    my ($self, %args) = @_;
+
+    my $list_name = $args{list} // 'SPATIAL_RESULTS';
+    my $index     = $args{index};
+
+    my $bd      = $self->get_basedata_ref;
+    my $sp_name = $args{output};
+    croak "Spatial output name not defined\n" if not defined $sp_name;
+
+    my $sp = $bd->get_spatial_output_ref (name => $sp_name)
+        or croak 'Spatial output $sp_name does not exist in basedata '
+        . $bd->get_param ('NAME')
+        . "\n";
+
+    my @operators = qw /lt le gt ge eq spaceship/;
+    my $op = List::Util::first {defined $args{$_}} (@operators);
+
+    my $vcache = $self->get_volatile_cache;
+    my $cache  = $vcache->get_cached_href ('vec_sp_get_spatial_output_list_value');
+    my $cache_key = join "\034", $sp_name, $list_name, $index;
+
+    #  "operated" ndarray
+    my $cache_op_key = defined $op ? join ("\034", $op, $args{$op}) : 'undef';
+    my $ndarray = $cache->{$cache_key}{$cache_op_key};
+
+    return $ndarray if defined $ndarray;
+
+    #  cache the main list grab
+    $ndarray = $cache->{$cache_key}{ndarray};
+
+    if (!defined $ndarray) {
+        my ($min, $has_undef);
+        my %results;
+        foreach my $element (sort $bd->get_groups) {
+            my $list = $sp->get_list_ref_aa($element, $list_name) // {};
+            # say STDERR "$list, $element";
+            my $val = $list->{$index}; #  need to handle array refs
+            $results{$element} = $val;
+            if (defined $val) {
+                $min //= $val;
+                $min = $val if $val < $min;
+            }
+            else {
+                $has_undef ||= 1;
+            }
+        };
+
+        my $badval;
+        if ($has_undef) {
+            $min //= 1;
+            $badval = $min - 1;
+            $_ = $badval for values %results;
+        }
+
+        $ndarray = $self->_aggregate_hash_to_pdl(\%results, $badval);
+        $cache->{$cache_key}{ndarray} = $ndarray;
+    }
+
+    #  messy but avoids string evals
+    if ($op) {
+        $ndarray
+            = $op eq 'lt'  ? $ndarray  <  $args{$op}
+            : $op eq 'gt'  ? $ndarray  >  $args{$op}
+            : $op eq 'le'  ? $ndarray <=  $args{$op}
+            : $op eq 'ge'  ? $ndarray >=  $args{$op}
+            : $op eq 'eq'  ? $ndarray ==  $args{$op}
+            : $op eq 'spaceship' ? $ndarray <=> $args{$op}
+            : $ndarray;
+        $cache->{$cache_key}{$cache_op_key} = $ndarray;
+    }
+    return $ndarray;
+}
 
 sub get_metadata_sp_spatial_output_passed_defq {
     my $self = shift;

@@ -71,7 +71,7 @@ sub vectorise_condition {
         $PPR::GRAMMAR
     /x;
 
-    #  match && pair
+    #  match && sequence
     my $re_andand = qr/
         (?<andand>
             $re_sp_func
@@ -83,7 +83,7 @@ sub vectorise_condition {
         $PPR::GRAMMAR
     /x;
 
-    #  match || pair
+    #  match || sequence
     my $re_oror = qr/
         (?<oror>
             $re_gland

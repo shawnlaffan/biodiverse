@@ -165,6 +165,7 @@ sub test_points_in_polygons {
         q{sp_circle(radius => 2)},
         q{sp_circle(radius => 2, axes => [0])},
         q{sp_square(size => 2)},
+        q{sp_annulus(inner_radius => 1, outer_radius => 2.3)},
         q{sp_get_spatial_output_list_value(output => 'test_1', index => 'ENDW_WE') >= .12},
         q{sp_in_label_ancestor_range(label => '1', by_depth => 1, target => 1)},
         q{sp_in_label_ancestor_range(label => 'not_in_tree', by_depth => 1, target => 1)},

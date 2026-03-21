@@ -322,6 +322,30 @@ sub sp_annulus {
     return $test;
 }
 
+sub vec_sp_annulus {
+    my ($self, %args) = @_;
+
+    use PDL::Lite;
+
+    my $h = $self->get_current_args;
+    my $this_coord_pdl = pdl ($h->{coord_array});
+
+    my $all_coord_pdl = $self->get_vector_set_coords_pdl;
+
+    if (my $axes = $args{axes} ) {
+        return if !is_arrayref $axes;  #  croak?
+
+        $all_coord_pdl = $all_coord_pdl->dice($axes);
+        $this_coord_pdl = pdl (@{$h->{coord_array}}[@$axes]);
+    }
+
+    my $d = (($all_coord_pdl - $this_coord_pdl)**2)->sumover;
+    my $in_circle = ($d <= $args{outer_radius} ** 2) & ($d >= $args{inner_radius} ** 2);
+
+    return $in_circle;
+}
+
+
 sub get_metadata_sp_square {
     my $self = shift;
     my %args = @_;

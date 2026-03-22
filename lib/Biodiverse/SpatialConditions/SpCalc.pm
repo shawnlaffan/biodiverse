@@ -54,33 +54,27 @@ sub sp_block {
 
     my $h = $self->get_current_args;
 
-    my $coord    = $h->{coord_array};
-    my $nbrcoord = $h->{nbrcoord_array};
+    \my @coord    = $h->{coord_array};
+    \my @nbrcoord = $h->{nbrcoord_array};
 
     my $size = $args{size};    #  need a handler for size == 0
     if ( !is_arrayref($size) ) {
-        $size = [ ($size) x scalar @$coord ];
+        $size = [ ($size) x scalar @coord ];
     };    #  make it an array if necessary;
 
     #  the origin allows the user to shift the blocks around
-    my $origin = $args{origin} || [ (0) x scalar @$coord ];
+    my $origin = $args{origin} || [ (0) x scalar @coord ];
     if ( !is_arrayref($origin) ) {
-        $origin = [ ($origin) x scalar @$coord ];
+        $origin = [ ($origin) x scalar @coord ];
     }    #  make it an array if necessary
 
-    foreach my $i ( 0 .. $#$coord ) {
-        #  should add an arg to use a slice (subset) of the coord array
-        #  Should also use floor() instead of fmod()
+    foreach my $i ( 0 .. $#coord ) {
+        next if !defined $size->[$i];    #  ignore if this is undef
 
-        next if not defined $size->[$i];    #  ignore if this is undef
-        my $axis   = $coord->[$i];
-        my $tmp    = $axis - $origin->[$i];
-        my $offset = fmod( $tmp, $size->[$i] );
-        my $edge   = $offset < 0               #  "left" edge
-            ? $axis - $offset - $size->[$i]    #  allow for -ve fmod results
-            : $axis - $offset;
-        my $dist = $nbrcoord->[$i] - $edge;
-        return 0 if $dist < 0 or $dist > $size->[$i];
+        my $c_val = floor (($coord[$i]    - $origin->[$i]) / $size->[$i]);
+        my $n_val = floor (($nbrcoord[$i] - $origin->[$i]) / $size->[$i]);
+
+        return 0 if $c_val != $n_val;
     }
     return 1;
 }

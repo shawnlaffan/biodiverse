@@ -79,6 +79,38 @@ sub sp_block {
     return 1;
 }
 
+sub vec_sp_block {
+    my ($self, %args) = @_;
+
+    use PDL::Lite;
+
+    my $h = $self->get_current_args;
+
+    my $this_coord_pdl = pdl ($h->{coord_array});
+    my $all_coord_pdl = $self->get_vector_set_coords_pdl;
+
+    my $size = $args{size};    #  need a handler for size == 0
+    my $origin = $args{origin} // 0;
+    if ( is_arrayref($size) ) {
+        my @axes = grep {defined $size->[$_]} (0 .. $#$size);
+        $all_coord_pdl = $all_coord_pdl->dice(\@axes);
+        $this_coord_pdl = pdl (@{$h->{coord_array}}[@axes]);
+        $size = pdl [ @$size[@axes]];
+        #  the origin allows the user to shift the blocks around
+        if (is_arrayref $origin) {
+            $origin = pdl [ @$origin[@axes]];
+        }
+    };
+    my $cache = $self->get_volatile_cache->get_cached_href ('vec_sp_block');
+    my $cache_key = "$size $origin";
+    my $block_coords     = $cache->{$cache_key} //= (($all_coord_pdl  - $origin) / $size)->floor;
+    my $block_this_coord = (($this_coord_pdl - $origin) / $size)->floor;
+    # my $diff = $block_coords - $block_this_coord;
+    my $mask = ($block_coords - $block_this_coord)->orover->not->transpose;
+
+    return $mask;
+}
+
 
 
 sub get_metadata_sp_self_only {

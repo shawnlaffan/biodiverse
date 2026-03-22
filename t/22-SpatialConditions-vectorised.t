@@ -167,6 +167,10 @@ sub test_vectorised_conditions {
         q{sp_circle(radius => 2) || sp_self_only()},
         q{sp_circle(radius => 2) || sp_select_all()},
         q{sp_square(size => 2)},
+        q{sp_block(size => 1.9)},  #  could use 2 but there was a bug in sp_block
+        q{sp_block(size => 1.9, origin => 1)},
+        q{sp_block(size => [1.9, undef])},
+        q{sp_block(size => [1.9, 1.9])},
         q{sp_annulus(inner_radius => 1, outer_radius => 2.3)},
         q{sp_ellipse(minor_radius => 1, major_radius => 3)},
         q{sp_get_spatial_output_list_value(output => 'test_1', index => 'ENDW_WE') >= .12},
@@ -212,11 +216,13 @@ sub test_vectorised_conditions {
             calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
         );
 
+        my $name_pfx = length ($cond) >= 25 ? substr ($cond, 0, 25) : $cond;
+
         my $sp_cond = Biodiverse::SpatialConditions->new (
             %common_spcond_args,
             vectorise  => 0,
         );
-        my $sp_novec = $bd->add_spatial_output(name => "novec $cond_i");
+        my $sp_novec = $bd->add_spatial_output(name => "nv $cond_i: $name_pfx");
         $sp_novec->run_analysis (
             %common_sp_args,
             spatial_conditions => [$sp_cond],
@@ -228,7 +234,7 @@ sub test_vectorised_conditions {
             %common_spcond_args,
             vectorise  => 1,
         );
-        my $sp_vec = $bd->add_spatial_output(name => "vec $cond_i");
+        my $sp_vec = $bd->add_spatial_output(name => "v $cond_i: $name_pfx");
         $sp_vec->run_analysis (
             %common_sp_args,
             spatial_conditions => [$sp_cond],

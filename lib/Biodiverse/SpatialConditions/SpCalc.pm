@@ -143,7 +143,7 @@ sub vec_sp_block {
         if (!@axes) {
             @axes = (0 .. $#$origin);
         };
-        $origin = pdl [ map {defined || 0} @$origin[@axes]];
+        $origin = pdl [ map {$_ // 0} @$origin[@axes]];
     }
 
     my $cache = $self->get_volatile_cache->get_cached_href ('vec_sp_block');

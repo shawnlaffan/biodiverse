@@ -146,21 +146,51 @@ sub vec_sp_block {
         $origin = pdl [ map {defined || 0} @$origin[@axes]];
     }
 
-    #  this approach might need some indexing as data sets increase in size
     my $cache = $self->get_volatile_cache->get_cached_href ('vec_sp_block');
-    my $cache_key = "$size $origin";
-    my $block_coords = $cache->{$cache_key} //= do {
-        my $all_coord_pdl = $self->get_vector_set_coords_pdl;
-        if ($n_axes) {
-            $all_coord_pdl = $all_coord_pdl->dice(\@axes);
-        }
-        (($all_coord_pdl - $origin) / $size)->floor;
-    };
+    my $cache_key = "$size $origin " . join ':', @axes;
+
     my $block_this_coord = ($this_coord_pdl - $origin)->inplace->divide ($size)->floor;
+    my $mask;
+    my $bd = $self->get_basedata_ref;
+    my $n = $bd->get_group_count;
 
-    my $mask = ($block_coords - $block_this_coord)->orover->not->transpose;
+    #  Non-indexed if element is not in the basedata or we have not many elements.
+    #  Still does not handle elements beyond bd bounds.
+    if (!$bd->exists_group_aa($h->{coord_id1}) || $n < 50) {
+        my $block_coords = $cache->{coords}{$cache_key} //= do {
+            my $all_coord_pdl = $self->get_vector_set_coords_pdl;
+            if ($n_axes) {
+                $all_coord_pdl = $all_coord_pdl->dice(\@axes);
+            }
+            (($all_coord_pdl - $origin) / $size)->floor;
+        };
+        $mask = ($block_coords - $block_this_coord)->orover->not->transpose;
+        return $mask;
+    }
 
-    return $mask;
+    $mask = PDL->zeroes($n);
+    my $block_idx_cache = $cache->{block_idx}{$cache_key};
+    if (!$block_idx_cache) {
+        my %hash;
+        \my %universe = $self->get_vector_set_universe;
+        foreach my $element (sort $bd->get_groups) {
+            my $coord = $bd->get_group_element_as_array_aa ($element);
+            if ($n_axes) {
+                $coord = @$coord[@axes];
+            }
+            my $block_coord = (pdl ($coord) - $origin)->inplace->divide ($size)->floor;
+            my $aref = $hash{$block_coord} //= [];
+            push @$aref, $universe{$element};
+        }
+        $_ = pdl(PDL::indx(), $_)
+            for values %hash;
+        $block_idx_cache = $cache->{block_idx}{$cache_key} = \%hash;
+    }
+
+    my $indx = $block_idx_cache->{$block_this_coord};
+    $mask->index($indx) .= 1;
+
+    return $mask->transpose;
 }
 
 

@@ -202,6 +202,8 @@ sub test_vectorised_conditions {
         EOC
     ;
 
+    $bd->build_spatial_index(resolutions => [1,1]);
+
     foreach my $cond (@conditions) {
         $cond_i++;
 

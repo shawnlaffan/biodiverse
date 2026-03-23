@@ -161,7 +161,7 @@ sub _aggregate_hash_to_pdl {
     #  then create an ndarray
     my $ndarray = PDL->new (PDL::double(), \@vals);
     if (defined $badval) {
-        $ndarray = $ndarray->setbadif ($ndarray == $badval);
+        $ndarray->inplace->setvaltobad ($badval);
     }
 
     return $ndarray;

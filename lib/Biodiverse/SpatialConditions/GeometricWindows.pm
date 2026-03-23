@@ -92,7 +92,8 @@ sub vec_sp_circle {
     my $all_coord_pdl = $self->get_vector_set_coords_pdl;
 
     if (my $axes = $args{axes} ) {
-        return if !is_arrayref $axes;  #  croak?
+        croak 'axes argument must be an array ref'
+            if !is_arrayref $axes;
 
         $all_coord_pdl = $all_coord_pdl->dice($axes);
         $this_coord_pdl = pdl (@{$h->{coord_array}}[@$axes]);

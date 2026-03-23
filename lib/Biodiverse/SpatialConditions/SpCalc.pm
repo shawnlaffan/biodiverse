@@ -154,8 +154,7 @@ sub vec_sp_block {
     my $bd = $self->get_basedata_ref;
     my $n = $bd->get_group_count;
 
-    #  Non-indexed if element is not in the basedata or we have not many elements.
-    #  Still does not handle elements beyond bd bounds.
+    #  Non-'indx'ed version if element is not in the basedata or we have not many elements.
     if (!$bd->exists_group_aa($h->{coord_id1}) || $n < 50) {
         my $block_coords = $cache->{coords}{$cache_key} //= do {
             my $all_coord_pdl = $self->get_vector_set_coords_pdl;
@@ -178,7 +177,7 @@ sub vec_sp_block {
             if ($n_axes) {
                 $coord = @$coord[@axes];
             }
-            my $block_coord = (pdl ($coord) - $origin)->inplace->divide ($size)->floor;
+            my $block_coord = pdl ($coord)->inplace->subtract($origin)->divide ($size)->floor;
             my $aref = $hash{$block_coord} //= [];
             push @$aref, $universe{$element};
         }

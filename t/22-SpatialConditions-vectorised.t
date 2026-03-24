@@ -178,6 +178,10 @@ sub test_vectorised_conditions {
         q{sp_in_label_ancestor_range(label => 'not_in_tree', by_depth => 1, target => 1)},
         q{sp_shape_of_label_range (label => '1')},
         q{sp_shape_of_label_ancestor_range (label => '1', by_depth => 1, target => 1)},
+        #  defq twice - code below will run a defq for the first but not the second
+        q{sp_spatial_output_passed_defq()},
+        q{sp_spatial_output_passed_defq()},
+        q{sp_spatial_output_passed_defq(element => '3:3')},
     );
     push @conditions, <<~'EOC'
         sp_shape_of_label_ancestor_range (label => '1', by_depth => 1, target => 1)
@@ -204,10 +208,18 @@ sub test_vectorised_conditions {
 
     $bd->build_spatial_index(resolutions => [1,1]);
 
+    my %seen;
+
     foreach my $cond (@conditions) {
         $cond_i++;
 
         diag $cond;
+
+        my $defq = !$seen{$cond} && $cond =~ /sp_spatial_output_passed_defq/
+            ? Biodiverse::SpatialConditions::DefQuery->new(conditions => '$y > 2')
+            : undef;
+
+        $seen{$cond}++;
 
         my %common_spcond_args = (
             conditions   => $cond,
@@ -215,7 +227,8 @@ sub test_vectorised_conditions {
             basedata_ref => $bd,
         );
         my %common_sp_args = (
-            calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
+            calculations     => ['calc_endemism_whole', 'calc_element_lists_used'],
+            definition_query => $defq,
         );
 
         my $name_pfx = length ($cond) >= 25 ? substr ($cond, 0, 25) : $cond;

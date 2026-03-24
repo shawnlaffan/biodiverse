@@ -241,10 +241,77 @@ sub sp_spatial_output_passed_defq {
 
     my $element = $args{element} // $self->get_current_coord_id;
 
+    my $sp = $self->_get_sp_ref_for_defq_check(%args{output});
+
+    return 1
+        if !$self->is_def_query && $self->get_param('VERIFYING');
+
+    croak "output argument not defined "
+        . "or we are not being used for a spatial analysis\n"
+        if !defined $sp;
+
+    croak "element $element is not in spatial output\n"
+        if not $sp->exists_element_aa ($element);
+
+    my $passed_defq = $sp->get_pass_def_query;
+    return 1 if !$passed_defq;
+
+    return exists $passed_defq->{$element};
+}
+
+sub vec_sp_spatial_output_passed_defq {
+    my ($self, %args) = @_;
+
+    my $element = $args{element};
+
     my $bd      = $self->get_basedata_ref;
     my $sp_name = $args{output};
+
+    my $cache = $self->get_cached_href('vec_sp_spatial_output_passed_defq');
+    my $cache_key = join ':', (($sp_name // ''), ($element // "no\034element"));
+    my $cached_ndarray = $cache->{$cache_key};
+
+    return $cached_ndarray if $cached_ndarray;
+
+    my $sp = $self->_get_sp_ref_for_defq_check(%args{output});
+
+    croak "output argument not defined "
+        . "or we are not being used for a spatial analysis\n"
+        if !defined $sp;
+
+    croak "element $element is not in spatial output\n"
+        if defined $element && !$sp->exists_element_aa ($element);
+
+    my $ndarray;
+
+    my $passed_defq = $sp->get_pass_def_query;
+    if (!$passed_defq) {
+        say STDERR 'no def q';
+        #  no defq so everything passes
+        my $n = $bd->get_group_count;
+        $ndarray = PDL->ones($n)->transpose;
+    }
+    elsif (defined $element) {
+        my $n = $bd->get_group_count;
+        $ndarray = ($passed_defq->{$element} ? PDL->ones($n) : PDL->zeroes($n))->transpose;
+    }
+    else {
+        $ndarray = $self->_aggregate_hash_to_pdl($passed_defq);
+    }
+
+    $cache->{$cache_key} = $ndarray;
+    return $ndarray;
+}
+
+sub _get_sp_ref_for_defq_check {
+    my ($self, %args) = @_;
+
+    my $sp_name = $args{output};
+
     my $sp;
+
     if (defined $sp_name) {
+        my $bd = $self->get_basedata_ref;
         $sp = $bd->get_spatial_output_ref (name => $sp_name)
             or croak 'Spatial output $sp_name does not exist in basedata '
             . $bd->get_name
@@ -265,21 +332,9 @@ sub sp_spatial_output_passed_defq {
         croak "def_query can't reference itself"
             if $self->is_def_query;
 
-        return 1
-            if !$self->is_def_query && $self->get_param('VERIFYING');
     }
 
-    croak "output argument not defined "
-        . "or we are not being used for a spatial analysis\n"
-        if !defined $sp;
-
-    croak "element $element is not in spatial output\n"
-        if not $sp->exists_element_aa ($element);
-
-    my $passed_defq = $sp->get_pass_def_query;
-    return 1 if !$passed_defq;
-
-    return exists $passed_defq->{$element};
+    return $sp;
 }
 
 sub set_caller_spatial_output_ref {

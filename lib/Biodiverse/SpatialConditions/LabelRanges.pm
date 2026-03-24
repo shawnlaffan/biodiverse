@@ -182,7 +182,7 @@ sub get_metadata_sp_in_label_range {
 sub sp_in_label_range {
     my ($self, %args) = @_;
 
-    my $label = $args{label} // $self->_process_label_arg();
+    my $label = $args{label} //= $self->_process_label_arg();
 
     state $cache_name_labels = 'sp_in_label_range_labels';
     my $cache_labels = $self->get_cached_value($cache_name_labels);

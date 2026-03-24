@@ -131,6 +131,12 @@ sub sp_richness_greater_than {
     return $bd->get_richness_aa($element) > $threshold;
 }
 
+sub vec_sp_richness_greater_than {
+    my ($self, %args) = @_;
+
+    return $self->_vec_sp_richred_greater_than (%args, type => 'richness');
+}
+
 sub get_example_sp_redundancy_greater_than {
 
     state $ex = <<~'END_EXAMPLE_REDUNDGT'
@@ -189,5 +195,47 @@ sub sp_redundancy_greater_than {
     return $bd->get_redundancy_aa ($element) > $threshold;
 }
 
+sub vec_sp_redundancy_greater_than {
+    my ($self, %args) = @_;
+
+    return $self->_vec_sp_richred_greater_than (%args, type => 'redundancy');
+}
+
+sub _vec_sp_richred_greater_than {
+    my ($self, %args) = @_;
+
+    my $type = $args{type};
+    my $caller_method = "sp_${type}_greater_than";
+    my $method        = "get_${type}_aa";
+
+    my $element = $args{element};
+
+    my $threshold = $args{threshold}
+        // croak "$caller_method: threshold arg must be passed";
+
+    my $bd = $self->get_basedata_ref;
+
+    croak "element $element is not in basedata\n"
+        if defined $element && !$bd->exists_group_aa ($element);
+
+    my $cache = $self->get_cached_href("vec_${caller_method}");
+    my $cache_key = $element // "\034all elements\034";
+    my $cached = $cache->{$cache_key};
+
+    return $cached if defined $cached;
+
+    my $n = $bd->get_group_count;
+    my $ndarray;
+    if (defined $element) {
+        my $bool = $bd->$method($element) > $threshold;
+        $ndarray = ($bool ? PDL->ones($n) : PDL->zeroes($n));
+    }
+    else {
+        my %hash = map {$_ => ($bd->$method($_) > $threshold)} $bd->get_groups;
+        $ndarray = $self->_aggregate_hash_to_pdl(\%hash);
+    }
+
+    return $cache->{$cache_key} = $ndarray;
+}
 
 1;

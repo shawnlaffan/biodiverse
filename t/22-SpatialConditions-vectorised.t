@@ -184,7 +184,11 @@ sub test_vectorised_conditions {
         q{sp_spatial_output_passed_defq(element => '3:3')},
         q{sp_group_not_empty()},
         q{sp_group_not_empty(element => '3:3')},
-        q{sp_in_label_range(label => '1') && sp_group_not_empty()},
+        q{sp_in_label_range(label => '1') && sp_group_not_empty()},  #  there was a bug in sp_in_label_range
+        q{sp_richness_greater_than (threshold => 2)},
+        q{sp_richness_greater_than (threshold => 2, element => '3:3')},
+        q{sp_redundancy_greater_than (threshold => 0.2)},
+
     );
     push @conditions, <<~'EOC'
         sp_shape_of_label_ancestor_range (label => '1', by_depth => 1, target => 1)

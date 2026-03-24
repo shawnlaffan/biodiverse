@@ -187,7 +187,8 @@ sub sp_in_label_range {
     state $cache_name_labels = 'sp_in_label_range_labels';
     my $cache_labels = $self->get_cached_value($cache_name_labels);
     if (!$cache_labels) {
-        $self->set_cached_value($cache_name_labels, scalar $self->get_basedata_ref->get_labels_as_hash);
+        $cache_labels = $self->get_basedata_ref->get_labels_as_hash;
+        $self->set_cached_value($cache_name_labels => $cache_labels);
     };
 
     return 0 if !$cache_labels->{$label};

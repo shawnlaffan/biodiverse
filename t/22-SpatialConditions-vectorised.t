@@ -227,7 +227,7 @@ sub test_vectorised_conditions {
             basedata_ref => $bd,
         );
         my %common_sp_args = (
-            calculations     => ['calc_endemism_whole', 'calc_element_lists_used'],
+            calculations     => ['calc_element_lists_used'],
             definition_query => $defq,
         );
 

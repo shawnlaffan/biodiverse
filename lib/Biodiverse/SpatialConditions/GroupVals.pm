@@ -50,6 +50,30 @@ sub sp_group_not_empty {
     return !!$bd->get_richness_aa ($element);
 }
 
+sub vec_sp_group_not_empty {
+    my ($self, %args) = @_;
+
+    my $element = $args{element};
+
+    my $cache = $self->get_cached_href('vec_sp_group_not_empty');
+    my $cache_key = $element // "\034all elements\034";
+    my $cached = $cache->{$cache_key};
+
+    return $cached if defined $cached;
+
+    my $bd = $self->get_basedata_ref;
+
+    my %hash = map {$_ => !!$bd->get_richness_aa($_)} $bd->get_groups;
+
+    my $n = keys %hash;
+    my $ndarray
+        = defined $element
+        ? ($hash{$element} ? PDL->ones($n) : PDL->zeroes($n))
+        : $self->_aggregate_hash_to_pdl(\%hash);
+
+    return $cache->{$cache_key} = $ndarray;
+}
+
 
 sub get_example_sp_richness_greater_than {
 

@@ -182,6 +182,9 @@ sub test_vectorised_conditions {
         q{sp_spatial_output_passed_defq()},
         q{sp_spatial_output_passed_defq()},
         q{sp_spatial_output_passed_defq(element => '3:3')},
+        q{sp_group_not_empty()},
+        q{sp_group_not_empty(element => '3:3')},
+        q{sp_in_label_range(label => '1') && sp_group_not_empty()},
     );
     push @conditions, <<~'EOC'
         sp_shape_of_label_ancestor_range (label => '1', by_depth => 1, target => 1)
@@ -218,6 +221,7 @@ sub test_vectorised_conditions {
         my $defq = !$seen{$cond} && $cond =~ /sp_spatial_output_passed_defq/
             ? Biodiverse::SpatialConditions::DefQuery->new(conditions => '$y > 2')
             : undef;
+        diag "Defq: $defq" if $defq;
 
         $seen{$cond}++;
 
@@ -254,12 +258,12 @@ sub test_vectorised_conditions {
             %common_sp_args,
             spatial_conditions => [$sp_cond],
         );
-        my (%exp, %got);
+        my (%exp_hash, %got_hash);
         foreach my $element (sort $sp_novec->get_element_list) {
-            $exp{$element} = scalar $sp_novec->get_list_ref(element => $element, list => 'EL_LIST_SET1');
-            $got{$element} = scalar $sp_vec->get_list_ref(element => $element, list => 'EL_LIST_SET1');
+            $exp_hash{$element} = scalar $sp_novec->get_list_ref(element => $element, list => 'EL_LIST_SET1');
+            $got_hash{$element} = scalar $sp_vec->get_list_ref(element => $element, list => 'EL_LIST_SET1');
         }
-        is \%got, \%exp, "expected nbrs for $cond";
+        is \%got_hash, \%exp_hash, "expected nbrs for $cond";
     }
 
     $bd->save;

@@ -129,9 +129,7 @@ sub get_metadata_sp_circle_cell {
 
     my %metadata = (
         description => $descr,
-        use_abs_cell_distances => ($args{axes} // []),
-        #  don't need $C if we're using a subset
-        use_cell_distance      => !$args{axes},
+        use_cell_distance => 1,
         required_args => ['radius'],
         result_type   => 'circle',
         example       => $example,

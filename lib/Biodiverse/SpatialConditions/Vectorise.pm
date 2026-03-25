@@ -163,6 +163,12 @@ sub _aggregate_hash_to_pdl {
     if (defined $badval) {
         $ndarray->inplace->setvaltobad ($badval);
     }
+    my @undefs = grep {!defined $vals[$_]} (0..$#vals);
+    if (@undefs) {
+        my $idx = PDL::indx (\@undefs);
+        $ndarray->badflag(1);
+        $ndarray->index($idx) .= $ndarray->badvalue;
+    }
 
     return $ndarray;
 }

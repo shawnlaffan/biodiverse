@@ -97,6 +97,15 @@ sub test_vectorised_conditions {
     $cl_to_test1->run_analysis ();
 
     {
+        my %hash = ('1:1' => 1, '1:2' => undef, '3:3' => 2);
+        my $sp_cond = Biodiverse::SpatialConditions->new (conditions => '1', basedata_ref => $bd);
+        my $ndarray = $sp_cond->_aggregate_hash_to_pdl(\%hash);
+        my $as_list = $ndarray->unpdl;
+        my $exp = [qw/1 BAD 0 0 0 0 0 0 0 0 0 0 2 0 0 0 0 0 0 0 0 0 0 0 0/];
+        is ($as_list, $exp, '_aggregate_hash_to_pdl: undef to bad vals')
+    }
+
+    {
         #  should return undef due to $D
         my $cond = '$D < 200';
         my $sp_cond = Biodiverse::SpatialConditions->new (conditions => $cond, vectorise => 1);

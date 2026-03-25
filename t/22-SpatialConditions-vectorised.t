@@ -188,6 +188,7 @@ sub test_vectorised_conditions {
         q{sp_circle(radius => 2) || sp_self_only()},
         q{sp_circle(radius => 2) || sp_select_all()},
         q{sp_square(size => 2)},
+        q{sp_square_cell(size => 2)},
         q{sp_block(size => 1.9)},  #  could use 2 but there was a bug in sp_block
         q{sp_block(size => 1.9, origin => 1)},
         q{sp_block(size => [1.9, undef])},
@@ -234,7 +235,7 @@ sub test_vectorised_conditions {
         || sp_in_label_range (label => '5')
         EOC
     ;
-
+# @conditions = (q{sp_square_cell(size => 2)},);
     $bd->build_spatial_index(resolutions => [1,1]);
 
     my %seen;

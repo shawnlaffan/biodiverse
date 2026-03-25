@@ -206,6 +206,34 @@ sub get_vector_set_coords_pdl {
     return $all_coord_pdl;
 }
 
+sub get_vector_set_cell_coords_pdl {
+    my $self = shift;
+
+    state $cache_key = 'get_vector_set_cell_coords_pdl';
+    my $cache = $self->get_volatile_cache;
+    my $cached = $cache->get_cached_value ($cache_key);
+    return $cached if defined $cached;
+
+    my $bd = $self->get_basedata_ref;
+
+    my $all_coord_pdl = $self->get_vector_set_coords_pdl;
+
+    my @cellsizes = $bd->get_cell_sizes;
+    my @origins   = $bd->get_cell_origins;
+
+    my $cellsize_pdl = pdl \@cellsizes;
+    my $origin_pdl   = pdl \@origins;
+# say STDERR $cellsize_pdl;
+#     say STDERR $origin_pdl;
+#     say STDERR $all_coord_pdl;
+    my $cell_ndarray = ($all_coord_pdl - $origin_pdl)->inplace->divide($cellsize_pdl)->floor;
+# say STDERR $cell_ndarray->transpose;
+    $cache->set_cached_value ($cache_key => $cell_ndarray);
+    return $all_coord_pdl;
+}
+
+
+
 #  evaluate a vectorised condition
 sub evaluate_vectorised {
     my ($self, %args) = @_;

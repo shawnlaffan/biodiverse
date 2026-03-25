@@ -453,6 +453,31 @@ sub sp_square_cell {
     return List::Util::all {$_ <= $size} @$aref;
 }
 
+sub vec_sp_square_cell {
+    my ($self, %args) = @_;
+
+    my $size = $args{size} / 2;
+
+    my $h = $self->get_current_args;
+    my $this_coord_pdl = pdl ($h->{coord_array});
+
+    my $all_coord_pdl = $self->get_vector_set_cell_coords_pdl;
+
+    my $bd = $self->get_basedata_ref;
+    my @cellsizes = $bd->get_cell_sizes;
+    my @origins   = $bd->get_cell_origins;
+
+    my $cellsize_pdl = pdl \@cellsizes;
+    my $origin_pdl   = pdl \@origins;
+    $this_coord_pdl->inplace->minus($origin_pdl)->divide($cellsize_pdl)->floor;
+
+    my $in_square
+        = (($all_coord_pdl - $this_coord_pdl)->inplace->abs)->maxover
+        <= $size;
+
+    return $in_square->transpose;
+}
+
 sub get_metadata_sp_ellipse {
     my $self = shift;
     my %args = @_;

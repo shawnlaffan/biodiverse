@@ -467,6 +467,63 @@ sub sp_points_in_same_cluster {
     return ($by_element->{$element1} // $SUBSEP) eq ($by_element->{$element2} // $SUBSEP);
 }
 
+sub vec_sp_points_in_same_cluster {
+    my $self = shift;
+    my %args = @_;
+
+    croak 'One of "num_clusters" or "target_distance" arguments must be defined'
+        if !defined ($args{num_clusters} // $args{target_distance});
+
+    my $cl_name = $args{output}
+        // croak "Cluster output name not defined\n";
+
+    my $h = $self->get_current_args;
+
+    my $bd = $self->get_basedata_ref;
+
+    my $element1 = $args{element1};
+    #  only need to check existence if user passed the element name
+    croak "element $element1 is not in basedata\n"
+        if defined $element1 and not $bd->exists_group_aa ($element1);
+    $element1 //= $h->{coord_id1};
+
+    my $cl = $bd->get_cluster_output_ref (name => $cl_name)
+        or croak "Spatial output $cl_name does not exist in basedata "
+        . $bd->get_name
+        . "\n";
+
+    #  very similar to sp_points_in_same_cluster_output_group but we cache numbers not names
+    state $cache_name = 'vec_sp_points_in_same_cluster_output_group';
+    $cache_name   .= join $SUBSEP, %args{sort keys %args}; # $SUBSEP is \034 by default
+    my $by_element = $self->get_cached_value ($cache_name);
+    if (!$by_element) {
+        my $root = defined $args{from_node}
+            ? $cl->get_node_ref_aa($args{from_node})
+            : $cl;
+        #  tree object also caches
+        my $target_nodes
+            = $root->group_nodes_below (%args);
+        foreach my ($node) (values %$target_nodes) {
+            my $num = $node->get_node_number;
+            my $terminals = $node->get_terminal_elements;
+            @$by_element{keys %$terminals} = ($num) x keys %$terminals;
+        }
+        $self->set_cached_value($cache_name => $by_element);
+    }
+
+    my $cache_key_ndarray = "${cache_name} ndarray";
+    my $ndarray = $self->get_cached_value($cache_key_ndarray) // do {
+        #  elements outside clustered set will get a zero
+        my $x = $self->_aggregate_hash_to_pdl($by_element);
+        $self->set_cached_value ($cache_key_ndarray => $x);
+        $x;
+    };
+
+    my $target = $by_element->{$element1};
+
+    return $ndarray == $target;
+}
+
 
 sub get_metadata_sp_point_in_cluster {
     my $self = shift;

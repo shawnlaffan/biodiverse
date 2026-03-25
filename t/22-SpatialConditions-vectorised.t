@@ -201,6 +201,7 @@ sub test_vectorised_conditions {
         q{sp_richness_greater_than (threshold => 2, element => '3:3')},
         q{sp_redundancy_greater_than (threshold => 0.2)},
         q{sp_point_in_cluster (output => 'cl_for_tests', from_node => '17___')},
+        q{sp_points_in_same_cluster(output => 'cl_for_tests', num_clusters => 4)},
     );
     push @conditions, <<~'EOC'
         sp_shape_of_label_ancestor_range (label => '1', by_depth => 1, target => 1)

@@ -2002,6 +2002,18 @@ sub number_nodes {
     return $number;
 }
 
+sub get_node_number {
+    my $self = shift;
+    my $num = $self->get_value ('NODE_NUMBER');
+    if (!defined $num) {
+        $self->get_root_node->number_nodes;
+        $num = $self->get_value ('NODE_NUMBER');
+        croak "UNDEF NODE NUMBER for node " . $self->get_name
+            if !defined $num;
+    }
+    return $num;
+}
+
 
 sub set_bootstrap_value {
     my ($self, %args) = @_;

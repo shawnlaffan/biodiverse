@@ -161,6 +161,39 @@ sub sp_circle_cell {
     return $dist <= $args{radius};
 }
 
+sub vec_sp_circle_cell {
+    my ($self, %args) = @_;
+
+    my $radius = $args{radius};
+
+    my $h = $self->get_current_args;
+    my $this_coord_pdl = pdl ($h->{coord_array});
+
+    my $all_coord_pdl = $self->get_vector_set_cell_coords_pdl;
+
+    my $bd = $self->get_basedata_ref;
+    my @cellsizes = $bd->get_cell_sizes;
+    my @origins   = $bd->get_cell_origins;
+
+    my $cellsize_pdl = pdl \@cellsizes;
+    my $origin_pdl   = pdl \@origins;
+    $this_coord_pdl->inplace->minus($origin_pdl)->divide($cellsize_pdl)->floor;
+
+    if (my $axes = $args{axes} ) {
+        croak 'axes argument must be an array ref'
+            if !is_arrayref $axes;
+
+        $all_coord_pdl = $all_coord_pdl->dice($axes);
+        $this_coord_pdl = $this_coord_pdl->dice($axes);
+    }
+
+    my $in_circle
+        = (($all_coord_pdl - $this_coord_pdl)->inplace->pow(2))->sumover
+        <= ($radius ** 2);
+
+    return $in_circle->transpose;
+}
+
 
 my $rectangle_example = <<~'END_RECTANGLE_EXAMPLE'
     #  A rectangle of equal size on the first two axes,

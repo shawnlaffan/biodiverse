@@ -405,8 +405,8 @@ sub vec_sp_square {
     my $all_coord_pdl = $self->get_vector_set_coords_pdl;
 
     my $in_square
-        = (($all_coord_pdl - $this_coord_pdl)**2)->maxover
-        <= $args{size};
+        = (($all_coord_pdl - $this_coord_pdl)->inplace->abs)->maxover
+        <= $args{size} / 2;
 
     return $in_square;
 }

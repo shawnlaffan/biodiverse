@@ -589,4 +589,37 @@ sub _aggregate_points_in_cluster {
     $self->_return_aggregate_hash (\%intersects, $negated)
 }
 
+
+sub vec_sp_point_in_cluster {
+    my ($self, %args) = @_;
+
+    my $bd = $self->get_basedata_ref;
+
+    my $cl_name = $args{output}
+        // croak "Cluster output name not defined\n";
+    my $cl = $bd->get_cluster_output_ref (name => $cl_name)
+        or croak "Spatial output $cl_name does not exist in basedata "
+        . $bd->get_name
+        . "\n";
+
+    my $cache = $self->get_cached_href ('vec_sp_points_in_cluster');
+    my $cache_key = "$cl_name\034:\034" . ($args{from_node} // '');
+
+    my $cached = $cache->{$cache_key};
+
+    return $cached if defined $cached;
+
+    my $root = defined $args{from_node}
+        ? $cl->get_node_ref_aa($args{from_node})
+        : $cl->get_root_node;
+    #  tree object caches
+    my $terminal_elements = $root->get_terminal_elements;
+
+    #  ensure values of 1
+    my %intersects;
+    @intersects{keys %$terminal_elements} = (1) x keys %$terminal_elements;
+
+    return $cache->{$cache_key} = $self->_aggregate_hash_to_pdl(\%intersects);
+}
+
 1;

@@ -93,6 +93,9 @@ sub test_vectorised_conditions {
         spatial_conditions => ['sp_self_only()'],
     );
 
+    my $cl_to_test1 = $bd->add_cluster_output (name => 'cl_for_tests');
+    $cl_to_test1->run_analysis ();
+
     {
         #  should return undef due to $D
         my $cond = '$D < 200';
@@ -197,6 +200,7 @@ sub test_vectorised_conditions {
         q{sp_richness_greater_than (threshold => 2)},
         q{sp_richness_greater_than (threshold => 2, element => '3:3')},
         q{sp_redundancy_greater_than (threshold => 0.2)},
+        q{sp_point_in_cluster (output => 'cl_for_tests', from_node => '17___')},
     );
     push @conditions, <<~'EOC'
         sp_shape_of_label_ancestor_range (label => '1', by_depth => 1, target => 1)

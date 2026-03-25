@@ -104,7 +104,6 @@ sub test_vectorised_conditions {
     }
 
     {
-        # my $todo = todo "Not yet";
         #  a relatively simple case to start
         my $cond = <<~'EOC'
             $self->sp_point_in_poly_shape(
@@ -122,7 +121,17 @@ sub test_vectorised_conditions {
     }
 
     {
-        # my $todo = todo "Not yet";
+        #  the y in empty was triggering a quote-like match as the y/// operator
+        my $cond = q{ $self->sp_group_not_empty() && $self->sp_in_label_range(label => '1') };
+        my $sp_cond = Biodiverse::SpatialConditions->new (conditions => $cond, vectorise => 1);
+        $sp_cond->get_conditions_parsed;
+        my $listified = $sp_cond->vectorise_condition;
+
+        my $exp = q{$self->_gland($self->vec_sp_group_not_empty(),$self->vec_sp_in_label_range(label=>'1'))};
+        is $listified, $exp, 'vectorise simple condition';
+    }
+
+    {
         my $cond = <<~'EOC'
             !$self->sp_point_in_poly_shape(
                file => qq'C:\a \b \c.shp' ,
@@ -188,7 +197,6 @@ sub test_vectorised_conditions {
         q{sp_richness_greater_than (threshold => 2)},
         q{sp_richness_greater_than (threshold => 2, element => '3:3')},
         q{sp_redundancy_greater_than (threshold => 0.2)},
-
     );
     push @conditions, <<~'EOC'
         sp_shape_of_label_ancestor_range (label => '1', by_depth => 1, target => 1)

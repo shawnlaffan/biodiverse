@@ -268,12 +268,25 @@ sub _remove_whitespace_from_code {
         \bmy\b\s+ |  #  "my $x...$" is otherwise treated as "m y$x...$"
         (?&PerlVariableScalar)?  #  avoid $y getting similar treatment
         (?<quoted>
-             (?: (?<! [\$\@%]) (?&PerlQuotelike) )
+             (?: (?<! [\$\@%]) (?&BDQuotelike) )
              | (?&PerlHashIndexer)
              | (?: \s not \s)
              | (?: \s (?&PerlLowPrecedenceInfixOperator) \s)
         )
         $PPR::GRAMMAR
+        (?(DEFINE)
+            (?<BDQuotelike>
+                (?> (?&PerlString)
+                |   (?&PerlQuotelikeQR)
+                |   (?&PerlQuotelikeQW)
+                |   (?&PerlQuotelikeQX)
+                |   (?&PerlContextualMatch)
+                |   (?&PerlQuotelikeS)
+                #  TR gives false positives with the y char under g flag
+                # |   (?&PerlQuotelikeTR)
+                )
+            )
+        )
     /x;
 
     #  find the whitespace that is not in quotes or quotelike code

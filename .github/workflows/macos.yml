@@ -13,6 +13,7 @@ env:
   PERL_LOCAL_LIB_ROOT: /Users/runner/perl5
   PERL_MB_OPT: --install_base /Users/runner/perl5
   PERL_MM_OPT: INSTALL_BASE=/Users/runner/perl5
+  PERL_CPANM_OPT: '-M https://cpan.metacpan.org/ --metacpan'
 
 jobs:
   perl:
@@ -50,7 +51,7 @@ jobs:
       - name: Prepare for cache
         run: |
           perl -V > perlversion.txt
-          echo '20241125' >> perlversion.txt
+          echo '20260326' >> perlversion.txt
           ls -l perlversion.txt
 
       - name: Cache CPAN modules

@@ -19,6 +19,8 @@ use strict;
 use warnings;
 use Carp;
 
+use experimental qw /for_list/;
+
 use English qw { -no_match_vars };
 
 our $VERSION = '5.0';
@@ -28,6 +30,7 @@ use Gtk3;
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::SpatialConditions;
 use Biodiverse::SpatialConditions::DefQuery;
+use Ref::Util qw /is_blessed_ref/;
 
 use parent qw /Biodiverse::Common/;  #  need get/set_param
 
@@ -193,6 +196,12 @@ sub on_syntax_check {
             tree_ref              => $self->get_tree_ref,
         );
     };
+    my $options = $self->{options} // {};
+    if (defined $spatial_conditions && %$options) {
+        $spatial_conditions->set_no_recycling_flag($options->{no_recycling});
+        $spatial_conditions->set_ignore_spatial_index_flag($options->{ignore_spatial_index});
+        $spatial_conditions->set_vectorise($options->{vectorise});
+    }
     #croak $EVAL_ERROR if $EVAL_ERROR;
     #croak "AAAAAAAAAARRRRRRGGGGHHHH" if !$spatial_conditions;
 
@@ -217,7 +226,7 @@ sub on_syntax_check {
         $dlg->destroy();
     }
     elsif ($result_hash->{ret} eq 'ok') {
-        $self->{validated_conditions} = $spatial_conditions;
+        $self->set_validated_conditions ($spatial_conditions);
     }
 
     return $result_hash->{ret};
@@ -230,11 +239,13 @@ sub get_validated_conditions {
     return undef if !defined $conditions || !$conditions->has_conditions;
     # croak "Conditions not yet validated\n" if !defined $conditions;
 
-    my $options = $self->get_options;
-    $conditions->set_no_recycling_flag ($options->{no_recycling});
-    $conditions->set_ignore_spatial_index_flag ($options->{ignore_spatial_index});
-
     return $conditions;
+}
+
+sub set_validated_conditions {
+    my ($self, $conditions) = @_;
+
+    $self->{validated_conditions} = $conditions;
 }
 
 sub get_tree_ref {
@@ -286,20 +297,7 @@ sub run_options_dialogue {
         'gtk-ok' => 'ok',
     );
 
-    my $options = $self->{options};
-    if (!$options) {
-        my ($ignore_spatial_index, $no_recycling);
-        if (my $cond_object = eval {$self->get_validated_conditions}) {
-            $ignore_spatial_index = $cond_object->ignore_spatial_index;
-            $no_recycling = $cond_object->get_no_recycling_flag;
-        }
-        $self->{options} = {
-            ignore_spatial_index => $ignore_spatial_index,
-            no_recycling         => $no_recycling,
-        };
-        $options = $self->{options};
-    }
-    
+    my $options = $self->get_options;
 
     my $table = Gtk3::Table->new(2, 2, 0);
     $table->set_row_spacings(5);
@@ -308,29 +306,43 @@ sub run_options_dialogue {
     my @tb_props = (['expand', 'fill'], 'shrink', 0, 0);
     my $tip_text;
 
-    my $row = 0;
-    my $sp_index_label    = Gtk3::Label->new ('Ignore spatial index?');
-    my $sp_index_checkbox = Gtk3::CheckButton->new;
-    $sp_index_checkbox->set_active ($options->{ignore_spatial_index});
-    $table->attach($sp_index_label,    0, 1, $row, $row+1, @tb_props);
-    $table->attach($sp_index_checkbox, 1, 2, $row, $row+1, @tb_props);
-    $tip_text = 'Set this to on if the spatial condition does not work properly when the BaseData has a spatial index set.';
-    foreach my $widget ($sp_index_label, $sp_index_checkbox) {
-        $widget->set_has_tooltip(1);
-        $widget->set_tooltip_text ($tip_text);
-    }
+    my @row_data = (
+        {
+            name    => 'ignore_spatial_index',
+            label   => 'Ignore spatial index',
+            tooltip => 'Set this to on if the spatial condition does not work properly '
+                . 'when the BaseData has a spatial index set.'
+        },
+        {
+            name    => 'no_recycling',
+            label   => 'Turn off recycling',
+            tooltip => "Biodiverse tries to detect cases where it can recycle neighbour sets and spatial results, "
+                . "and this can sometimes not work.\n"
+                . 'Set this to on to stop Biodiverse checking for such cases.',
+        },
+        {
+            name    => 'vectorise',
+            label   => 'Vectorise spatial conditions',
+            tooltip => 'Run vectorised spatial conditions.  Currently experimental so is disabled by default.'
+        },
+    );
 
-    $row++;
-    my $recyc_label = Gtk3::Label->new ('Turn off recycling?');
-    my $recyc_checkbox = Gtk3::CheckButton->new;
-    $recyc_checkbox->set_active ($options->{no_recycling});
-    $table->attach($recyc_label,    0, 1, $row, $row+1, @tb_props);
-    $table->attach($recyc_checkbox, 1, 2, $row, $row+1, @tb_props);
-    $tip_text = "Biodiverse tries to detect cases where it can recycle neighour sets and spatial results, and this can sometimes not work.\n"
-     . 'Set this to on to stop Biodiverse checking for such cases.';
-    foreach my $widget ($recyc_label, $recyc_checkbox) {
-        $widget->set_has_tooltip(1);
-        $widget->set_tooltip_text ($tip_text);
+    my %checkboxes;
+
+    my $row = -1;
+    foreach my ($item) (@row_data) {
+        $row++;
+        my ($name, $label_text, $tooltip) = @{$item}{qw /name label tooltip/};
+        my $label = Gtk3::Label->new ($label_text);
+        my $checkbox = Gtk3::CheckButton->new;
+        $checkbox->set_active ($options->{$name});
+        $table->attach($label,    0, 1, $row, $row+1, @tb_props);
+        $table->attach($checkbox, 1, 2, $row, $row+1, @tb_props);
+        foreach my $widget ($label, $checkbox) {
+            $widget->set_has_tooltip(1);
+            $widget->set_tooltip_text ($tooltip);
+        }
+        $checkboxes{$name} = $checkbox;
     }
 
     my $vbox = $dlg->get_content_area;
@@ -340,8 +352,10 @@ sub run_options_dialogue {
     my $result = $dlg->run;
 
     if (lc($result) eq 'ok') {
-        $options->{ignore_spatial_index} = $sp_index_checkbox->get_active;
-        $options->{no_recycling}         = $recyc_checkbox->get_active;
+        foreach my ($item) (@row_data) {
+            my $name = $item->{name};
+            $options->{$name} = $checkboxes{$name}->get_active;
+        }
     }
 
     $dlg->destroy;
@@ -351,8 +365,21 @@ sub run_options_dialogue {
 sub get_options {
     my $self = shift;
     
-    my $options = $self->{options} // {};
-    
+    my $options = $self->{options};
+    if (!$options) {
+        my ($ignore_spatial_index, $no_recycling, $vectorise);
+        if (my $cond_object = eval {$self->get_validated_conditions}) {
+            $ignore_spatial_index = $cond_object->ignore_spatial_index;
+            $no_recycling = $cond_object->get_no_recycling_flag;
+            $vectorise  = $cond_object->get_vectorise;
+        }
+        $options = $self->{options} = {
+            ignore_spatial_index => $ignore_spatial_index,
+            no_recycling         => $no_recycling,
+            vectorise            => $vectorise,
+        };
+    }
+
     return wantarray ? %$options : $options;
 }
 

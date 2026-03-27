@@ -5,6 +5,7 @@ use strict;
 use 5.016;
 
 use feature 'unicode_strings';
+use experimental qw /declared_refs refaliasing/;
 
 use English qw ( -no_match_vars );
 
@@ -25,6 +26,7 @@ use parent qw /
     Biodiverse::SpatialConditions::CalculatedOutputs
     Biodiverse::SpatialConditions::TextMatch
     Biodiverse::SpatialConditions::GroupVals
+    Biodiverse::SpatialConditions::Vectorise
     Biodiverse::Common
 /;
 
@@ -92,6 +94,7 @@ sub new {
     );
     $self->set_promise_current_label($args{promise_current_label});
     $self->set_tree_ref($args{tree_ref});
+    $self->set_vectorise ($args{vectorise});
 
     eval {$self->parse_distances};
     croak $EVAL_ERROR if $EVAL_ERROR;
@@ -266,12 +269,25 @@ sub _remove_whitespace_from_code {
         \bmy\b\s+ |  #  "my $x...$" is otherwise treated as "m y$x...$"
         (?&PerlVariableScalar)?  #  avoid $y getting similar treatment
         (?<quoted>
-             (?: (?<! [\$\@%]) (?&PerlQuotelike) )
+             (?: (?<! [\$\@%]) (?&BDQuotelike) )
              | (?&PerlHashIndexer)
              | (?: \s not \s)
              | (?: \s (?&PerlLowPrecedenceInfixOperator) \s)
         )
         $PPR::GRAMMAR
+        (?(DEFINE)
+            (?<BDQuotelike>
+                (?> (?&PerlString)
+                |   (?&PerlQuotelikeQR)
+                |   (?&PerlQuotelikeQW)
+                |   (?&PerlQuotelikeQX)
+                |   (?&PerlContextualMatch)
+                |   (?&PerlQuotelikeS)
+                #  TR gives false positives with the y char under g flag
+                # |   (?&PerlQuotelikeTR)
+                )
+            )
+        )
     /x;
 
     #  find the whitespace that is not in quotes or quotelike code
@@ -375,6 +391,20 @@ sub set_requires_tree_ref {
     return $self->{requires_tree_ref} = $bool;
 }
 
+sub set_vectorise {
+    my ($self, $bool) = @_;
+    $self->{vectorise} = !!$bool;
+}
+
+sub get_vectorise {
+    my ($self) = @_;
+    $self->{vectorise};
+}
+
+sub vectorise {
+    my ($self) = @_;
+    $self->{vectorise};
+}
 
 sub get_used_dists {
     my $self = shift;
@@ -883,8 +913,8 @@ sub get_distances {
     croak "coord_array2 argument not specified\n"
         if !defined $args{coord_array2};
 
-    my @element1 = @{ $args{coord_array1} };
-    my @element2 = @{ $args{coord_array2} };
+    \my @element1 = $args{coord_array1};
+    \my @element2 = $args{coord_array2};
 
     my @cellsize;
     my $cellsizes = $args{cellsizes};
@@ -1019,7 +1049,7 @@ sub {
     my ( @d, @D, $D, $Dsqr, @c, @C, $C, $Csqr );
 
     if ( $args{calc_distances} ) {
-        %dists = eval { $self->get_distances(@_) };
+        \%dists = eval { $self->get_distances(@_) };
         croak $EVAL_ERROR if $EVAL_ERROR;
 
         @d    = @{ $dists{d_list} };

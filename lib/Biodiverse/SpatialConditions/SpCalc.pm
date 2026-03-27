@@ -55,7 +55,6 @@ sub sp_block {
     my $h = $self->get_current_args;
 
     \my @coord    = $h->{coord_array};
-    \my @nbrcoord = $h->{nbrcoord_array};
 
     my $size = $args{size};    #  need a handler for size == 0
     if ( !is_arrayref($size) ) {
@@ -68,15 +67,129 @@ sub sp_block {
         $origin = [ ($origin) x scalar @coord ];
     }    #  make it an array if necessary
 
-    foreach my $i ( 0 .. $#coord ) {
-        next if !defined $size->[$i];    #  ignore if this is undef
-
-        my $c_val = floor (($coord[$i]    - $origin->[$i]) / $size->[$i]);
-        my $n_val = floor (($nbrcoord[$i] - $origin->[$i]) / $size->[$i]);
-
-        return 0 if $c_val != $n_val;
+    #  no trailing sizes
+    if (@$size > @coord) {
+        $#$size = $#coord;
     }
-    return 1;
+    if (@$origin > @coord) {
+        $#$origin = $#coord;
+    }
+
+    my $cache = $self->get_cached_href('sp_block_element_hash');
+    my $cache_key = sprintf (
+        'Size %s, Origin %s',
+        join (':', map {$_ // ''} @$size),
+        join (':', map {$_ // ''} @$origin),
+    );
+    my $cached_href = $cache->{$cache_key};
+    if (!$cached_href) {
+        my $bd = $self->get_basedata_ref;
+        my %aggregated;
+        my @orgn = map {$_ // 0} @$origin;
+        my @axes = grep {defined $size->[$_]} (0 .. $#$size);
+        use POSIX qw/floor/;
+        foreach my $element (sort $bd->get_groups) {
+            \my @coord = $bd->get_group_element_as_array_aa ($element);
+            my $el_blocked = join ':', (map { floor(($coord[$_] - $orgn[$_]) / $size->[$_]) } (@axes));
+            $aggregated{$element} = $el_blocked;
+        }
+        $cached_href = $cache->{$cache_key} = \%aggregated;
+    }
+
+    #  Index checks don't pass elements through so an exact check does not work.
+    #  Instead we process each axis in turn, as per the previous method.
+    if (!defined $cached_href->{$h->{coord_id1}} || !defined $cached_href->{$h->{coord_id2}}) {
+        \my @nbrcoord = $h->{nbrcoord_array};
+        foreach my $i (0 .. $#coord) {
+            next if !defined $size->[$i]; #  ignore if this is undef
+
+            my $c_val = floor(($coord[$i] - $origin->[$i]) / $size->[$i]);
+            my $n_val = floor(($nbrcoord[$i] - $origin->[$i]) / $size->[$i]);
+
+            return 0 if $c_val != $n_val;
+        }
+        return 1;
+    }
+
+    return $cached_href->{$h->{coord_id1}} eq $cached_href->{$h->{coord_id2}};
+}
+
+sub vec_sp_block {
+    my ($self, %args) = @_;
+
+    use PDL::Lite;
+
+    my $h = $self->get_current_args;
+
+    my $this_coord_pdl = pdl ($h->{coord_array});
+
+    my $size = $args{size};    #  need a handler for size == 0
+    my $origin = $args{origin} // 0;
+    my (@axes, $n_axes);
+    if ( is_arrayref($size) ) {
+        #  no trailing sizes
+        if (@$size > @{$h->{coord_array}}) {
+            $#$size = $#{$h->{coord_array}};
+        }
+        @axes = grep {defined $size->[$_]} (0 .. $#$size);
+        if (@axes < @$size) {
+            $this_coord_pdl = pdl(@{$h->{coord_array}}[@axes]);
+            $size = pdl [ @$size[@axes] ];
+            $n_axes = @axes;
+        }
+    };
+    #  the origin allows the user to shift the blocks around
+    if ( is_arrayref $origin ) {
+        if (!@axes) {
+            @axes = (0 .. $#$origin);
+        };
+        $origin = pdl [ map {$_ // 0} @$origin[@axes]];
+    }
+
+    my $cache = $self->get_volatile_cache->get_cached_href ('vec_sp_block');
+    my $cache_key = "$size $origin " . join ':', @axes;
+
+    my $block_this_coord = ($this_coord_pdl - $origin)->inplace->divide ($size)->floor;
+    my $mask;
+    my $bd = $self->get_basedata_ref;
+    my $n = $bd->get_group_count;
+
+    #  Non-'indx'ed version if element is not in the basedata or we have not many elements.
+    if (!$bd->exists_group_aa($h->{coord_id1}) || $n < 50) {
+        my $block_coords = $cache->{coords}{$cache_key} //= do {
+            my $all_coord_pdl = $self->get_vector_set_coords_pdl;
+            if ($n_axes) {
+                $all_coord_pdl = $all_coord_pdl->dice(\@axes);
+            }
+            (($all_coord_pdl - $origin) / $size)->floor;
+        };
+        $mask = ($block_coords - $block_this_coord)->orover->not->transpose;
+        return $mask;
+    }
+
+    $mask = PDL->zeroes($n);
+    my $block_idx_cache = $cache->{block_idx}{$cache_key};
+    if (!$block_idx_cache) {
+        my %hash;
+        \my %universe = $self->get_vector_set_universe;
+        foreach my $element (sort $bd->get_groups) {
+            my $coord = $bd->get_group_element_as_array_aa ($element);
+            if ($n_axes) {
+                $coord = @$coord[@axes];
+            }
+            my $block_coord = pdl ($coord)->inplace->subtract($origin)->divide ($size)->floor;
+            my $aref = $hash{$block_coord} //= [];
+            push @$aref, $universe{$element};
+        }
+        $_ = pdl(PDL::indx(), $_)
+            for values %hash;
+        $block_idx_cache = $cache->{block_idx}{$cache_key} = \%hash;
+    }
+
+    my $indx = $block_idx_cache->{$block_this_coord};
+    $mask->index($indx) .= 1;
+
+    return $mask->transpose;
 }
 
 
@@ -102,6 +215,22 @@ sub sp_self_only {
     return $h->{coord_id1} eq $h->{coord_id2};
 }
 
+sub vec_sp_self_only {
+    my ($self, %args) = @_;
+
+    use PDL::Lite;
+
+    my $h = $self->get_current_args;
+    my $this_coord = $h->{coord_id1};
+
+    my $u_hash = $self->get_vector_set_universe;
+
+    my $n = scalar keys %$u_hash;
+    my $pdl = PDL->zeroes($n);
+    $pdl->index(pdl (PDL::indx, $u_hash->{$this_coord})) .= 1;
+
+    return $pdl;
+}
 
 
 

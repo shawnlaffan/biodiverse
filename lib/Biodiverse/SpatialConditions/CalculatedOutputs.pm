@@ -119,6 +119,79 @@ sub sp_get_spatial_output_list_value {
     return $list->{$index};
 }
 
+sub vec_sp_get_spatial_output_list_value {
+    my ($self, %args) = @_;
+
+    my $list_name = $args{list} // 'SPATIAL_RESULTS';
+    my $index     = $args{index};
+
+    my $bd      = $self->get_basedata_ref;
+    my $sp_name = $args{output};
+    croak "Spatial output name not defined\n" if not defined $sp_name;
+
+    my $sp = $bd->get_spatial_output_ref (name => $sp_name)
+        or croak 'Spatial output $sp_name does not exist in basedata '
+        . $bd->get_param ('NAME')
+        . "\n";
+
+    my @operators = qw /lt le gt ge eq spaceship/;
+    my $op = List::Util::first {defined $args{$_}} (@operators);
+
+    my $vcache = $self->get_volatile_cache;
+    my $cache  = $vcache->get_cached_href ('vec_sp_get_spatial_output_list_value');
+    my $cache_key = join "\034", $sp_name, $list_name, $index;
+
+    #  "operated" ndarray
+    my $cache_op_key = defined $op ? join ("\034", $op, $args{$op}) : 'undef';
+    my $ndarray = $cache->{$cache_key}{$cache_op_key};
+
+    return $ndarray if defined $ndarray;
+
+    #  cache the main list grab
+    $ndarray = $cache->{$cache_key}{ndarray};
+
+    if (!defined $ndarray) {
+        my ($min, $has_undef);
+        my %results;
+        foreach my $element (sort $bd->get_groups) {
+            my $list = $sp->get_list_ref_aa($element, $list_name) // {};
+            # say STDERR "$list, $element";
+            my $val = $list->{$index}; #  need to handle array refs
+            $results{$element} = $val;
+            if (defined $val) {
+                $min //= $val;
+                $min = $val if $val < $min;
+            }
+            else {
+                $has_undef ||= 1;
+            }
+        };
+
+        my $badval;
+        if ($has_undef) {
+            $min //= 1;
+            $badval = $min - 1;
+            $_ = $badval for values %results;
+        }
+
+        $ndarray = $self->_aggregate_hash_to_pdl(\%results, $badval);
+        $cache->{$cache_key}{ndarray} = $ndarray;
+    }
+
+    #  messy but avoids string evals
+    if ($op) {
+        $ndarray
+            = $op eq 'lt'  ? $ndarray  <  $args{$op}
+            : $op eq 'gt'  ? $ndarray  >  $args{$op}
+            : $op eq 'le'  ? $ndarray <=  $args{$op}
+            : $op eq 'ge'  ? $ndarray >=  $args{$op}
+            : $op eq 'eq'  ? $ndarray ==  $args{$op}
+            : $op eq 'spaceship' ? $ndarray <=> $args{$op}
+            : $ndarray;
+        $cache->{$cache_key}{$cache_op_key} = $ndarray;
+    }
+    return $ndarray;
+}
 
 sub get_metadata_sp_spatial_output_passed_defq {
     my $self = shift;
@@ -168,10 +241,77 @@ sub sp_spatial_output_passed_defq {
 
     my $element = $args{element} // $self->get_current_coord_id;
 
+    my $sp = $self->_get_sp_ref_for_defq_check(%args{output});
+
+    return 1
+        if !$self->is_def_query && $self->get_param('VERIFYING');
+
+    croak "output argument not defined "
+        . "or we are not being used for a spatial analysis\n"
+        if !defined $sp;
+
+    croak "element $element is not in spatial output\n"
+        if not $sp->exists_element_aa ($element);
+
+    my $passed_defq = $sp->get_pass_def_query;
+    return 1 if !$passed_defq;
+
+    return exists $passed_defq->{$element};
+}
+
+sub vec_sp_spatial_output_passed_defq {
+    my ($self, %args) = @_;
+
+    my $element = $args{element};
+
     my $bd      = $self->get_basedata_ref;
     my $sp_name = $args{output};
+
+    my $cache = $self->get_cached_href('vec_sp_spatial_output_passed_defq');
+    my $cache_key = join ':', (($sp_name // ''), ($element // "no\034element"));
+    my $cached_ndarray = $cache->{$cache_key};
+
+    return $cached_ndarray if $cached_ndarray;
+
+    my $sp = $self->_get_sp_ref_for_defq_check(%args{output});
+
+    croak "output argument not defined "
+        . "or we are not being used for a spatial analysis\n"
+        if !defined $sp;
+
+    croak "element $element is not in spatial output\n"
+        if defined $element && !$sp->exists_element_aa ($element);
+
+    my $ndarray;
+
+    my $passed_defq = $sp->get_pass_def_query;
+    if (!$passed_defq) {
+        say STDERR 'no def q';
+        #  no defq so everything passes
+        my $n = $bd->get_group_count;
+        $ndarray = PDL->ones($n)->transpose;
+    }
+    elsif (defined $element) {
+        my $n = $bd->get_group_count;
+        $ndarray = ($passed_defq->{$element} ? PDL->ones($n) : PDL->zeroes($n))->transpose;
+    }
+    else {
+        $ndarray = $self->_aggregate_hash_to_pdl($passed_defq);
+    }
+
+    $cache->{$cache_key} = $ndarray;
+    return $ndarray;
+}
+
+sub _get_sp_ref_for_defq_check {
+    my ($self, %args) = @_;
+
+    my $sp_name = $args{output};
+
     my $sp;
+
     if (defined $sp_name) {
+        my $bd = $self->get_basedata_ref;
         $sp = $bd->get_spatial_output_ref (name => $sp_name)
             or croak 'Spatial output $sp_name does not exist in basedata '
             . $bd->get_name
@@ -192,21 +332,9 @@ sub sp_spatial_output_passed_defq {
         croak "def_query can't reference itself"
             if $self->is_def_query;
 
-        return 1
-            if !$self->is_def_query && $self->get_param('VERIFYING');
     }
 
-    croak "output argument not defined "
-        . "or we are not being used for a spatial analysis\n"
-        if !defined $sp;
-
-    croak "element $element is not in spatial output\n"
-        if not $sp->exists_element_aa ($element);
-
-    my $passed_defq = $sp->get_pass_def_query;
-    return 1 if !$passed_defq;
-
-    return exists $passed_defq->{$element};
+    return $sp;
 }
 
 sub set_caller_spatial_output_ref {
@@ -339,6 +467,63 @@ sub sp_points_in_same_cluster {
     return ($by_element->{$element1} // $SUBSEP) eq ($by_element->{$element2} // $SUBSEP);
 }
 
+sub vec_sp_points_in_same_cluster {
+    my $self = shift;
+    my %args = @_;
+
+    croak 'One of "num_clusters" or "target_distance" arguments must be defined'
+        if !defined ($args{num_clusters} // $args{target_distance});
+
+    my $cl_name = $args{output}
+        // croak "Cluster output name not defined\n";
+
+    my $h = $self->get_current_args;
+
+    my $bd = $self->get_basedata_ref;
+
+    my $element1 = $args{element1};
+    #  only need to check existence if user passed the element name
+    croak "element $element1 is not in basedata\n"
+        if defined $element1 and not $bd->exists_group_aa ($element1);
+    $element1 //= $h->{coord_id1};
+
+    my $cl = $bd->get_cluster_output_ref (name => $cl_name)
+        or croak "Spatial output $cl_name does not exist in basedata "
+        . $bd->get_name
+        . "\n";
+
+    #  very similar to sp_points_in_same_cluster_output_group but we cache numbers not names
+    state $cache_name = 'vec_sp_points_in_same_cluster_output_group';
+    $cache_name   .= join $SUBSEP, %args{sort keys %args}; # $SUBSEP is \034 by default
+    my $by_element = $self->get_cached_value ($cache_name);
+    if (!$by_element) {
+        my $root = defined $args{from_node}
+            ? $cl->get_node_ref_aa($args{from_node})
+            : $cl;
+        #  tree object also caches
+        my $target_nodes
+            = $root->group_nodes_below (%args);
+        foreach my ($node) (values %$target_nodes) {
+            my $num = $node->get_node_number;
+            my $terminals = $node->get_terminal_elements;
+            @$by_element{keys %$terminals} = ($num) x keys %$terminals;
+        }
+        $self->set_cached_value($cache_name => $by_element);
+    }
+
+    my $cache_key_ndarray = "${cache_name} ndarray";
+    my $ndarray = $self->get_cached_value($cache_key_ndarray) // do {
+        #  elements outside clustered set will get a zero
+        my $x = $self->_aggregate_hash_to_pdl($by_element);
+        $self->set_cached_value ($cache_key_ndarray => $x);
+        $x;
+    };
+
+    my $target = $by_element->{$element1};
+
+    return $ndarray == $target;
+}
+
 
 sub get_metadata_sp_point_in_cluster {
     my $self = shift;
@@ -459,6 +644,39 @@ sub _aggregate_points_in_cluster {
     @intersects{keys %$terminal_elements} = (1) x keys %$terminal_elements;
 
     $self->_return_aggregate_hash (\%intersects, $negated)
+}
+
+
+sub vec_sp_point_in_cluster {
+    my ($self, %args) = @_;
+
+    my $bd = $self->get_basedata_ref;
+
+    my $cl_name = $args{output}
+        // croak "Cluster output name not defined\n";
+    my $cl = $bd->get_cluster_output_ref (name => $cl_name)
+        or croak "Spatial output $cl_name does not exist in basedata "
+        . $bd->get_name
+        . "\n";
+
+    my $cache = $self->get_cached_href ('vec_sp_points_in_cluster');
+    my $cache_key = "$cl_name\034:\034" . ($args{from_node} // '');
+
+    my $cached = $cache->{$cache_key};
+
+    return $cached if defined $cached;
+
+    my $root = defined $args{from_node}
+        ? $cl->get_node_ref_aa($args{from_node})
+        : $cl->get_root_node;
+    #  tree object caches
+    my $terminal_elements = $root->get_terminal_elements;
+
+    #  ensure values of 1
+    my %intersects;
+    @intersects{keys %$terminal_elements} = (1) x keys %$terminal_elements;
+
+    return $cache->{$cache_key} = $self->_aggregate_hash_to_pdl(\%intersects);
 }
 
 1;

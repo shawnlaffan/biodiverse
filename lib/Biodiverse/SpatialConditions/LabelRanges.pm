@@ -182,12 +182,13 @@ sub get_metadata_sp_in_label_range {
 sub sp_in_label_range {
     my ($self, %args) = @_;
 
-    my $label = $args{label} // $self->_process_label_arg();
+    my $label = $args{label} //= $self->_process_label_arg();
 
     state $cache_name_labels = 'sp_in_label_range_labels';
     my $cache_labels = $self->get_cached_value($cache_name_labels);
     if (!$cache_labels) {
-        $self->set_cached_value($cache_name_labels, scalar $self->get_basedata_ref->get_labels_as_hash);
+        $cache_labels = $self->get_basedata_ref->get_labels_as_hash;
+        $self->set_cached_value($cache_name_labels => $cache_labels);
     };
 
     return 0 if !$cache_labels->{$label};
@@ -252,6 +253,27 @@ sub _aggregate_get_groups_in_label_range {
     @groups_with_label{keys %$tmp} = (1) x keys %$tmp;
 
     return $self->_return_aggregate_hash (\%groups_with_label, $negated);
+}
+
+sub vec_sp_in_label_range {
+    my ($self, %args) = @_;
+
+    my $label = $args{label} //= $self->get_current_label;
+    if ($args{convex_hull} || $args{circumcircle} || $args{concave_hull}) {
+        #  these only work with axes [0,1].
+        my $axes = $args{axes};
+        return if defined $axes && (!is_arrayref ($axes) || join (':', @$axes) ne '0:1');
+        my $in_polygon = $self->get_in_polygon_hash (%args);
+        return $self->_aggregate_hash_to_pdl ($in_polygon);
+    }
+
+    my $bd = $self->get_basedata_ref;
+
+    my $tmp = $bd->get_groups_with_label_as_hash_aa ($label);
+    my %groups_with_label;
+    @groups_with_label{keys %$tmp} = (1) x keys %$tmp;
+
+    return $self->_aggregate_hash_to_pdl (\%groups_with_label);
 }
 
 use constant DEFAULT_CONVEX_HULL_RATIO => 0.00001;
@@ -518,6 +540,20 @@ sub _aggregate_sp_in_label_ancestor_range {
     my $href = $self->get_tree_node_ancestral_range_hash (%$method_args, label => $label);
     return $self->_return_aggregate_hash ($href, $negated);
 }
+
+sub vec_sp_in_label_ancestor_range {
+    my ($self, %args) = @_;
+
+    my $label = $args{label} //= $self->get_current_label;
+
+    return $self->_aggregate_hash_to_pdl ({})
+        if !defined $label;
+
+    my $href = $self->get_tree_node_ancestral_range_hash (%args);
+
+    return $self->_aggregate_hash_to_pdl ($href);
+}
+
 
 sub get_tree_node_ancestral_range_hash {
     my ($self, %args) = @_;
@@ -806,6 +842,19 @@ sub _aggregate_sp_shape_of_label_range {
     return $self->_return_aggregate_hash ($href, $negated);
 }
 
+sub vec_sp_shape_of_label_range {
+    my ($self, %args) = @_;
+
+    my $label = $args{label} //= $self->get_current_label;
+
+    return $self->_aggregate_hash_to_pdl ({})
+        if !defined $label;
+    my $gh_method = $args{group_hash_method} // 'get_group_hash_sp_shape_of_label_range';
+    my $href = $self->$gh_method(%args);
+
+    return $self->_aggregate_hash_to_pdl ($href);
+}
+
 sub get_group_hash_sp_shape_of_label_range {
     my ($self, %args) = @_;
 
@@ -991,6 +1040,14 @@ sub _aggregate_sp_shape_of_label_ancestor_range {
     return $self->_aggregate_sp_shape_of_label_range (
         %args,
         regex_name => 'shape_of_label_ancestor_range',
+        group_hash_method => 'get_group_hash_sp_shape_of_label_ancestor_range',
+    );
+}
+
+sub vec_sp_shape_of_label_ancestor_range {
+    my ($self, %args) = @_;
+    return $self->vec_sp_shape_of_label_range (
+        %args,
         group_hash_method => 'get_group_hash_sp_shape_of_label_ancestor_range',
     );
 }

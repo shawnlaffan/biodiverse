@@ -190,6 +190,38 @@ sub get_vector_set_universe {
     return $universe;
 }
 
+#  Universe set keyed by index.
+#  Saves time in the conditions evaluations.
+sub get_vector_set_universe_reversed {
+    my ($self, %args) = @_;
+
+    state $cache_key = 'VECTOR_SET_UNIVERSE_REVERSED';
+    my $universe = $self->get_cached_value ($cache_key);
+    if (!defined $universe) {
+        $universe = $self->get_vector_set_universe(%args);
+        $universe = {reverse %$universe};
+        $self->set_cached_value ($cache_key => $universe);
+    }
+    return $universe;
+}
+
+#  Universe set keyed by index.
+#  Saves time in the conditions evaluations.
+sub get_vector_set_universe_array {
+    my ($self, %args) = @_;
+
+    state $cache_key = 'VECTOR_SET_UNIVERSE_ARRAY';
+    my $universe = $self->get_cached_value ($cache_key);
+    if (!defined $universe) {
+        $universe = $self->get_vector_set_universe(%args);
+        my %u = reverse %$universe;
+        $universe = [@u{0..scalar keys %u}];
+        $self->set_cached_value ($cache_key => $universe);
+    }
+    return $universe;
+}
+
+
 sub get_vector_set_coords_pdl {
     my $self = shift;
 
@@ -285,11 +317,10 @@ sub get_vectorised_conditions_code_ref {
 
             croak $error if $error;
 
-            my $universe_set = $self->get_vector_set_universe(basedata_ref => $basedata);
-            my %u_by_idx = reverse %$universe_set;
             my $passed_idx = $result->which->unpdl;
-            my %passed = %u_by_idx{@$passed_idx};
-            %passed = reverse %passed;
+            \my @u_keys = $self->get_vector_set_universe_array(basedata_ref => $basedata);
+            my %passed;
+            @passed{@u_keys[@$passed_idx]} = ();
 
             return \%passed;
         }

@@ -1981,7 +1981,9 @@ sub rand_structured {
             $sp_alloc_nbr_list_args{cache} = $sp_alloc_nbr_list_cache->{$label} //= {};
         }
 
-      BY_GROUP:
+        my $prev_current_label = undef;
+
+        BY_GROUP:
         while (scalar @$tmp_rand_order && scalar @target_groups) {
 
             #  Should we always assign to the seed group?
@@ -2052,7 +2054,11 @@ sub rand_structured {
                 $cleared_target_gps{$to_groups[-1]}++;
 
                 if ($sp_for_label_allocation) {
-                    $sp_for_label_allocation->set_current_label_aa($label);
+                    if (!defined $prev_current_label) {
+                        $sp_for_label_allocation->set_current_label_aa($label);
+                        $prev_current_label = $label;
+                    }
+
                     my $sp_alloc_nbr_list
                       = $sp_alloc_nbr_list_cache->{$to_groups[0]}
                         // $self->get_sp_alloc_nbr_list (

@@ -5,6 +5,7 @@ use strict;
 use 5.016;
 
 use feature 'unicode_strings';
+use experimental qw /declared_refs refaliasing/;
 
 use English qw ( -no_match_vars );
 
@@ -912,8 +913,8 @@ sub get_distances {
     croak "coord_array2 argument not specified\n"
         if !defined $args{coord_array2};
 
-    my @element1 = @{ $args{coord_array1} };
-    my @element2 = @{ $args{coord_array2} };
+    \my @element1 = $args{coord_array1};
+    \my @element2 = $args{coord_array2};
 
     my @cellsize;
     my $cellsizes = $args{cellsizes};
@@ -1048,7 +1049,7 @@ sub {
     my ( @d, @D, $D, $Dsqr, @c, @C, $C, $Csqr );
 
     if ( $args{calc_distances} ) {
-        %dists = eval { $self->get_distances(@_) };
+        \%dists = eval { $self->get_distances(@_) };
         croak $EVAL_ERROR if $EVAL_ERROR;
 
         @d    = @{ $dists{d_list} };

@@ -1938,6 +1938,7 @@ sub rand_structured {
     my $sp_seed_timer;
     my $sp_seed_show_progress = 1;
     my $using_diffusion_allocation_order = ($spatial_allocation_order eq 'diffusion');
+    my $have_sp_cond_for_seeding = !!$sp_cond_for_seeding;
 
     BY_LABEL:
     foreach my $label (@$rand_label_order) {
@@ -1997,7 +1998,7 @@ sub rand_structured {
                 my $j;  #  the index of the target group we will work on
 
                 #  are we seeding from a condition?
-                if (!!$sp_cond_for_seeding) {
+                if ($have_sp_cond_for_seeding) {
                     state $cache_name = 'sp_cond_for_seeding_results';
                     my $cache = $self->get_cached_value_dor_set_default_href($cache_name);
                     my $seed_groups = $cache->{$label};

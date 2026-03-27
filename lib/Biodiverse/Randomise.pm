@@ -1920,9 +1920,9 @@ sub rand_structured {
     #  (can be constrained by a spatial condition)
 
     my $tg = $bd->get_groups;
-    my @target_groups = sort @$tg;  #  sort is prob redundant, as we overwrite @target_groups below
     my %all_target_groups;
-    @all_target_groups{@target_groups} = ();
+    @all_target_groups{@$tg} = ();
+    undef $tg;
     my @unfilled_groups_sorted_arr = sort keys %unfilled_groups;
     my %new_bd_richness;
     my $last_filled     = $EMPTY_STRING;
@@ -1953,7 +1953,7 @@ sub rand_structured {
 
         $label_i++;
 
-        @target_groups = @unfilled_groups_sorted_arr;
+        my @target_groups = @unfilled_groups_sorted_arr;
         my %cleared_target_gps;
         
         ###  get the remaining original groups containing the original label.

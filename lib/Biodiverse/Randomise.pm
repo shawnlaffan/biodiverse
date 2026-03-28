@@ -2025,9 +2025,10 @@ sub rand_structured {
 
                         #  Clean up @seed_targets here.  Otherwise we use inordinate
                         #  amounts of time repeatedly removing the same items.
-                        delete local @{$seed_groups}{keys %filled_groups}
-                            if %filled_groups;
-                        @seed_targets = sort keys %$seed_groups;
+                        use Hash::Util::Set qw/keys_difference/;
+                        use Hash::Util::Set::XS ();  #  ensure we pack with PAR::Packer
+                        #  need unary plus or the sort and function do not play nicely
+                        @seed_targets = sort +keys_difference (%$seed_groups, %filled_groups);
                     }
 
                     my $seed_gp;

@@ -1961,7 +1961,7 @@ sub rand_structured {
         ###  get the remaining original groups containing the original label.
         ###  Make sure it's a copy
         \my %tmp_gp_hash = $cloned_bd_as_lb_hash{$label} // {};
-        my $tmp_rand_order = $rand->shuffle ([sort keys %tmp_gp_hash]);
+        \my @tmp_rand_order = $rand->shuffle ([sort keys %tmp_gp_hash]);
 
         my (
             %new_bd_additions,    %cloned_bd_deletions, @sp_alloc_nbr_list,
@@ -1986,7 +1986,7 @@ sub rand_structured {
         my ($prev_current_label, @seed_targets);
 
         BY_GROUP:
-        while (scalar @$tmp_rand_order && scalar @target_groups) {
+        while (scalar @tmp_rand_order && scalar @target_groups) {
 
             #  Should we always assign to the seed group?
             #  What if the seed group is not part of the nbr set?
@@ -2106,13 +2106,13 @@ sub rand_structured {
           TO_GROUP_ITERATION:
             while (defined (my $to_group = shift @to_groups)) {
 
-                last BY_GROUP if !scalar @$tmp_rand_order;
+                last BY_GROUP if !@tmp_rand_order;
                 #last BY_GROUP if not defined $to_group;  #  likely now?
                 
                 #  avoid double allocations
                 next BY_GROUP if $using_random_propagation && exists $assigned{$to_group};
 
-                my $from_group = shift @$tmp_rand_order;
+                my $from_group = shift @tmp_rand_order;
                 # my $count = $tmp_gp_hash{$from_group};
                 my $count = delete $tmp_gp_hash{$from_group};
 

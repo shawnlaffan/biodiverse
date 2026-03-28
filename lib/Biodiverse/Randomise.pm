@@ -1953,6 +1953,8 @@ sub rand_structured {
 
         $label_i++;
 
+        #  Making @target_groups a List::Unique::DeterministicOrder object speeds
+        #  things up but changes stability, so wait for major version change.
         my @target_groups = @unfilled_groups_sorted_arr;
         my %cleared_target_gps;
         
@@ -1981,7 +1983,7 @@ sub rand_structured {
             $sp_alloc_nbr_list_args{cache} = $sp_alloc_nbr_list_cache->{$label} //= {};
         }
 
-        my $prev_current_label = undef;
+        my ($prev_current_label, @seed_targets);
 
         BY_GROUP:
         while (scalar @$tmp_rand_order && scalar @target_groups) {
@@ -2020,11 +2022,13 @@ sub rand_structured {
                             progress           => $defq_progress,
                         );
                         $sp_seed_show_progress = (time() - $t0) > 1;
-                    }
 
-                    delete local @{$seed_groups}{keys %filled_groups}
-                        if %filled_groups;
-                    my @seed_targets = sort keys %$seed_groups;
+                        #  Clean up @seed_targets here.  Otherwise we use inordinate
+                        #  amounts of time repeatedly removing the same items.
+                        delete local @{$seed_groups}{keys %filled_groups}
+                            if %filled_groups;
+                        @seed_targets = sort keys %$seed_groups;
+                    }
 
                     my $seed_gp;
                     while (!defined $seed_gp && scalar @seed_targets) {

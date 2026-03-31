@@ -1920,9 +1920,9 @@ sub rand_structured {
     #  (can be constrained by a spatial condition)
 
     my $tg = $bd->get_groups;
-    my @target_groups = sort @$tg;  #  sort is prob redundant, as we overwrite @target_groups below
     my %all_target_groups;
-    @all_target_groups{@target_groups} = ();
+    @all_target_groups{@$tg} = ();
+    undef $tg;
     my @unfilled_groups_sorted_arr = sort keys %unfilled_groups;
     my %new_bd_richness;
     my $last_filled     = $EMPTY_STRING;
@@ -1938,6 +1938,7 @@ sub rand_structured {
     my $sp_seed_timer;
     my $sp_seed_show_progress = 1;
     my $using_diffusion_allocation_order = ($spatial_allocation_order eq 'diffusion');
+    my $have_sp_cond_for_seeding = !!$sp_cond_for_seeding;
 
     BY_LABEL:
     foreach my $label (@$rand_label_order) {
@@ -1952,13 +1953,15 @@ sub rand_structured {
 
         $label_i++;
 
-        @target_groups = @unfilled_groups_sorted_arr;
+        #  Making @target_groups a List::Unique::DeterministicOrder object speeds
+        #  things up but changes stability, so wait for major version change.
+        my @target_groups = @unfilled_groups_sorted_arr;
         my %cleared_target_gps;
         
         ###  get the remaining original groups containing the original label.
         ###  Make sure it's a copy
         \my %tmp_gp_hash = $cloned_bd_as_lb_hash{$label} // {};
-        my $tmp_rand_order = $rand->shuffle ([sort keys %tmp_gp_hash]);
+        \my @tmp_rand_order = $rand->shuffle ([sort keys %tmp_gp_hash]);
 
         my (
             %new_bd_additions,    %cloned_bd_deletions, @sp_alloc_nbr_list,
@@ -1980,8 +1983,10 @@ sub rand_structured {
             $sp_alloc_nbr_list_args{cache} = $sp_alloc_nbr_list_cache->{$label} //= {};
         }
 
-      BY_GROUP:
-        while (scalar @$tmp_rand_order && scalar @target_groups) {
+        my ($prev_current_label, @seed_targets);
+
+        BY_GROUP:
+        while (scalar @tmp_rand_order && scalar @target_groups) {
 
             #  Should we always assign to the seed group?
             #  What if the seed group is not part of the nbr set?
@@ -1997,7 +2002,7 @@ sub rand_structured {
                 my $j;  #  the index of the target group we will work on
 
                 #  are we seeding from a condition?
-                if (!!$sp_cond_for_seeding) {
+                if ($have_sp_cond_for_seeding) {
                     state $cache_name = 'sp_cond_for_seeding_results';
                     my $cache = $self->get_cached_value_dor_set_default_href($cache_name);
                     my $seed_groups = $cache->{$label};
@@ -2017,11 +2022,14 @@ sub rand_structured {
                             progress           => $defq_progress,
                         );
                         $sp_seed_show_progress = (time() - $t0) > 1;
-                    }
 
-                    delete local @{$seed_groups}{keys %filled_groups}
-                        if %filled_groups;
-                    my @seed_targets = sort keys %$seed_groups;
+                        #  Clean up @seed_targets here.  Otherwise we use inordinate
+                        #  amounts of time repeatedly removing the same items.
+                        use Hash::Util::Set qw/keys_difference/;
+                        use Hash::Util::Set::XS ();  #  ensure we pack with PAR::Packer
+                        #  need unary plus or the sort and function do not play nicely
+                        @seed_targets = sort +keys_difference (%$seed_groups, %filled_groups);
+                    }
 
                     my $seed_gp;
                     while (!defined $seed_gp && scalar @seed_targets) {
@@ -2051,7 +2059,11 @@ sub rand_structured {
                 $cleared_target_gps{$to_groups[-1]}++;
 
                 if ($sp_for_label_allocation) {
-                    $sp_for_label_allocation->set_current_label_aa($label);
+                    if (!defined $prev_current_label) {
+                        $sp_for_label_allocation->set_current_label_aa($label);
+                        $prev_current_label = $label;
+                    }
+
                     my $sp_alloc_nbr_list
                       = $sp_alloc_nbr_list_cache->{$to_groups[0]}
                         // $self->get_sp_alloc_nbr_list (
@@ -2094,13 +2106,13 @@ sub rand_structured {
           TO_GROUP_ITERATION:
             while (defined (my $to_group = shift @to_groups)) {
 
-                last BY_GROUP if !scalar @$tmp_rand_order;
+                last BY_GROUP if !@tmp_rand_order;
                 #last BY_GROUP if not defined $to_group;  #  likely now?
                 
                 #  avoid double allocations
                 next BY_GROUP if $using_random_propagation && exists $assigned{$to_group};
 
-                my $from_group = shift @$tmp_rand_order;
+                my $from_group = shift @tmp_rand_order;
                 # my $count = $tmp_gp_hash{$from_group};
                 my $count = delete $tmp_gp_hash{$from_group};
 

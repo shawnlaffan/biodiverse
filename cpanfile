@@ -15,6 +15,8 @@ requires "Geo::Converter::dms2dd", "0.05";
 requires "Geo::GDAL::FFI", 0.15;  #  this will pick up the aliens
 requires "Geo::ShapeFile", "3.00",
 requires "Getopt::Long::Descriptive";
+requires "Hash::Util::Set";
+requires "Hash::Util::Set::XS";
 requires "HTML::QuickTable";
 requires "JSON::MaybeXS", "1.003";
 requires "JSON::PP";

@@ -67,7 +67,8 @@ sub load_data {
 
     foreach my $id (@$id_array) {
         my $feature  = $layer->GetFeature($id + $fid_base);
-        my $geom     = $feature->GetGeomField();
+        my $geom     = eval {$feature->GetGeomField()};
+        next if !defined $geom;  #  skip null geometries
         #  get type at the geom  level as
         #  shapefile layers don't flag as multi
         my $type     = $geom->GetType;

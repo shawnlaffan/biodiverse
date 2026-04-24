@@ -426,11 +426,23 @@ sub on_add {
     my $fname = defined $layer ? "$filename/$layer" : $filename;
 
     #  load as a polyline
-    $project->add_overlay({name => $fname, layer => $layer, type => 'polyline', plot_on_top => 1, alpha => 0.5});
+    $project->add_overlay({
+        name        => $fname,
+        layer       => $layer,
+        type        => 'polyline',
+        plot_on_top => 1,
+        alpha       => 0.5
+    });
 
     #  also load as polygon
     if ($shapetype =~ /Polygon/i) {
-        $project->add_overlay({ name => $fname, layer => $layer, type => 'polygon', plot_on_top => 0, alpha => 1 });
+        $project->add_overlay({
+            name        => $fname,
+            layer       => $layer,
+            type        => 'polygon',
+            plot_on_top => 0,
+            alpha       => 1,
+        });
     }
 
     update_overlay_table($project);

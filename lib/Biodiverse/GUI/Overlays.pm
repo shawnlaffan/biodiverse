@@ -412,9 +412,9 @@ sub on_add {
     }
 
     my $shapetype = _shp_type ($filename, $layer);
-    if ($shapetype !~ /Poly/) {
+    if ($shapetype !~ /Polygon|LineString/) {
         my $error = "Unable to display shapefiles of type $shapetype.";
-        $error .= "\n\nBiodiverse currently only supports polygon and polyline overlays.\n";
+        $error .= "\n\nBiodiverse currently only supports polygon and linestring (polyline) overlays.\n";
         my $gui = Biodiverse::GUI::GUIManager->instance;
         $gui->report_error (
             $error,

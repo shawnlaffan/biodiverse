@@ -647,9 +647,6 @@ sub import_data_raster {
     my $cellsize_n      = $args{raster_cellsize_n};
     my $given_label     = $args{given_label};
 
-    my $labels_ref = $self->get_labels_ref;
-    my $groups_ref = $self->get_groups_ref;
-
     say "[BASEDATA] Loading from files as GDAL "
       . join( q{ }, @{ $args{input_files} } );
 
@@ -672,9 +669,10 @@ sub import_data_raster {
         $cellorigin_n = $cell_origins[1];
     }
 
-    my @half_cellsize  = map { $_ / 2 } @cell_sizes;
-    my $halfcellsize_e = $half_cellsize[0];
-    my $halfcellsize_n = $half_cellsize[1];
+    my ($halfcellsize_e, $halfcellsize_n)  = map { $_ / 2 } @cell_sizes;
+
+    my $cellorigin_e_hc = $halfcellsize_e + $cellorigin_e;
+    my $cellorigin_n_hc = $halfcellsize_n + $cellorigin_n;
 
     my $quotes = $self->get_param('QUOTES');      #  for storage, not import
     my $el_sep = $self->get_param('JOIN_CHAR');
@@ -832,20 +830,15 @@ sub import_data_raster {
                         my ( $ngeo, $ncell, $grpn, $grpstring );
                         if ( !$tf_4 )
                         {    #  no transform so constant y for this line
-                            $ngeo = $tf_3 + $gridy * $tf_5;
-                            $ncell =
-                              floor( ( $ngeo - $cellorigin_n ) / $cellsize_n );
-                            $grpn =
-                              $cellorigin_n +
-                              $ncell * $cellsize_n +
-                              $halfcellsize_n;
+                            $ngeo  = $tf_3 + $gridy * $tf_5;
+                            $ncell = floor( ( $ngeo - $cellorigin_n ) / $cellsize_n );
+                            $grpn  = $cellorigin_n_hc + $ncell * $cellsize_n;
                         }
 
                         #  $gridx is the cell centre, gets incremented by 1 at
                         #  start of loop so processing starts at 0.5
-                        my $gridx = $wpos - 0.5;
-                        my $prev_x =
-                          $tf_0 - 100; #  just need something west of the origin
+                        my $gridx  = $wpos - 0.5;
+                        my $prev_x = $tf_0 - 100; #  just need something west of the origin
 
                       COLUMN:
                         foreach my $entry (@$lineref) {
@@ -871,23 +864,16 @@ sub import_data_raster {
                             #  then calculate "group" from this position.
                             #  (defined as csv string of central points of group)
                             # note "geo" coordinates are the top-left of the cell (NW)
-                            my $egeo = $tf_0 + $gridx * $tf_1 + $gridy * $tf_2;
-                            my $ecell =
-                              floor( ( $egeo - $cellorigin_e ) / $cellsize_e );
-                            my $grpe =
-                              $cellorigin_e +
-                              $ecell * $cellsize_e +
-                              $halfcellsize_e;
+                            my $egeo  = $tf_0 + $gridx * $tf_1 + $gridy * $tf_2;
+                            my $ecell = floor( ( $egeo - $cellorigin_e ) / $cellsize_e );
+                            my $grpe  = $cellorigin_e_hc + $ecell * $cellsize_e;
 
                             my $new_gp;
                             if ($tf_4) {    #  need to transform the y coords
                                 $ngeo = $tf_3 + $gridx * $tf_4 + $gridy * $tf_5;
                                 $ncell = floor( ( $ngeo - $cellorigin_n ) / $cellsize_n );
 
-                                $grpn =
-                                  $cellorigin_n +
-                                  $ncell * $cellsize_n +
-                                  $halfcellsize_n;
+                                $grpn = $cellorigin_n_hc + $ncell * $cellsize_n;
 
                                 #  cannot guarantee constant groups
                                 #  for rotated/transformed data

@@ -65,6 +65,7 @@ sub load_data {
 
     \my @features = $self->{features} //= [];
 
+    ID:
     foreach my $id (@$id_array) {
         my $feature  = $layer->GetFeature($id + $fid_base);
         my $is_empty;
@@ -82,7 +83,10 @@ sub load_data {
             id     => $id,
             type   => $type,
         );
-        if (!($lazy_load && $item->{geometry})) {
+
+        next ID if $lazy_load;
+
+        if (!$item->{geometry}) {
             if ($is_empty) {
                 $item->{geometry} = [];
             }
@@ -102,6 +106,7 @@ sub load_data {
     return;
 }
 
+#  this seems not to be triggered but still needs to match load_data behaviour
 sub reload_geometries {
     my ($self, $target_ids) = @_;
 
@@ -116,8 +121,22 @@ sub reload_geometries {
     foreach my $id (@$target_ids) {
         my $item    = $features->[$id + $fid_base];
         my $feature = $layer->GetFeature($id);
-        my $geom    = $feature->GetGeomField();
-        $item->set_geometry ($geom->GetPoints(0,0));  #  no Z or M
+        my $geom    = eval {$feature->GetGeomField()} // Geo::GDAL::FFI::Geometry->new(WKT => "$self->{type} EMPTY");
+        my $g;
+        if ($geom->IsEmpty) {
+            $g = [];
+        }
+        else {
+            $g = $geom->GetPoints(0, 0);
+            my $type = $geom->GetType;
+            if ($type =~ /LineString$/) {
+                $g = [ $g ];
+            }
+            if ($type =~ /Multi/) {
+                $g = [ $g ];
+            }
+        }
+        $item->set_geometry ($g);  #  no Z or M
     }
 
     return;

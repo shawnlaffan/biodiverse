@@ -67,21 +67,35 @@ sub load_data {
 
     foreach my $id (@$id_array) {
         my $feature  = $layer->GetFeature($id + $fid_base);
-        my $geom     = eval {$feature->GetGeomField()};
-        next if !defined $geom;  #  skip null geometries
-        #  get type at the geom  level as
-        #  shapefile layers don't flag as multi
-        my $type     = $geom->GetType;
+        my $is_empty;
+        my $geom = eval {$feature->GetGeomField()};
+        if (!defined $geom) {
+            $geom = Geo::GDAL::FFI::Geometry->new(WKT => "$self->{type} EMPTY");
+            $is_empty = 1;
+        }
+
+        #  get type at the geom level as
+        #  shapefile layers don't flag as multi and can have a mix of multi and non-multi
+        my $type = $geom->GetType;
         my $item = $features[$id] //= Biodiverse::GUI::Overlays::Geometry->new (
             extent => [@{$geom->GetEnvelope}[0,2,1,3]],  #  x1,y1,x2,y2
             id     => $id,
             type   => $type,
         );
         if (!($lazy_load && $item->{geometry})) {
-            my $g = $geom->GetPoints (0, 0);  #  no Z or M
-            $is_multi_type = $item->{type} =~ /Multi/;
-            #  this way we have one structure for the plotting to handle
-            $item->{geometry} = $is_multi_type ? $g : [ $g ];
+            if ($is_empty) {
+                $item->{geometry} = [];
+            }
+            else {
+                $is_multi_type = $item->{type} =~ /Multi/;
+                my $g = $geom->GetPoints(0, 0); #  no Z or M
+                if ($item->{type} =~ /LineString$/) {
+                    #  same depth as polygons to simplify downstream processing/plotting
+                    $g = [ $g ];
+                }
+                #  this way we have one structure for the plotting to handle
+                $item->{geometry} = $is_multi_type ? $g : [ $g ];
+            }
         }
     }
 

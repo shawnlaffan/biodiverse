@@ -65,28 +65,48 @@ sub load_data {
 
     \my @features = $self->{features} //= [];
 
+    ID:
     foreach my $id (@$id_array) {
         my $feature  = $layer->GetFeature($id + $fid_base);
-        my $geom     = $feature->GetGeomField();
-        #  get type at the geom  level as
-        #  shapefile layers don't flag as multi
-        my $type     = $geom->GetType;
+        my $is_empty;
+        my $geom = eval {$feature->GetGeomField()};
+        if (!defined $geom) {
+            $geom = Geo::GDAL::FFI::Geometry->new(WKT => "$self->{type} EMPTY");
+            $is_empty = 1;
+        }
+
+        #  get type at the geom level as
+        #  shapefile layers don't flag as multi and can have a mix of multi and non-multi
+        my $type = $geom->GetType;
         my $item = $features[$id] //= Biodiverse::GUI::Overlays::Geometry->new (
             extent => [@{$geom->GetEnvelope}[0,2,1,3]],  #  x1,y1,x2,y2
             id     => $id,
             type   => $type,
         );
-        if (!($lazy_load && $item->{geometry})) {
-            my $g = $geom->GetPoints (0, 0);  #  no Z or M
-            $is_multi_type = $item->{type} =~ /Multi/;
-            #  this way we have one structure for the plotting to handle
-            $item->{geometry} = $is_multi_type ? $g : [ $g ];
+
+        next ID if $lazy_load;
+
+        if (!$item->{geometry}) {
+            if ($is_empty) {
+                $item->{geometry} = [];
+            }
+            else {
+                $is_multi_type = $item->{type} =~ /Multi/;
+                my $g = $geom->GetPoints(0, 0); #  no Z or M
+                if ($item->{type} =~ /LineString$/) {
+                    #  same depth as polygons to simplify downstream processing/plotting
+                    $g = [ $g ];
+                }
+                #  this way we have one structure for the plotting to handle
+                $item->{geometry} = $is_multi_type ? $g : [ $g ];
+            }
         }
     }
 
     return;
 }
 
+#  this seems not to be triggered but still needs to match load_data behaviour
 sub reload_geometries {
     my ($self, $target_ids) = @_;
 
@@ -101,8 +121,22 @@ sub reload_geometries {
     foreach my $id (@$target_ids) {
         my $item    = $features->[$id + $fid_base];
         my $feature = $layer->GetFeature($id);
-        my $geom    = $feature->GetGeomField();
-        $item->set_geometry ($geom->GetPoints(0,0));  #  no Z or M
+        my $geom    = eval {$feature->GetGeomField()} // Geo::GDAL::FFI::Geometry->new(WKT => "$self->{type} EMPTY");
+        my $g;
+        if ($geom->IsEmpty) {
+            $g = [];
+        }
+        else {
+            $g = $geom->GetPoints(0, 0);
+            my $type = $geom->GetType;
+            if ($type =~ /LineString$/) {
+                $g = [ $g ];
+            }
+            if ($type =~ /Multi/) {
+                $g = [ $g ];
+            }
+        }
+        $item->set_geometry ($g);  #  no Z or M
     }
 
     return;

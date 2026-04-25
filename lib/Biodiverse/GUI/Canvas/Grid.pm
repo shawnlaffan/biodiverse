@@ -744,9 +744,13 @@ sub set_overlay {
             #  line width should be an option in the GUI
             $cx->set_line_width(max($cx->device_to_user_distance($linewidth, $linewidth)));
 
+            SHAPE:
             foreach my $shape (@$data) {
                 my $g = $shape->get_geometry;
+                next SHAPE if !@$g;  #  empty
+                GEOMETRY:
                 foreach my \@part (@$g) {
+                    next GEOMETRY if !@part;  #  empty
                     foreach my \@vertices (@part) {
                         $cx->move_to(@{$vertices[0]});
                         $cx->line_to(@$_) foreach @vertices;
@@ -912,22 +916,22 @@ sub load_shapefile {
         my $bd_bnds  = "($min_x, $min_y), ($max_x, $max_y)";
         my $shp_bnds = "($bnd_extrema[0], $bnd_extrema[1]), ($bnd_extrema[2], $bnd_extrema[3])";
 
-        my $error = <<"END_OF_ERROR"
-Warning: Shapes might not be visible.
+        my $error = <<~"END_OF_ERROR"
+            Warning: Shapes might not be visible.
 
-The extent of the $shape_count_in_plot_area shapes overlapping the
-plot area is very small.  They might not be visible as a result.
+            The extent of the $shape_count_in_plot_area shapes overlapping the
+            plot area is very small.  They might not be visible as a result.
 
-One possible cause is that the shapefile coordinate system does
-not match that of the BaseData, for example your BaseData
-is in a UTM coordinate system but the shapefile is in
-decimal degrees.  If this is the case then your shapefile
-can be reprojected to match your spatial data using GIS software.
+            One possible cause is that the shapefile coordinate system does
+            not match that of the BaseData, for example your BaseData
+            is in a UTM coordinate system but the shapefile is in
+            decimal degrees.  If this is the case then your shapefile
+            can be reprojected to match your spatial data using GIS software.
 
-Respective bounds are (minx, miny), (maxx, maxy):
-BaseData: $bd_bnds
-Shapefile: $shp_bnds
-END_OF_ERROR
+            Respective bounds are (minx, miny), (maxx, maxy):
+            BaseData: $bd_bnds
+            Shapefile: $shp_bnds
+            END_OF_ERROR
         ;
 
         $gui->report_error (

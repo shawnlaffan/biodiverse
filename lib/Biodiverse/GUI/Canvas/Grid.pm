@@ -916,22 +916,22 @@ sub load_shapefile {
         my $bd_bnds  = "($min_x, $min_y), ($max_x, $max_y)";
         my $shp_bnds = "($bnd_extrema[0], $bnd_extrema[1]), ($bnd_extrema[2], $bnd_extrema[3])";
 
-        my $error = <<"END_OF_ERROR"
-Warning: Shapes might not be visible.
+        my $error = <<~"END_OF_ERROR"
+            Warning: Shapes might not be visible.
 
-The extent of the $shape_count_in_plot_area shapes overlapping the
-plot area is very small.  They might not be visible as a result.
+            The extent of the $shape_count_in_plot_area shapes overlapping the
+            plot area is very small.  They might not be visible as a result.
 
-One possible cause is that the shapefile coordinate system does
-not match that of the BaseData, for example your BaseData
-is in a UTM coordinate system but the shapefile is in
-decimal degrees.  If this is the case then your shapefile
-can be reprojected to match your spatial data using GIS software.
+            One possible cause is that the shapefile coordinate system does
+            not match that of the BaseData, for example your BaseData
+            is in a UTM coordinate system but the shapefile is in
+            decimal degrees.  If this is the case then your shapefile
+            can be reprojected to match your spatial data using GIS software.
 
-Respective bounds are (minx, miny), (maxx, maxy):
-BaseData: $bd_bnds
-Shapefile: $shp_bnds
-END_OF_ERROR
+            Respective bounds are (minx, miny), (maxx, maxy):
+            BaseData: $bd_bnds
+            Shapefile: $shp_bnds
+            END_OF_ERROR
         ;
 
         $gui->report_error (

@@ -744,9 +744,13 @@ sub set_overlay {
             #  line width should be an option in the GUI
             $cx->set_line_width(max($cx->device_to_user_distance($linewidth, $linewidth)));
 
+            SHAPE:
             foreach my $shape (@$data) {
                 my $g = $shape->get_geometry;
+                next SHAPE if !@$g;  #  empty
+                GEOMETRY:
                 foreach my \@part (@$g) {
+                    next GEOMETRY if !@part;  #  empty
                     foreach my \@vertices (@part) {
                         $cx->move_to(@{$vertices[0]});
                         $cx->line_to(@$_) foreach @vertices;

@@ -844,12 +844,6 @@ sub import_data_raster {
                     $frac
                 );
 
-                if ( $hpos % 10000 == 0 ) {
-                    say "Loading $file_base "
-                      . "Cell $processed_count of $target_count\n",
-                      $frac;
-                }
-
 
                 $wpos = 0;
                 while ( $wpos < $xsize ) {

@@ -782,11 +782,15 @@ sub import_data_raster {
             my ( $wpos, $hpos ) = ( 0, 0 );
             my $nodata_value = $band->GetNoDataValue;
             my $nodata_is_numeric = (looks_like_number ($nodata_value) && $nodata_value !~ /nan/i);
+            my $have_nodata_value = defined $nodata_value;
+            say "[BASEDATA] NoData value is $nodata_value"
+                if $have_nodata_value;
             my $this_label;
 
             say "Band $band_id, type ", $band->GetDataType;
             if ( defined $given_label ) {
                 $this_label = $given_label;
+                $labels_as_bands = !!1;
             }
             elsif ($labels_as_bands) {
                 $this_label = eval {$band->Geo::GDAL::FFI::Object::GetDescription};
@@ -866,7 +870,7 @@ sub import_data_raster {
                             $grpn = $ycoords[$grid_yi];
                         }
 
-                        my $prev_x = $tf_x0 - 100; #  just need something west of the origin
+                        my $prev_gp_x = $tf_x0 - 100; #  just need something west of the origin
 
                         my $grid_xi = $wpos - 1;
 
@@ -877,7 +881,7 @@ sub import_data_raster {
                             # need to add check for empty groups
                             # when it is added as an argument
                             next COLUMN
-                              if defined $nodata_value
+                              if $have_nodata_value
                               and $nodata_is_numeric
                                 ? $entry == $nodata_value
                                 : $entry eq $nodata_value;  #  NaN comes through as text
@@ -888,7 +892,6 @@ sub import_data_raster {
                                 $cellorigin_e_hc + $ecell * $cellsize_e;
                             };
 
-                            my $new_gp;
                             if ($tf_yx) {    #  need to transform the y coords
                                 $ngeo  = $tf_y0 + ($grid_xi + 0.5) * $tf_yx + ($grid_yi + 0.5) * $tf_yy;
                                 $ncell = floor( ( $ngeo - $cellorigin_n ) / $cellsize_n );
@@ -897,37 +900,26 @@ sub import_data_raster {
                                 #  cannot guarantee constant groups
                                 #  for rotated/transformed data
                                 #  so we need a new group name
-                                $new_gp = 1;
-                            }
-                            else {
-                                #  if $grpe has not changed then
-                                #  we can re-use the previous group name
-                                $new_gp = $prev_x != $grpe;
-                            }
-
-                            if ($new_gp) {
-                                #  no need to even use the csv object to
-                                #  stick them together (this was a
-                                #  bottleneck due to all the csv calls)
                                 $grpstring = join $el_sep, ( $grpe, $grpn );
                             }
-
-                            # set label if determined at cell level
-                            my $count = 1;
-                            if ( $labels_as_bands || defined $given_label ) {
-                                # set count to cell value if using
-                                # band as label or provided label
-                                $count = $entry;
-                            }
-                            else {
-                                # set label from cell value or category if valid
-                                $this_label = $catname_hash{$entry} // $entry;
+                            elsif ($prev_gp_x != $grpe) {
+                                #  only need to build the group name if $grpe has not changed
+                                $grpstring = join $el_sep, ( $grpe, $grpn );
+                                $prev_gp_x = $grpe;
                             }
 
                             #  collate the data
-                            $gp_lb_hash{$grpstring}{$this_label} += $count;
-
-                            $prev_x = $grpe;
+                            #  convoluted conditions due to profiling bottlenecks
+                            # set label if determined at cell level
+                            if ( $labels_as_bands ) {
+                                # set count to cell value if using
+                                # band as label or provided label
+                                $gp_lb_hash{$grpstring}{$this_label} += $entry;
+                            }
+                            else {
+                                # set label from cell value or category if valid
+                                $gp_lb_hash{$grpstring}{$catname_hash{$entry} //= $entry} ++;
+                            }
 
                         }    # each entry on line
 

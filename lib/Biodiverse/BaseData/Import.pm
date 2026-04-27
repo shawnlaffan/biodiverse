@@ -735,28 +735,28 @@ sub import_data_raster {
         say "[BASEDATA] Pixel Sizes = ($tf[1], $tf[2], $tf[4], $tf[5])";
         #  $tf[5] is negative to allow for line order
         #  avoid repeated array lookups below
-        my ( $tf_0, $tf_1, $tf_2, $tf_3, $tf_4, $tf_5 ) = @tf;
+        my ( $tf_x0, $tf_xx, $tf_xy, $tf_y0, $tf_yx, $tf_yy ) = @tf;
 
         #  does not allow for rotations, but not sure
         #  that it should since Biodiverse doesn't either.
-        $cellsize_e ||= abs $tf_1;
-        $cellsize_n ||= abs $tf_5;
+        $cellsize_e ||= abs $tf_xx;
+        $cellsize_n ||= abs $tf_yy;
 
         #  populated if we have axis-aligned images
         my (@xcoords, @ycoords);
         #  no x-rotation
-        if ($tf_2 == 0) {
+        if ($tf_xy == 0) {
             # $z->xvals->plus(0.5)->divide($c0)->floor
-            # my $c = $tf_1;
+            # my $c = $tf_xx;
             # floor( ( $egeo - $cellorigin_e ) / $cellsize_e );
             # my $grpe  = $cellorigin_e_hc + $ecell * $cellsize_e
             @xcoords = map {
                 floor (
-                    ((($_ + 0.5) * $tf_1 + $tf_0) - $cellorigin_e) / $cellsize_e
+                    ((($_ + 0.5) * $tf_xx + $tf_x0) - $cellorigin_e) / $cellsize_e
                 ) * $cellsize_e + $cellorigin_e_hc
             } (0 .. $xsize);
         }
-        if ($tf_4 == 0) {
+        if ($tf_yx == 0) {
 
         }
 
@@ -846,9 +846,9 @@ sub import_data_raster {
                   ROW:
                     foreach my $lineref (@tile) {
                         my ( $ngeo, $ncell, $grpn, $grpstring );
-                        if ( !$tf_4 )
+                        if ( !$tf_yx )
                         {    #  no transform so constant y for this line
-                            $ngeo  = $tf_3 + $gridy * $tf_5;
+                            $ngeo  = $tf_y0 + $gridy * $tf_yy;
                             $ncell = floor( ( $ngeo - $cellorigin_n ) / $cellsize_n );
                             $grpn  = $cellorigin_n_hc + $ncell * $cellsize_n;
                         }
@@ -856,7 +856,7 @@ sub import_data_raster {
                         #  $gridx is the cell centre, gets incremented by 1 at
                         #  start of loop so processing starts at 0.5
                         my $gridx  = $wpos - 0.5;
-                        my $prev_x = $tf_0 - 100; #  just need something west of the origin
+                        my $prev_x = $tf_x0 - 100; #  just need something west of the origin
 
                         my $grid_xi = $wpos - 1;
 
@@ -886,14 +886,14 @@ sub import_data_raster {
                             #  (defined as csv string of central points of group)
                             # note "geo" coordinates are the top-left of the cell (NW)
                             my $grpe = $xcoords[$grid_xi] // do {
-                                my $egeo = $tf_0 + $gridx * $tf_1 + $gridy * $tf_2;
+                                my $egeo = $tf_x0 + $gridx * $tf_xx + $gridy * $tf_xy;
                                 my $ecell = floor(($egeo - $cellorigin_e) / $cellsize_e);
                                 $cellorigin_e_hc + $ecell * $cellsize_e;
                             };
 
                             my $new_gp;
-                            if ($tf_4) {    #  need to transform the y coords
-                                $ngeo = $tf_3 + $gridx * $tf_4 + $gridy * $tf_5;
+                            if ($tf_yx) {    #  need to transform the y coords
+                                $ngeo = $tf_y0 + $gridx * $tf_yx + $gridy * $tf_yy;
                                 $ncell = floor( ( $ngeo - $cellorigin_n ) / $cellsize_n );
 
                                 $grpn = $cellorigin_n_hc + $ncell * $cellsize_n;

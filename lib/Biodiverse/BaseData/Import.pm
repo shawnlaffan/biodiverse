@@ -742,6 +742,20 @@ sub import_data_raster {
         $cellsize_e ||= abs $tf_xx;
         $cellsize_n ||= abs $tf_yy;
 
+        # == COORD CALCULATIONS ==
+        # data points are 0,0 at top-left of data,
+        # however grid coordinates used for
+        # transformation start at bottom-left
+        # corner (transform handled by following
+        # affine transformation, with y-pixel size = -1).
+
+        #  find transformed position (see GDAL specs)
+        # Egeo = GT(0) + Xpixel*GT(1) + Yline*GT(2)
+        # Ngeo = GT(3) + Xpixel*GT(4) + Yline*GT(5)
+        #  then calculate "group" from this position.
+        #  (defined as csv string of central points of group)
+        #  note "geo" coordinates are the top-left of the cell (NW)
+
         #  populated if we have axis-aligned images
         my (@xcoords, @ycoords);
         #  if no x-rotation then we can pre-calc the x-coords
@@ -752,6 +766,7 @@ sub import_data_raster {
                 ) * $cellsize_e + $cellorigin_e_hc
             } (0 .. $xsize);
         }
+        #  so too the y-coords
         if ($tf_yx == 0) {
             @ycoords = map {
                 floor (
@@ -874,18 +889,6 @@ sub import_data_raster {
                                 ? $entry == $nodata_value
                                 : $entry eq $nodata_value;  #  NaN comes through as text
 
-                            # data points are 0,0 at top-left of data,
-                            # however grid coordinates used for
-                            # transformation start at bottom-left
-                            # corner (transform handled by following
-                            # affine transformation, with y-pixel size = -1).
-
-                            # find transformed position (see GDAL specs)
-                            #Egeo = GT(0) + Xpixel*GT(1) + Yline*GT(2)
-                            #Ngeo = GT(3) + Xpixel*GT(4) + Yline*GT(5)
-                            #  then calculate "group" from this position.
-                            #  (defined as csv string of central points of group)
-                            # note "geo" coordinates are the top-left of the cell (NW)
                             my $grpe = $xcoords[$grid_xi] // do {
                                 my $egeo = $tf_x0 + $gridx * $tf_xx + $gridy * $tf_xy;
                                 my $ecell = floor(($egeo - $cellorigin_e) / $cellsize_e);

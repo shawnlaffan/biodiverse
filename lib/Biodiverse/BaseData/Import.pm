@@ -753,7 +753,11 @@ sub import_data_raster {
             } (0 .. $xsize);
         }
         if ($tf_yx == 0) {
-
+            @ycoords = map {
+                floor (
+                    ((($_ + 0.5) * $tf_yy + $tf_y0) - $cellorigin_n) / $cellsize_n
+                ) * $cellsize_n + $cellorigin_n_hc
+            } (0 .. $ysize);
         }
 
         # iterate over each band
@@ -836,17 +840,18 @@ sub import_data_raster {
                         $maxw - $wpos,
                         $maxh - $hpos
                     );
-                    # my @tile  = @$lr;
-                    my $gridy = $hpos + 0.5;  #  cell centre, need to do x also
+                    #  work with cell centres, negative offset as incremented at start of iter
+                    my $gridy   = $hpos - 0.5;
+                    my $grid_yi = $hpos - 1;
 
                   ROW:
                     foreach my $lineref (@tile) {
+                        $gridy++;
                         my ( $ngeo, $ncell, $grpn, $grpstring );
-                        if ( !$tf_yx )
-                        {    #  no transform so constant y for this line
-                            $ngeo  = $tf_y0 + $gridy * $tf_yy;
-                            $ncell = floor( ( $ngeo - $cellorigin_n ) / $cellsize_n );
-                            $grpn  = $cellorigin_n_hc + $ncell * $cellsize_n;
+                        #  no transform so constant y for this line
+                        if ( !$tf_yx ) {
+                            $grid_yi++;
+                            $grpn = $ycoords[$grid_yi];
                         }
 
                         #  $gridx is the cell centre, gets incremented by 1 at
@@ -931,7 +936,7 @@ sub import_data_raster {
 
                         }    # each entry on line
 
-                        $gridy++;
+
                         #  saves incrementing inside the loop
                         $processed_count += scalar @$lineref;
                     }    # each line in block

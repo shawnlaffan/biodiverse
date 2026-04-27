@@ -837,11 +837,10 @@ sub import_data_raster {
             while ( $hpos < $ysize ) {
 
                 # progress bar stuff
-                my $frac = $hpos / $ysize;
                 $progress_bar->update(
                     "Loading $file_base\n"
                       . "Cell $processed_count of $target_count\n",
-                    $frac
+                    $processed_count / $target_count
                 );
 
 

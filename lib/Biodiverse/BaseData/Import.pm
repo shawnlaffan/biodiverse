@@ -732,15 +732,33 @@ sub import_data_raster {
         my @tf = $data->GetGeoTransform();
         say '[BASEDATA] Transform is ', join( ' ', @tf );
         say "[BASEDATA] Origin = ($tf[0], $tf[3])";
-        say "[BASEDATA] Pixel Sizes = ($tf[1], $tf[2], $tf[4], $tf[5])"
-          ;    #  $tf[5] is negative to allow for line order
-               #  avoid repeated array lookups below
+        say "[BASEDATA] Pixel Sizes = ($tf[1], $tf[2], $tf[4], $tf[5])";
+        #  $tf[5] is negative to allow for line order
+        #  avoid repeated array lookups below
         my ( $tf_0, $tf_1, $tf_2, $tf_3, $tf_4, $tf_5 ) = @tf;
 
         #  does not allow for rotations, but not sure
         #  that it should since Biodiverse doesn't either.
         $cellsize_e ||= abs $tf_1;
         $cellsize_n ||= abs $tf_5;
+
+        #  populated if we have axis-aligned images
+        my (@xcoords, @ycoords);
+        #  no x-rotation
+        if ($tf_2 == 0) {
+            # $z->xvals->plus(0.5)->divide($c0)->floor
+            # my $c = $tf_1;
+            # floor( ( $egeo - $cellorigin_e ) / $cellsize_e );
+            # my $grpe  = $cellorigin_e_hc + $ecell * $cellsize_e
+            @xcoords = map {
+                floor (
+                    ((($_ + 0.5) * $tf_1 + $tf_0) - $cellorigin_e) / $cellsize_e
+                ) * $cellsize_e + $cellorigin_e_hc
+            } (0 .. $xsize);
+        }
+        if ($tf_4 == 0) {
+
+        }
 
         # iterate over each band
         foreach my $band_id ( 1 .. $band_count ) {
@@ -840,9 +858,12 @@ sub import_data_raster {
                         my $gridx  = $wpos - 0.5;
                         my $prev_x = $tf_0 - 100; #  just need something west of the origin
 
+                        my $grid_xi = $wpos - 1;
+
                       COLUMN:
                         foreach my $entry (@$lineref) {
                             $gridx++;
+                            $grid_xi++;
 
                             # need to add check for empty groups
                             # when it is added as an argument
@@ -864,9 +885,11 @@ sub import_data_raster {
                             #  then calculate "group" from this position.
                             #  (defined as csv string of central points of group)
                             # note "geo" coordinates are the top-left of the cell (NW)
-                            my $egeo  = $tf_0 + $gridx * $tf_1 + $gridy * $tf_2;
-                            my $ecell = floor( ( $egeo - $cellorigin_e ) / $cellsize_e );
-                            my $grpe  = $cellorigin_e_hc + $ecell * $cellsize_e;
+                            my $grpe = $xcoords[$grid_xi] // do {
+                                my $egeo = $tf_0 + $gridx * $tf_1 + $gridy * $tf_2;
+                                my $ecell = floor(($egeo - $cellorigin_e) / $cellsize_e);
+                                $cellorigin_e_hc + $ecell * $cellsize_e;
+                            };
 
                             my $new_gp;
                             if ($tf_4) {    #  need to transform the y coords

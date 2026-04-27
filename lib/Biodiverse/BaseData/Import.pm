@@ -647,9 +647,6 @@ sub import_data_raster {
     my $cellsize_n      = $args{raster_cellsize_n};
     my $given_label     = $args{given_label};
 
-    my $labels_ref = $self->get_labels_ref;
-    my $groups_ref = $self->get_groups_ref;
-
     say "[BASEDATA] Loading from files as GDAL "
       . join( q{ }, @{ $args{input_files} } );
 
@@ -672,9 +669,10 @@ sub import_data_raster {
         $cellorigin_n = $cell_origins[1];
     }
 
-    my @half_cellsize  = map { $_ / 2 } @cell_sizes;
-    my $halfcellsize_e = $half_cellsize[0];
-    my $halfcellsize_n = $half_cellsize[1];
+    my ($halfcellsize_e, $halfcellsize_n)  = map { $_ / 2 } @cell_sizes;
+
+    my $cellorigin_e_hc = $halfcellsize_e + $cellorigin_e;
+    my $cellorigin_n_hc = $halfcellsize_n + $cellorigin_n;
 
     my $quotes = $self->get_param('QUOTES');      #  for storage, not import
     my $el_sep = $self->get_param('JOIN_CHAR');
@@ -734,16 +732,50 @@ sub import_data_raster {
         my @tf = $data->GetGeoTransform();
         say '[BASEDATA] Transform is ', join( ' ', @tf );
         say "[BASEDATA] Origin = ($tf[0], $tf[3])";
-        say "[BASEDATA] Pixel Sizes = ($tf[1], $tf[2], $tf[4], $tf[5])"
-          ;    #  $tf[5] is negative to allow for line order
-               #  avoid repeated array lookups below
-        my ( $tf_0, $tf_1, $tf_2, $tf_3, $tf_4, $tf_5 ) = @tf;
+        say "[BASEDATA] Pixel Sizes = ($tf[1], $tf[2], $tf[4], $tf[5])";
+        #  $tf[5] is negative to allow for line order
+        #  avoid repeated array lookups below
+        my ( $tf_x0, $tf_xx, $tf_xy, $tf_y0, $tf_yx, $tf_yy ) = @tf;
 
         #  does not allow for rotations, but not sure
         #  that it should since Biodiverse doesn't either.
-        $cellsize_e ||= abs $tf_1;
-        $cellsize_n ||= abs $tf_5;
+        $cellsize_e ||= abs $tf_xx;
+        $cellsize_n ||= abs $tf_yy;
 
+        # == COORD CALCULATIONS ==
+        # data points are 0,0 at top-left of data,
+        # however grid coordinates used for
+        # transformation start at bottom-left
+        # corner (transform handled by following
+        # affine transformation, with y-pixel size = -1).
+
+        #  find transformed position (see GDAL specs)
+        # Egeo = GT(0) + Xpixel*GT(1) + Yline*GT(2)
+        # Ngeo = GT(3) + Xpixel*GT(4) + Yline*GT(5)
+        #  then calculate "group" from this position.
+        #  (defined as csv string of central points of group)
+        #  note "geo" coordinates are the top-left of the cell (NW)
+
+        #  populated if we have axis-aligned images
+        my (@xcoords, @ycoords);
+        #  if no x-rotation then we can pre-calc the x-coords
+        if ($tf_xy == 0) {
+            @xcoords = map {
+                floor (
+                    ((($_ + 0.5) * $tf_xx + $tf_x0) - $cellorigin_e) / $cellsize_e
+                ) * $cellsize_e + $cellorigin_e_hc
+            } (0 .. $xsize);
+        }
+        #  so too the y-coords
+        if ($tf_yx == 0) {
+            @ycoords = map {
+                floor (
+                    ((($_ + 0.5) * $tf_yy + $tf_y0) - $cellorigin_n) / $cellsize_n
+                ) * $cellsize_n + $cellorigin_n_hc
+            } (0 .. $ysize);
+        }
+
+        my $last_nodata_value = 'blork';
         # iterate over each band
         foreach my $band_id ( 1 .. $band_count ) {
             my $band = $data->GetBand($band_id);
@@ -751,11 +783,17 @@ sub import_data_raster {
             my ( $wpos, $hpos ) = ( 0, 0 );
             my $nodata_value = $band->GetNoDataValue;
             my $nodata_is_numeric = (looks_like_number ($nodata_value) && $nodata_value !~ /nan/i);
+            my $have_nodata_value = defined $nodata_value;
+            if ($have_nodata_value && $last_nodata_value ne $nodata_value) {
+                say "[BASEDATA] NoData value is $nodata_value";
+                $last_nodata_value = $nodata_value;
+            }
             my $this_label;
 
             say "Band $band_id, type ", $band->GetDataType;
             if ( defined $given_label ) {
                 $this_label = $given_label;
+                $labels_as_bands = !!1;
             }
             elsif ($labels_as_bands) {
                 $this_label = eval {$band->Geo::GDAL::FFI::Object::GetDescription};
@@ -799,18 +837,11 @@ sub import_data_raster {
             while ( $hpos < $ysize ) {
 
                 # progress bar stuff
-                my $frac = $hpos / $ysize;
                 $progress_bar->update(
                     "Loading $file_base\n"
                       . "Cell $processed_count of $target_count\n",
-                    $frac
+                    $processed_count / $target_count
                 );
-
-                if ( $hpos % 10000 == 0 ) {
-                    say "Loading $file_base "
-                      . "Cell $processed_count of $target_count\n",
-                      $frac;
-                }
 
 
                 $wpos = 0;
@@ -818,115 +849,77 @@ sub import_data_raster {
                     $maxw = min( $xsize, $wpos + $blockw );
                     $maxh = min( $ysize, $hpos + $blockh );
 
-            #say "reading tile at origin ($wpos, $hpos), to max ($maxw, $maxh)";
                     \my @tile = $band->Read(
                         $wpos, $hpos,
                         $maxw - $wpos,
                         $maxh - $hpos
                     );
-                    # my @tile  = @$lr;
-                    my $gridy = $hpos + 0.5;  #  cell centre, need to do x also
+                    #  work with cell centres, negative offset as incremented at start of iter
+                    my $grid_yi = $hpos - 1;
 
                   ROW:
                     foreach my $lineref (@tile) {
                         my ( $ngeo, $ncell, $grpn, $grpstring );
-                        if ( !$tf_4 )
-                        {    #  no transform so constant y for this line
-                            $ngeo = $tf_3 + $gridy * $tf_5;
-                            $ncell =
-                              floor( ( $ngeo - $cellorigin_n ) / $cellsize_n );
-                            $grpn =
-                              $cellorigin_n +
-                              $ncell * $cellsize_n +
-                              $halfcellsize_n;
+                        #  no transform so constant y for this line
+                        if ( !$tf_yx ) {
+                            $grid_yi++;
+                            $grpn = $ycoords[$grid_yi];
                         }
 
-                        #  $gridx is the cell centre, gets incremented by 1 at
-                        #  start of loop so processing starts at 0.5
-                        my $gridx = $wpos - 0.5;
-                        my $prev_x =
-                          $tf_0 - 100; #  just need something west of the origin
+                        my $prev_gp_x = $tf_x0 - 100; #  just need something west of the origin
+
+                        my $grid_xi = $wpos - 1;
 
                       COLUMN:
                         foreach my $entry (@$lineref) {
-                            $gridx++;
+                            $grid_xi++;
 
                             # need to add check for empty groups
                             # when it is added as an argument
                             next COLUMN
-                              if defined $nodata_value
+                              if $have_nodata_value
                               and $nodata_is_numeric
                                 ? $entry == $nodata_value
                                 : $entry eq $nodata_value;  #  NaN comes through as text
 
-                            # data points are 0,0 at top-left of data,
-                            # however grid coordinates used for
-                            # transformation start at bottom-left
-                            # corner (transform handled by following
-                            # affine transformation, with y-pixel size = -1).
+                            my $grpe = $xcoords[$grid_xi] // do {
+                                my $egeo  = $tf_x0 + ($grid_xi + 0.5) * $tf_xx + ($grid_yi + 0.5) * $tf_xy;
+                                my $ecell = floor(($egeo - $cellorigin_e) / $cellsize_e);
+                                $cellorigin_e_hc + $ecell * $cellsize_e;
+                            };
 
-                            # find transformed position (see GDAL specs)
-                            #Egeo = GT(0) + Xpixel*GT(1) + Yline*GT(2)
-                            #Ngeo = GT(3) + Xpixel*GT(4) + Yline*GT(5)
-                            #  then calculate "group" from this position.
-                            #  (defined as csv string of central points of group)
-                            # note "geo" coordinates are the top-left of the cell (NW)
-                            my $egeo = $tf_0 + $gridx * $tf_1 + $gridy * $tf_2;
-                            my $ecell =
-                              floor( ( $egeo - $cellorigin_e ) / $cellsize_e );
-                            my $grpe =
-                              $cellorigin_e +
-                              $ecell * $cellsize_e +
-                              $halfcellsize_e;
-
-                            my $new_gp;
-                            if ($tf_4) {    #  need to transform the y coords
-                                $ngeo = $tf_3 + $gridx * $tf_4 + $gridy * $tf_5;
+                            if ($tf_yx) {    #  need to transform the y coords
+                                $ngeo  = $tf_y0 + ($grid_xi + 0.5) * $tf_yx + ($grid_yi + 0.5) * $tf_yy;
                                 $ncell = floor( ( $ngeo - $cellorigin_n ) / $cellsize_n );
-
-                                $grpn =
-                                  $cellorigin_n +
-                                  $ncell * $cellsize_n +
-                                  $halfcellsize_n;
+                                $grpn  = $cellorigin_n_hc + $ncell * $cellsize_n;
 
                                 #  cannot guarantee constant groups
                                 #  for rotated/transformed data
                                 #  so we need a new group name
-                                $new_gp = 1;
-                            }
-                            else {
-                                #  if $grpe has not changed then
-                                #  we can re-use the previous group name
-                                $new_gp = $prev_x != $grpe;
-                            }
-
-                            if ($new_gp) {
-                                #  no need to even use the csv object to
-                                #  stick them together (this was a
-                                #  bottleneck due to all the csv calls)
                                 $grpstring = join $el_sep, ( $grpe, $grpn );
                             }
-
-                            # set label if determined at cell level
-                            my $count = 1;
-                            if ( $labels_as_bands || defined $given_label ) {
-                                # set count to cell value if using
-                                # band as label or provided label
-                                $count = $entry;
-                            }
-                            else {
-                                # set label from cell value or category if valid
-                                $this_label = $catname_hash{$entry} // $entry;
+                            elsif ($prev_gp_x != $grpe) {
+                                #  only need to build the group name if $grpe has not changed
+                                $grpstring = join $el_sep, ( $grpe, $grpn );
+                                $prev_gp_x = $grpe;
                             }
 
                             #  collate the data
-                            $gp_lb_hash{$grpstring}{$this_label} += $count;
-
-                            $prev_x = $grpe;
+                            #  convoluted conditions due to profiling bottlenecks
+                            # set label if determined at cell level
+                            if ( $labels_as_bands ) {
+                                # set count to cell value if using
+                                # band as label or provided label
+                                $gp_lb_hash{$grpstring}{$this_label} += $entry;
+                            }
+                            else {
+                                # set label from cell value or category if valid
+                                $gp_lb_hash{$grpstring}{$catname_hash{$entry} //= $entry} ++;
+                            }
 
                         }    # each entry on line
 
-                        $gridy++;
+
                         #  saves incrementing inside the loop
                         $processed_count += scalar @$lineref;
                     }    # each line in block

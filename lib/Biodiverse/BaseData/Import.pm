@@ -849,19 +849,16 @@ sub import_data_raster {
                     $maxw = min( $xsize, $wpos + $blockw );
                     $maxh = min( $ysize, $hpos + $blockh );
 
-            #say "reading tile at origin ($wpos, $hpos), to max ($maxw, $maxh)";
                     \my @tile = $band->Read(
                         $wpos, $hpos,
                         $maxw - $wpos,
                         $maxh - $hpos
                     );
                     #  work with cell centres, negative offset as incremented at start of iter
-                    my $gridy   = $hpos - 0.5;
                     my $grid_yi = $hpos - 1;
 
                   ROW:
                     foreach my $lineref (@tile) {
-                        $gridy++;
                         my ( $ngeo, $ncell, $grpn, $grpstring );
                         #  no transform so constant y for this line
                         if ( !$tf_yx ) {
@@ -869,16 +866,12 @@ sub import_data_raster {
                             $grpn = $ycoords[$grid_yi];
                         }
 
-                        #  $gridx is the cell centre, gets incremented by 1 at
-                        #  start of loop so processing starts at 0.5
-                        my $gridx  = $wpos - 0.5;
                         my $prev_x = $tf_x0 - 100; #  just need something west of the origin
 
                         my $grid_xi = $wpos - 1;
 
                       COLUMN:
                         foreach my $entry (@$lineref) {
-                            $gridx++;
                             $grid_xi++;
 
                             # need to add check for empty groups
@@ -890,17 +883,16 @@ sub import_data_raster {
                                 : $entry eq $nodata_value;  #  NaN comes through as text
 
                             my $grpe = $xcoords[$grid_xi] // do {
-                                my $egeo = $tf_x0 + $gridx * $tf_xx + $gridy * $tf_xy;
+                                my $egeo  = $tf_x0 + ($grid_xi + 0.5) * $tf_xx + ($grid_yi + 0.5) * $tf_xy;
                                 my $ecell = floor(($egeo - $cellorigin_e) / $cellsize_e);
                                 $cellorigin_e_hc + $ecell * $cellsize_e;
                             };
 
                             my $new_gp;
                             if ($tf_yx) {    #  need to transform the y coords
-                                $ngeo = $tf_y0 + $gridx * $tf_yx + $gridy * $tf_yy;
+                                $ngeo  = $tf_y0 + ($grid_xi + 0.5) * $tf_yx + ($grid_yi + 0.5) * $tf_yy;
                                 $ncell = floor( ( $ngeo - $cellorigin_n ) / $cellsize_n );
-
-                                $grpn = $cellorigin_n_hc + $ncell * $cellsize_n;
+                                $grpn  = $cellorigin_n_hc + $ncell * $cellsize_n;
 
                                 #  cannot guarantee constant groups
                                 #  for rotated/transformed data

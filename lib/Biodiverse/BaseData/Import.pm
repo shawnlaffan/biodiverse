@@ -744,12 +744,8 @@ sub import_data_raster {
 
         #  populated if we have axis-aligned images
         my (@xcoords, @ycoords);
-        #  no x-rotation
+        #  if no x-rotation then we can pre-calc the x-coords
         if ($tf_xy == 0) {
-            # $z->xvals->plus(0.5)->divide($c0)->floor
-            # my $c = $tf_xx;
-            # floor( ( $egeo - $cellorigin_e ) / $cellsize_e );
-            # my $grpe  = $cellorigin_e_hc + $ecell * $cellsize_e
             @xcoords = map {
                 floor (
                     ((($_ + 0.5) * $tf_xx + $tf_x0) - $cellorigin_e) / $cellsize_e

@@ -775,6 +775,7 @@ sub import_data_raster {
             } (0 .. $ysize);
         }
 
+        my $last_nodata_value = 'blork';
         # iterate over each band
         foreach my $band_id ( 1 .. $band_count ) {
             my $band = $data->GetBand($band_id);
@@ -783,8 +784,10 @@ sub import_data_raster {
             my $nodata_value = $band->GetNoDataValue;
             my $nodata_is_numeric = (looks_like_number ($nodata_value) && $nodata_value !~ /nan/i);
             my $have_nodata_value = defined $nodata_value;
-            say "[BASEDATA] NoData value is $nodata_value"
-                if $have_nodata_value;
+            if ($have_nodata_value && $last_nodata_value ne $nodata_value) {
+                say "[BASEDATA] NoData value is $nodata_value";
+                $last_nodata_value = $nodata_value;
+            }
             my $this_label;
 
             say "Band $band_id, type ", $band->GetDataType;

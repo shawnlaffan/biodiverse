@@ -899,6 +899,8 @@ sub import_data_raster {
                             $gp_lb_hash{$gp}{$this_label} += $arr[2];
                         }
 
+                        $processed_count += ($maxw - $wpos) * ($maxh - $hpos);
+
                         $wpos += $blockw;
                         next TILE;
                     }

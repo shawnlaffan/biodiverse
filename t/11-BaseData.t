@@ -1479,6 +1479,80 @@ sub test_raster_nodata_is_nan {
 
 }
 
+
+sub test_raster_pdl_import {
+    use FindBin qw /$Bin/;
+    my $fname = $Bin . '/data/rast_nodata_is_nan.tif';
+
+    my %bd_args = (
+        NAME => 'test raster',
+        CELL_SIZES => [1,1],
+    );
+    my %import_args = (
+        input_files       => [ $fname ],
+        labels_as_bands   => 1,
+        raster_origin_e   => 0,
+        raster_origin_n   => 1,
+        raster_cellsize_e => 1,
+        raster_cellsize_n => 1,
+    );
+
+    my $bd_nonpdl = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd_nonpdl->import_data_raster (
+            %import_args,
+            use_pdl => 0,
+        );
+    };
+    is ($@, '', 'import raster without PDL with no exceptions raised');
+
+    my $bd_pdl = Biodiverse::BaseData->new (%bd_args, NAME => 'using PDL');
+    eval {
+        $bd_pdl->import_data_raster (
+            %import_args,
+            use_pdl => 1,
+        );
+    };
+    is ($@, '', 'import raster using PDL with no exceptions raised');
+
+
+    my @gps_nonpdl = sort $bd_nonpdl->get_groups;
+    my @gps_pdl    = sort $bd_pdl->get_groups;
+    is (\@gps_pdl, \@gps_nonpdl, 'same groups');
+
+    # diag join ' ', @gps_pdl;
+    # diag join ' ', @gps_nonpdl;
+
+    # my %xx;
+    # @xx{@gps_nonpdl} = ();
+    # delete @xx{gps_pdl};
+    # diag join ' ', sort keys %xx;
+
+    my @labels = $bd_nonpdl->get_labels;
+    my $sample_count_np = $bd_nonpdl->get_label_sample_count (label => $labels[0]);
+    my $sample_count_p  = $bd_pdl->get_label_sample_count (label => $labels[0]);
+
+    is $sample_count_p, $sample_count_np, "sample count matches for $labels[0]";
+
+    # use List::Util qw /uniq/;
+    # foreach my $gp (sort +uniq ($bd_nonpdl->get_groups, $bd_pdl->get_groups)) {
+    #     diag "$gp, "
+    #         . ($bd_nonpdl->get_group_sample_count(group => $gp) // ' ')
+    #         . " "
+    #         . ($bd_pdl->get_group_sample_count(group => $gp) // ' ');
+    # }
+
+    # $bd_nonpdl->get_groups_ref->export_shapefile (
+    #     # format => 'shapefile',
+    #     file => 'cells.shp',
+    # );
+    # $bd_pdl->get_groups_ref->export_shapefile (
+    #     file => 'cells_pdl.shp',
+    # );
+
+
+}
+
 sub test_import_shapefile_dms_coords {
     my %bd_args = (
         NAME => 'test import shapefile DMS',

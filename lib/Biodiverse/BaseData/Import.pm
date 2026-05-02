@@ -628,6 +628,8 @@ sub import_data_raster {
     my $self = shift;
     my %args = @_;
 
+    my $use_pdl = $args{use_pdl};
+
     my $orig_group_count = $self->get_group_count;
     my $orig_label_count = $self->get_label_count;
 
@@ -696,6 +698,11 @@ sub import_data_raster {
     #  This allows us to reduce the calls to add_element
     my %gp_lb_hash;
 
+    state sub bd_cell_snapper {
+        my ($x, $o, $c) = @_;
+        POSIX::floor (($x - $o) / $c) * $c + $o + 0.5 * $c;
+    };
+    
     foreach my $file (@$input_file_arr) {
         $file_iter++;
         if ( scalar @$input_file_arr > 1 ) {
@@ -845,15 +852,63 @@ sub import_data_raster {
 
 
                 $wpos = 0;
+                TILE:
                 while ( $wpos < $xsize ) {
                     $maxw = min( $xsize, $wpos + $blockw );
                     $maxh = min( $ysize, $hpos + $blockh );
+
+                    if ($use_pdl && $labels_as_bands && !$tf_xy && !$tf_yx) {
+                        my $z = $band->GetPiddle (
+                            $wpos, $hpos,
+                            $maxw - $wpos,
+                            $maxh - $hpos
+                        );
+
+                        my $xgeo = $z->sequence($maxw - $wpos)->plus($wpos+0.5)->mult($tf_xx)->plus($tf_x0);
+                        my $ygeo = $z->sequence($maxh - $hpos)->plus($hpos+0.5)->mult($tf_yy)->plus($tf_y0);
+
+                        my ($xgeo_min, $xgeo_max) = List::MoreUtils::minmax ($xgeo->at(0), $xgeo->at(-1));
+                        my $xbd_min = bd_cell_snapper ($xgeo_min, $cellorigin_e, $cellsize_e);
+                        my $xbd_max = bd_cell_snapper ($xgeo_max, $cellorigin_e, $cellsize_e);
+                        my $nbinx = $xbd_max - $xbd_min + 1;
+
+                        my ($ygeo_min, $ygeo_max) = List::MoreUtils::minmax ($ygeo->at(0), $ygeo->at(-1));
+                        my $ybd_min = bd_cell_snapper ($ygeo_min,  $cellorigin_e, $cellsize_e);
+                        my $ybd_max = bd_cell_snapper ($ygeo_max, $cellorigin_n, $cellsize_n);
+                        my $nbiny = $ybd_max - $ybd_min + 1;
+
+                        my $zeroes = $z->zeroes;
+
+                        my $aggregated = PDL::whistogram2d(
+                            $zeroes->plus($xgeo)->flat,
+                            $zeroes->plus($ygeo->transpose)->flat,
+                            $z->flat->setnonfinitetobad->setbadtoval(0),
+                            $cellsize_e, $xbd_min - ($cellsize_e / 2), $nbinx,
+                            $cellsize_n, $ybd_min - ($cellsize_n / 2), $nbiny,
+                        );
+
+                        my $indices = $aggregated->whichND;
+                        my $xaxs = $indices->dice(0)->mult($cellsize_e)->plus($xbd_min);
+                        my $yaxs = $indices->dice(1)->mult($cellsize_n)->plus($ybd_min);
+
+                        my $dd = $xaxs->glue(0, $yaxs, $aggregated->indexND($indices)->transpose);
+
+                        for my \@arr (@{$dd->unpdl}) {
+                            my $gp = join (':', @arr[0,1]);
+                            # say STDERR $gp;
+                            $gp_lb_hash{$gp}{$this_label} += $arr[2];
+                        }
+
+                        $wpos += $blockw;
+                        next TILE;
+                    }
 
                     \my @tile = $band->Read(
                         $wpos, $hpos,
                         $maxw - $wpos,
                         $maxh - $hpos
                     );
+
                     #  work with cell centres, negative offset as incremented at start of iter
                     my $grid_yi = $hpos - 1;
 
@@ -910,7 +965,7 @@ sub import_data_raster {
                             if ( $labels_as_bands ) {
                                 # set count to cell value if using
                                 # band as label or provided label
-                                $gp_lb_hash{$grpstring}{$this_label} += $entry;
+                                $gp_lb_hash{$grpstring}{$this_label} += $entry if $entry;
                             }
                             else {
                                 # set label from cell value or category if valid

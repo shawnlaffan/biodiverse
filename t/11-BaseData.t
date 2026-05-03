@@ -17,6 +17,7 @@ use List::Util 1.45 qw /uniq/;
 use POSIX qw /floor/;
 use rlib;
 use Biodiverse::Config;
+use Test::TempDir::Tiny;
 
 use Data::Section::Simple qw(
     get_data_section
@@ -1537,12 +1538,94 @@ sub test_raster_pdl_import {
 
     is \%got, \%expected, 'Sample counts as expected, axis aligned raster import';
 
-    # $bd_nonpdl->get_groups_ref->export_shapefile (
+    #  now we rotate (skew) the data
+    my $tdir = tempdir();
+    my $rot_fname = path ($tdir, path ($fname)->basename('.tif') . '_rott.tif');
+
+    #  Create our own skewed raster using the input data.
+    #  Scope cleanup causes the data to be written to disk.
+    {
+        use Geo::GDAL::FFI qw/GetDriver/;
+        my $tiff = Geo::GDAL::FFI::Open($fname);
+        my $transform = $tiff->GetGeoTransform;
+        $transform->[2] = $transform->[5] / 5;
+        $transform->[4] = $transform->[1] / 5;
+
+        my $band = $tiff->GetBand;
+        my $no_data = $band->GetNoDataValue;
+
+        my $out_raster = $tiff->GetDriver->Create($rot_fname, {
+            Width    => $tiff->GetWidth,
+            Height   => $tiff->GetHeight,
+            Bands    => 1,
+            DataType => $band->GetDataType,
+        });
+
+        my $data = $tiff->GetBand()->GetPiddle;
+
+        $out_raster->SetGeoTransform($transform);
+        my $out_band = $out_raster->GetBand();
+        $out_band->SetNoDataValue($no_data);
+        $out_band->SetPiddle($data);
+    }
+
+    my $bd_pdl_rot = Biodiverse::BaseData->new (%bd_args, NAME => 'rotated using PDL');
+    eval {
+        $bd_pdl_rot->import_data_raster (
+            %import_args,
+            use_pdl => 1,
+            input_files => [ $rot_fname ],
+        );
+    };
+    is ($@, '', 'import rotated raster using PDL with no exceptions raised');
+
+    my @rot_labels = $bd_pdl_rot->get_labels;
+    my $sample_count_rp = $bd_pdl_rot->get_label_sample_count (label => $rot_labels[0]);
+    is $sample_count_rp, $sample_count_np, "sample count matches non-rotated data, rotated PDL raster import";
+
+    %expected = (
+        '143:-15' =>  32, '143:-17' =>  42, '143:-19' =>  33,
+        '143:-21' => 256, '143:-23' =>  17, '145:-15' => 165,
+        '145:-17' => 113, '145:-19' => 326, '145:-21' => 413,
+        '145:-23' =>  99, '147:-19' => 160, '147:-21' => 382,
+        '147:-23' =>  22, '149:-21' =>  82,
+    );
+
+    %got = ();
+    foreach my $gp (sort +uniq ($bd_pdl_rot->get_groups)) {
+        $got{$gp} = $bd_pdl_rot->get_group_sample_count(group => $gp);
+    }
+
+    is \%got, \%expected, 'expected groups and sample counts, rotated raster via PDL';
+
+    my $bd_rot = Biodiverse::BaseData->new (%bd_args, NAME => 'rotated using PDL');
+    eval {
+        $bd_rot->import_data_raster (
+            %import_args,
+            use_pdl => 0,
+            input_files => [ $rot_fname ],
+        );
+    };
+    is ($@, '', 'import rotated raster without PDL with no exceptions raised');
+
+    @rot_labels = $bd_rot->get_labels;
+    my $sample_count_r = $bd_rot->get_label_sample_count (label => $rot_labels[0]);
+    is $sample_count_r, $sample_count_np, "sample count matches non-rotated data, rotated PDL raster import";
+
+    %got = ();
+    foreach my $gp (sort +uniq ($bd_rot->get_groups)) {
+        $got{$gp} = $bd_rot->get_group_sample_count(group => $gp);
+    }
+
+    is \%got, \%expected, 'expected groups and sample counts, rotated raster not via PDL';
+
+
+    # $bd_rot->get_groups_ref->export_shapefile (
     #     # format => 'shapefile',
-    #     file => 'cells.shp',
+    #     file => 'cells_rot.shp',
     # );
-    # $bd_pdl->get_groups_ref->export_shapefile (
-    #     file => 'cells_pdl.shp',
+    # $bd_pdl_rot->get_groups_ref->export_shapefile (
+    #     file => 'cells_pdl_rot.shp',
     # );
 
 

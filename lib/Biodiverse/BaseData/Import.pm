@@ -628,7 +628,7 @@ sub import_data_raster {
     my $self = shift;
     my %args = @_;
 
-    my $use_pdl = $args{use_pdl};
+    my $use_pdl = $args{use_pdl} // 1;
 
     my $orig_group_count = $self->get_group_count;
     my $orig_label_count = $self->get_label_count;
@@ -702,7 +702,7 @@ sub import_data_raster {
         my ($x, $o, $c) = @_;
         POSIX::floor (($x - $o) / $c) * $c + $o + 0.5 * $c;
     };
-    
+
     foreach my $file (@$input_file_arr) {
         $file_iter++;
         if ( scalar @$input_file_arr > 1 ) {
@@ -857,31 +857,69 @@ sub import_data_raster {
                     $maxw = min( $xsize, $wpos + $blockw );
                     $maxh = min( $ysize, $hpos + $blockh );
 
-                    if ($use_pdl && $labels_as_bands && !$tf_xy && !$tf_yx) {
+                    if ($use_pdl && $labels_as_bands) {
                         my $z = $band->GetPiddle (
                             $wpos, $hpos,
                             $maxw - $wpos,
                             $maxh - $hpos
                         );
 
-                        my $xgeo = $z->sequence($maxw - $wpos)->plus($wpos+0.5)->mult($tf_xx)->plus($tf_x0);
-                        my $ygeo = $z->sequence($maxh - $hpos)->plus($hpos+0.5)->mult($tf_yy)->plus($tf_y0);
-
-                        my ($xgeo_min, $xgeo_max) = List::MoreUtils::minmax ($xgeo->at(0), $xgeo->at(-1));
-                        my $xbd_min = bd_cell_snapper ($xgeo_min, $cellorigin_e, $cellsize_e);
-                        my $xbd_max = bd_cell_snapper ($xgeo_max, $cellorigin_e, $cellsize_e);
-                        my $nbinx = $xbd_max - $xbd_min + 1;
-
-                        my ($ygeo_min, $ygeo_max) = List::MoreUtils::minmax ($ygeo->at(0), $ygeo->at(-1));
-                        my $ybd_min = bd_cell_snapper ($ygeo_min,  $cellorigin_e, $cellsize_e);
-                        my $ybd_max = bd_cell_snapper ($ygeo_max, $cellorigin_n, $cellsize_n);
-                        my $nbiny = $ybd_max - $ybd_min + 1;
-
                         my $zeroes = $z->zeroes;
 
-                        my $aggregated = PDL::whistogram2d(
-                            $zeroes->plus($xgeo)->flat,
-                            $zeroes->plus($ygeo->transpose)->flat,
+                        my (
+                            $aggregated,
+                            $nbinx,    $nbiny,
+                            $xbd_min,  $xbd_max,
+                            $ybd_min,  $ybd_max,
+                            $xgeo_min, $xgeo_max,
+                            $ygeo_min, $ygeo_max,
+                            $xcoords,  $ycoords,
+                        );
+                        if (!$tf_xy && !$tf_yx) {  #   axis-aligned raster so simpler approach
+                            my $xgeo = $z->sequence($maxw - $wpos)->plus($wpos + 0.5)->mult($tf_xx)->plus($tf_x0);
+                            my $ygeo = $z->sequence($maxh - $hpos)->plus($hpos + 0.5)->mult($tf_yy)->plus($tf_y0);
+
+                            ($xgeo_min, $xgeo_max) = List::MoreUtils::minmax($xgeo->at(0), $xgeo->at(-1));
+                            ($ygeo_min, $ygeo_max) = List::MoreUtils::minmax($ygeo->at(0), $ygeo->at(-1));
+
+                            $xcoords = $zeroes->plus($xgeo);
+                            $ycoords = $zeroes->plus($ygeo->transpose),
+                        }
+                        else {
+                            my $xvals = $z->xvals->plus($wpos + 0.5);
+                            my $yvals = $z->yvals->plus($hpos + 0.5);
+                            my $xgeo  = $xvals->mult($tf_xx)->plus($yvals->mult($tf_xy)->plus($tf_x0));
+                            my $ygeo  = $yvals->mult($tf_yy)->plus($xvals->mult($tf_yx)->plus($tf_y0));
+
+                            ($xgeo_min, $xgeo_max) = List::MoreUtils::minmax(
+                                $xgeo->at(0,0),
+                                $xgeo->at(0,-1),
+                                $xgeo->at(-1,0),
+                                $xgeo->at(-1,-1),
+                            );
+
+                            ($ygeo_min, $ygeo_max) = List::MoreUtils::minmax(
+                                $ygeo->at(0,0),
+                                $ygeo->at(0,-1),
+                                $ygeo->at(-1,0),
+                                $ygeo->at(-1,-1),
+                            );
+
+                            $xcoords = $xgeo;
+                            $ycoords = $ygeo;
+                        }
+
+                        $xbd_min = bd_cell_snapper($xgeo_min, $cellorigin_e, $cellsize_e);
+                        $xbd_max = bd_cell_snapper($xgeo_max, $cellorigin_e, $cellsize_e);
+                        $nbinx = $xbd_max - $xbd_min + 1;
+
+                        $ybd_min = bd_cell_snapper($ygeo_min, $cellorigin_n, $cellsize_n);
+                        $ybd_max = bd_cell_snapper($ygeo_max, $cellorigin_n, $cellsize_n);
+                        $nbiny = $ybd_max - $ybd_min + 1;
+
+                        $aggregated = PDL::whistogram2d(
+                            $xcoords->flat,
+                            $ycoords->flat,
                             $z->flat->setnonfinitetobad->setbadtoval(0),
                             $cellsize_e, $xbd_min - ($cellsize_e / 2), $nbinx,
                             $cellsize_n, $ybd_min - ($cellsize_n / 2), $nbiny,
@@ -917,9 +955,9 @@ sub import_data_raster {
                   ROW:
                     foreach my $lineref (@tile) {
                         my ( $ngeo, $ncell, $grpn, $grpstring );
+                        $grid_yi++;
                         #  no transform so constant y for this line
                         if ( !$tf_yx ) {
-                            $grid_yi++;
                             $grpn = $ycoords[$grid_yi];
                         }
 
@@ -939,7 +977,7 @@ sub import_data_raster {
                                 ? $entry == $nodata_value
                                 : $entry eq $nodata_value;  #  NaN comes through as text
 
-                            my $grpe = $xcoords[$grid_xi] // do {
+                            my $grpe = !$tf_xy ? $xcoords[$grid_xi] : do {
                                 my $egeo  = $tf_x0 + ($grid_xi + 0.5) * $tf_xx + ($grid_yi + 0.5) * $tf_xy;
                                 my $ecell = floor(($egeo - $cellorigin_e) / $cellsize_e);
                                 $cellorigin_e_hc + $ecell * $cellsize_e;

@@ -1486,15 +1486,11 @@ sub test_raster_pdl_import {
 
     my %bd_args = (
         NAME => 'test raster',
-        CELL_SIZES => [1,1],
+        CELL_SIZES => [2,2],
     );
     my %import_args = (
         input_files       => [ $fname ],
         labels_as_bands   => 1,
-        raster_origin_e   => 0,
-        raster_origin_n   => 1,
-        raster_cellsize_e => 1,
-        raster_cellsize_n => 1,
     );
 
     my $bd_nonpdl = Biodiverse::BaseData->new (%bd_args);
@@ -1520,27 +1516,26 @@ sub test_raster_pdl_import {
     my @gps_pdl    = sort $bd_pdl->get_groups;
     is (\@gps_pdl, \@gps_nonpdl, 'same groups');
 
-    # diag join ' ', @gps_pdl;
-    # diag join ' ', @gps_nonpdl;
-
-    # my %xx;
-    # @xx{@gps_nonpdl} = ();
-    # delete @xx{gps_pdl};
-    # diag join ' ', sort keys %xx;
-
     my @labels = $bd_nonpdl->get_labels;
     my $sample_count_np = $bd_nonpdl->get_label_sample_count (label => $labels[0]);
     my $sample_count_p  = $bd_pdl->get_label_sample_count (label => $labels[0]);
 
-    is $sample_count_p, $sample_count_np, "sample count matches for $labels[0]";
+    is $sample_count_p, $sample_count_np, "sample count matches for $labels[0], axis aligned raster import";
 
-    # use List::Util qw /uniq/;
-    # foreach my $gp (sort +uniq ($bd_nonpdl->get_groups, $bd_pdl->get_groups)) {
-    #     diag "$gp, "
-    #         . ($bd_nonpdl->get_group_sample_count(group => $gp) // ' ')
-    #         . " "
-    #         . ($bd_pdl->get_group_sample_count(group => $gp) // ' ');
-    # }
+    my %expected = (
+        '145:-15' => 189, '145:-17' => 145, '145:-19' => 165,
+        '145:-21' => 367, '145:-23' =>  59, '147:-19' => 174,
+        '147:-21' => 378, '147:-23' => 199, '149:-19' =>   5,
+        '149:-21' => 212, '149:-23' => 194, '151:-21' =>   2,
+        '151:-23' =>  53,
+    );
+
+    my %got;
+    foreach my $gp (sort +uniq ($bd_pdl->get_groups)) {
+        $got{$gp} = $bd_pdl->get_group_sample_count(group => $gp);
+    }
+
+    is \%got, \%expected, 'Sample counts as expected, axis aligned raster import';
 
     # $bd_nonpdl->get_groups_ref->export_shapefile (
     #     # format => 'shapefile',

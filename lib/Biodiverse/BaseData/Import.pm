@@ -875,7 +875,6 @@ sub import_data_raster {
                         my $zeroes = $z->zeroes;
 
                         my (
-                            $aggregated,
                             $nbinx,    $nbiny,
                             $xbd_min,  $xbd_max,
                             $ybd_min,  $ybd_max,
@@ -921,7 +920,7 @@ sub import_data_raster {
                         $ybd_max = bd_cell_snapper($ygeo_max, $cellorigin_n, $cellsize_n);
                         $nbiny = $ybd_max - $ybd_min + 1;
 
-                        $aggregated = PDL::whistogram2d(
+                        my $aggregated = PDL::whistogram2d(
                             $xcoords->flat,
                             $ycoords->flat,
                             $z->flat->setnonfinitetobad->setbadtoval(0),

@@ -863,7 +863,7 @@ sub import_data_raster {
                     $maxw = min( $xsize, $wpos + $blockw );
                     $maxh = min( $ysize, $hpos + $blockh );
 
-                    if ($use_pdl && $labels_as_bands) {
+                    if ($labels_as_bands) {
                         my $z = $band->GetPiddle (
                             $wpos, $hpos,
                             $maxw - $wpos,
@@ -1006,17 +1006,8 @@ sub import_data_raster {
                             }
 
                             #  collate the data
-                            #  convoluted conditions due to profiling bottlenecks
-                            # set label if determined at cell level
-                            if ( $labels_as_bands ) {
-                                # set count to cell value if using
-                                # band as label or provided label
-                                $gp_lb_hash{$grpstring}{$this_label} += $entry if $entry;
-                            }
-                            else {
-                                # set label from cell value or category if valid
-                                $gp_lb_hash{$grpstring}{$catname_hash{$entry} //= $entry} ++;
-                            }
+                            #  we only handle values as labels here
+                            $gp_lb_hash{$grpstring}{$catname_hash{$entry} //= $entry} ++;
 
                         }    # each entry on line
 

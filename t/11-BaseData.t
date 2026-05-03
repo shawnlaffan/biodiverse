@@ -1494,15 +1494,6 @@ sub test_raster_pdl_import {
         labels_as_bands   => 1,
     );
 
-    my $bd_nonpdl = Biodiverse::BaseData->new (%bd_args);
-    eval {
-        $bd_nonpdl->import_data_raster (
-            %import_args,
-            use_pdl => 0,
-        );
-    };
-    is ($@, '', 'import raster without PDL with no exceptions raised');
-
     my $bd_pdl = Biodiverse::BaseData->new (%bd_args, NAME => 'using PDL');
     eval {
         $bd_pdl->import_data_raster (
@@ -1511,17 +1502,6 @@ sub test_raster_pdl_import {
         );
     };
     is ($@, '', 'import raster using PDL with no exceptions raised');
-
-
-    my @gps_nonpdl = sort $bd_nonpdl->get_groups;
-    my @gps_pdl    = sort $bd_pdl->get_groups;
-    is (\@gps_pdl, \@gps_nonpdl, 'same groups');
-
-    my @labels = $bd_nonpdl->get_labels;
-    my $sample_count_np = $bd_nonpdl->get_label_sample_count (label => $labels[0]);
-    my $sample_count_p  = $bd_pdl->get_label_sample_count (label => $labels[0]);
-
-    is $sample_count_p, $sample_count_np, "sample count matches for $labels[0], axis aligned raster import";
 
     my %expected = (
         '145:-15' => 189, '145:-17' => 145, '145:-19' => 165,
@@ -1579,6 +1559,8 @@ sub test_raster_pdl_import {
     };
     is ($@, '', 'import rotated raster using PDL with no exceptions raised');
 
+    my @labels = $bd_pdl->get_labels;
+    my $sample_count_np = $bd_pdl->get_label_sample_count (label => $labels[0]);
     my @rot_labels = $bd_pdl_rot->get_labels;
     my $sample_count_rp = $bd_pdl_rot->get_label_sample_count (label => $rot_labels[0]);
     is $sample_count_rp, $sample_count_np, "sample count matches non-rotated data, rotated PDL raster import";
@@ -1597,27 +1579,6 @@ sub test_raster_pdl_import {
     }
 
     is \%got, \%expected, 'expected groups and sample counts, rotated raster via PDL';
-
-    my $bd_rot = Biodiverse::BaseData->new (%bd_args, NAME => 'rotated using PDL');
-    eval {
-        $bd_rot->import_data_raster (
-            %import_args,
-            use_pdl => 0,
-            input_files => [ $rot_fname ],
-        );
-    };
-    is ($@, '', 'import rotated raster without PDL with no exceptions raised');
-
-    @rot_labels = $bd_rot->get_labels;
-    my $sample_count_r = $bd_rot->get_label_sample_count (label => $rot_labels[0]);
-    is $sample_count_r, $sample_count_np, "sample count matches non-rotated data, rotated PDL raster import";
-
-    %got = ();
-    foreach my $gp (sort +uniq ($bd_rot->get_groups)) {
-        $got{$gp} = $bd_rot->get_group_sample_count(group => $gp);
-    }
-
-    is \%got, \%expected, 'expected groups and sample counts, rotated raster not via PDL';
 
 
     # $bd_rot->get_groups_ref->export_shapefile (

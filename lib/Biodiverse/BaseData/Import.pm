@@ -864,10 +864,12 @@ sub import_data_raster {
                     $maxh = min( $ysize, $hpos + $blockh );
 
                     if ($labels_as_bands) {
+                        my $nx = $maxw - $wpos;
+                        my $ny = $maxh - $hpos;
+
                         my $z = $band->GetPiddle (
                             $wpos, $hpos,
-                            $maxw - $wpos,
-                            $maxh - $hpos
+                            $nx,   $ny,
                         );
 
                         my $zeroes = $z->zeroes;
@@ -882,8 +884,8 @@ sub import_data_raster {
                             $xcoords,  $ycoords,
                         );
                         if (!$tf_xy && !$tf_yx) {  #   axis-aligned raster so simpler approach
-                            my $xgeo = $z->sequence($maxw - $wpos)->plus($wpos + 0.5)->mult($tf_xx)->plus($tf_x0);
-                            my $ygeo = $z->sequence($maxh - $hpos)->plus($hpos + 0.5)->mult($tf_yy)->plus($tf_y0);
+                            my $xgeo = $z->sequence($nx)->plus($wpos + 0.5)->mult($tf_xx)->plus($tf_x0);
+                            my $ygeo = $z->sequence($ny)->plus($hpos + 0.5)->mult($tf_yy)->plus($tf_y0);
 
                             ($xgeo_min, $xgeo_max) = List::MoreUtils::minmax($xgeo->at(0), $xgeo->at(-1));
                             ($ygeo_min, $ygeo_max) = List::MoreUtils::minmax($ygeo->at(0), $ygeo->at(-1));
@@ -897,19 +899,15 @@ sub import_data_raster {
                             my $xgeo  = $xvals->mult($tf_xx)->plus($yvals->mult($tf_xy)->plus($tf_x0));
                             my $ygeo  = $yvals->mult($tf_yy)->plus($xvals->mult($tf_yx)->plus($tf_y0));
 
-                            ($xgeo_min, $xgeo_max) = List::MoreUtils::minmax(
-                                $xgeo->at(0,0),
-                                $xgeo->at(0,-1),
-                                $xgeo->at(-1,0),
-                                $xgeo->at(-1,-1),
-                            );
+                            my $idx_extrema = PDL->new(PDL::indx, [[0,0],[0,$ny-1],[$nx-1,0],[$nx-1,$ny-1]]);
 
-                            ($ygeo_min, $ygeo_max) = List::MoreUtils::minmax(
-                                $ygeo->at(0,0),
-                                $ygeo->at(0,-1),
-                                $ygeo->at(-1,0),
-                                $ygeo->at(-1,-1),
-                            );
+                            my $extrema_x = $xgeo->indexND($idx_extrema);
+                            $xgeo_min = $extrema_x->min;
+                            $xgeo_max = $extrema_x->max;
+
+                            my $extrema_y = $ygeo->indexND($idx_extrema);
+                            $ygeo_min = $extrema_y->min;
+                            $ygeo_max = $extrema_y->max;
 
                             $xcoords = $xgeo;
                             $ycoords = $ygeo;

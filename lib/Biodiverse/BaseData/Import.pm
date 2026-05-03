@@ -830,9 +830,15 @@ sub import_data_raster {
             my %catname_hash;
             @catname_hash{ ( 0 .. $#catnames ) } = @catnames;
 
-            # read as preferred size blocks?
+            # read as preferred size blocks, except if small
             ( $blockw, $blockh ) = $band->GetBlockSize();
-            say   "Block size ($blockw, $blockh), "
+            my $bb = 128;
+            if (($blockw < $bb || $blockh < $bb) && $blockw * $blockh < $bb * $bb) {
+                #  asciigrid can have one-cell blocks...
+                $blockw = min ($bb, $xsize);
+                $blockh = min ($bb, $ysize);
+            }
+            say  "Block size ($blockw, $blockh), "
                 . "full size ($xsize, $ysize)";
 
             my $target_count    = $xsize * $ysize;

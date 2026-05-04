@@ -127,17 +127,17 @@ sub test_group_props_from_rasters {
             'propdata.001_mean' => 13.5,
         },
     );
+    my %got;
     foreach my $gp (sort keys %samplers) {
         my $props_list = $gp_ref->get_list_ref (
             list       => 'PROPERTIES',
             element    => $gp,
             autovivify => 0,
         );
-        is $props_list,
-           $samplers{$gp},
-           "got expected group properties for $gp";
-        #diag "$gp: " . join ' ', (%{$props_list || {}});
+        $got{$gp} = $props_list;
     }
+
+    is \%got, \%samplers, 'Got expected group properties';
 
     #  add some more expected values
     $samplers{'45:15'}{'propdata.000_min'} = 39;
@@ -153,18 +153,17 @@ sub test_group_props_from_rasters {
         die_if_no_overlap => 0,
     );
     my $gp_ref_multi_stat = $bd_multi_stat->get_groups_ref;
+    my %got_multi;
     foreach my $gp (sort keys %samplers) {
         my $props_list = $gp_ref_multi_stat->get_list_ref (
             list       => 'PROPERTIES',
             element    => $gp,
             autovivify => 0,
         );
-        is $props_list,
-           $samplers{$gp},
-           "got expected multistat group properties for $gp";
-        #diag "$gp: " . join ' ', (%{$props_list || {}});
+        $got_multi{$gp} = $props_list;
     }
 
+    is \%got_multi, \%samplers, 'got expected multistat group properties';
     
     like (
       dies {

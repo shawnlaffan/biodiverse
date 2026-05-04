@@ -17,6 +17,7 @@ use List::Util 1.45 qw /uniq/;
 use POSIX qw /floor/;
 use rlib;
 use Biodiverse::Config;
+use Test::TempDir::Tiny;
 
 use Data::Section::Simple qw(
     get_data_section
@@ -1476,6 +1477,231 @@ sub test_raster_nodata_is_nan {
     my $sample_count = $bd->get_label_sample_count (label => $labels[0]);
 
     ok $sample_count !~ /nan/i, "Sample count is not a NaN";
+
+}
+
+
+sub test_raster_pdl_import {
+    use FindBin qw /$Bin/;
+    my $fname = $Bin . '/data/rast_nodata_is_nan.tif';
+
+    my %bd_args = (
+        NAME => 'test raster',
+        CELL_SIZES => [2,2],
+    );
+    my %import_args = (
+        input_files       => [ $fname ],
+        labels_as_bands   => 1,
+    );
+
+    my $bd_pdl = Biodiverse::BaseData->new (%bd_args, NAME => 'using PDL');
+    eval {
+        $bd_pdl->import_data_raster (
+            %import_args,
+            use_pdl => 1,
+        );
+    };
+    is ($@, '', 'import raster using PDL with no exceptions raised');
+
+    my %expected = (
+        '145:-15' => 189, '145:-17' => 145, '145:-19' => 165,
+        '145:-21' => 367, '145:-23' =>  59, '147:-19' => 174,
+        '147:-21' => 378, '147:-23' => 199, '149:-19' =>   5,
+        '149:-21' => 212, '149:-23' => 194, '151:-21' =>   2,
+        '151:-23' =>  53,
+    );
+
+    my %got;
+    foreach my $gp (sort +uniq ($bd_pdl->get_groups)) {
+        $got{$gp} = $bd_pdl->get_group_sample_count(group => $gp);
+    }
+
+    is \%got, \%expected, 'Sample counts as expected, axis aligned raster import';
+
+    #  now we rotate (skew) the data
+    my $tdir = tempdir();
+    my $rot_fname = path ($tdir, path ($fname)->basename('.tif') . '_rott.tif');
+
+    #  Create our own skewed raster using the input data.
+    #  Scope cleanup causes the data to be written to disk.
+    {
+        use Geo::GDAL::FFI qw/GetDriver/;
+        my $tiff = Geo::GDAL::FFI::Open($fname);
+        my $transform = $tiff->GetGeoTransform;
+        $transform->[2] = $transform->[5] / 5;
+        $transform->[4] = $transform->[1] / 5;
+
+        my $band = $tiff->GetBand;
+        my $no_data = $band->GetNoDataValue;
+
+        my $out_raster = $tiff->GetDriver->Create($rot_fname, {
+            Width    => $tiff->GetWidth,
+            Height   => $tiff->GetHeight,
+            Bands    => 1,
+            DataType => $band->GetDataType,
+        });
+
+        my $data = $tiff->GetBand()->GetPiddle;
+
+        $out_raster->SetGeoTransform($transform);
+        my $out_band = $out_raster->GetBand();
+        $out_band->SetNoDataValue($no_data);
+        $out_band->SetPiddle($data);
+    }
+
+    my $bd_pdl_rot = Biodiverse::BaseData->new (%bd_args, NAME => 'rotated using PDL');
+    eval {
+        $bd_pdl_rot->import_data_raster (
+            %import_args,
+            use_pdl => 1,
+            input_files => [ $rot_fname ],
+        );
+    };
+    is ($@, '', 'import rotated raster using PDL with no exceptions raised');
+
+    my @labels = $bd_pdl->get_labels;
+    my $sample_count_np = $bd_pdl->get_label_sample_count (label => $labels[0]);
+    my @rot_labels = $bd_pdl_rot->get_labels;
+    my $sample_count_rp = $bd_pdl_rot->get_label_sample_count (label => $rot_labels[0]);
+    is $sample_count_rp, $sample_count_np, "sample count matches non-rotated data, rotated PDL raster import";
+
+    %expected = (
+        '143:-15' =>  32, '143:-17' =>  42, '143:-19' =>  33,
+        '143:-21' => 256, '143:-23' =>  17, '145:-15' => 165,
+        '145:-17' => 113, '145:-19' => 326, '145:-21' => 413,
+        '145:-23' =>  99, '147:-19' => 160, '147:-21' => 382,
+        '147:-23' =>  22, '149:-21' =>  82,
+    );
+
+    %got = ();
+    foreach my $gp (sort +uniq ($bd_pdl_rot->get_groups)) {
+        $got{$gp} = $bd_pdl_rot->get_group_sample_count(group => $gp);
+    }
+
+    is \%got, \%expected, 'expected groups and sample counts, rotated raster via PDL';
+
+
+    my $v_fname = path ($tdir, path ($fname)->basename('.tif') . '_vvv.tif');
+    #  now convert one where we want the values as labels
+    {
+        use Geo::GDAL::FFI qw/GetDriver/;
+        my $tiff = Geo::GDAL::FFI::Open($fname);
+
+        my $transform = $tiff->GetGeoTransform;
+        my $band      = $tiff->GetBand;
+
+        my $out_raster = $tiff->GetDriver->Create($v_fname, {
+            Width    => $tiff->GetWidth,
+            Height   => $tiff->GetHeight,
+            Bands    => 1,
+            DataType => $band->GetDataType,
+        });
+
+        $out_raster->SetGeoTransform($transform);
+
+        my $data = $tiff->GetBand()->GetPiddle;
+        $data =  $data->setbadif($data < 1)->setnonfinitetobad;
+        $data += $data->sequence->modulo(3)->plus(2);
+
+        my $out_band = $out_raster->GetBand();
+        $out_band->SetNoDataValue($data->badvalue);
+        $out_band->SetPiddle($data);
+    }
+
+    my $bd_pvv = Biodiverse::BaseData->new (%bd_args, NAME => 'values PDL');
+    eval {
+        $bd_pvv->import_data_raster (
+            labels_as_bands => 0,
+            use_pdl         => 1,
+            input_files     => [ $v_fname ],
+        );
+    };
+    is ($@, '', 'import value raster with no exceptions raised');
+
+    my %got_pvv;
+    for my $gp ($bd_pvv->get_groups) {
+        $got_pvv{$gp} = scalar $bd_pvv->get_labels_in_group_as_hash_aa($gp);
+    }
+
+    my %exp_values = (
+        "145:-15" => { 3 =>  65, 4 =>  63, 5 =>  61 },
+        "145:-17" => { 3 =>  45, 4 =>  47, 5 =>  53 },
+        "145:-19" => { 3 =>  56, 4 =>  55, 5 =>  54 },
+        "145:-21" => { 3 => 123, 4 => 125, 5 => 119 },
+        "145:-23" => { 3 =>  18, 4 =>  20, 5 =>  21 },
+        "147:-19" => { 3 =>  57, 4 =>  56, 5 =>  61 },
+        "147:-21" => { 3 => 126, 4 => 126, 5 => 126 },
+        "147:-23" => { 3 =>  67, 4 =>  66, 5 =>  66 },
+        "149:-19" => { 3 =>   3, 4 =>   1, 5 =>   1 },
+        "149:-21" => { 3 =>  70, 4 =>  68, 5 =>  74 },
+        "149:-23" => { 3 =>  64, 4 =>  65, 5 =>  65 },
+        "151:-21" => { 3 =>   1, 4 =>   1 },
+        "151:-23" => { 3 =>  19, 4 =>  17, 5 =>  17 },
+    );
+
+    is \%got_pvv, \%exp_values, 'value import as expected, PDL';
+
+
+    my $vc_fname = path ($tdir, path ($fname)->basename('.tif') . '_vc.tif');
+    #  now one with values as categories
+    {
+        use Geo::GDAL::FFI qw/GetDriver/;
+        my $tiff = Geo::GDAL::FFI::Open($fname);
+
+        my $transform = $tiff->GetGeoTransform;
+        my $band      = $tiff->GetBand;
+
+        my $out_raster = $tiff->GetDriver->Create($vc_fname, {
+            Width    => $tiff->GetWidth,
+            Height   => $tiff->GetHeight,
+            Bands    => 1,
+            DataType => $band->GetDataType,
+        });
+
+        $out_raster->SetGeoTransform($transform);
+
+        my $data = $tiff->GetBand()->GetPiddle;
+        $data =  $data->setbadif($data < 1)->setnonfinitetobad;
+        $data += $data->sequence->modulo(3) - 1;
+
+        my $out_band = $out_raster->GetBand();
+        $out_band->SetCategoryNames('a', 'b', 'c');
+        $out_band->SetNoDataValue($data->badvalue);
+        $out_band->SetPiddle($data);
+    }
+
+    my $bd_pcc = Biodiverse::BaseData->new (%bd_args, NAME => 'class values PDL');
+    eval {
+        $bd_pcc->import_data_raster (
+            labels_as_bands => 0,
+            use_pdl         => 1,
+            input_files     => [ $vc_fname ],
+        );
+    };
+    is ($@, '', 'import class value raster with no exceptions raised, PDL');
+
+    my %got_pcc;
+    for my $gp ($bd_pcc->get_groups) {
+        $got_pcc{$gp} = scalar $bd_pcc->get_labels_in_group_as_hash_aa($gp);
+    }
+
+    my %exp_classified = (
+        "145:-15" => { a =>  65, b =>  63, c =>  61 },
+        "145:-17" => { a =>  45, b =>  47, c =>  53 },
+        "145:-19" => { a =>  56, b =>  55, c =>  54 },
+        "145:-21" => { a => 123, b => 125, c => 119 },
+        "145:-23" => { a =>  18, b =>  20, c =>  21 },
+        "147:-19" => { a =>  57, b =>  56, c =>  61 },
+        "147:-21" => { a => 126, b => 126, c => 126 },
+        "147:-23" => { a =>  67, b =>  66, c =>  66 },
+        "149:-19" => { a =>   3, b =>   1, c =>   1 },
+        "149:-21" => { a =>  70, b =>  68, c =>  74 },
+        "149:-23" => { a =>  64, b =>  65, c =>  65 },
+        "151:-21" => { a =>   1, b =>   1 },
+        "151:-23" => { a =>  19, b =>  17, c =>  17 },
+    );
+
+    is \%got_pcc, \%exp_classified, 'Classified raster imported using PDL';
 
 }
 

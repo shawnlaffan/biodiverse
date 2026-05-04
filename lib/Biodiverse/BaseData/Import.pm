@@ -37,7 +37,6 @@ use experimental 'declared_refs';
 our $lines_to_read_per_chunk = 100000;
 
 our $EMPTY_STRING = q{};
-our $bytes_per_MB = 1056784;
 
 
 sub get_metadata_import_data_common {
@@ -101,14 +100,13 @@ sub get_metadata_import_data_common {
 sub get_metadata_import_data_text {
     my $self = shift;
 
-    my @sep_chars = my @separators =
+    my @sep_chars =
       defined $ENV{BIODIVERSE_FIELD_SEPARATORS}
       ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
       : ( q{,}, 'tab', q{;}, 'space', q{:} );
     my @input_sep_chars = ( 'guess', @sep_chars );
 
-    my @quote_chars =
-      qw /" ' + $/;    # " (comment just catching runaway quote in eclipse)
+    my @quote_chars = qw /" ' + $/;
     my @input_quote_chars = ( 'guess', @quote_chars );
 
     my @parameters = (
@@ -233,9 +231,6 @@ sub import_data {
 
     $args{sample_count_columns} //= [];
 
-    my $labels_ref = $self->get_labels_ref;
-    my $groups_ref = $self->get_groups_ref;
-
     say "[BASEDATA] Loading from files "
       . join( q{ }, @{ $args{input_files} } );
 
@@ -326,21 +321,6 @@ sub import_data {
             file_name => $file,
             use_bom   => 1,
         );
-        my $file_size_bytes = $self->get_file_size_aa ($file);
-
-        my $file_size_Mb = $self->set_precision(
-            precision => "%.3f",
-            value     => $file_size_bytes
-          ) /
-          $bytes_per_MB;
-
-        #  for progress bar stuff
-        my $size_comment =
-          $file_size_Mb > 10
-          ? "This could take a while\n"
-          . "(it is still working if the progress bar is not moving)"
-          : $EMPTY_STRING;
-
 
         my $in_csv = $self->get_csv_object_using_guesswork(
             fname      => $file,
@@ -628,6 +608,8 @@ sub import_data_raster {
     my $self = shift;
     my %args = @_;
 
+    my $use_pdl = $args{use_pdl} // 1;
+
     my $orig_group_count = $self->get_group_count;
     my $orig_label_count = $self->get_label_count;
 
@@ -695,6 +677,11 @@ sub import_data_raster {
 
     #  This allows us to reduce the calls to add_element
     my %gp_lb_hash;
+
+    state sub bd_cell_snapper {
+        my ($x, $o, $c) = @_;
+        POSIX::floor (($x - $o) / $c) * $c + $o + 0.5 * $c;
+    };
 
     foreach my $file (@$input_file_arr) {
         $file_iter++;
@@ -823,9 +810,15 @@ sub import_data_raster {
             my %catname_hash;
             @catname_hash{ ( 0 .. $#catnames ) } = @catnames;
 
-            # read as preferred size blocks?
+            # read as preferred size blocks, except if small
             ( $blockw, $blockh ) = $band->GetBlockSize();
-            say   "Block size ($blockw, $blockh), "
+            my $bb = 128;
+            if (($blockw < $bb || $blockh < $bb) && $blockw * $blockh < $bb * $bb) {
+                #  asciigrid can have one-cell blocks...
+                $blockw = min ($bb, $xsize);
+                $blockh = min ($bb, $ysize);
+            }
+            say  "Block size ($blockw, $blockh), "
                 . "full size ($xsize, $ysize)";
 
             my $target_count    = $xsize * $ysize;
@@ -845,24 +838,149 @@ sub import_data_raster {
 
 
                 $wpos = 0;
+                TILE:
                 while ( $wpos < $xsize ) {
                     $maxw = min( $xsize, $wpos + $blockw );
                     $maxh = min( $ysize, $hpos + $blockh );
+
+                    if ($use_pdl) {
+                        my $nx = $maxw - $wpos;
+                        my $ny = $maxh - $hpos;
+
+                        my $z = $band->GetPiddle (
+                            $wpos, $hpos,
+                            $nx,   $ny,
+                        );
+
+                        my $zeroes = $z->zeroes;
+
+                        my (
+                            $nbinx,    $nbiny,
+                            $xbd_min,  $xbd_max,
+                            $ybd_min,  $ybd_max,
+                            $xgeo_min, $xgeo_max,
+                            $ygeo_min, $ygeo_max,
+                            $xcoords,  $ycoords,
+                        );
+                        if (!$tf_xy && !$tf_yx) {  #   axis-aligned raster so simpler approach
+                            my $xgeo = $z->sequence($nx)->inplace->plus($wpos + 0.5)->mult($tf_xx)->plus($tf_x0);
+                            my $ygeo = $z->sequence($ny)->inplace->plus($hpos + 0.5)->mult($tf_yy)->plus($tf_y0);
+
+                            ($xgeo_min, $xgeo_max) = List::MoreUtils::minmax($xgeo->at(0), $xgeo->at(-1));
+                            ($ygeo_min, $ygeo_max) = List::MoreUtils::minmax($ygeo->at(0), $ygeo->at(-1));
+
+                            $xcoords = $zeroes->plus($xgeo);
+                            $ycoords = $zeroes->plus($ygeo->transpose),
+                        }
+                        else {
+                            my $xvals = $z->xvals->plus($wpos + 0.5);
+                            my $yvals = $z->yvals->plus($hpos + 0.5);
+                            my $xgeo  = $xvals->mult($tf_xx)->plus($yvals->mult($tf_xy)->plus($tf_x0));
+                            my $ygeo  = $yvals->mult($tf_yy)->plus($xvals->mult($tf_yx)->plus($tf_y0));
+
+                            my $idx_extrema = PDL->new(PDL::indx, [[0,0],[0,$ny-1],[$nx-1,0],[$nx-1,$ny-1]]);
+
+                            my $extrema_x = $xgeo->indexND($idx_extrema);
+                            $xgeo_min = $extrema_x->min;
+                            $xgeo_max = $extrema_x->max;
+
+                            my $extrema_y = $ygeo->indexND($idx_extrema);
+                            $ygeo_min = $extrema_y->min;
+                            $ygeo_max = $extrema_y->max;
+
+                            $xcoords = $xgeo;
+                            $ycoords = $ygeo;
+                        }
+
+                        $xbd_min = bd_cell_snapper($xgeo_min, $cellorigin_e, $cellsize_e);
+                        $xbd_max = bd_cell_snapper($xgeo_max, $cellorigin_e, $cellsize_e);
+                        $nbinx   = ($xbd_max - $xbd_min) / $cellsize_e + 1;
+
+                        $ybd_min = bd_cell_snapper($ygeo_min, $cellorigin_n, $cellsize_n);
+                        $ybd_max = bd_cell_snapper($ygeo_max, $cellorigin_n, $cellsize_n);
+                        $nbiny   = ($ybd_max - $ybd_min) / $cellsize_n + 1;
+
+                        if ($labels_as_bands) {
+                            my $aggregated = PDL::whistogram2d(
+                                $xcoords->flat,
+                                $ycoords->flat,
+                                $z->flat->setnonfinitetobad->setbadtoval(0),
+                                $cellsize_e, $xbd_min - ($cellsize_e / 2), $nbinx,
+                                $cellsize_n, $ybd_min - ($cellsize_n / 2), $nbiny,
+                            );
+
+                            my $indices = $aggregated->whichND;
+                            my $xaxs = $indices->dice(0)->mult($cellsize_e)->plus($xbd_min);
+                            my $yaxs = $indices->dice(1)->mult($cellsize_n)->plus($ybd_min);
+
+                            my $dd = $xaxs->glue(0, $yaxs, $aggregated->indexND($indices)->transpose);
+
+                            for my \@arr (@{$dd->unpdl}) {
+                                my $gp = join(':', @arr[0, 1]);
+                                $gp_lb_hash{$gp}{$this_label} += $arr[2];
+                            }
+                        }
+                        else {
+                            #  inplace because we do not use them beyond this block
+                            my $bd_col   = $xcoords->inplace->minus($xbd_min - $halfcellsize_e)->divide($cellsize_e)->floor;
+                            my $bd_row   = $ycoords->inplace->minus($ybd_min - $halfcellsize_n)->divide($cellsize_n)->floor;
+                            my $cell_ids = $bd_col + $bd_row * $nbinx;
+
+                            #  faster than extracting from $cell_ids
+                            my $max_id = POSIX::floor (($xbd_max - $xbd_min) / $cellsize_e)
+                                + POSIX::floor (($ybd_max - $ybd_min) / $cellsize_n) * $nbinx;
+
+                            CELL_ID:
+                            foreach my $c_id (0 .. $max_id) {
+                                my $subset = $z->where($cell_ids == $c_id);
+                                my $vals   = $subset->where ($subset->isgood);
+                                next CELL_ID if $vals->nelem == 0;
+
+                                my %val_hash;
+                                $val_hash{$_}++ for $vals->list;
+
+                                my $gp_col = $c_id % $nbinx;
+                                my $gp_row = ($c_id - $gp_col) / $nbinx;
+
+                                my $gp = join ':',
+                                    $xbd_min + $gp_col * $cellsize_e,
+                                    $ybd_min + $gp_row * $cellsize_n;
+
+                                if (%catname_hash) {
+                                    my %cats = map {
+                                        ($catname_hash{$_} // $_) => $val_hash{$_}
+                                    } keys %val_hash;
+                                    $gp_lb_hash{$gp} = \%cats;
+                                }
+                                else {
+                                    $gp_lb_hash{$gp} = \%val_hash;
+                                }
+                            }
+                        }
+
+                        $processed_count += $z->nelem;
+
+                        $wpos += $blockw;
+                        next TILE;
+                    }
+
+                    #####  Rest of code in this block is pre-PDL approach and will be removed in future.
+                    #####  It is retained for now to provide a cross-check in the event of issues.
 
                     \my @tile = $band->Read(
                         $wpos, $hpos,
                         $maxw - $wpos,
                         $maxh - $hpos
                     );
+
                     #  work with cell centres, negative offset as incremented at start of iter
                     my $grid_yi = $hpos - 1;
 
-                  ROW:
                     foreach my $lineref (@tile) {
                         my ( $ngeo, $ncell, $grpn, $grpstring );
+                        $grid_yi++;
                         #  no transform so constant y for this line
                         if ( !$tf_yx ) {
-                            $grid_yi++;
                             $grpn = $ycoords[$grid_yi];
                         }
 
@@ -882,7 +1000,7 @@ sub import_data_raster {
                                 ? $entry == $nodata_value
                                 : $entry eq $nodata_value;  #  NaN comes through as text
 
-                            my $grpe = $xcoords[$grid_xi] // do {
+                            my $grpe = !$tf_xy ? $xcoords[$grid_xi] : do {
                                 my $egeo  = $tf_x0 + ($grid_xi + 0.5) * $tf_xx + ($grid_yi + 0.5) * $tf_xy;
                                 my $ecell = floor(($egeo - $cellorigin_e) / $cellsize_e);
                                 $cellorigin_e_hc + $ecell * $cellsize_e;
@@ -905,17 +1023,8 @@ sub import_data_raster {
                             }
 
                             #  collate the data
-                            #  convoluted conditions due to profiling bottlenecks
-                            # set label if determined at cell level
-                            if ( $labels_as_bands ) {
-                                # set count to cell value if using
-                                # band as label or provided label
-                                $gp_lb_hash{$grpstring}{$this_label} += $entry;
-                            }
-                            else {
-                                # set label from cell value or category if valid
-                                $gp_lb_hash{$grpstring}{$catname_hash{$entry} //= $entry} ++;
-                            }
+                            #  we only handle values as labels here
+                            $gp_lb_hash{$grpstring}{$catname_hash{$entry} //= $entry} ++;
 
                         }    # each entry on line
 
@@ -939,6 +1048,11 @@ sub import_data_raster {
         %args_for_add_elements_collated,
         data => \%gp_lb_hash,
     );
+
+    # say STDERR join ' ', @$input_file_arr;
+    # say STDERR join ' ', $self->get_cell_sizes;
+    # say STDERR join ' ', $self->get_cell_origins;
+    # say STDERR 'GPS: ' . join ' ', sort keys %gp_lb_hash;
 
     $self->run_import_post_processes(
         %args,
@@ -992,9 +1106,6 @@ sub import_data_shapefile {
 
     my @group_origins = $self->get_cell_origins;
     my @group_sizes   = $self->get_cell_sizes;
-
-    my $labels_ref = $self->get_labels_ref;
-    my $groups_ref = $self->get_groups_ref;
 
     say '[BASEDATA] Loading from files as shapefile '
       . join( q{ }, @{ $args{input_files} } );
@@ -1341,7 +1452,7 @@ sub get_fishnet_identity_layer {
     my $schema = $args{schema};
     my $axes   = $args{axes} // [0,1];
     
-    my ($defn, $shape_type, $sr);
+    my ($shape_type, $sr);
     eval {
         #$defn = $layer->GetDefn;
         #$schema = $defn->GetSchema;
@@ -1407,7 +1518,7 @@ sub get_fishnet_identity_layer {
     my $last_p = time() - 1;
     my $progress = sub {
         return 1 if $_[0] < 1 and abs(time() - $last_p) < 0.3;
-        my ($fraction, $msg, $data) = @_;
+        my ($fraction, $msg) = @_;
         local $| = 1;
         printf "%.3g ", $fraction;
         $gui_progress->update (
@@ -1708,9 +1819,6 @@ sub import_data_spreadsheet {
 
     my @group_origins = $self->get_cell_origins;
     my @group_sizes   = $self->get_cell_sizes;
-
-    my $labels_ref = $self->get_labels_ref;
-    my $groups_ref = $self->get_groups_ref;
 
     say '[BASEDATA] Loading from files as spreadsheet: '
         . join (q{, },
@@ -2065,8 +2173,6 @@ sub get_labels_from_line {
     my $csv_object           = $args{csv_object};
     my $label_columns        = $args{label_columns};
     my $sample_count_columns = $args{sample_count_columns};
-    my $label_properties     = $args{label_properties};
-    my $use_label_properties = $args{use_label_properties};
     my $line_num             = $args{line_num};
     my $file                 = $args{file};
 
@@ -2109,20 +2215,13 @@ sub get_labels_from_line {
 
 #  parse a line from a matrix format file and return all the elements in it
 sub get_labels_from_line_matrix {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
     #return;  #  temporary drop out
 
     #  these assignments look redundant, but this makes for cleaner code and
     #  the compiler should optimise it all away
     my $fields_ref           = $args{fields_ref};
-    my $csv_object           = $args{csv_object};
-    my $label_array          = $args{label_array};
-    my $label_properties     = $args{label_properties};
-    my $use_label_properties = $args{use_label_properties};
-    my $line_num             = $args{line_num};
-    my $file                 = $args{file};
     my $label_col_hash       = $args{label_col_hash};
 
 #  All we need to do is get a hash of the labels with their relevant column values
@@ -2145,14 +2244,12 @@ sub get_label_columns_for_matrix_import {
 
     my $csv_object           = $args{csv_object};
     my $label_array          = $args{label_array};
-    my $label_properties     = $args{label_properties};
-    my $use_label_properties = $args{use_label_properties};
 
     my $label_start_col = $args{label_start_col};
-    my $label_end_col = $args{label_end_col} // $#$label_array;
+    my $label_end_col   = $args{label_end_col} // $#$label_array;
 
     my %label_hash;
-  LABEL_COLS:
+
     for my $i ( $label_start_col .. $label_end_col ) {
 
         #  get the label for this row from the header

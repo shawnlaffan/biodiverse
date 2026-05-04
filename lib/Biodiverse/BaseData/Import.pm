@@ -976,6 +976,9 @@ sub import_data_raster {
                         next TILE;
                     }
 
+                    #####  Rest of code in this block is pre-PDL approach and will be removed in future.
+                    #####  It is retained for now to provide a cross-check in the event of issues.
+
                     \my @tile = $band->Read(
                         $wpos, $hpos,
                         $maxw - $wpos,

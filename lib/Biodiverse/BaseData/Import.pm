@@ -925,8 +925,12 @@ sub import_data_raster {
                             my $bd_row   = $ycoords->minus($ybd_min - $halfcellsize_n)->divide($cellsize_n)->floor;
                             my $cell_ids = $bd_col + $bd_row * $nbinx;
 
+                            #  faster than extracting from $cell_ids
+                            my $max_id = POSIX::floor (($xbd_max - $xbd_min) / $cellsize_e)
+                                + POSIX::floor (($ybd_max - $ybd_min) / $cellsize_n) * $nbinx;
+
                             CELL_ID:
-                            foreach my $c_id ($cell_ids->uniq->list) {
+                            foreach my $c_id (0 .. $max_id) {
                                 my $subset = $z->where($cell_ids == $c_id);
                                 my $vals   = $subset->where ($subset->isgood);
                                 next CELL_ID if $vals->nelem == 0;

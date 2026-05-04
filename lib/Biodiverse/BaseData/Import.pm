@@ -863,8 +863,8 @@ sub import_data_raster {
                             $xcoords,  $ycoords,
                         );
                         if (!$tf_xy && !$tf_yx) {  #   axis-aligned raster so simpler approach
-                            my $xgeo = $z->sequence($nx)->plus($wpos + 0.5)->mult($tf_xx)->plus($tf_x0);
-                            my $ygeo = $z->sequence($ny)->plus($hpos + 0.5)->mult($tf_yy)->plus($tf_y0);
+                            my $xgeo = $z->sequence($nx)->inplace->plus($wpos + 0.5)->mult($tf_xx)->plus($tf_x0);
+                            my $ygeo = $z->sequence($ny)->inplace->plus($hpos + 0.5)->mult($tf_yy)->plus($tf_y0);
 
                             ($xgeo_min, $xgeo_max) = List::MoreUtils::minmax($xgeo->at(0), $xgeo->at(-1));
                             ($ygeo_min, $ygeo_max) = List::MoreUtils::minmax($ygeo->at(0), $ygeo->at(-1));
@@ -921,8 +921,9 @@ sub import_data_raster {
                             }
                         }
                         else {
-                            my $bd_col   = $xcoords->minus($xbd_min - $halfcellsize_e)->divide($cellsize_e)->floor;
-                            my $bd_row   = $ycoords->minus($ybd_min - $halfcellsize_n)->divide($cellsize_n)->floor;
+                            #  inplace because we do not use them beyond this block
+                            my $bd_col   = $xcoords->inplace->minus($xbd_min - $halfcellsize_e)->divide($cellsize_e)->floor;
+                            my $bd_row   = $ycoords->inplace->minus($ybd_min - $halfcellsize_n)->divide($cellsize_n)->floor;
                             my $cell_ids = $bd_col + $bd_row * $nbinx;
 
                             #  faster than extracting from $cell_ids

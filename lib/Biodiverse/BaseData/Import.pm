@@ -37,7 +37,6 @@ use experimental 'declared_refs';
 our $lines_to_read_per_chunk = 100000;
 
 our $EMPTY_STRING = q{};
-our $bytes_per_MB = 1056784;
 
 
 sub get_metadata_import_data_common {
@@ -101,14 +100,13 @@ sub get_metadata_import_data_common {
 sub get_metadata_import_data_text {
     my $self = shift;
 
-    my @sep_chars = my @separators =
+    my @sep_chars =
       defined $ENV{BIODIVERSE_FIELD_SEPARATORS}
       ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
       : ( q{,}, 'tab', q{;}, 'space', q{:} );
     my @input_sep_chars = ( 'guess', @sep_chars );
 
-    my @quote_chars =
-      qw /" ' + $/;    # " (comment just catching runaway quote in eclipse)
+    my @quote_chars = qw /" ' + $/;
     my @input_quote_chars = ( 'guess', @quote_chars );
 
     my @parameters = (
@@ -233,9 +231,6 @@ sub import_data {
 
     $args{sample_count_columns} //= [];
 
-    my $labels_ref = $self->get_labels_ref;
-    my $groups_ref = $self->get_groups_ref;
-
     say "[BASEDATA] Loading from files "
       . join( q{ }, @{ $args{input_files} } );
 
@@ -326,21 +321,6 @@ sub import_data {
             file_name => $file,
             use_bom   => 1,
         );
-        my $file_size_bytes = $self->get_file_size_aa ($file);
-
-        my $file_size_Mb = $self->set_precision(
-            precision => "%.3f",
-            value     => $file_size_bytes
-          ) /
-          $bytes_per_MB;
-
-        #  for progress bar stuff
-        my $size_comment =
-          $file_size_Mb > 10
-          ? "This could take a while\n"
-          . "(it is still working if the progress bar is not moving)"
-          : $EMPTY_STRING;
-
 
         my $in_csv = $self->get_csv_object_using_guesswork(
             fname      => $file,
@@ -988,7 +968,6 @@ sub import_data_raster {
                     #  work with cell centres, negative offset as incremented at start of iter
                     my $grid_yi = $hpos - 1;
 
-                  ROW:
                     foreach my $lineref (@tile) {
                         my ( $ngeo, $ncell, $grpn, $grpstring );
                         $grid_yi++;
@@ -1062,6 +1041,11 @@ sub import_data_raster {
         data => \%gp_lb_hash,
     );
 
+    # say STDERR join ' ', @$input_file_arr;
+    # say STDERR join ' ', $self->get_cell_sizes;
+    # say STDERR join ' ', $self->get_cell_origins;
+    # say STDERR 'GPS: ' . join ' ', sort keys %gp_lb_hash;
+
     $self->run_import_post_processes(
         %args,
         label_axis_count => 1,    #  FIXME - might change if we have a remap
@@ -1114,9 +1098,6 @@ sub import_data_shapefile {
 
     my @group_origins = $self->get_cell_origins;
     my @group_sizes   = $self->get_cell_sizes;
-
-    my $labels_ref = $self->get_labels_ref;
-    my $groups_ref = $self->get_groups_ref;
 
     say '[BASEDATA] Loading from files as shapefile '
       . join( q{ }, @{ $args{input_files} } );
@@ -1463,7 +1444,7 @@ sub get_fishnet_identity_layer {
     my $schema = $args{schema};
     my $axes   = $args{axes} // [0,1];
     
-    my ($defn, $shape_type, $sr);
+    my ($shape_type, $sr);
     eval {
         #$defn = $layer->GetDefn;
         #$schema = $defn->GetSchema;
@@ -1529,7 +1510,7 @@ sub get_fishnet_identity_layer {
     my $last_p = time() - 1;
     my $progress = sub {
         return 1 if $_[0] < 1 and abs(time() - $last_p) < 0.3;
-        my ($fraction, $msg, $data) = @_;
+        my ($fraction, $msg) = @_;
         local $| = 1;
         printf "%.3g ", $fraction;
         $gui_progress->update (
@@ -1830,9 +1811,6 @@ sub import_data_spreadsheet {
 
     my @group_origins = $self->get_cell_origins;
     my @group_sizes   = $self->get_cell_sizes;
-
-    my $labels_ref = $self->get_labels_ref;
-    my $groups_ref = $self->get_groups_ref;
 
     say '[BASEDATA] Loading from files as spreadsheet: '
         . join (q{, },
@@ -2187,8 +2165,6 @@ sub get_labels_from_line {
     my $csv_object           = $args{csv_object};
     my $label_columns        = $args{label_columns};
     my $sample_count_columns = $args{sample_count_columns};
-    my $label_properties     = $args{label_properties};
-    my $use_label_properties = $args{use_label_properties};
     my $line_num             = $args{line_num};
     my $file                 = $args{file};
 
@@ -2231,20 +2207,13 @@ sub get_labels_from_line {
 
 #  parse a line from a matrix format file and return all the elements in it
 sub get_labels_from_line_matrix {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
     #return;  #  temporary drop out
 
     #  these assignments look redundant, but this makes for cleaner code and
     #  the compiler should optimise it all away
     my $fields_ref           = $args{fields_ref};
-    my $csv_object           = $args{csv_object};
-    my $label_array          = $args{label_array};
-    my $label_properties     = $args{label_properties};
-    my $use_label_properties = $args{use_label_properties};
-    my $line_num             = $args{line_num};
-    my $file                 = $args{file};
     my $label_col_hash       = $args{label_col_hash};
 
 #  All we need to do is get a hash of the labels with their relevant column values
@@ -2267,14 +2236,12 @@ sub get_label_columns_for_matrix_import {
 
     my $csv_object           = $args{csv_object};
     my $label_array          = $args{label_array};
-    my $label_properties     = $args{label_properties};
-    my $use_label_properties = $args{use_label_properties};
 
     my $label_start_col = $args{label_start_col};
-    my $label_end_col = $args{label_end_col} // $#$label_array;
+    my $label_end_col   = $args{label_end_col} // $#$label_array;
 
     my %label_hash;
-  LABEL_COLS:
+
     for my $i ( $label_start_col .. $label_end_col ) {
 
         #  get the label for this row from the header

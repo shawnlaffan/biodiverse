@@ -863,7 +863,7 @@ sub import_data_raster {
                     $maxw = min( $xsize, $wpos + $blockw );
                     $maxh = min( $ysize, $hpos + $blockh );
 
-                    if ($labels_as_bands) {
+                    if ($use_pdl) {
                         my $nx = $maxw - $wpos;
                         my $ny = $maxh - $hpos;
 
@@ -914,30 +914,60 @@ sub import_data_raster {
 
                         $xbd_min = bd_cell_snapper($xgeo_min, $cellorigin_e, $cellsize_e);
                         $xbd_max = bd_cell_snapper($xgeo_max, $cellorigin_e, $cellsize_e);
-                        $nbinx = $xbd_max - $xbd_min + 1;
+                        $nbinx   = ($xbd_max - $xbd_min) / $cellsize_e + 1;
 
                         $ybd_min = bd_cell_snapper($ygeo_min, $cellorigin_n, $cellsize_n);
                         $ybd_max = bd_cell_snapper($ygeo_max, $cellorigin_n, $cellsize_n);
-                        $nbiny = $ybd_max - $ybd_min + 1;
+                        $nbiny   = ($ybd_max - $ybd_min) / $cellsize_n + 1;
 
-                        my $aggregated = PDL::whistogram2d(
-                            $xcoords->flat,
-                            $ycoords->flat,
-                            $z->flat->setnonfinitetobad->setbadtoval(0),
-                            $cellsize_e, $xbd_min - ($cellsize_e / 2), $nbinx,
-                            $cellsize_n, $ybd_min - ($cellsize_n / 2), $nbiny,
-                        );
+                        if ($labels_as_bands) {
+                            my $aggregated = PDL::whistogram2d(
+                                $xcoords->flat,
+                                $ycoords->flat,
+                                $z->flat->setnonfinitetobad->setbadtoval(0),
+                                $cellsize_e, $xbd_min - ($cellsize_e / 2), $nbinx,
+                                $cellsize_n, $ybd_min - ($cellsize_n / 2), $nbiny,
+                            );
 
-                        my $indices = $aggregated->whichND;
-                        my $xaxs = $indices->dice(0)->mult($cellsize_e)->plus($xbd_min);
-                        my $yaxs = $indices->dice(1)->mult($cellsize_n)->plus($ybd_min);
+                            my $indices = $aggregated->whichND;
+                            my $xaxs = $indices->dice(0)->mult($cellsize_e)->plus($xbd_min);
+                            my $yaxs = $indices->dice(1)->mult($cellsize_n)->plus($ybd_min);
 
-                        my $dd = $xaxs->glue(0, $yaxs, $aggregated->indexND($indices)->transpose);
+                            my $dd = $xaxs->glue(0, $yaxs, $aggregated->indexND($indices)->transpose);
 
-                        for my \@arr (@{$dd->unpdl}) {
-                            my $gp = join (':', @arr[0,1]);
-                            # say STDERR $gp;
-                            $gp_lb_hash{$gp}{$this_label} += $arr[2];
+                            for my \@arr (@{$dd->unpdl}) {
+                                my $gp = join(':', @arr[0, 1]);
+                                $gp_lb_hash{$gp}{$this_label} += $arr[2];
+                            }
+                        }
+                        else {
+                            my $bd_col   = $xcoords->minus($xbd_min - $halfcellsize_e)->divide($cellsize_e)->floor;
+                            my $bd_row   = $ycoords->minus($ybd_min - $halfcellsize_n)->divide($cellsize_n)->floor;
+                            my $cell_ids = $bd_col + $bd_row * $nbinx;
+
+                            CELL_ID:
+                            foreach my $c_id ($cell_ids->uniq->list) {
+                                my $subset = $z->where($cell_ids == $c_id);
+                                my $vals   = $subset->where ($subset->isgood);
+                                next CELL_ID if $vals->nelem == 0;
+
+                                my %val_hash;
+                                $val_hash{$_}++ for $vals->list;
+
+                                my $gp_col = $c_id % $nbinx;
+                                my $gp_row = ($c_id - $gp_col) / ($nbiny - 1);
+                                my $gpx    = $xbd_min + $gp_col * $cellsize_e;
+                                my $gpy    = $ybd_min + $gp_row * $cellsize_n;
+                                if (%catname_hash) {
+                                    my %cats = map {
+                                        ($catname_hash{$_} // $_) => $val_hash{$_}
+                                    } keys %val_hash;
+                                    $gp_lb_hash{"$gpx:$gpy"} = \%cats;
+                                }
+                                else {
+                                    $gp_lb_hash{"$gpx:$gpy"} = \%val_hash;
+                                }
+                            }
                         }
 
                         $processed_count += $z->nelem;

@@ -955,7 +955,7 @@ sub import_data_raster {
                                 $val_hash{$_}++ for $vals->list;
 
                                 my $gp_col = $c_id % $nbinx;
-                                my $gp_row = ($c_id - $gp_col) / ($nbiny - 1);
+                                my $gp_row = ($c_id - $gp_col) / $nbinx;
                                 my $gpx    = $xbd_min + $gp_col * $cellsize_e;
                                 my $gpy    = $ybd_min + $gp_row * $cellsize_n;
                                 if (%catname_hash) {

@@ -1681,7 +1681,7 @@ sub test_raster_pdl_import {
     is ($@, '', 'import class value raster with no exceptions raised, PDL');
 
     my %got_pcc;
-    for my $gp ($bd_ccc->get_groups) {
+    for my $gp ($bd_pcc->get_groups) {
         $got_pcc{$gp} = scalar $bd_pcc->get_labels_in_group_as_hash_aa($gp);
     }
 

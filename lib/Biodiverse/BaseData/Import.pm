@@ -936,16 +936,19 @@ sub import_data_raster {
 
                                 my $gp_col = $c_id % $nbinx;
                                 my $gp_row = ($c_id - $gp_col) / $nbinx;
-                                my $gpx    = $xbd_min + $gp_col * $cellsize_e;
-                                my $gpy    = $ybd_min + $gp_row * $cellsize_n;
+
+                                my $gp = join ':',
+                                    $xbd_min + $gp_col * $cellsize_e,
+                                    $ybd_min + $gp_row * $cellsize_n;
+
                                 if (%catname_hash) {
                                     my %cats = map {
                                         ($catname_hash{$_} // $_) => $val_hash{$_}
                                     } keys %val_hash;
-                                    $gp_lb_hash{"$gpx:$gpy"} = \%cats;
+                                    $gp_lb_hash{$gp} = \%cats;
                                 }
                                 else {
-                                    $gp_lb_hash{"$gpx:$gpy"} = \%val_hash;
+                                    $gp_lb_hash{$gp} = \%val_hash;
                                 }
                             }
                         }

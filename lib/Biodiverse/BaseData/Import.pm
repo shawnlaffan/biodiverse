@@ -936,8 +936,16 @@ sub import_data_raster {
                                 my $vals   = $subset->where ($subset->isgood);
                                 next CELL_ID if $vals->nelem == 0;
 
+                                my ($rle_n, $rle_v) = $vals->qsort->rle;
+
                                 my %val_hash;
-                                $val_hash{$_}++ for $vals->list;
+                                if ($rle_v->nelem == $vals->nelem) {
+                                    #  all unique vals so directly assign
+                                    @val_hash{$vals->list} = (1) x $vals->nelem;
+                                }
+                                else {
+                                    @val_hash{$rle_v->list} = $rle_n->list;
+                                }
 
                                 my $gp_col = $c_id % $nbinx;
                                 my $gp_row = ($c_id - $gp_col) / $nbinx;

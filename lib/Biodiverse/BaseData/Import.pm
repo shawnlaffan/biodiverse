@@ -933,7 +933,10 @@ sub import_data_raster {
                             CELL_ID:
                             foreach my $c_id (0 .. $max_id) {
                                 my $subset = $z->where($cell_ids == $c_id);
-                                my $vals   = $subset->where ($subset->isgood);
+                                my $vals   = $z->badflag
+                                    ? $subset->where ($subset->isgood)
+                                    : $subset;
+                                
                                 next CELL_ID if $vals->nelem == 0;
 
                                 my $gp_col = $c_id % $nbinx;

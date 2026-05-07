@@ -876,21 +876,18 @@ sub import_data_raster {
                         else {
                             my $xvals = $z->xvals->plus($wpos + 0.5);
                             my $yvals = $z->yvals->plus($hpos + 0.5);
-                            my $xgeo  = $xvals->mult($tf_xx)->plus($yvals->mult($tf_xy)->plus($tf_x0));
-                            my $ygeo  = $yvals->mult($tf_yy)->plus($xvals->mult($tf_yx)->plus($tf_y0));
+                            $xcoords  = $xvals->mult($tf_xx)->plus($yvals->mult($tf_xy)->plus($tf_x0));
+                            $ycoords  = $yvals->mult($tf_yy)->plus($xvals->mult($tf_yx)->plus($tf_y0));
 
                             my $idx_extrema = PDL->new(PDL::indx, [[0,0],[0,$ny-1],[$nx-1,0],[$nx-1,$ny-1]]);
 
-                            my $extrema_x = $xgeo->indexND($idx_extrema);
+                            my $extrema_x = $xcoords->indexND($idx_extrema);
                             $xgeo_min = $extrema_x->min;
                             $xgeo_max = $extrema_x->max;
 
-                            my $extrema_y = $ygeo->indexND($idx_extrema);
+                            my $extrema_y = $ycoords->indexND($idx_extrema);
                             $ygeo_min = $extrema_y->min;
                             $ygeo_max = $extrema_y->max;
-
-                            $xcoords = $xgeo;
-                            $ycoords = $ygeo;
                         }
 
                         $xbd_min = bd_cell_snapper($xgeo_min, $cellorigin_e, $cellsize_e);

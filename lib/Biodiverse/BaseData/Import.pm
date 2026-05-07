@@ -874,10 +874,17 @@ sub import_data_raster {
                             ($ygeo_min, $ygeo_max) = List::MoreUtils::minmax ($ygeo_minn, $ygeo_maxx);
                         }
                         else {
-                            my $xvals = $z->xvals->plus($wpos + 0.5);
-                            my $yvals = $z->yvals->plus($hpos + 0.5);
-                            $xcoords  = $xvals->mult($tf_xx)->plus($yvals->mult($tf_xy)->plus($tf_x0));
-                            $ycoords  = $yvals->mult($tf_yy)->plus($xvals->mult($tf_yx)->plus($tf_y0));
+                            my $w0 = $wpos + 0.5;
+                            my $w1 = $w0 + $nx - 1;
+                            my $h0 = $hpos + 0.5;
+                            my $h1 = $h0 + $ny - 1;
+
+                            $xcoords = $z->xlinvals($w0 * $tf_xx + $tf_x0, $w1 * $tf_xx + $tf_x0);
+                            $ycoords = $z->ylinvals($h0 * $tf_yy + $tf_y0, $h1 * $tf_yy + $tf_y0);
+
+                            #  now skew them if needed
+                            $xcoords  += $z->ylinvals($h0 * $tf_xy, $h1 * $tf_xy) if $tf_xy;
+                            $ycoords  += $z->xlinvals($w0 * $tf_yx, $w1 * $tf_yx) if $tf_yx;
 
                             my $idx_extrema = PDL->new(PDL::indx, [[0,0],[0,$ny-1],[$nx-1,0],[$nx-1,$ny-1]]);
 

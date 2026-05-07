@@ -858,31 +858,22 @@ sub import_data_raster {
                             $ybd_min,  $ybd_max,
                             $xgeo_min, $xgeo_max,
                             $ygeo_min, $ygeo_max,
-                            $xcoords,  $ycoords,
                         );
+                        my $w0 = $wpos + 0.5;
+                        my $w1 = $w0 + $nx - 1;
+                        my $h0 = $hpos + 0.5;
+                        my $h1 = $h0 + $ny - 1;
+
+                        my $xcoords = $z->xlinvals($w0 * $tf_xx + $tf_x0, $w1 * $tf_xx + $tf_x0);
+                        my $ycoords = $z->ylinvals($h0 * $tf_yy + $tf_y0, $h1 * $tf_yy + $tf_y0);
+
                         if (!$tf_xy && !$tf_yx) {  #   axis-aligned raster so simpler approach
-                            my $xgeo_minn = ($wpos + 0.5) * $tf_xx + $tf_x0;
-                            my $xgeo_maxx =  $xgeo_minn + $tf_xx * ($nx - 1);
-                            $xcoords = $z->xlinvals($xgeo_minn, $xgeo_maxx);
-
-                            my $ygeo_minn = ($hpos + 0.5) * $tf_yy + $tf_y0;
-                            my $ygeo_maxx =  $ygeo_minn + $tf_yy * ($ny - 1);
-                            $ycoords = $z->ylinvals($ygeo_minn, $ygeo_maxx);
-
                             #  use minmax as order could be reversed, e.g. for many y-axes
-                            ($xgeo_min, $xgeo_max) = List::MoreUtils::minmax ($xgeo_minn, $xgeo_maxx);
-                            ($ygeo_min, $ygeo_max) = List::MoreUtils::minmax ($ygeo_minn, $ygeo_maxx);
+                            ($xgeo_min, $xgeo_max) = List::MoreUtils::minmax ($xcoords->at(0,0), $xcoords->at(-1,-1));
+                            ($ygeo_min, $ygeo_max) = List::MoreUtils::minmax ($ycoords->at(0,0), $ycoords->at(-1,-1));
                         }
                         else {
-                            my $w0 = $wpos + 0.5;
-                            my $w1 = $w0 + $nx - 1;
-                            my $h0 = $hpos + 0.5;
-                            my $h1 = $h0 + $ny - 1;
-
-                            $xcoords = $z->xlinvals($w0 * $tf_xx + $tf_x0, $w1 * $tf_xx + $tf_x0);
-                            $ycoords = $z->ylinvals($h0 * $tf_yy + $tf_y0, $h1 * $tf_yy + $tf_y0);
-
-                            #  now skew them if needed
+                            #  skew them if needed
                             $xcoords  += $z->ylinvals($h0 * $tf_xy, $h1 * $tf_xy) if $tf_xy;
                             $ycoords  += $z->xlinvals($w0 * $tf_yx, $w1 * $tf_yx) if $tf_yx;
 

@@ -14,7 +14,7 @@ use Carp;
 use POSIX qw {fmod floor ceil log2};
 use Scalar::Util qw /looks_like_number blessed reftype/;
 use List::Util 1.45 qw /max min sum any all none notall pairs uniq/;
-use List::MoreUtils qw /first_index/;
+use List::MoreUtils qw /first_index minmax/;
 use Path::Tiny qw /path/;
 use Geo::Converter::dms2dd qw {dms2dd};
 use Regexp::Common qw /number/;
@@ -852,8 +852,6 @@ sub import_data_raster {
                             $nx,   $ny,
                         );
 
-                        my $zeroes = $z->zeroes;
-
                         my (
                             $nbinx,    $nbiny,
                             $xbd_min,  $xbd_max,
@@ -863,14 +861,17 @@ sub import_data_raster {
                             $xcoords,  $ycoords,
                         );
                         if (!$tf_xy && !$tf_yx) {  #   axis-aligned raster so simpler approach
-                            my $xgeo = $z->sequence($nx)->inplace->plus($wpos + 0.5)->mult($tf_xx)->plus($tf_x0);
-                            my $ygeo = $z->sequence($ny)->inplace->plus($hpos + 0.5)->mult($tf_yy)->plus($tf_y0);
+                            my $xgeo_minn = ($wpos + 0.5) * $tf_xx + $tf_x0;
+                            my $xgeo_maxx =  $xgeo_minn + $tf_xx * ($nx - 1);
+                            $xcoords = $z->xlinvals($xgeo_minn, $xgeo_maxx);
 
-                            ($xgeo_min, $xgeo_max) = List::MoreUtils::minmax($xgeo->at(0), $xgeo->at(-1));
-                            ($ygeo_min, $ygeo_max) = List::MoreUtils::minmax($ygeo->at(0), $ygeo->at(-1));
+                            my $ygeo_minn = ($hpos + 0.5) * $tf_yy + $tf_y0;
+                            my $ygeo_maxx =  $ygeo_minn + $tf_yy * ($ny - 1);
+                            $ycoords = $z->ylinvals($ygeo_minn, $ygeo_maxx);
 
-                            $xcoords = $zeroes->plus($xgeo);
-                            $ycoords = $zeroes->plus($ygeo->transpose),
+                            #  use minmax as order could be reversed, e.g. for many y-axes
+                            ($xgeo_min, $xgeo_max) = List::MoreUtils::minmax ($xgeo_minn, $xgeo_maxx);
+                            ($ygeo_min, $ygeo_max) = List::MoreUtils::minmax ($ygeo_minn, $ygeo_maxx);
                         }
                         else {
                             my $xvals = $z->xvals->plus($wpos + 0.5);
@@ -936,7 +937,7 @@ sub import_data_raster {
                                 my $vals   = $z->badflag
                                     ? $subset->where ($subset->isgood)
                                     : $subset;
-                                
+
                                 next CELL_ID if $vals->nelem == 0;
 
                                 my $gp_col = $c_id % $nbinx;

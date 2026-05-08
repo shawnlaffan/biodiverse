@@ -901,8 +901,8 @@ sub import_data_raster {
                                 $xcoords->flat,
                                 $ycoords->flat,
                                 $z->flat->setnonfinitetobad->setbadtoval(0),
-                                $cellsize_e, $xbd_min - ($cellsize_e / 2), $nbinx,
-                                $cellsize_n, $ybd_min - ($cellsize_n / 2), $nbiny,
+                                $cellsize_e, $xbd_min - $halfcellsize_e, $nbinx,
+                                $cellsize_n, $ybd_min - $halfcellsize_n, $nbiny,
                             );
 
                             my $indices = $aggregated->whichND;
@@ -918,8 +918,14 @@ sub import_data_raster {
                         }
                         else {
                             #  inplace because we do not use them beyond this block
-                            my $bd_col   = $xcoords->inplace->minus($xbd_min - $halfcellsize_e)->divide($cellsize_e)->floor;
-                            my $bd_row   = $ycoords->inplace->minus($ybd_min - $halfcellsize_n)->divide($cellsize_n)->floor;
+                            my $bd_col = $xcoords;
+                            my $bd_row = $ycoords;
+                            $bd_col -= ($xbd_min - $halfcellsize_e);
+                            $bd_col /= $cellsize_e;
+                            $bd_col->inplace->floor;
+                            $bd_row -= ($ybd_min - $halfcellsize_n);
+                            $bd_row /= $cellsize_n;
+                            $bd_row->inplace->floor;
                             my $cell_ids = $bd_col + $bd_row * $nbinx;
 
                             #  faster than extracting from $cell_ids

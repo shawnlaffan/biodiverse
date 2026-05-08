@@ -14,7 +14,7 @@ use Carp;
 use POSIX qw {fmod floor ceil log2};
 use Scalar::Util qw /looks_like_number blessed reftype/;
 use List::Util 1.45 qw /max min sum any all none notall pairs uniq/;
-use List::MoreUtils qw /first_index/;
+use List::MoreUtils qw /first_index minmax/;
 use Path::Tiny qw /path/;
 use Geo::Converter::dms2dd qw {dms2dd};
 use Regexp::Common qw /number/;
@@ -852,8 +852,6 @@ sub import_data_raster {
                             $nx,   $ny,
                         );
 
-                        my $zeroes = $z->zeroes;
-
                         my (
                             $nbinx,    $nbiny,
                             $xbd_min,  $xbd_max,
@@ -862,34 +860,42 @@ sub import_data_raster {
                             $ygeo_min, $ygeo_max,
                             $xcoords,  $ycoords,
                         );
+                        my $w0 = $wpos + 0.5;
+                        my $w1 = $w0 + $nx - 1;
+                        my $h0 = $hpos + 0.5;
+                        my $h1 = $h0 + $ny - 1;
+
+
                         if (!$tf_xy && !$tf_yx) {  #   axis-aligned raster so simpler approach
-                            my $xgeo = $z->sequence($nx)->inplace->plus($wpos + 0.5)->mult($tf_xx)->plus($tf_x0);
-                            my $ygeo = $z->sequence($ny)->inplace->plus($hpos + 0.5)->mult($tf_yy)->plus($tf_y0);
+                            #  calc for one row or col, then broadcast
+                            $xcoords = PDL->zeroes($nx)->xlinvals($w0 * $tf_xx + $tf_x0, $w1 * $tf_xx + $tf_x0);
+                            $ycoords = PDL->zeroes($ny)->transpose->ylinvals($h0 * $tf_yy + $tf_y0, $h1 * $tf_yy + $tf_y0);
 
-                            ($xgeo_min, $xgeo_max) = List::MoreUtils::minmax($xgeo->at(0), $xgeo->at(-1));
-                            ($ygeo_min, $ygeo_max) = List::MoreUtils::minmax($ygeo->at(0), $ygeo->at(-1));
+                            #  use minmax as order could be reversed, e.g. for many y-axes
+                            ($xgeo_min, $xgeo_max) = List::MoreUtils::minmax ($xcoords->at(0), $xcoords->at(-1));
+                            ($ygeo_min, $ygeo_max) = List::MoreUtils::minmax ($ycoords->at(0,0), $ycoords->at(0,-1));
 
-                            $xcoords = $zeroes->plus($xgeo);
-                            $ycoords = $zeroes->plus($ygeo->transpose),
+                            my $zeroes = $z->zeroes;
+                            $xcoords = $zeroes + $xcoords;
+                            $ycoords = $zeroes + $ycoords;
                         }
                         else {
-                            my $xvals = $z->xvals->plus($wpos + 0.5);
-                            my $yvals = $z->yvals->plus($hpos + 0.5);
-                            my $xgeo  = $xvals->mult($tf_xx)->plus($yvals->mult($tf_xy)->plus($tf_x0));
-                            my $ygeo  = $yvals->mult($tf_yy)->plus($xvals->mult($tf_yx)->plus($tf_y0));
+                            $xcoords = $z->xlinvals($w0 * $tf_xx + $tf_x0, $w1 * $tf_xx + $tf_x0);
+                            $ycoords = $z->ylinvals($h0 * $tf_yy + $tf_y0, $h1 * $tf_yy + $tf_y0);
+
+                            #  skew them if needed
+                            $xcoords  += $z->ylinvals($h0 * $tf_xy, $h1 * $tf_xy) if $tf_xy;
+                            $ycoords  += $z->xlinvals($w0 * $tf_yx, $w1 * $tf_yx) if $tf_yx;
 
                             my $idx_extrema = PDL->new(PDL::indx, [[0,0],[0,$ny-1],[$nx-1,0],[$nx-1,$ny-1]]);
 
-                            my $extrema_x = $xgeo->indexND($idx_extrema);
+                            my $extrema_x = $xcoords->indexND($idx_extrema);
                             $xgeo_min = $extrema_x->min;
                             $xgeo_max = $extrema_x->max;
 
-                            my $extrema_y = $ygeo->indexND($idx_extrema);
+                            my $extrema_y = $ycoords->indexND($idx_extrema);
                             $ygeo_min = $extrema_y->min;
                             $ygeo_max = $extrema_y->max;
-
-                            $xcoords = $xgeo;
-                            $ycoords = $ygeo;
                         }
 
                         $xbd_min = bd_cell_snapper($xgeo_min, $cellorigin_e, $cellsize_e);
@@ -905,8 +911,8 @@ sub import_data_raster {
                                 $xcoords->flat,
                                 $ycoords->flat,
                                 $z->flat->setnonfinitetobad->setbadtoval(0),
-                                $cellsize_e, $xbd_min - ($cellsize_e / 2), $nbinx,
-                                $cellsize_n, $ybd_min - ($cellsize_n / 2), $nbiny,
+                                $cellsize_e, $xbd_min - $halfcellsize_e, $nbinx,
+                                $cellsize_n, $ybd_min - $halfcellsize_n, $nbiny,
                             );
 
                             my $indices = $aggregated->whichND;
@@ -922,9 +928,16 @@ sub import_data_raster {
                         }
                         else {
                             #  inplace because we do not use them beyond this block
-                            my $bd_col   = $xcoords->inplace->minus($xbd_min - $halfcellsize_e)->divide($cellsize_e)->floor;
-                            my $bd_row   = $ycoords->inplace->minus($ybd_min - $halfcellsize_n)->divide($cellsize_n)->floor;
-                            my $cell_ids = $bd_col + $bd_row * $nbinx;
+                            my $bd_col = $xcoords;
+                            my $bd_row = $ycoords;
+                            $bd_col -= ($xbd_min - $halfcellsize_e);
+                            $bd_col /= $cellsize_e;
+                            $bd_col->inplace->floor;
+                            $bd_row -= ($ybd_min - $halfcellsize_n);
+                            $bd_row /= $cellsize_n;
+                            $bd_row->inplace->floor;
+                            $bd_row *= $nbinx;
+                            my $cell_ids = $bd_col += $bd_row;
 
                             #  faster than extracting from $cell_ids
                             my $max_id = POSIX::floor (($xbd_max - $xbd_min) / $cellsize_e)
@@ -933,11 +946,11 @@ sub import_data_raster {
                             CELL_ID:
                             foreach my $c_id (0 .. $max_id) {
                                 my $subset = $z->where($cell_ids == $c_id);
-                                my $vals   = $subset->where ($subset->isgood);
-                                next CELL_ID if $vals->nelem == 0;
+                                my $vals   = $z->badflag
+                                    ? $subset->where ($subset->isgood)
+                                    : $subset;
 
-                                my %val_hash;
-                                $val_hash{$_}++ for $vals->list;
+                                next CELL_ID if $vals->nelem == 0;
 
                                 my $gp_col = $c_id % $nbinx;
                                 my $gp_row = ($c_id - $gp_col) / $nbinx;
@@ -946,14 +959,23 @@ sub import_data_raster {
                                     $xbd_min + $gp_col * $cellsize_e,
                                     $ybd_min + $gp_row * $cellsize_n;
 
-                                if (%catname_hash) {
-                                    my %cats = map {
-                                        ($catname_hash{$_} // $_) => $val_hash{$_}
-                                    } keys %val_hash;
-                                    $gp_lb_hash{$gp} = \%cats;
+                                my ($rle_n, $rle_v) = $vals->qsort->rle;
+
+                                my @idx  = $rle_n->list;
+                                my @vals = $rle_v->list;
+                                if (keys %catname_hash) {
+                                    @vals = map {$catname_hash{$_} // $_} @vals;
+                                }
+
+                                \my %val_hash = $gp_lb_hash{$gp} //= {};
+                                if (%val_hash) {
+                                    #  already have data so increment each key
+                                    $val_hash{$vals[$_]} += $idx[$_]
+                                        for 0 .. $#vals;
                                 }
                                 else {
-                                    $gp_lb_hash{$gp} = \%val_hash;
+                                    #  clean slate so slice-assign
+                                    @val_hash{@vals} = @idx;
                                 }
                             }
                         }

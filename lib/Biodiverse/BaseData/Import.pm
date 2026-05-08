@@ -926,7 +926,8 @@ sub import_data_raster {
                             $bd_row -= ($ybd_min - $halfcellsize_n);
                             $bd_row /= $cellsize_n;
                             $bd_row->inplace->floor;
-                            my $cell_ids = $bd_col + $bd_row * $nbinx;
+                            $bd_row *= $nbinx;
+                            my $cell_ids = $bd_col += $bd_row;
 
                             #  faster than extracting from $cell_ids
                             my $max_id = POSIX::floor (($xbd_max - $xbd_min) / $cellsize_e)

@@ -233,8 +233,8 @@ END_PROGRESS_TEXT
     ) {
         $attempts++;
 
-        my $group1;
-        my $group2;
+        my ($group1, $group2);
+
         if ($use_spatial_swap) {
             $group1 = $gps_with_nbrs[int $rand->rand (scalar @gps_with_nbrs)];
             my $n = scalar @{$sp_swap_list{$group1}};

@@ -222,17 +222,18 @@ END_PROGRESS_TEXT
 
     say "[RANDOMISE] Target swap count is $target_swap_count, max attempts is $max_swap_attempts";
 
+    #  handle pathological case of only one group
+    my $gt_one_gp = $n_groups > 1;
+
     MAIN_ITER:
     while (   $swap_count  < $target_swap_count
         && $attempts    < $max_swap_attempts
         && $moved_pairs < $non_zero_mx_cells
+        && $gt_one_gp
     ) {
         $attempts++;
 
-        #  handle pathological case of only one group
-        last MAIN_ITER if $n_groups == 1;
-
-        my $group1; ;
+        my $group1;
         my $group2;
         if ($use_spatial_swap) {
             $group1 = $gps_with_nbrs[int $rand->rand (scalar @gps_with_nbrs)];

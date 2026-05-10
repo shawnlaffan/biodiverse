@@ -36,7 +36,7 @@ jobs:
           which cpanm
 
       #  some painful steps here that will hopefully be backed out at some point
-      - name: Install GDAL and its deps
+      - name: Install GDAL and other deps
         run: |
           brew update
           #brew unlink pkg-config@0.29.2
@@ -44,6 +44,7 @@ jobs:
           brew link --overwrite pkgconf
           brew install gdal
           # brew install --force --overwrite gdal
+          brew install gsl
         
       - name: perl -V
         run: perl -V

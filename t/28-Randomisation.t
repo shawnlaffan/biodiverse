@@ -199,6 +199,59 @@ sub test_rand_curveball_sp_cond {
 
 }
 
+
+#  generate data to exercise the binomial sampler in curveball
+sub test_rand_curveball_hypergeom {
+    my $bd = Biodiverse::BaseData->new(
+        NAME         => 'hyperball',
+        CELL_SIZES   => [ 1, 1 ],
+        CELL_ORIGINS => [0.5, 0.5],
+    );
+    my @labels = ('a' .. 'az');
+    my @xarr = (0..4);
+    srand(2345);
+    foreach my $x (@xarr) {
+        foreach my $y (0..4) {
+            my $gp = "$x:$y";
+            my $max_lb = $x * @xarr + $y;
+            @labels = List::Util::shuffle @labels;
+            foreach my $lb (@labels[0..$max_lb]) {
+                $bd->add_element_simple_aa($lb, $gp, 1);
+            }
+        }
+    }
+
+    my $sp = $bd->add_spatial_output(name => 'sp');
+    $sp->run_analysis(
+        spatial_conditions => [ 'sp_self_only()' ],
+        calculations       => [ 'calc_richness' ],
+    );
+
+    my $rand = $bd->add_randomisation_output(name => 'hypergeom');
+    my $rand_bd_array = $rand->run_analysis (
+        function   => 'rand_curveball',
+        iterations => 1,
+        use_hypergeometric   => 1,
+        return_rand_bd_array => 1,
+    );
+
+    my (%got, %exp);
+    my (%got_nl, %exp_nl);
+    my $rbd = $rand_bd_array->[0];
+    foreach my $gp ($rbd->get_groups) {
+        my $got_l = $rbd->get_labels_in_group_as_hash_aa($gp);
+        my $exp_l = $bd->get_labels_in_group_as_hash_aa($gp);
+        $got{$gp} = $got_l;
+        $exp{$gp} = $exp_l;
+        $got_nl{$gp} = scalar keys %$got_l;
+        $exp_nl{$gp} = scalar keys %$exp_l;
+    }
+
+    isnt \%got, \%exp, 'label sets differ for hyperball';
+    is \%got_nl, \%exp_nl, 'label counts match for hyperball';
+
+}
+
 sub test_rand_structured_richness_same {
     my ($rand_function, %args) = @_;
     $rand_function //= 'rand_structured';

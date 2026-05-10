@@ -114,6 +114,14 @@ Curveball randomisation
 END_PROGRESS_TEXT
     ;
 
+    my $use_hyper = !!$args{use_hypergeometric};
+
+    my $vcache = $self->get_volatile_cache;
+    \my %sequence_cache  = $vcache->get_cached_href('CURVEBALL_PDL_SEQUENCES');
+    \my %cum_hgeom_cache = $vcache->get_cached_href('CURVEBALL_PDL_HGEOM_CUM_SUMS');
+
+    state $sumswaps;
+
     my %empty_groups;
     @empty_groups{$bd->get_empty_groups} = undef;
     my %empty_labels;
@@ -263,57 +271,96 @@ END_PROGRESS_TEXT
         #  skip if nothing can be swapped
         next MAIN_ITER if !$max_labels_to_swap;
 
-
-        #  Old and incorrect method as the number of swaps is in the interval [0,$n], not exactly $n.
-        #  If we ever get the hypergeometric CDF calculated then we can
-        #  directly estimate $n and re-enable most of this.
-        # #  Get a random subset of the longer array.
-        # #  Sort is needed to guarantee repeatability, and in-place sort is optimised by Perl.
-        # #  In-place shuffle is apparently fastest (MRMA docs)
-        # if (@swappable_from1 > $max_labels_to_swap) {
-        #     @swappable_from1 = sort @swappable_from1;
-        #     $rand->shuffle (\@swappable_from1);
-        #     @swappable_from1 = @swappable_from1[0..$max_labels_to_swap-1];
-        # }
-        # elsif (@swappable_from2 > $max_labels_to_swap) {
-        #     @swappable_from2 = sort @swappable_from2;
-        #     $rand->shuffle (\@swappable_from2);
-        #     @swappable_from2 = @swappable_from2[0..$max_labels_to_swap-1];
-        # }
-
-        #  Concatenate the two swappable sets, then go looking for which ones need to be swapped.
-        #  The search uses while-loops to avoid grepping very large lists for small numbers of possible swaps.
-
-        #  Each list is already sorted so no need to re-sort the whole thing.
-        my @shuffled = (@swappable_from1, @swappable_from2);
-        $rand->shuffle (\@shuffled);
         my (@swap_from1, @swap_from2);
-        my $s_count = 0;  #  used for early stop once we have found all the swappers
 
-        #  Search the first part of the list.
-        #  Anything originally from label_list2 is to be swapped to label_list1.
-        my $i = 0;
-        while ($s_count != $max_labels_to_swap && $i < @swappable_from1) {
-            if (exists $labels2{$shuffled[$i]}) {
-                push @swap_from2, $shuffled[$i];
-                $s_count++;
-            }
-            $i++;
-        }
-        #  Now search the second part of the list.
-        #  Anything originally from label_list1 is to be swapped to label_list2.
-        #  count $s_count down
-        $i = @swappable_from1;
-        while ($s_count != 0 && $i < @shuffled) {
-            if (exists $labels1{$shuffled[$i]}) {
-                push @swap_from1, $shuffled[$i];
-                $s_count--;
-            }
-            $i++;
-        }
+        if ($use_hyper) {
+            my ($n1, $n2) = List::MoreUtils::minmax (
+                scalar @swappable_from1,
+                scalar @swappable_from2,
+            );
 
-        #  skip if nothing to be swapped
-        next MAIN_ITER if !@swap_from1;
+            my $ratio =  $n1 / $n2;
+            my $nswaps = 0;
+            if ($ratio > 0.05) {
+                #  hypergeometric sampler
+                use PDL::Lite;
+                use PDL::GSL::CDF ();
+                my $r   = 1 - $rand->rand;  #  interval (0,1]
+                my $cdf = $cum_hgeom_cache{"$n1:$n2"} //= do {
+                    my $k = $sequence_cache{$n1} //= PDL->sequence($n1+1);
+                    $k->gsl_cdf_hypergeometric_P($n1, $n2, $n1);
+                };
+                #  the hypergeom distr tells us how many remain so the swap count is the n1 complement
+                $nswaps = $n1 - PDL::vsearch_insert_leftmost($r, $cdf)->sclr;
+            }
+            else {
+                #  binomial approximation when many more $n2 than $n1
+                $nswaps = $rand->binomial($ratio, $max_labels_to_swap);
+            }
+            next MAIN_ITER if !$nswaps;
+
+            #  List::Util::sample is _very_ slow...
+            # local $List::Util::RAND = sub {$rand->rand};
+            # @swap_from1 = List::Util::sample ($nswaps, @swappable_from1);
+            # @swap_from2 = List::Util::sample ($nswaps, @swappable_from2);
+            $nswaps--;  #  used as an index instead of a count now
+            $rand->shuffle(\@swappable_from1); #  shuffle array
+            $#swappable_from1 = $nswaps;       #  shorten it
+            \@swap_from1 = \@swappable_from1;  #  take alias
+            $rand->shuffle(\@swappable_from2); #  rinse and repeat for array 2
+            $#swappable_from2 = $nswaps;
+            \@swap_from2 = \@swappable_from2;
+
+        }
+        else {
+            #  Old and incorrect method as the number of swaps is in the interval [0,$n], not exactly $n.
+            # #  Get a random subset of the longer array.
+            # #  Sort is needed to guarantee repeatability, and in-place sort is optimised by Perl.
+            # #  In-place shuffle is apparently fastest (MRMA docs)
+            # if (@swappable_from1 > $max_labels_to_swap) {
+            #     @swappable_from1 = sort @swappable_from1;
+            #     $rand->shuffle (\@swappable_from1);
+            #     @swappable_from1 = @swappable_from1[0..$max_labels_to_swap-1];
+            # }
+            # elsif (@swappable_from2 > $max_labels_to_swap) {
+            #     @swappable_from2 = sort @swappable_from2;
+            #     $rand->shuffle (\@swappable_from2);
+            #     @swappable_from2 = @swappable_from2[0..$max_labels_to_swap-1];
+            # }
+
+            #  Concatenate the two swappable sets, then go looking for which ones need to be swapped.
+            #  The search uses while-loops to avoid grepping very large lists for small numbers of possible swaps.
+
+            #  Each list is already sorted so no need to re-sort the whole thing.
+            my @shuffled = (@swappable_from1, @swappable_from2);
+            $rand->shuffle(\@shuffled);
+            my $s_count = 0; #  used for early stop once we have found all the swappers
+
+            #  Search the first part of the list.
+            #  Anything originally from label_list2 is to be swapped to label_list1.
+            my $i = 0;
+            while ($s_count != $max_labels_to_swap && $i < @swappable_from1) {
+                if (exists $labels2{$shuffled[$i]}) {
+                    push @swap_from2, $shuffled[$i];
+                    $s_count++;
+                }
+                $i++;
+            }
+            #  Now search the second part of the list.
+            #  Anything originally from label_list1 is to be swapped to label_list2.
+            #  count $s_count down
+            $i = @swappable_from1;
+            while ($s_count != 0 && $i < @shuffled) {
+                if (exists $labels1{$shuffled[$i]}) {
+                    push @swap_from1, $shuffled[$i];
+                    $s_count--;
+                }
+                $i++;
+            }
+
+            #  skip if nothing to be swapped
+            next MAIN_ITER if !@swap_from1;
+        }
 
         # die "Horribly" if @swap_from1 != @swap_from2;
         # say STDERR join ' ', scalar @swap_from1, scalar @swap_from2;

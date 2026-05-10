@@ -20,26 +20,11 @@ use List::Util qw /max min/;
 #use List::MoreUtils qw /bsearchidx/;
 use Statistics::Sampler::Multinomial 1.00;
 use Statistics::Sampler::Multinomial::Indexed 1.00;
-
-my $multinomial_class = 'Statistics::Sampler::Multinomial::Indexed';
+use Hash::Util::Set qw /keys_difference/;
 
 use Biodiverse::Metadata::Parameter;
 my $parameter_rand_metadata_class = 'Biodiverse::Metadata::Parameter';
 
-
-my $tooltip_swap_count = <<'TOOLTIP_SWAP_COUNT'
-Target number of swaps to attempt.
-Default is twice the number of
-non-zero matrix (basedata) entries.
-TOOLTIP_SWAP_COUNT
-;
-
-my $tooltip_map_swap_attempts = <<'TOOLTIP_SWAP_ATTEMPTS'
-Maximum number of swaps to attempt.
-Default is 100 times the target
-number of swaps.
-TOOLTIP_SWAP_ATTEMPTS
-;
 
 sub get_curveball_spatial_allocation_metadata {
     my $self = shift;
@@ -84,8 +69,6 @@ sub get_metadata_rand_curveball {
 sub rand_curveball {
     my ($self, %args) = @_;
 
-    my $start_time = [gettimeofday];
-
     my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
 
     my $name = $self->get_param ('NAME');
@@ -108,19 +91,11 @@ sub rand_curveball {
 
     my $progress_bar = Biodiverse::Progress->new(no_gui_progress => $args{no_gui_progress});
 
-    my $progress_text =<<"END_PROGRESS_TEXT"
-$name
-Curveball randomisation
-END_PROGRESS_TEXT
-    ;
-
     my $use_hyper = !!$args{use_hypergeometric};
 
     my $vcache = $self->get_volatile_cache;
     \my %sequence_cache  = $vcache->get_cached_href('CURVEBALL_PDL_SEQUENCES');
     \my %cum_hgeom_cache = $vcache->get_cached_href('CURVEBALL_PDL_HGEOM_CUM_SUMS');
-
-    state $sumswaps;
 
     my %empty_groups;
     @empty_groups{$bd->get_empty_groups} = undef;

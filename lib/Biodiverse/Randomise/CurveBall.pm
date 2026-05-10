@@ -236,9 +236,8 @@ sub rand_curveball {
         my \%labels1 = $lb_hash{$group1};
         my \%labels2 = $lb_hash{$group2};
 
-        #  brute force for now - but we have better methods in turnover indices
-        my @swappable_from1 = sort grep {!exists $labels2{$_}} keys %labels1;
-        my @swappable_from2 = sort grep {!exists $labels1{$_}} keys %labels2;
+        my @swappable_from1 = sort +keys_difference (%labels1, %labels2);
+        my @swappable_from2 = sort +keys_difference (%labels2, %labels1);
 
         my $max_labels_to_swap
             = min (scalar @swappable_from1, scalar @swappable_from2);

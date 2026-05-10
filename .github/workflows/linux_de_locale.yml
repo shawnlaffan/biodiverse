@@ -43,6 +43,10 @@ jobs:
         run: |
           sudo apt-get --yes install cmake
 
+      - name: gsl
+        run: |
+          sudo apt-get --yes install libgsl-dev
+
       - name: Locale check
         run: |
           locale -a

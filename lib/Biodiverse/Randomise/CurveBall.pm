@@ -45,8 +45,19 @@ sub get_curveball_spatial_allocation_metadata {
 sub get_metadata_rand_curveball {
     my $self = shift;
 
+    my $hyperball = bless {
+        name       => 'use_hypergeometric',
+        label_text => "Use a hypergeomtric sampler to generate swap sets",
+        default    => 0,
+        type       => 'boolean',
+        tooltip    =>
+            'If true then a hypergeometric sampling approach will be used to determine which labels to swap. '
+            . 'This is currently slightly slower than the default approach.',
+    }, $parameter_rand_metadata_class;
+
     my @parameters = (
         $self->get_curveball_spatial_allocation_metadata,
+        $hyperball,
         $self->get_common_independent_swaps_metadata,
         $self->get_common_rand_metadata,
     );

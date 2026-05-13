@@ -10,6 +10,16 @@ on:
 
 env:
   AUTOMATED_TESTING: 1
+  PERL5LIB: /Users/runner/perl5/lib/perl5
+  PERL_LOCAL_LIB_ROOT: /Users/runner/perl5
+  PERL_MB_OPT: --install_base /Users/runner/perl5
+  PERL_MM_OPT: INSTALL_BASE=/Users/runner/perl5
+  PERL_CPANM_OPT: -M https://www.cpan.org
+  PERL_CPANM_HOME: /Users/runner/_cpanm
+  SP_VERSION: 5.38.4.1
+  ST: C:\Strawberrybd
+  SP_PATHS: \Users\runner\perl5\bin;C:\Strawberrybd\perl\bin;C:\Strawberrybd\perl\site\bin;C:\Strawberrybd\c\bin
+
 
 jobs:
   perl:
@@ -18,15 +28,84 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: shogo82148/actions-setup-perl@v1
+      - name: Install Strawberry perl
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/biogeospatial/biodiverse-sp-portable/releases/download/5.42.2.1-20260513/bd-sp-perl-5.38.4.1-64bit-PDL-20260513.zip" -OutFile ".\sp.zip" 
+          Expand-Archive -Path "sp.zip" -DestinationPath "$env:ST"
+          ls "$env:ST"
+          echo "$env:ST\perl\bin;$env:ST\perl\site\bin;$env:ST\c\bin" >> $GITHUB_PATH
+
+      - name: perl -V
+        shell: cmd
+        run: |
+          set PATH=%SP_PATHS%;%PATH%
+          path
+          where perl
+          perl -V
+
+        #  These dirs must exist before caching 
+        #  is first called or it will not work.
+        #  The upload action also does not like dirs with leading dots.
+      - name: Make the cache dir
+        shell: pwsh
+        run: |
+          New-Item -Path "$env:PERL_LOCAL_LIB_ROOT" -ItemType Directory
+          ls /Users/runner/perl5
+          New-Item -Path "$env:PERL_CPANM_HOME" -ItemType Directory
+          ls /Users/runner/_cpanm
+
+      - name: Prepare for cache
+        shell: cmd
+        run: |
+          set PATH=%SP_PATHS%;%PATH%
+          path
+          perl -V > perlversion.txt
+          ::  change the checksum so we refresh the cache
+          echo '20260513b' >> perlversion.txt
+          
+      - name: Cache CPAN modules
+        uses: actions/cache@v4
+        if: "!cancelled()"
         with:
-          perl-version: "5.38.2"
-          distribution: strawberry
-          install-modules-with: cpanm
-          install-modules-args: --with-develop --with-configure --verbose
+          path: \Users\runner\perl5
+          key: ${{ runner.os }}-build-${{ hashFiles('perlversion.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ hashFiles('perlversion.txt') }}
+
+      - name: Install cpan deps 
+        shell: pwsh
+        run: |
+          $env:CMAKE_BUILD_PARALLEL_LEVEL=4
+          # set PATH=%SP_PATHS%;%PATH%
+          # path
+          $env:PATH = "$env:SP_PATHS;$env:PATH"
+          echo $env:PATH
+          # set PERL_CPANM_HOME=/Users/runner/.cpanm
+          perl -E'say $^V'
+          cpanm --installdeps .
+
 
       - name: run tests
         run: |
           #echo 1
+          $env:PATH = "$env:SP_PATHS;$env:PATH"
+          echo $env:PATH
+          perl -v
           perl -E'say join q{ }, @INC'
           prove -l t
+
+      - name: Upload cpanm dir
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpanm_dir
+          path: ${{ env.PERL_CPANM_HOME }}
+          include-hidden-files: true
+
+      # - name: Upload perl5 dir
+        # if: failure()
+        # uses: actions/upload-artifact@v4
+        # with:
+          # name: perl5_dir_win
+          # path: \Users\runner\perl5
+          # #include-hidden-files: true

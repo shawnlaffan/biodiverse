@@ -32,16 +32,15 @@ my $bandaid_text = '(This is a bandaid solution until we get hyperlinks working)
 
 my $base_url = 'http://purl.org/biodiverse/wiki/';
 
-my $wiki_indices_page = $VERSION =~ /_/ ? 'IndicesDevVersion': 'Indices';
-
 my %subs_and_urls = (
     help_show_link_to_web_help         => $base_url . 'Home',
-    help_show_calculations_and_indices => $base_url . $wiki_indices_page,
-    help_show_spatial_conditions       => $base_url . 'SpatialConditions',
+    help_show_quick_start_guide        => 'https://biogeospatial.github.io/biodiverse-quick-start',
+    help_show_calculations_and_indices => 'https://biogeospatial.github.io/biodiverse-indices',
+    help_show_spatial_conditions       => 'https://biogeospatial.github.io/biodiverse-spatial-conditions',
     help_show_release_notes            => $base_url . 'ReleaseNotes',
-    help_show_citation                 => $base_url . 'PublicationsList',
-    help_show_mailing_list             => 'http://groups.google.com/group/biodiverse-users',
-    help_show_blog                     => 'http://biodiverse-analysis-software.blogspot.com.au',
+    help_show_citation                 => 'https://biogeospatial.github.io/biodiverse-publication-list',
+    help_show_mailing_list             => 'https://groups.google.com/group/biodiverse-users',
+    help_show_blog                     => 'https://biodiverse-analysis-software.blogspot.com.au',
 );
 
 sub _make_url_accessors {

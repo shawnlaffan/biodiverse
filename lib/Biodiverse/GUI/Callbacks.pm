@@ -84,8 +84,8 @@ my %help_funcs = (
     on_menu_list_calculations_and_indices_activate => {
         METHOD => 'help_show_calculations_and_indices',
     },
-    on_menu_list_spatial_conditions_activate => {
-        METHOD => 'help_show_calculations_and_indices',
+    on_menu_quick_start_guide_activate => {
+        METHOD => 'help_show_quick_start_guide',
     },
     on_menu_list_spatial_conditions_activate => {
         METHOD => 'help_show_spatial_conditions',

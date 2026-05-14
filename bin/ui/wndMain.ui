@@ -653,12 +653,20 @@ This cannot be undone.  </property>
           <accelerator key="F1"/>
         </child>
         <child>
-          <object class="GtkAction" id="menu_list_calculations_and_indices">
-            <property name="name">menu_list_calculations_and_indices</property>
-            <property name="tooltip" translatable="yes">List the available calculations and indices (uses selected BaseData) </property>
-            <property name="label" translatable="yes">List calculations and indices</property>
-            <signal handler="on_menu_list_calculations_and_indices_activate" name="activate"/>
-          </object>
+            <object class="GtkAction" id="menu_quick_start_guide">
+                <property name="name">menu_quick_start_guide</property>
+                <property name="tooltip" translatable="yes">Open the Biodiverse quick start guide</property>
+                <property name="label" translatable="yes">Quick start guide</property>
+                <signal handler="on_menu_quick_start_guide_activate" name="activate"/>
+            </object>
+        </child>
+        <child>
+            <object class="GtkAction" id="menu_list_calculations_and_indices">
+                <property name="name">menu_list_calculations_and_indices</property>
+                <property name="tooltip" translatable="yes">List the available calculations and indices</property>
+                <property name="label" translatable="yes">List calculations and indices</property>
+                <signal handler="on_menu_list_calculations_and_indices_activate" name="activate"/>
+            </object>
         </child>
         <child>
           <object class="GtkAction" id="menu_list_spatial_conditions_activate">
@@ -817,6 +825,7 @@ This cannot be undone.  </property>
         </menu>
         <menu action="menu_help">
           <menuitem action="help_viewer"/>
+          <menuitem action="menu_quick_start_guide"/>
           <menuitem action="menu_list_calculations_and_indices"/>
           <menuitem action="menu_list_spatial_conditions_activate"/>
           <menuitem action="menu_release_notes"/>

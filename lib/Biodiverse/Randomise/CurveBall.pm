@@ -266,7 +266,11 @@ sub rand_curveball {
 
             my $ratio =  $n1 / $n2;
             my $nswaps = 0;
-            if ($ratio > 0.05) {
+            if ($n1 == 1) {
+                #  straight proportional sample 1/(n1+n2)
+                $nswaps = ($rand->rand > 1/(1+$n2)) ? 1 : 0;
+            }
+            elsif ($ratio > 0.05) {
                 #  hypergeometric sampler
                 use PDL::Lite;
                 use PDL::GSL::CDF ();

@@ -52,12 +52,23 @@ sub get_metadata_rand_curveball {
         type       => 'boolean',
         tooltip    =>
             'If true then a hypergeometric sampling approach will be used to determine which labels to swap. '
-            . 'This is currently slightly slower than the default approach.',
+                . 'This is currently slightly slower than the default approach.',
+    }, $parameter_rand_metadata_class;
+
+    my $maxswap = bless {
+        name       => 'maxswap',
+        label_text => "Swap as many labels as possible",
+        default    => 0,
+        type       => 'boolean',
+        tooltip    =>
+            'If true then as many labels as possible will be swapped each iteration. '
+                . 'The default approach swaps a number in the interval [0, maxswaps].',
     }, $parameter_rand_metadata_class;
 
     my @parameters = (
         $self->get_curveball_spatial_allocation_metadata,
         $hyperball,
+        $maxswap,
         $self->get_common_independent_swaps_metadata,
         $self->get_common_rand_metadata,
     );
@@ -103,6 +114,7 @@ sub rand_curveball {
     my $progress_bar = Biodiverse::Progress->new(no_gui_progress => $args{no_gui_progress});
 
     my $use_hyper = !!$args{use_hypergeometric};
+    my $maxswap   = !!$args{maxswap};
 
     my $vcache = $self->get_volatile_cache;
     \my %sequence_cache  = $vcache->get_cached_href('CURVEBALL_PDL_SEQUENCES');
@@ -258,7 +270,18 @@ sub rand_curveball {
 
         my (@swap_from1, @swap_from2);
 
-        if ($use_hyper) {
+        if ($maxswap) {
+            my $nswaps = $max_labels_to_swap - 1; #  index, not a count
+            $rand->shuffle(\@swappable_from1)     #  shuffle array
+              if @swappable_from1 > $nswaps;      #  if needed
+            $#swappable_from1 = $nswaps;          #  shorten it
+            \@swap_from1 = \@swappable_from1;     #  take alias
+            $rand->shuffle(\@swappable_from2)     #  same for swaps2
+              if @swappable_from2 > $nswaps;
+            $#swappable_from2 = $nswaps;
+            \@swap_from2 = \@swappable_from2;
+        }
+        elsif ($use_hyper) {
             my ($n1, $n2) = List::MoreUtils::minmax (
                 scalar @swappable_from1,
                 scalar @swappable_from2,

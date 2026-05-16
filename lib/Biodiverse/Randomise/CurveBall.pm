@@ -288,18 +288,25 @@ sub rand_curveball {
             }
             next MAIN_ITER if !$nswaps;
 
-            #  List::Util::sample is _very_ slow...
-            # local $List::Util::RAND = sub {$rand->rand};
-            # @swap_from1 = List::Util::sample ($nswaps, @swappable_from1);
-            # @swap_from2 = List::Util::sample ($nswaps, @swappable_from2);
-            $nswaps--;  #  used as an index instead of a count now
-            $rand->shuffle(\@swappable_from1); #  shuffle array
-            $#swappable_from1 = $nswaps;       #  shorten it
-            \@swap_from1 = \@swappable_from1;  #  take alias
-            $rand->shuffle(\@swappable_from2); #  rinse and repeat for array 2
-            $#swappable_from2 = $nswaps;
-            \@swap_from2 = \@swappable_from2;
-
+            if ($nswaps == 1) {
+                #  grab a pair
+                $swap_from1[0] = $swappable_from1[$rand->irand % @swappable_from1];
+                $swap_from2[0] = $swappable_from2[$rand->irand % @swappable_from2];
+            }
+            else {
+                #  Find $nswaps samples
+                #  List::Util::sample is _very_ slow...
+                # local $List::Util::RAND = sub {$rand->rand};
+                # @swap_from1 = List::Util::sample ($nswaps, @swappable_from1);
+                # @swap_from2 = List::Util::sample ($nswaps, @swappable_from2);
+                $nswaps--;                         #  used as an index instead of a count now
+                $rand->shuffle(\@swappable_from1); #  shuffle array
+                $#swappable_from1 = $nswaps;       #  shorten it
+                \@swap_from1 = \@swappable_from1;  #  take alias
+                $rand->shuffle(\@swappable_from2); #  rinse and repeat for array 2
+                $#swappable_from2 = $nswaps;
+                \@swap_from2 = \@swappable_from2;
+            }
         }
         else {
             #  Old and incorrect method as the number of swaps is in the interval [0,$n], not exactly $n.

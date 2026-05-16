@@ -47,19 +47,21 @@ sub get_metadata_rand_curveball {
 
     my $hyperball = bless {
         name       => 'use_hypergeometric',
-        label_text => "Use a hypergeomtric sampler to generate swap sets",
+        label_text => 'Use hypergeometric sampler',
         default    => 0,
         type       => 'boolean',
+        box_group  => 'Curveball',
         tooltip    =>
-            'If true then a hypergeometric sampling approach will be used to determine which labels to swap. '
+            'If true then a hypergeometric sampling approach will be used to determine how many labels to swap. '
                 . 'This is currently slightly slower than the default approach.',
     }, $parameter_rand_metadata_class;
 
     my $maxswap = bless {
         name       => 'maxswap',
-        label_text => "Swap as many labels as possible",
+        label_text => 'Swap maximum labels',
         default    => 0,
         type       => 'boolean',
+        box_group  => 'Curveball',
         tooltip    =>
             'If true then as many labels as possible will be swapped each iteration. '
                 . 'The default approach swaps a number in the interval [0, maxswaps].',

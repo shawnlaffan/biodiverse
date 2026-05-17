@@ -252,7 +252,7 @@ sub rand_curveball {
         }
         else {
             $group1 = $sorted_groups[int $rand->rand ($n_groups)];
-            $group2 = $sorted_groups[int $rand->rand($n_groups)];
+            $group2 = $sorted_groups[int $rand->rand ($n_groups)];
             while ($group1 eq $group2) {  #  keep trying - a bit wasteful but should be rare
                 $group2 = $sorted_groups[int $rand->rand($n_groups)];
             }
@@ -264,30 +264,28 @@ sub rand_curveball {
         my @swappable_from1 = sort +keys_difference (%labels1, %labels2);
         my @swappable_from2 = sort +keys_difference (%labels2, %labels1);
 
-        my $max_labels_to_swap
-            = min (scalar @swappable_from1, scalar @swappable_from2);
+        my ($n1, $n2) = List::MoreUtils::minmax (
+            scalar @swappable_from1,
+            scalar @swappable_from2,
+        );
 
         #  skip if nothing can be swapped
-        next MAIN_ITER if !$max_labels_to_swap;
+        next MAIN_ITER if !$n1;
 
         my (@swap_from1, @swap_from2);
 
         if ($use_max_swap) {
-            my $max_idx = $max_labels_to_swap - 1;        #  index
-            $rand->shuffle(\@swappable_from1)             #  shuffle array if needed
-              if @swappable_from1 > $max_labels_to_swap;
-            $#swappable_from1 = $max_idx;                 #  shorten it
-            \@swap_from1 = \@swappable_from1;             #  take alias
-            $rand->shuffle(\@swappable_from2)             #  same for swaps2
-              if @swappable_from2 > $max_labels_to_swap;
+            my $max_idx = $n1 - 1;             #  index
+            $rand->shuffle(\@swappable_from1)  #  shuffle array if needed
+              if @swappable_from1 > $n1;
+            $#swappable_from1 = $max_idx;      #  shorten it
+            \@swap_from1 = \@swappable_from1;  #  take alias
+            $rand->shuffle(\@swappable_from2)  #  same for swaps2
+              if @swappable_from2 > $n1;
             $#swappable_from2 = $max_idx;
             \@swap_from2 = \@swappable_from2;
         }
         elsif ($use_hyper) {
-            my ($n1, $n2) = List::MoreUtils::minmax (
-                scalar @swappable_from1,
-                scalar @swappable_from2,
-            );
 
             my $ratio =  $n1 / $n2;
             my $nswaps = 0;
@@ -309,7 +307,7 @@ sub rand_curveball {
             }
             else {
                 #  binomial approximation when many more $n2 than $n1
-                $nswaps = $rand->binomial($ratio, $max_labels_to_swap);
+                $nswaps = $rand->binomial($ratio, $n1);
             }
             next MAIN_ITER if !$nswaps;
 
@@ -360,7 +358,7 @@ sub rand_curveball {
             #  Search the first part of the list.
             #  Anything originally from label_list2 is to be swapped to label_list1.
             my $i = 0;
-            while ($s_count != $max_labels_to_swap && $i < @swappable_from1) {
+            while ($s_count != $n1 && $i < @swappable_from1) {
                 if (exists $labels2{$shuffled[$i]}) {
                     push @swap_from2, $shuffled[$i];
                     $s_count++;

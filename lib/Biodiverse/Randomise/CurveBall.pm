@@ -57,14 +57,14 @@ sub get_metadata_rand_curveball {
     }, $parameter_rand_metadata_class;
 
     my $maxswap = bless {
-        name       => 'maxswap',
+        name       => 'use_max_swap',
         label_text => 'Swap maximum labels',
         default    => 0,
         type       => 'boolean',
         box_group  => 'Curveball',
         tooltip    =>
             'If true then as many labels as possible will be swapped each iteration. '
-                . 'The default approach swaps a number in the interval [0, maxswaps].',
+                . 'The default approach swaps a random number in the interval [0, maxswaps].',
     }, $parameter_rand_metadata_class;
 
     my @parameters = (
@@ -115,8 +115,8 @@ sub rand_curveball {
 
     my $progress_bar = Biodiverse::Progress->new(no_gui_progress => $args{no_gui_progress});
 
-    my $use_hyper = !!$args{use_hypergeometric};
-    my $maxswap   = !!$args{maxswap};
+    my $use_hyper    = !!$args{use_hypergeometric};
+    my $use_max_swap = !!$args{use_max_swap};
 
     my $vcache = $self->get_volatile_cache;
     \my %sequence_cache  = $vcache->get_cached_href('CURVEBALL_PDL_SEQUENCES');
@@ -272,7 +272,7 @@ sub rand_curveball {
 
         my (@swap_from1, @swap_from2);
 
-        if ($maxswap) {
+        if ($use_max_swap) {
             my $nswaps = $max_labels_to_swap - 1; #  index, not a count
             $rand->shuffle(\@swappable_from1)     #  shuffle array
               if @swappable_from1 > $nswaps;      #  if needed

@@ -273,6 +273,7 @@ sub rand_curveball {
         next MAIN_ITER if !$n1;
 
         my (@swap_from1, @swap_from2);
+        my $ratio =  $n1 / $n2;
 
         if ($use_max_swap) {
             my $max_idx = $n1 - 1;             #  index
@@ -285,16 +286,20 @@ sub rand_curveball {
             $#swappable_from2 = $max_idx;
             \@swap_from2 = \@swappable_from2;
         }
-        elsif ($use_hyper) {
+        elsif ($n1 == 1 || $ratio <= 0.05 || $use_hyper) {
 
-            my $ratio =  $n1 / $n2;
             my $nswaps = 0;
             if ($n1 == 1) {
                 #  straight proportional sample 1/(n1+n2)
-                $nswaps = ($rand->rand > 1/(1+$n2)) ? 1 : 0;
+                $nswaps = ($rand->rand > 1/(1+$n2)) || 0;
             }
-            elsif ($ratio > 0.05) {
-                #  hypergeometric sampler
+            elsif ($ratio <= 0.05) {
+                #  Quick binomial approximation to hypergeometric when many more $n2 than $n1.
+                #  "binomial(ratio, n1)" is the number retained so take the complement.
+                $nswaps = $n1 - $rand->binomial($ratio, $n1);
+            }
+            elsif (!!$use_hyper) {
+                #  Hypergeometric sampler.  Slow.
                 use PDL::Lite;
                 use PDL::GSL::CDF ();
                 my $r   = 1 - $rand->rand;  #  interval (0,1]
@@ -305,10 +310,7 @@ sub rand_curveball {
                 #  the hypergeom distr tells us how many remain so the swap count is the n1 complement
                 $nswaps = $n1 - PDL::vsearch_insert_leftmost($r, $cdf)->sclr;
             }
-            else {
-                #  binomial approximation when many more $n2 than $n1
-                $nswaps = $rand->binomial($ratio, $n1);
-            }
+
             next MAIN_ITER if !$nswaps;
 
             if ($nswaps == 1) {

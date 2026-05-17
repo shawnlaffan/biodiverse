@@ -273,14 +273,14 @@ sub rand_curveball {
         my (@swap_from1, @swap_from2);
 
         if ($use_max_swap) {
-            my $nswaps = $max_labels_to_swap - 1; #  index, not a count
-            $rand->shuffle(\@swappable_from1)     #  shuffle array
-              if @swappable_from1 > $nswaps;      #  if needed
-            $#swappable_from1 = $nswaps;          #  shorten it
-            \@swap_from1 = \@swappable_from1;     #  take alias
-            $rand->shuffle(\@swappable_from2)     #  same for swaps2
-              if @swappable_from2 > $nswaps;
-            $#swappable_from2 = $nswaps;
+            my $max_idx = $max_labels_to_swap - 1;        #  index
+            $rand->shuffle(\@swappable_from1)             #  shuffle array if needed
+              if @swappable_from1 > $max_labels_to_swap;
+            $#swappable_from1 = $max_idx;                 #  shorten it
+            \@swap_from1 = \@swappable_from1;             #  take alias
+            $rand->shuffle(\@swappable_from2)             #  same for swaps2
+              if @swappable_from2 > $max_labels_to_swap;
+            $#swappable_from2 = $max_idx;
             \@swap_from2 = \@swappable_from2;
         }
         elsif ($use_hyper) {

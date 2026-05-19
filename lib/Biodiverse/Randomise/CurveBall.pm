@@ -305,13 +305,7 @@ sub rand_curveball {
             elsif (!!$use_hyper) {
                 #  Hypergeometric sampler.  Slow.
                 use PDL::Lite;
-                use PDL::GSL::CDF ();
-                #  The peak probability is at n1/n2 when n1 < n2, so CDF==0.5 at n1/n2.
-                #  This means we can work with the left side of the distribution in nearly all cases.
-                #  It is not exact but works well enough for this application given the probabilities
-                #  to the right of 2*n1/n2 are of the order of one in one million or less.
-                state $lower_ratio = 1e-6;
-                state $upper_ratio = 1 - $lower_ratio;
+                use PDL::GSL::CDF qw/gsl_cdf_hypergeometric_P/;
                 my $r    = 1 - $rand->rand;  #  interval (0,1]
                 my $N    = $n1 + $n2;
                 my ($kmin, $kmax) = (0, $n1);
@@ -320,17 +314,20 @@ sub rand_curveball {
                 #  which should cover 99.99% or more of cases.
                 if ($N > 40) {  #  arbitrary threshold
                     my $mean  = $n1 * $n1 / $N;
-                    #  Width is a multiple of the SD.  We could use 3 but the plus step
-                    #  in the CDF calc below balances out any savings.
+                    #  Width is a multiple of the SD.  We could use 3 but...
                     my $width = 4 * sqrt($mean * ($N-$n1) / $N * ($N-$n1) / ($N-1));
-                    $kmin = $r > $lower_ratio ? max(0,  floor($mean - $width)) : 0;
-                    $kmax = $r < $upper_ratio ? min($n1, ceil($mean + $width)) : $n1;
+                    my $kleft  = max(0,  floor($mean - $width));
+                    my $kright = min($n1, ceil($mean + $width));
+                    $kmin = $kleft > 0 && $r > gsl_cdf_hypergeometric_P($kleft, $n1, $n2, $n1)->at(0)
+                        ? $kleft  : 0;
+                    $kmax = $kright < $n1 && $r < gsl_cdf_hypergeometric_P($kright, $n1, $n2, $n1)->at(0)
+                        ? $kright : $n1;
                 }
                 my $cdf  = $cum_hgeom_cache{"$n1:$n2:$kmin:$kmax"} //= do {
                     my $k = $sequence_cache{"$kmin:$kmax"}  #  caching helps across many iterations
                         //= $kmin
                         ? $kk->slice("$kmin:$kmax")  #  slices give a small speed gain
-                        : PDL->sequence($kmax-$kmin+1);
+                        : PDL->sequence($kmax+1);
                     $k->gsl_cdf_hypergeometric_P($n1, $n2, $n1);
                 };
 

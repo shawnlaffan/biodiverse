@@ -229,6 +229,9 @@ sub rand_curveball {
     my $attempts    = 0;
     my $moved_pairs = 0;
 
+    #  we slice from this when using the hypergeometric sampler
+    my $kk = $use_hyper ? PDL->sequence($n_labels) : undef;
+
     say "[RANDOMISE] Target swap count is $target_swap_count, max attempts is $max_swap_attempts";
 
     #  handle pathological case of only one group
@@ -324,10 +327,11 @@ sub rand_curveball {
                     $kmax = $r < $upper_ratio ? min($n1, ceil($mean + $width)) : $n1;
                 }
                 my $cdf  = $cum_hgeom_cache{"$n1:$n2:$kmin:$kmax"} //= do {
-                    my $k = $sequence_cache{$kmax - $kmin} //= PDL->sequence($kmax-$kmin+1);
-                    $kmin
-                        ? $k->plus($kmin)->gsl_cdf_hypergeometric_P($n1, $n2, $n1)
-                        : $k->gsl_cdf_hypergeometric_P($n1, $n2, $n1);
+                    my $k = $sequence_cache{"$kmin:$kmax"}  #  caching helps across many iterations
+                        //= $kmin
+                        ? $kk->slice("$kmin:$kmax")  #  slices give a small speed gain
+                        : PDL->sequence($kmax-$kmin+1);
+                    $k->gsl_cdf_hypergeometric_P($n1, $n2, $n1);
                 };
 
                 #  The hypergeom distr tells us how many remain so the swap count is the n1 complement

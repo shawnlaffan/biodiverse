@@ -21,6 +21,7 @@ use List::Util qw /max min/;
 use Statistics::Sampler::Multinomial 1.00;
 use Statistics::Sampler::Multinomial::Indexed 1.00;
 use Hash::Util::Set qw /keys_difference/;
+use POSIX qw /floor ceil/;
 
 use Biodiverse::Metadata::Parameter;
 my $parameter_rand_metadata_class = 'Biodiverse::Metadata::Parameter';
@@ -302,13 +303,36 @@ sub rand_curveball {
                 #  Hypergeometric sampler.  Slow.
                 use PDL::Lite;
                 use PDL::GSL::CDF ();
-                my $r   = 1 - $rand->rand;  #  interval (0,1]
-                my $cdf = $cum_hgeom_cache{"$n1:$n2"} //= do {
-                    my $k = $sequence_cache{$n1} //= PDL->sequence($n1+1);
-                    $k->gsl_cdf_hypergeometric_P($n1, $n2, $n1);
+                #  The peak probability is at n1/n2 when n1 < n2, so CDF==0.5 at n1/n2.
+                #  This means we can work with the left side of the distribution in nearly all cases.
+                #  It is not exact but works well enough for this application given the probabilities
+                #  to the right of 2*n1/n2 are of the order of one in one million or less.
+                state $lower_ratio = 1e-6;
+                state $upper_ratio = 1 - $lower_ratio;
+                my $r    = 1 - $rand->rand;  #  interval (0,1]
+                my $N    = $n1 + $n2;
+                my ($kmin, $kmax) = (0, $n1);
+                #  We normally don't need all the values in the CDF.
+                #  This approach gets us the centre of mass within 4sd of the mean
+                #  which should cover 99.99% or more of cases.
+                if ($N > 40) {  #  arbitrary threshold
+                    my $mean  = $n1 * $n1 / $N;
+                    #  Width is a multiple of the SD.  We could use 3 but the plus step
+                    #  in the CDF calc below balances out any savings.
+                    my $width = 4 * sqrt($mean * ($N-$n1) / $N * ($N-$n1) / ($N-1));
+                    $kmin = $r > $lower_ratio ? max(0,  floor($mean - $width)) : 0;
+                    $kmax = $r < $upper_ratio ? min($n1, ceil($mean + $width)) : $n1;
+                }
+                my $cdf  = $cum_hgeom_cache{"$n1:$n2:$kmin:$kmax"} //= do {
+                    my $k = $sequence_cache{$kmax - $kmin} //= PDL->sequence($kmax-$kmin+1);
+                    $kmin
+                        ? $k->plus($kmin)->gsl_cdf_hypergeometric_P($n1, $n2, $n1)
+                        : $k->gsl_cdf_hypergeometric_P($n1, $n2, $n1);
                 };
-                #  the hypergeom distr tells us how many remain so the swap count is the n1 complement
-                $nswaps = $n1 - PDL::vsearch_insert_leftmost($r, $cdf)->sclr;
+
+                #  The hypergeom distr tells us how many remain so the swap count is the n1 complement
+                #  for the leftmost search.  This is the kmax complement for the subset adjusted for kmin.
+                $nswaps = $kmax - PDL::vsearch_insert_leftmost($r, $cdf)->sclr + $kmin;
             }
 
             next MAIN_ITER if !$nswaps;

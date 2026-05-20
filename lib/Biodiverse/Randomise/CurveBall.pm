@@ -318,10 +318,16 @@ sub rand_curveball {
                     my $width = 4 * sqrt($mean * ($N-$n1) / $N * ($N-$n1) / ($N-1));
                     my $kleft  = max(0,  floor($mean - $width));
                     my $kright = min($n1, ceil($mean + $width));
-                    $kmin = $kleft > 0 && $r > gsl_cdf_hypergeometric_P($kleft, $n1, $n2, $n1)->at(0)
-                        ? $kleft  : 0;
-                    $kmax = $kright < $n1 && $r < gsl_cdf_hypergeometric_P($kright, $n1, $n2, $n1)->at(0)
-                        ? $kright : $n1;
+                    $kmin = $kleft
+                        if $kleft > 0
+                            && (   $r > 0.01  #  avoid some gsl calls - micro-optimisation
+                                || $r > gsl_cdf_hypergeometric_P($kleft, $n1, $n2, $n1)->at(0)
+                            );
+                    $kmax = $kright
+                        if $kright < $n1
+                            && (   $r < 0.99  #  avoid some gsl calls - micro-optimisation
+                                || $r < gsl_cdf_hypergeometric_P($kright, $n1, $n2, $n1)->at(0)
+                            );
                 }
                 my $cdf  = $cum_hgeom_cache{"$n1:$n2:$kmin:$kmax"} //= do {
                     my $k = $sequence_cache{"$kmin:$kmax"}  #  caching helps across many iterations

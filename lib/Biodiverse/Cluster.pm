@@ -2904,6 +2904,12 @@ sub get_embedded_tree {
     return;
 }
 
+# just a wrapper
+sub get_embedded_trees {
+    my $self = shift;
+    return $self->get_embedded_tree;
+}
+
 sub get_embedded_matrix {
     my $self = shift;
 

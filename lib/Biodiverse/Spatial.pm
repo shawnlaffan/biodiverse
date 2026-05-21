@@ -1642,6 +1642,21 @@ sub get_embedded_tree {
     return;
 }
 
+sub get_embedded_trees {
+    my $self = shift;
+
+    my @trees = ($self->get_embedded_tree);
+
+    #  now check the spatial conditions
+    foreach my $cond (grep {blessed $_} $self->get_spatial_conditions_arr) {
+        push @trees, ($cond->get_tree_ref // ());
+    }
+
+    @trees = List::Util::uniq @trees;
+
+    return wantarray ? @trees : \@trees;
+}
+
 sub get_embedded_matrix {
     my $self = shift;
     

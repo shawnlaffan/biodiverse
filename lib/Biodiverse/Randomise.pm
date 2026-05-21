@@ -387,6 +387,28 @@ sub set_default_args {
     return $args_hash;
 }
 
+sub get_embedded_trees {
+    my $self = shift;
+
+    my @trees;
+
+    my $args = $self->get_analysis_args;
+
+    foreach my $arg (grep {blessed $_} values %$args) {
+        if ($arg->isa('Biodiverse::Tree')) {
+            push @trees, $arg;
+        }
+        elsif ($arg->can('get_tree_ref')) {
+            push @trees, ($arg->get_tree_ref // ());
+        }
+    }
+
+    @trees = List::Util::uniq (@trees);
+
+    return @trees;
+}
+
+
 #####################################################################
 #
 #  run the randomisation analysis for a set number of iterations,

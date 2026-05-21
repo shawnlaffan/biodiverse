@@ -617,10 +617,9 @@ sub get_embedded_trees {
 
   OUTPUT:
     foreach my $output (@$outputs) {
-        next OUTPUT if !$output->can('get_embedded_tree');
+        next OUTPUT if !$output->can('get_embedded_trees');
 
-        my $tree = $output->get_embedded_tree;
-        if ($tree) {
+        foreach my $tree ($output->get_embedded_trees) {
             $tree_hash{$tree} = $tree;
         }
     }

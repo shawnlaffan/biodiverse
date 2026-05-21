@@ -53,6 +53,7 @@ requires "parent";
 requires "rlib";
 #requires "Math::AnyNum";  #  until we don't
 requires "Statistics::Descriptive::PDL", "0.15";
+requires "PDL::GSL::CDF";
 
 # suggests "Panda::Lib";
 suggests "Data::Recursive";

@@ -151,6 +151,8 @@ sub delete_output {
     }
     elsif ( $type =~ /Randomise/ ) {
         $self->do_delete_randomisation_lists(@_);
+        $self->{RANDOMISATION_OUTPUTS}{$name} = undef;
+        delete $self->{RANDOMISATION_OUTPUTS}{$name};
     }
     else {
         croak "[BASEDATA] Cannot delete this type of output: $class\n";
@@ -172,7 +174,7 @@ sub do_delete_randomisation_lists {
     my $object = $args{output};
     my $name   = $object->get_name;
 
-    say "[BASEDATA] Deleting randomisation output $name";
+    say "[BASEDATA] Deleting randomisation output lists associated with $name";
 
     #  loop over the spatial outputs and clear the lists
   BY_SPATIAL_OUTPUT:
@@ -204,11 +206,6 @@ sub do_delete_randomisation_lists {
         my @lists_to_delete = ( @node_lists, @lists );
         $cl_output->delete_lists_below( lists => \@lists_to_delete );
     }
-
-    $self->{RANDOMISATION_OUTPUTS}{$name} = undef;
-    delete $self->{RANDOMISATION_OUTPUTS}{$name};
-
-    $object->set_param( BASEDATA_REF => undef );    #  free its parent ref
 
     return;
 }

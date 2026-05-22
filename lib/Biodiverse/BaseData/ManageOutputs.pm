@@ -136,32 +136,32 @@ sub delete_output {
     $type =~ s/.*://;    #  get the last part
     print "[BASEDATA] Deleting $type output $name\n";
 
+    my $output_key;
+
     if ( $type =~ /Spatial/ ) {
-        $self->{SPATIAL_OUTPUTS}{$name} = undef;
-        delete $self->{SPATIAL_OUTPUTS}{$name};
+        $output_key = 'SPATIAL_OUTPUTS';
     }
     elsif ( $type =~ /Cluster|Tree|RegionGrower/ ) {
-        my $x = eval { $object->delete_all_cached_values };
-        $self->{CLUSTER_OUTPUTS}{$name} = undef;
-        delete $self->{CLUSTER_OUTPUTS}{$name};
+        $output_key = 'CLUSTER_OUTPUTS';
     }
     elsif ( $type =~ /Matrix/ ) {
-        $self->{MATRIX_OUTPUTS}{$name} = undef;
-        delete $self->{MATRIX_OUTPUTS}{$name};
+        $output_key = 'MATRIX_OUTPUTS';
     }
     elsif ( $type =~ /Randomise/ ) {
         $self->do_delete_randomisation_lists(@_);
-        $self->{RANDOMISATION_OUTPUTS}{$name} = undef;
-        delete $self->{RANDOMISATION_OUTPUTS}{$name};
+        $output_key = 'RANDOMISATION_OUTPUTS';
     }
     else {
         croak "[BASEDATA] Cannot delete this type of output: $class\n";
     }
 
+    eval { $object->delete_all_cached_values };
+
+    delete $self->{$output_key}{$name};
+
     if ( $args{delete_basedata_ref} // 1 ) {
         $object->set_param( BASEDATA_REF => undef );    #  free its parent ref
     }
-    $object = undef;                                    #  clear it
 
     return;
 }

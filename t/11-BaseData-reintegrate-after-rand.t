@@ -433,6 +433,93 @@ sub test_reintegrate {
 
 }
 
+sub test_reintegrate_reseeded {
+    #  use a small basedata for test speed purposes
+    #  cargo culted setup code - should be abstracted
+    my %args = (
+        x_spacing   => 1,
+        y_spacing   => 1,
+        CELL_SIZES  => [1, 1],
+        x_max       => 5,
+        y_max       => 5,
+        x_min       => 1,
+        y_min       => 1,
+    );
+
+    my $rand_name = 'random1';
+
+    my $bd1a = get_basedata_object (%args);
+
+    #  need some extra labels so the randomisations have something to do
+    $bd1a->add_element (group => '0.5:0.5', label => 'extra1');
+    $bd1a->add_element (group => '1.5:0.5', label => 'extra1');
+
+    my $sp = $bd1a->add_spatial_output (name => 'sp1');
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()', 'sp_circle(radius => 1)'],
+        calculations => [ qw /calc_endemism_central/ ],
+    );
+
+    my $bd2a = $bd1a->clone;
+    my $bd2b = $bd1a->clone;
+
+    my $prng_seed   = 2345;
+    my $prng_reseed = $prng_seed + 100;
+
+    my $rand1 = $bd1a->add_randomisation_output (name => $rand_name);
+    my %run_args = (
+        function   => 'rand_structured',
+        iterations => 2,
+    );
+    $rand1->run_analysis (
+        %run_args,
+        seed => $prng_seed,
+    );
+    my $bd1b = $bd1a->clone;
+    #  another 2 iters but reseeded so it should reset the contents
+    my $rand1b = $bd1b->get_randomisation_output_ref (name => $rand_name);
+    $rand1b->run_analysis (
+        %run_args,
+        new_seed => $prng_reseed
+    );
+
+    #  now run two separate instances, one with seed, one with reseed
+    my $rand2a = $bd2a->add_randomisation_output (name => $rand_name);
+    $rand2a->run_analysis (
+        %run_args,
+        seed => $prng_seed,
+    );
+    my $rand2b = $bd2b->add_randomisation_output (name => $rand_name);
+    $rand2b->run_analysis (
+        %run_args,
+        seed => $prng_reseed,
+    );
+
+    $bd1a->reintegrate_after_parallel_randomisations (
+        from => $bd1b,
+    );
+    $bd2a->reintegrate_after_parallel_randomisations (
+        from => $bd2b,
+    );
+
+    check_integrated_matches_single_run_spatial (
+        orig   => $bd1a->get_spatial_output_ref (name => 'sp1'),
+        integr => $bd2a->get_spatial_output_ref (name => 'sp1'),
+    );
+
+    #  use the whole state array as first items are the same for these data
+    my $sorter = sub {join (' ', @$a) cmp join ' ', @$b};
+
+    my @init1 = sort $sorter @{$rand1->get_prng_init_states_array};
+    my @init2 = sort $sorter @{$rand2a->get_prng_init_states_array};
+    is \@init1, \@init2, 'Init state arrays match, reseeded randomisations';
+
+    my @end1 = sort $sorter $rand1->get_prng_end_states_array;
+    my @end2 = sort $sorter $rand2a->get_prng_end_states_array;
+    is \@end1, \@end2, 'End state arrays match, reseeded randomisations';
+
+}
+
 sub _test_reintegrated_basedata_unchanged {
     my ($bd1, $sub_name) = @_;
 

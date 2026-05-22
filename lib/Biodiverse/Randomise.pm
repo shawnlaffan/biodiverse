@@ -448,6 +448,9 @@ sub run_randomisation {
     #  an in-place clean up of conditions objects
     $self->clean_sp_cond_object_args (args => \%args);
 
+    #  always check this, but it is not part of the metadata yet as it is not useful in the GUI
+    my $new_seed = $args{new_seed};
+
     #  load any predefined args, overriding user specified ones
     #  unless they are flagged as mutable.
     if (my $ref = $self->get_analysis_args) {
@@ -478,7 +481,30 @@ sub run_randomisation {
         );
     }
 
-    my $rand_object = $self->initialise_rand (%args);
+    my $rand_object = $self->initialise_rand(%args);
+    if (defined $new_seed) {
+        my $rand_reseeded = Biodiverse::Common->initialise_rand(seed => $new_seed);
+        my $new_state = $rand_reseeded->get_state;
+        my $comp = Data::Compare->new;
+        my $init_states = $self->get_prng_init_states_array;
+        if (grep {$comp->Cmp($_, $new_state)} @$init_states) {
+            say "[Randomisation] Reseed arg will be ignored as it has already been used";
+        }
+        else {
+            #  reset the results to avoid doubling up in any reintegration
+            if ($self->get_param ('TOTAL_ITERATIONS')) {
+                say "[Randomisation] new_seed arg passed.  Resetting all previous results for this randomisation.";
+                $self->get_basedata_ref->do_delete_randomisation_lists(output => $self);
+                @$init_states = ();
+                @{$self->get_prng_end_states_array}   = ();
+                @{$self->get_prng_total_counts_array} = ();
+                $self->set_param (TOTAL_ITERATIONS => 0);
+            }
+            #  we store the init state in this method so cannot simply re-use $rand_reseeded
+            $rand_object = $self->initialise_rand(state => $new_state, reseed => 1);
+            $self->store_rand_state_init(rand_object => $rand_object);
+        }
+    };
 
     #  get a list of refs for objects that are to be compared
     #  get the lot by default

@@ -2243,7 +2243,7 @@ sub initialise_rand {
     my $self = shift;
     my %args = @_;
     my $seed  = $args{seed};
-    my $state = $self->get_param ('RAND_LAST_STATE')
+    my $state = (!$args{reseed} && blessed $self ? $self->get_param ('RAND_LAST_STATE') : 0)
         || $args{state};
 
     say "[COMMON] Ignoring PRNG seed argument ($seed) because the PRNG state is defined"
@@ -2263,7 +2263,7 @@ sub initialise_rand {
     }
     croak $e if $e;
 
-    if (! defined $self->get_param ('RAND_INIT_STATE')) {
+    if (blessed ($self) && ! defined $self->get_param ('RAND_INIT_STATE')) {
         $self->store_rand_state_init (rand_object => $rand);
     }
 

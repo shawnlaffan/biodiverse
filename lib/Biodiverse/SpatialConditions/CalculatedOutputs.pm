@@ -286,7 +286,6 @@ sub vec_sp_spatial_output_passed_defq {
 
     my $passed_defq = $sp->get_pass_def_query;
     if (!$passed_defq) {
-        say STDERR 'no def q';
         #  no defq so everything passes
         my $n = $bd->get_group_count;
         $ndarray = PDL->ones($n)->transpose;

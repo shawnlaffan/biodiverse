@@ -238,7 +238,7 @@ sub test_points_in_polygons {
     #  should all be the same
     foreach my $el (keys %expected_nbrs) {
         my $list_ref = $sp_to_test3->get_list_ref (element => $el, list => '_NBR_SET1');
-        is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el with fild name and val");
+        is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el with field name and val");
     }
 
     my $sp_to_test4 = $bd->add_spatial_output (name => 'test_sp_point_in_poly_shape4 negated');
@@ -258,7 +258,7 @@ sub test_points_in_polygons {
     #  should all be the same
     foreach my $el (keys %expected_nbrs) {
         my $list_ref = $sp_to_test4->get_list_ref (element => $el, list => '_NBR_SET1');
-        is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el with fild name and val");
+        is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el with field name and val");
     }
 
     my $cond_FID = <<~"EOC"
@@ -284,7 +284,7 @@ sub test_points_in_polygons {
     #  should all be the same
     foreach my $el (keys %expected_nbrs) {
         my $list_ref = $sp_to_test_FID->get_list_ref (element => $el, list => '_NBR_SET1');
-        is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el with fild name and val");
+        is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el with field name and val");
     }
 
 

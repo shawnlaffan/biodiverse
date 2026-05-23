@@ -473,6 +473,70 @@ sub get_cache_sp_points_in_same_poly_shape {
     return $cache;
 }
 
+sub get_gdal_polygon_layer {
+    my $self = shift;
+    my %args = @_;
+
+    my $filename = $args{file};
+
+    if ($filename =~ /\.gdbtable$/) {
+        $filename = path($filename)->parent;
+        croak "Invalid geodatabase $filename" if $filename !~ /\.gdb$/;
+    }
+
+    my $vcache = $self->get_volatile_cache;
+
+    my $field_name = $args{field_name};
+    my $field_val  = $args{field_val};
+
+    my $cache_name
+        = join ':',
+        'POLYGONS',
+        $filename,
+        ($field_name // $NULL_STRING),
+        ($field_val  // $NULL_STRING);
+    my $cached = $vcache->get_cached_value($cache_name);
+
+    return $cached if $cached;
+
+    my $p = path ($filename);
+
+    my ($dataset, $layer, $layer_name);
+    if ($filename =~ /\.shp$/) {
+        $dataset    = Geo::GDAL::FFI::Open("$filename");
+        $layer_name = $p->basename =~ s/.shp$//r;
+        $layer      = $dataset->GetLayer();
+    }
+    else {
+        my $ds;
+        if ($p =~ /\.\w+$/) {
+            $ds = "$p";
+        }
+        else {
+            $ds = $p->parent->stringify;
+            $layer_name = $p->basename;
+        }
+        $dataset = Geo::GDAL::FFI::Open($ds);
+
+        if (!length $layer_name) {
+            $layer_name = ($dataset->GetLayerNames)[0];
+        }
+        $layer = $dataset->GetLayerByName($layer_name);
+    }
+
+    if (defined $field_name) {
+        $layer = $dataset->ExecuteSQL(
+            qq{SELECT * FROM "$layer_name" WHERE "$field_name" = "$field_val"},
+            undef,
+            'SQLite',
+        );
+    }
+
+    $vcache->set_cached_value($cache_name => $layer);
+
+    return $layer;
+}
+
 sub get_polygons_from_shapefile {
     my $self = shift;
     my %args = @_;

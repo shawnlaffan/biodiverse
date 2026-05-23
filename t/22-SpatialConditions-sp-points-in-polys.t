@@ -261,6 +261,33 @@ sub test_points_in_polygons {
         is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el with fild name and val");
     }
 
+    my $cond_FID = <<~"EOC"
+            sp_point_in_poly_shape (
+                file       => '$polygon_file',
+                field_val  => '2',
+            )
+        EOC
+    ;
+
+    my $sp_to_test_FID = $bd->add_spatial_output (name => 'test_sp_point_in_poly_shape_FID');
+    $sp_to_test_FID->run_analysis (
+        calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
+        spatial_conditions => [$cond_FID],
+    );
+
+    $expected = [qw /
+        3:1 3:2
+        4:1 4:2
+        5:1 5:2
+    /];
+
+    #  should all be the same
+    foreach my $el (keys %expected_nbrs) {
+        my $list_ref = $sp_to_test_FID->get_list_ref (element => $el, list => '_NBR_SET1');
+        is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el with fild name and val");
+    }
+
+
 }
 
 

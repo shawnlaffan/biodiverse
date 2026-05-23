@@ -479,12 +479,26 @@ sub get_gdal_polygon_layer {
         $layer = $dataset->GetLayerByName($layer_name);
     }
 
-    if (defined $field_name) {
-        $layer = $dataset->ExecuteSQL(
-            qq{SELECT * FROM "$layer_name" WHERE "$field_name" = "$field_val"},
-            undef,
-            'SQLite',
-        );
+    if (defined $field_name || defined $field_val) {
+        if (defined $field_name) {
+            $layer = $dataset->ExecuteSQL(
+                qq{SELECT * FROM "$layer_name" WHERE "$field_name" = "$field_val"},
+                undef,
+                'SQLite',
+            );
+        }
+        else {
+            croak "field_val value must be an integer if field_name is not passed, got $field_val"
+                if !looks_like_number($field_val) || ($field_val - POSIX::floor ($field_val) != 0);
+            #  User wants FID based selection.  We document that we count from 1
+            #  so the offset is FID-1.
+            my $offset = $field_val - 1;
+            $layer = $dataset->ExecuteSQL(
+                qq{SELECT * FROM "$layer_name" LIMIT 1 OFFSET $offset},
+                undef,
+                'SQLite',
+            );
+        }
     }
 
     $vcache->set_cached_value($cache_name => $layer);

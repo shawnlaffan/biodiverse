@@ -16,6 +16,7 @@ use Tree::STR ();
 use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max any/;
 use Ref::Util qw /is_arrayref/;
+use Path::Tiny qw /path/;
 
 use Biodiverse::Metadata::SpatialConditions;
 
@@ -96,14 +97,19 @@ sub get_metadata_sp_point_in_poly_shape {
 
     my $examples = $self->_get_shp_examples;
 
+    my $descr = <<~'EOD'
+        Select groups that occur within a polygon or polygons from a geospatial
+        feature data set such as a shapefile or geopackage layer
+        EOD
+    ;
+
     my %metadata = (
-        description =>
-            'Select groups that occur within a polygon or polygons extracted from a shapefile',
+        description => $descr,
         required_args => [
             qw /file/,
         ],
         optional_args => [
-            qw /point field_name field_val axes no_cache/,
+            qw /point field_name field_val axes/,
         ],
         index_no_use => 1,
         result_type  => 'always_same',
@@ -126,49 +132,59 @@ sub sp_point_in_poly_shape {
 
     \my @axes = $args{axes} // [0,1];
 
-    my $no_cache = $args{no_cache};
-
     my $point = $args{point} // $self->get_current_coord_array;
 
     my ($x_coord, $y_coord) = @{$point}[@axes];
 
     my $cached_results = $self->get_cache_sp_point_in_poly_shape(%args);
     my $point_string = join (':', $x_coord, $y_coord);
-    if (!$no_cache && exists $cached_results->{$point_string}) {
-        return $cached_results->{$point_string};
+
+    return $cached_results->{$point_string}
+        if defined $cached_results->{$point_string};
+
+    my $poly_layer = $self->get_gdal_polygon_layer (%args);
+
+    my $point_fc = $self->get_basedata_ref->get_groups_as_geopackage(as_points => 1, %args{axes});
+    my $point_layer = $point_fc->GetLayerByIndex(0);
+
+    #  initialise hash with one key per element
+    my %intersection_hash;
+    $point_layer->ResetReading;
+    while (my $feature = $point_layer->GetNextFeature) {
+        my $key = join ':',
+            $feature->GetField('Axis0'),
+            $feature->GetField('Axis1');
+        $intersection_hash{$key} = 0;
     }
 
-    my $polys = $self->get_polygons_from_shapefile (%args);
+    #  now assign 1 to all intersecting features
+    my $intersection = $point_layer->Intersection($poly_layer);
+    while (my $feature = $intersection->GetNextFeature) {
+        my $key = join ':',
+            $feature->GetField('Axis0'),
+            $feature->GetField('Axis1');
+        $intersection_hash{$key}++;
+    }
 
-    my $pointshape = Geo::ShapeFile::Point->new(X => $x_coord, Y => $y_coord);
-
-    my $rtree = $self->get_rtree_for_polygons_from_shapefile (%args, shapes => $polys);
-    my $bd = $self->get_basedata_ref;
-    my @cell_sizes = $bd->get_cell_sizes;
-    my ($cell_x, $cell_y) = @cell_sizes[@axes];
-    my @rect = (
-        $x_coord - $cell_x / 2,
-        $y_coord - $cell_y / 2,
-        $x_coord + $cell_x / 2,
-        $y_coord + $cell_y / 2,
+    $self->set_cache_sp_point_in_poly_shape (
+        %args,
+        cache=> \%intersection_hash,
     );
 
-    my $rtree_polys = $rtree->query_partly_within_rect(@rect);
-
-    foreach my $poly (@$rtree_polys) {
-        if ($poly->contains_point($pointshape, 0)) {
-            if (!$no_cache) {
-                $cached_results->{$point_string} = 1;
-            }
-            return 1;
-        }
+    #  we've been passed a coord that is not one of the group centroids
+    if (!defined $intersection_hash{$point_string}) {
+        my $point_geom = Geo::GDAL::FFI::Geometry->new(WKT => "POINT ($x_coord $y_coord)");
+        my ($fname, $lyrname) = $self->_parse_gdal_dataset_layer_string_aa ($args{file});
+        my $ds = Geo::GDAL::FFI::Open($fname);
+        my $filtered = $ds->ExecuteSQL (
+            qq{SELECT * FROM "$lyrname"},
+            $point_geom,
+            'SQLite',
+        );
+        $intersection_hash{$point_string} = $filtered->GetFeatureCount(1);
     }
 
-    if (!$no_cache) {
-        $cached_results->{$point_string} = 0;
-    }
-
-    return;
+    return $intersection_hash{$point_string};
 }
 
 sub _aggregate_point_in_poly_shape {
@@ -280,7 +296,7 @@ sub vec_sp_point_in_poly_shape {
             last;
         }
     }
-say STDERR '++++++ VEC';
+
     return $self->_aggregate_hash_to_pdl(\%intersects);
 }
 
@@ -458,12 +474,17 @@ sub get_cache_points_in_shapepoly {
 }
 
 sub get_cache_sp_point_in_poly_shape {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
     my $cache_name = $self->get_cache_name_sp_point_in_poly_shape(%args);
-    my $cache = $self->get_cached_value($cache_name, {});
-    return $cache;
+    return $self->get_cached_href($cache_name);
 }
+
+sub set_cache_sp_point_in_poly_shape {
+    my ($self, %args) = @_;
+    my $cache_name = $self->get_cache_name_sp_point_in_poly_shape(%args);
+    return $self->set_cached_value($cache_name => $args{cache});
+}
+
 
 sub get_cache_sp_points_in_same_poly_shape {
     my $self = shift;
@@ -471,6 +492,30 @@ sub get_cache_sp_points_in_same_poly_shape {
     my $cache_name = $self->get_cache_name_sp_points_in_same_poly_shape(%args);
     my $cache = $self->get_cached_value_dor_set_default_href($cache_name);
     return $cache;
+}
+
+#  parse a filename with layer appended
+sub _parse_gdal_dataset_layer_string_aa {
+    my ($self, $fstring) = @_;
+
+    if ($fstring =~ /\.gdbtable$/) {
+        $fstring = path($fstring)->parent;
+        croak "Invalid geodatabase $fstring" if $fstring !~ /\.gdb$/;
+    }
+
+    my $p = path ($fstring);
+
+    my ($fname, $layer_name);
+    if ($fstring =~ /\.shp$/) {
+        $layer_name = $p->basename =~ s/.shp$//r;
+        $fname      = $fstring;
+    }
+    else {
+        $fname      = $p->parent->stringify;
+        $layer_name = $p->basename;
+    }
+
+    return wantarray ? ($fname, $layer_name) : [$fname, $layer_name];
 }
 
 sub get_gdal_polygon_layer {

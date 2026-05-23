@@ -76,12 +76,20 @@ sub _get_shp_examples {
             file  => 'c:\biodiverse\data\coastline_lamberts',
             point => \@nbrcoord,
         );
+
+        # Is the neighbour coord in a geopackage layer?
+        sp_point_in_poly_shape (
+            file  => 'c:/biodiverse/data/coastline.gpkg/layername',
+            point => \@nbrcoord,
+        );
+
         # Is the neighbour coord in a shapefile's second polygon (counting from 1)?
         sp_point_in_poly_shape (
             file      => 'c:\biodiverse\data\coastline_lamberts',
             field_val => 2,
             point     => \@nbrcoord,
         );
+
         # Is the neighbour coord in a polygon with value 2 in the OBJECT_ID field?
         sp_point_in_poly_shape (
             file       => 'c:\biodiverse\data\coastline_lamberts',
@@ -229,6 +237,12 @@ sub get_metadata_sp_points_in_same_poly_shape {
         #  define neighbour sets using a shapefile
         sp_points_in_same_poly_shape (file => 'path/to/a/shapefile')
 
+        #  define neighbour sets using a layer called "somename" in a geopackage called file.gpkg
+        sp_points_in_same_poly_shape (file => 'path/to/a/file.gpkg/somename')
+
+        #  define neighbour sets using a layer called "somename" in a geodatabase called file.gdb
+        sp_points_in_same_poly_shape (file => 'path/to/a/file.gdb/somename')
+
         #  return true when the neighbour coord is in the same
         #  polygon as an arbitrary point
         sp_points_in_same_poly_shape (
@@ -350,15 +364,6 @@ sub get_cache_name_sp_points_in_same_poly_shape {
     return $cache_name;
 }
 
-sub get_cache_points_in_shapepoly {
-    my $self = shift;
-    my %args = @_;
-
-    my $cache_name = 'cache_' . $args{file};
-    my $cache = $self->get_cached_value_dor_set_default_aa ($cache_name, {});
-    return $cache;
-}
-
 sub get_cache_sp_point_in_poly_shape {
     my ($self, %args) = @_;
 
@@ -391,8 +396,6 @@ sub get_cache_sp_point_in_poly_shape {
 
     return \%intersection_hash;
 }
-
-
 
 sub get_cache_sp_points_in_same_poly_shape {
     my $self = shift;
@@ -487,111 +490,6 @@ sub get_gdal_polygon_layer {
     $vcache->set_cached_value($cache_name => $layer);
 
     return $layer;
-}
-
-sub get_polygons_from_shapefile {
-    my $self = shift;
-    my %args = @_;
-
-    my $file = $args{file};
-    $file =~ s/\.(shp|shx|dbf)$//;
-
-    my $field_name = $args{field_name};
-    my $field_val  = $args{field_val};
-
-    my $cache_name
-        = join ':',
-        'SHAPEPOLYS',
-        $file,
-        ($field_name // $NULL_STRING),
-        ($field_val  // $NULL_STRING);
-    my $cached = $self->get_cached_value($cache_name);
-
-    return (wantarray ? @$cached : $cached) if $cached;
-
-    my $shapefile = Geo::ShapeFile->new($file);
-
-    my @shapes;
-    if ((!defined $field_name || $field_name eq 'FID') && defined $field_val) {
-        my $shape = $shapefile->get_shp_record($field_val);
-        push @shapes, $shape;
-    }
-    else {
-        my $progress_bar = Biodiverse::Progress->new(gui_only => 1);
-        my $n_shapes = $shapefile->shapes();
-
-        REC:
-        for my $rec (1 .. $n_shapes) {  #  brute force search
-
-            $progress_bar->update(
-                "Processing $file\n" .
-                    "Shape $rec of $n_shapes\n",
-                $rec / $n_shapes,
-            );
-
-            #  get the lot
-            if ((!defined $field_name || $field_name eq 'FID') && !defined $field_val) {
-                push @shapes, $shapefile->get_shp_record($rec);
-                next REC;
-            }
-
-            #  get all that satisfy the condition
-            my %db = $shapefile->get_dbf_record($rec);
-            my $is_num = looks_like_number ($db{$field_name});
-            if ($is_num ? $field_val == $db{$field_name} : $field_val eq $db{$field_name}) {
-                push @shapes, $shapefile->get_shp_record($rec);
-                #last REC;
-            }
-        }
-    }
-
-    $self->set_cached_value($cache_name => \@shapes);
-
-    return wantarray ? @shapes : \@shapes;
-}
-
-sub get_rtree_for_polygons_from_shapefile {
-    my $self = shift;
-    my %args = @_;
-
-    my $shapes = $args{shapes};
-
-    my $rtree_cache_name = $self->get_cache_name_rtree(%args);
-    my $rtree = $self->get_cached_value($rtree_cache_name);
-
-    if (!$rtree) {
-        #print "Building R-Tree $rtree_cache_name\n";
-        $rtree = $self->build_rtree_for_shapepolys (shapes => $shapes);
-        $self->set_cached_value($rtree_cache_name => $rtree);
-    }
-
-    return $rtree;
-}
-
-sub get_cache_name_rtree {
-    my ($self, %args) = @_;
-    my $cache_name = join ':',
-        'STRTREE',
-        $args{file},
-        ($args{field} || $NULL_STRING),
-        ($args{field_val} // $NULL_STRING);
-    return $cache_name;
-}
-
-sub build_rtree_for_shapepolys {
-    my ($self, %args) = @_;
-
-    my $shapes = $args{shapes};
-
-    my $rtree = Tree::STR->new(
-        [map {[$_->x_min, $_->y_min, $_->x_max, $_->y_max, $_]} @$shapes]
-    );
-    # foreach my $shape (@$shapes) {
-    #     my @bbox = ($shape->x_min, $shape->y_min, $shape->x_max, $shape->y_max);
-    #     $rtree->insert($shape, @bbox);
-    # }
-
-    return $rtree;
 }
 
 1;

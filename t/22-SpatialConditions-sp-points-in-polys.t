@@ -52,7 +52,7 @@ sub main {
 
 
 sub _create_polygon_file {
-    my ($type, $bounds, $file) = @_;
+    my ($type, $bounds, $file, $lyr_name) = @_;
 
     state %drivers = (
         shp  => 'ESRI Shapefile',
@@ -71,7 +71,7 @@ sub _create_polygon_file {
     my $layer = Geo::GDAL::FFI::GetDriver($driver)
         ->Create($file)
         ->CreateLayer({
-        Name => 'for_testing_' . time(),
+        Name => $lyr_name // ('for_testing_' . time()),
         GeometryType => 'Polygon',
         Fields => ['name'],
     });
@@ -96,6 +96,35 @@ sub _create_polygon_file {
     return $file;
 }
 
+sub test_get_gdal_polygon_layer {
+    my $bounds = [[0, 0, 2, 2.4], [2, 0, 5, 2.4], [0, 2.4, 4, 3.4], [4, 3.4, 10, 10]];
+
+    foreach my $type ('shp', 'gpkg', 'gdb') {
+        my @lyr_names = 'layer';
+        push @lyr_names, 'undef'
+            if $type ne 'shp';
+        foreach my $lyr_name (@lyr_names) {
+            my $polygon_file = _create_polygon_file('gpkg', $bounds, undef, $lyr_name);
+            $polygon_file .= "/$lyr_name" if defined $lyr_name;
+
+            my $cond = Biodiverse::SpatialConditions->new(conditions => 'sp_self_only()');
+
+            my $layer = $cond->get_gdal_polygon_layer (
+                file => $polygon_file,
+            );
+
+            is $layer->GetFeatureCount(), 4, "GDAL poly data set, $type, layer name: " . ($lyr_name // 'undef');
+
+            my $layer_subset = $cond->get_gdal_polygon_layer (
+                file       => $polygon_file,
+                field_name => 'name',
+                field_val  => 'b',
+            );
+
+            is $layer_subset->GetFeatureCount(), 1, "GDAL poly data set $type, filtered";
+        }
+    }
+}
 
 sub test_points_in_polygons {
     my $bd = Biodiverse::BaseData->new (

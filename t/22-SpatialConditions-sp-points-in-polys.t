@@ -65,8 +65,15 @@ sub _create_polygon_file {
         gdb  => 'gdb',
     );
 
+    state $i = 0;
+    $i++;
     my $driver = $drivers{$type} // croak "invalid type $type";
-    $file //= (path (tempdir(), 'sp_points_in_poly_shape_tester') . time() . '.' . $extensions{$type});
+    my $poss_name = path (tempdir(), 'sp_points_in_poly_shape_tester' . "_${i}." . $extensions{$type});
+    while ($poss_name->exists) {
+        $i++;
+        $poss_name = (path (tempdir(), 'sp_points_in_poly_shape_tester') . "_${i}." . $extensions{$type});
+    }
+    $file //= $poss_name;
 
     my $layer = Geo::GDAL::FFI::GetDriver($driver)
         ->Create($file)

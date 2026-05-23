@@ -247,12 +247,9 @@ sub test_vectorised_conditions {
     foreach my $cond (@conditions) {
         $cond_i++;
 
-        diag $cond;
-
         my $defq = !$seen{$cond} && $cond =~ /sp_spatial_output_passed_defq/
             ? Biodiverse::SpatialConditions::DefQuery->new(conditions => '$y > 2')
             : undef;
-        diag "Defq: $defq" if $defq;
 
         $seen{$cond}++;
 

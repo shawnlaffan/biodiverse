@@ -142,49 +142,17 @@ sub sp_point_in_poly_shape {
     return $cached_results->{$point_string}
         if defined $cached_results->{$point_string};
 
-    my $poly_layer = $self->get_gdal_polygon_layer (%args);
-
-    my $point_fc = $self->get_basedata_ref->get_groups_as_geopackage(as_points => 1, %args{axes});
-    my $point_layer = $point_fc->GetLayerByIndex(0);
-
-    #  initialise hash with one key per element
-    my %intersection_hash;
-    $point_layer->ResetReading;
-    while (my $feature = $point_layer->GetNextFeature) {
-        my $key = join ':',
-            $feature->GetField('Axis0'),
-            $feature->GetField('Axis1');
-        $intersection_hash{$key} = 0;
-    }
-
-    #  now assign 1 to all intersecting features
-    my $intersection = $point_layer->Intersection($poly_layer);
-    while (my $feature = $intersection->GetNextFeature) {
-        my $key = join ':',
-            $feature->GetField('Axis0'),
-            $feature->GetField('Axis1');
-        $intersection_hash{$key}++;
-    }
-
-    $self->set_cache_sp_point_in_poly_shape (
-        %args,
-        cache=> \%intersection_hash,
+    #  if we get here then we've been passed a coord that is not one of the group centroids
+    my $point_geom = Geo::GDAL::FFI::Geometry->new(WKT => "POINT ($x_coord $y_coord)");
+    my ($fname, $lyrname) = $self->_parse_gdal_dataset_layer_string_aa ($args{file});
+    my $ds = Geo::GDAL::FFI::Open($fname);
+    my $filtered = $ds->ExecuteSQL (
+        qq{SELECT * FROM "$lyrname"},
+        $point_geom,
+        'SQLite',
     );
 
-    #  we've been passed a coord that is not one of the group centroids
-    if (!defined $intersection_hash{$point_string}) {
-        my $point_geom = Geo::GDAL::FFI::Geometry->new(WKT => "POINT ($x_coord $y_coord)");
-        my ($fname, $lyrname) = $self->_parse_gdal_dataset_layer_string_aa ($args{file});
-        my $ds = Geo::GDAL::FFI::Open($fname);
-        my $filtered = $ds->ExecuteSQL (
-            qq{SELECT * FROM "$lyrname"},
-            $point_geom,
-            'SQLite',
-        );
-        $intersection_hash{$point_string} = $filtered->GetFeatureCount(1);
-    }
-
-    return $intersection_hash{$point_string};
+    return $cached_results->{$point_string} = $filtered->GetFeatureCount(1);
 }
 
 sub _aggregate_point_in_poly_shape {
@@ -475,15 +443,41 @@ sub get_cache_points_in_shapepoly {
 
 sub get_cache_sp_point_in_poly_shape {
     my ($self, %args) = @_;
+
     my $cache_name = $self->get_cache_name_sp_point_in_poly_shape(%args);
-    return $self->get_cached_href($cache_name);
+    my $cached = $self->get_cached_value($cache_name);
+
+    return $cached if $cached;
+
+    my $poly_layer = $self->get_gdal_polygon_layer (%args);
+
+    my $point_fc = $self->get_basedata_ref->get_groups_as_geopackage(as_points => 1, %args{axes});
+    my $point_layer = $point_fc->GetLayerByIndex(0);
+
+    #  initialise hash with one key per element
+    my %intersection_hash;
+    $point_layer->ResetReading;
+    while (my $feature = $point_layer->GetNextFeature) {
+        my $key = join ':',
+            $feature->GetField('Axis0'),
+            $feature->GetField('Axis1');
+        $intersection_hash{$key} = 0;
+    }
+
+    #  now assign 1 to all intersecting features
+    my $intersection = $point_layer->Intersection($poly_layer);
+    while (my $feature = $intersection->GetNextFeature) {
+        my $key = join ':',
+            $feature->GetField('Axis0'),
+            $feature->GetField('Axis1');
+        $intersection_hash{$key}++;
+    }
+
+    $self->set_cached_value($cache_name => \%intersection_hash);
+
+    return \%intersection_hash;
 }
 
-sub set_cache_sp_point_in_poly_shape {
-    my ($self, %args) = @_;
-    my $cache_name = $self->get_cache_name_sp_point_in_poly_shape(%args);
-    return $self->set_cached_value($cache_name => $args{cache});
-}
 
 
 sub get_cache_sp_points_in_same_poly_shape {

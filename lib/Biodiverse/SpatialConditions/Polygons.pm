@@ -180,43 +180,17 @@ sub _aggregate_point_in_poly_shape {
 
     return if join (':', @axes) ne '0:1';  #  only axes 0,1 for now
 
-    my $polys = $self->get_polygons_from_shapefile (%$method_args);
-    my $shape_rtree = $self->get_rtree_for_polygons_from_shapefile(%$method_args, shapes => $polys);
+    \my %cache = $self->get_cache_sp_point_in_poly_shape(%$method_args);
 
-    my $bd_str_tree = $bd->get_strtree_index;
+    my %intersects = $negated
+        ? map {!$cache{$_} ? ($_ => 1) : ()} keys %cache
+        : map { $cache{$_} ? ($_ => 1) : ()} keys %cache;
 
-    my @cell_sizes = $bd->get_cell_sizes;
-    my ($cell_x2, $cell_y2) = map {$_ / 2} @cell_sizes[@axes];
-
-    my %intersects;
-
-    my $groups = $bd_str_tree->query_partly_within_rect (@{$shape_rtree->bbox});
-    foreach my $group (@$groups) {
-        my $point = $bd->get_group_element_as_array_aa($group);
-        my ($x_coord, $y_coord) = @{$point}[@axes];
-        my $pointshape = Geo::ShapeFile::Point->new(X => $x_coord, Y => $y_coord);
-
-        my @rect = (
-            $x_coord - $cell_x2,
-            $y_coord - $cell_y2,
-            $x_coord + $cell_x2,
-            $y_coord + $cell_y2,
-        );
-
-        my $rtree_polys = $shape_rtree->query_partly_within_rect(@rect);
-
-        foreach my $poly (@$rtree_polys) {
-            next if !$poly->contains_point($pointshape, 0);
-            $intersects{$group}++;
-            last;
-        }
-    }
-
-    if ($negated) {
-        my $gps = $bd->get_groups_ref->get_element_hash;
-        delete local @{$gps}{keys %intersects};
-        %intersects = %$gps;
-        $_ = 1 for values %intersects;  #  set values to 1
+    #  The cache might have extras so filter down.
+    #  Ordinarily we will have as many cache keys as we have groups.
+    \my %gps = $bd->get_groups_ref->get_element_hash;
+    if (keys %gps != keys %cache) {
+        %intersects = map {exists $gps{$_} ? ($_ => 1) : ()} keys %intersects;
     }
 
     return wantarray ? %intersects : \%intersects;

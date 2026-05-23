@@ -251,13 +251,12 @@ sub get_metadata_sp_points_in_same_poly_shape {
     ;
 
     my %metadata = (
-        description =>
-            'Returns true when two points are within the same shapefile polygon',
+        description => 'Returns true when two points intersect the same polygon',
         required_args => [
             qw /file/,
         ],
         optional_args => [
-            qw /point1 point2 axes no_cache/,
+            qw /point1 point2 axes/,
         ],
         index_no_use => 1,
         result_type  => 'non_overlapping',
@@ -273,7 +272,6 @@ sub sp_points_in_same_poly_shape {
     my %args = @_;
     my $h = $self->get_current_args;
 
-    my $no_cache = $args{no_cache};
     my $axes = $args{axes} || [0,1];
 
     my $point1 = $args{point1} // $h->{coord_array};
@@ -284,15 +282,14 @@ sub sp_points_in_same_poly_shape {
     my $x_coord2 = $point2->[$axes->[0]];
     my $y_coord2 = $point2->[$axes->[1]];
 
-    my $cached_results     = $self->get_cache_sp_points_in_same_poly_shape(%args);
+    my $cached_results = $self->get_cache_sp_points_in_same_poly_shape(%args);
 
     my $point_string1 = join (':', $x_coord1, $y_coord1, $x_coord2, $y_coord2);
     my $point_string2 = join (':', $x_coord2, $y_coord2, $x_coord1, $y_coord1);
-    if (!$no_cache) {
-        for my $point_string ($point_string1, $point_string2) {
-            return $cached_results->{$point_string}
-                if (exists $cached_results->{$point_string});
-        }
+
+    for my $point_string ($point_string1, $point_string2) {
+        return $cached_results->{$point_string}
+            if (exists $cached_results->{$point_string});
     }
 
     my $polys = $self->get_polygons_from_shapefile (%args);
@@ -324,10 +321,7 @@ sub sp_points_in_same_poly_shape {
 
     #  neither is in a polygon
     if (!@$rtree_polys1 && !@$rtree_polys2) {
-        if (!$no_cache) {
-            $cached_results->{$point_string1} = 1;
-        }
-        return 1;
+        return $cached_results->{$point_string1} = 1;
     }
 
     #  get the list of common polys
@@ -352,16 +346,11 @@ sub sp_points_in_same_poly_shape {
 
         if ($pt1_in_poly || $pt2_in_poly) {
             my $result = $pt1_in_poly && $pt2_in_poly;
-            if (!$no_cache) {
-                $cached_results->{$point_string1} = $result;
-            }
-            return $result;
+            return $cached_results->{$point_string1} = $result;
         }
     }
 
-    if (!$no_cache) {
-        $cached_results->{$point_string1} = 0;
-    }
+    $cached_results->{$point_string1} = 0;
 
     return;
 }

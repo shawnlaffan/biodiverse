@@ -432,18 +432,14 @@ sub get_cache_sp_point_in_poly_shape {
     my %intersection_hash;
     $point_layer->ResetReading;
     while (my $feature = $point_layer->GetNextFeature) {
-        my $key = join ':',
-            $feature->GetField('Axis0'),
-            $feature->GetField('Axis1');
+        my $key = $feature->GetField('ELEMENT');
         $intersection_hash{$key} = 0;
     }
 
     #  now assign 1 to all intersecting features
     my $intersection = $point_layer->Intersection($poly_layer);
     while (my $feature = $intersection->GetNextFeature) {
-        my $key = join ':',
-            $feature->GetField('Axis0'),
-            $feature->GetField('Axis1');
+        my $key = $feature->GetField('ELEMENT');
         $intersection_hash{$key}++;
     }
 

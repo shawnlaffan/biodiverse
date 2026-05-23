@@ -17,6 +17,8 @@ use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max any/;
 use Ref::Util qw /is_arrayref/;
 use Path::Tiny qw /path/;
+use Hash::Util::Set qw/keys_disjoint/;
+use Geo::GDAL::FFI;
 
 use Biodiverse::Metadata::SpatialConditions;
 
@@ -289,70 +291,45 @@ sub sp_points_in_same_poly_shape {
 
     for my $point_string ($point_string1, $point_string2) {
         return $cached_results->{$point_string}
-            if (exists $cached_results->{$point_string});
+            if exists $cached_results->{$point_string};
+    }
+    #  always 1 if coord1 == coord2
+    return $cached_results->{$point_string1} = 1
+        if $x_coord1 == $x_coord2 && $y_coord1 == $y_coord2;
+
+    my $vcache = $self->get_volatile_cache;
+
+    \my %feature_cache = $vcache->get_cached_href($self->get_cache_name_sp_points_in_same_poly_shape(%args));
+
+    my ($ds_name, $layername, $ds, $geometries) = @feature_cache{qw/ds_name layername ds geometries/};
+    if (!$ds) {
+        ($ds_name, $layername) = $self->_parse_gdal_dataset_layer_string_aa($args{file});
+        $ds = Geo::GDAL::FFI::Open($ds_name);
     }
 
-    my $polys = $self->get_polygons_from_shapefile (%args);
-
-    my $pointshape1 = Geo::ShapeFile::Point->new(X => $x_coord1, Y => $y_coord1);
-    my $pointshape2 = Geo::ShapeFile::Point->new(X => $x_coord2, Y => $y_coord2);
-
-    my $rtree = $self->get_rtree_for_polygons_from_shapefile (%args, shapes => $polys);
-
-    #  smaller rectangles than the cells so we don't overlap with nbrs - that causes grief later on
-    # my ($dx, $dy) = ($cell_x / 4, $cell_y / 4);
-    #  actually, we only search for centroids so pass a "point"-rect
-    my ($dx, $dy) = (0,0);
-    my @rect1 = (
-        $x_coord1 - $dx,
-        $y_coord1 - $dy,
-        $x_coord1 + $dx,
-        $y_coord1 + $dy,
-    );
-    my $rtree_polys1 = $rtree->query_partly_within_rect(@rect1);
-
-    my @rect2 = (
-        $x_coord2 - $dx,
-        $y_coord2 - $dy,
-        $x_coord2 + $dx,
-        $y_coord2 + $dy,
-    );
-    my $rtree_polys2 = $rtree->query_partly_within_rect(@rect2);
-
-    #  neither is in a polygon
-    if (!@$rtree_polys1 && !@$rtree_polys2) {
-        return $cached_results->{$point_string1} = 1;
-    }
-
-    #  get the list of common polys
-    my @rtree_polys_common = grep {
-        my $check = $_;
-        List::Util::any {$_ eq $check} @$rtree_polys2
-    } @$rtree_polys1;
-
-    my $point1_str = join ':', $x_coord1, $y_coord1;
-    my $point2_str = join ':', $x_coord2, $y_coord2;
-
-    my $cached_pts_in_poly = $self->get_cache_points_in_shapepoly(%args);
-
-    foreach my $poly (@rtree_polys_common) {
-        my $poly_id     = $poly->shape_id();
-
-        my $pt1_in_poly = $cached_pts_in_poly->{$poly_id}{$point1_str}
-            //= $poly->contains_point($pointshape1, 0);
-
-        my $pt2_in_poly = $cached_pts_in_poly->{$poly_id}{$point2_str}
-            //= $poly->contains_point($pointshape2, 0);
-
-        if ($pt1_in_poly || $pt2_in_poly) {
-            my $result = $pt1_in_poly && $pt2_in_poly;
-            return $cached_results->{$point_string1} = $result;
+    my sub get_intersecting_features_hash {
+        my ($x, $y) = @_;
+        my $point_geom = Geo::GDAL::FFI::Geometry->new(WKT => "POINT ($x $y)");
+        my $filtered = $ds->ExecuteSQL (
+            qq{SELECT * FROM "$layername"},
+            $point_geom,
+            'SQLite',
+        );
+        my %h;
+        while (my $feat = $filtered->GetNextFeature) {
+            $h{$feat->GetFID}++;
         }
+        return \%h;
     }
 
-    $cached_results->{$point_string1} = 0;
+    \my %h1 = $feature_cache{filtered_data}{"$x_coord1:$y_coord1"}
+        //= get_intersecting_features_hash ($x_coord1, $y_coord1);
+    \my %h2 = $feature_cache{filtered_data}{"$x_coord2:$y_coord2"}
+        //= get_intersecting_features_hash ($x_coord2, $y_coord2);
 
-    return;
+    my $intersection = (%h1 || %h2) ? !keys_disjoint (%h1, %h2) : 1;
+
+    return $cached_results->{$point_string1} = $intersection || 0;
 }
 
 sub get_cache_name_sp_point_in_poly_shape {
@@ -450,8 +427,7 @@ sub _parse_gdal_dataset_layer_string_aa {
 }
 
 sub get_gdal_polygon_layer {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
     my $filename = $args{file};
 

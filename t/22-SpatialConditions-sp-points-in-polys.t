@@ -129,6 +129,16 @@ sub test_get_gdal_polygon_layer {
             );
 
             is $layer_subset->GetFeatureCount(), 1, "GDAL poly data set $type, filtered";
+
+            my $fid_subset = $cond->get_gdal_polygon_layer (
+                file       => $polygon_file,
+                field_val  => '2',
+            );
+
+            is $fid_subset->GetFeatureCount(), 1, "GDAL poly data set $type, one record filtered by FID";
+
+            my $feature = $fid_subset->GetNextFeature;
+            is $feature->GetField('NAME'), 'b', "GDAL poly data set $type, record filtered by FID";
         }
     }
 }

@@ -315,10 +315,13 @@ sub sp_points_in_same_poly_shape {
 
     \my %feature_cache = $vcache->get_cached_href($self->get_cache_name_sp_points_in_same_poly_shape(%args));
 
-    my ($ds_name, $layername, $ds, $geometries) = @feature_cache{qw/ds_name layername ds geometries/};
+    my ($ds_name, $layername, $ds) = @feature_cache{qw/ds_name layername ds/};
     if (!$ds) {
         ($ds_name, $layername) = $self->_parse_gdal_dataset_layer_string_aa($args{file});
         $ds = Geo::GDAL::FFI::Open($ds_name);
+        $feature_cache{ds}        = $ds;
+        $feature_cache{layername} = $layername;
+        $feature_cache{ds_name}   = $ds_name;
     }
 
     state sub get_intersecting_features_hash {

@@ -331,7 +331,10 @@ sub sp_points_in_same_poly_shape {
         );
         my %h;
         while (my $feat = $filtered->GetNextFeature) {
-            $h{$feat->GetFID}++;
+            use Digest::SHA qw/sha256_hex/;
+            #  ideally we'd have WKB
+            my $sha = sha256_hex $feat->GetGeomField->ExportToWKT();
+            $h{$sha}++;
         }
         return \%h;
     }

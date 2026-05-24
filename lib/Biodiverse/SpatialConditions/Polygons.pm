@@ -383,13 +383,24 @@ sub get_cache_sp_point_in_poly_shape {
     while (my $feature = $point_layer->GetNextFeature) {
         my $key = $feature->GetField('ELEMENT');
         $intersection_hash{$key} = 0;
+        say STDERR '+0+0+0 ' . $key
+            if !defined $args{field_name};
     }
+    $point_layer->ResetReading;
+
+    say STDERR "-- Poly layer has this many features: " . $poly_layer->GetFeatureCount(1);
+    my $feat = $poly_layer->GetFeature(0);
+    say STDERR "-- NAME field is " . $feat->GetField('NAME');
+    say STDERR $feat->GetGeomField(0)->AsText();
+    $poly_layer->ResetReading;
 
     #  now assign 1 to all intersecting features
     my $intersection = $point_layer->Intersection($poly_layer);
     while (my $feature = $intersection->GetNextFeature) {
         my $key = $feature->GetField('ELEMENT');
         $intersection_hash{$key}++;
+        say STDERR '-0-0-0 ' . $key
+            if !defined $args{field_name};
     }
 
     $self->set_cached_value($cache_name => \%intersection_hash);
@@ -455,7 +466,7 @@ sub get_gdal_polygon_layer {
     return $cached if $cached;
 
     my $p = path ($filename);
-
+    say STDERR '=== ' . $p;
     my ($dataset, $layer, $layer_name);
     if ($filename =~ /\.shp$/) {
         $dataset    = Geo::GDAL::FFI::Open("$filename");
@@ -480,10 +491,11 @@ sub get_gdal_polygon_layer {
     }
 
     if (defined $field_name || defined $field_val) {
-        $field_name //= Geo::GDAL::FFI::OGR_L_GetFIDColumn($$layer);
-        $field_name = undef if !length $field_name;
+        # $field_name //= Geo::GDAL::FFI::OGR_L_GetFIDColumn($$layer);
+        # $field_name = undef if !length $field_name;
         if (defined $field_name) {
-            $layer = $dataset->ExecuteSQL(
+# say STDERR  '== ' . qq{-- SELECT * FROM "$layer_name" WHERE "$field_name" = "$field_val"};
+        $layer = $dataset->ExecuteSQL(
                 qq{SELECT * FROM "$layer_name" WHERE "$field_name" = "$field_val"},
                 undef,
                 'SQLite',
@@ -495,11 +507,16 @@ sub get_gdal_polygon_layer {
             #  User wants FID based selection.  We document that we count from 1
             #  so the offset is FID-1.
             my $offset = $field_val - 1;
+# say STDERR  '== ' . qq{SELECT * FROM "$layer_name" LIMIT 1 OFFSET $offset};
             $layer = $dataset->ExecuteSQL(
                 qq{SELECT * FROM "$layer_name" LIMIT 1 OFFSET $offset},
                 undef,
                 'SQLite',
             );
+            say STDERR "++ FID check found this many features: " . $layer->GetFeatureCount(1);
+            my $feat = $layer->GetFeature(0);
+            say STDERR "++ NAME field is " . $feat->GetField('NAME');
+            say STDERR $feat->GetGeomField(0)->AsText();
         }
     }
 

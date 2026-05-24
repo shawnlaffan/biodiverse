@@ -108,7 +108,7 @@ sub test_get_gdal_polygon_layer {
 
     foreach my $type ('shp', 'gpkg', 'gdb') {
         my @lyr_names = 'layer';
-        push @lyr_names, 'undef'
+        push @lyr_names, undef
             if $type ne 'shp';
         foreach my $lyr_name (@lyr_names) {
             my $polygon_file = _create_polygon_file('gpkg', $bounds, undef, $lyr_name);
@@ -168,7 +168,7 @@ sub test_points_in_polygons {
 
     # $bd->save ();
 
-    foreach my $el (keys %expected_nbrs) {
+    foreach my $el (sort keys %expected_nbrs) {
         my $list_ref = $sp_to_test1->get_list_ref (element => $el, list => '_NBR_SET1');
         is ([sort @$list_ref], $expected_nbrs{$el}, "sp_points_in_same_poly_shape correct nbrs for $el");
     }
@@ -189,7 +189,7 @@ sub test_points_in_polygons {
     /];
 
     #  should all be the same
-    foreach my $el (keys %expected_nbrs) {
+    foreach my $el (sort keys %expected_nbrs) {
         my $list_ref = $sp_to_test2->get_list_ref (element => $el, list => '_NBR_SET1');
         is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el, $cond");
     }
@@ -203,7 +203,7 @@ sub test_points_in_polygons {
     );
 
     #  should all be the same
-    foreach my $el (keys %expected_nbrs) {
+    foreach my $el (sort keys %expected_nbrs) {
         my $list_ref = $sp_to_test2a->get_list_ref (element => $el, list => '_NBR_SET1');
         is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el, $cond");
     }
@@ -218,13 +218,13 @@ sub test_points_in_polygons {
 
     #  should all be the same
     my $exp = [sort $sp_to_test2b->get_element_list];
-    foreach my $el (keys %expected_nbrs) {
+    foreach my $el (sort keys %expected_nbrs) {
         my $list_ref = $sp_to_test2b->get_list_ref (element => $el, list => '_NBR_SET1');
         is ([sort @$list_ref], $exp, "sp_point_in_poly_shape correct nbrs for $el, $cond");
     }
 
 
-    my $cond = <<~"EOC"
+    $cond = <<~"EOC"
         sp_point_in_poly_shape (
             file       => '$polygon_file',
             field_name => 'name',
@@ -246,17 +246,21 @@ sub test_points_in_polygons {
     /];
 
     #  should all be the same
-    foreach my $el (keys %expected_nbrs) {
+    foreach my $el (sort keys %expected_nbrs) {
         my $list_ref = $sp_to_test3->get_list_ref (element => $el, list => '_NBR_SET1');
-        is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el with field name and val");
+        is ([sort @$list_ref],
+            $expected,
+            "sp_point_in_poly_shape correct nbrs for $el with field name and val"
+        ) or diag $cond;
     }
 
+    $cond = "! $cond";
     my $sp_to_test4 = $bd->add_spatial_output (name => 'test_sp_point_in_poly_shape4 negated');
     $sp_to_test4->run_analysis (
         calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
-        spatial_conditions => ["! $cond"],
+        spatial_conditions => [$cond],
     );
-# diag "! $cond";
+
     $expected = [qw /
         1:1 1:2 1:3 1:4 1:5
         2:1 2:2 2:3 2:4 2:5
@@ -266,9 +270,12 @@ sub test_points_in_polygons {
     /];
 
     #  should all be the same
-    foreach my $el (keys %expected_nbrs) {
+    foreach my $el (sort keys %expected_nbrs) {
         my $list_ref = $sp_to_test4->get_list_ref (element => $el, list => '_NBR_SET1');
-        is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el with field name and val");
+        is ([sort @$list_ref],
+            $expected,
+            "negated sp_point_in_poly_shape correct nbrs for $el with field name and val"
+        ) or diag $cond;
     }
 
     my $cond_FID = <<~"EOC"
@@ -278,7 +285,7 @@ sub test_points_in_polygons {
             )
         EOC
     ;
-
+say STDERR '+++++ FID check';
     my $sp_to_test_FID = $bd->add_spatial_output (name => 'test_sp_point_in_poly_shape_FID');
     $sp_to_test_FID->run_analysis (
         calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
@@ -292,10 +299,14 @@ sub test_points_in_polygons {
     /];
 
     #  should all be the same
-    foreach my $el (keys %expected_nbrs) {
+    foreach my $el (sort keys %expected_nbrs) {
         my $list_ref = $sp_to_test_FID->get_list_ref (element => $el, list => '_NBR_SET1');
-        is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el with field name and val");
+        is ([sort @$list_ref],
+            $expected,
+            "sp_point_in_poly_shape correct nbrs for $el with field_val only"
+        );
     }
+    say STDERR '+++ FID check completed';
 
 
 }

@@ -321,8 +321,8 @@ sub sp_points_in_same_poly_shape {
         $ds = Geo::GDAL::FFI::Open($ds_name);
     }
 
-    my sub get_intersecting_features_hash {
-        my ($x, $y) = @_;
+    state sub get_intersecting_features_hash {
+        my ($ds, $layername, $x, $y) = @_;
         my $point_geom = Geo::GDAL::FFI::Geometry->new(WKT => "POINT ($x $y)");
         my $filtered = $ds->ExecuteSQL (
             qq{SELECT * FROM "$layername"},
@@ -337,9 +337,9 @@ sub sp_points_in_same_poly_shape {
     }
 
     \my %h1 = $feature_cache{filtered_data}{"$x_coord1:$y_coord1"}
-        //= get_intersecting_features_hash ($x_coord1, $y_coord1);
+        //= get_intersecting_features_hash ($ds, $layername, $x_coord1, $y_coord1);
     \my %h2 = $feature_cache{filtered_data}{"$x_coord2:$y_coord2"}
-        //= get_intersecting_features_hash ($x_coord2, $y_coord2);
+        //= get_intersecting_features_hash ($ds, $layername, $x_coord2, $y_coord2);
 
     my $intersection = (%h1 || %h2) ? !keys_disjoint (%h1, %h2) : 1;
 

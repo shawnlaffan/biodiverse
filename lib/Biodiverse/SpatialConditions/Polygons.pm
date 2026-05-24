@@ -480,6 +480,8 @@ sub get_gdal_polygon_layer {
     }
 
     if (defined $field_name || defined $field_val) {
+        $field_name //= Geo::GDAL::FFI::OGR_L_GetFIDColumn($$layer);
+        $field_name = undef if !length $field_name;
         if (defined $field_name) {
             $layer = $dataset->ExecuteSQL(
                 qq{SELECT * FROM "$layer_name" WHERE "$field_name" = "$field_val"},

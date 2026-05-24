@@ -84,11 +84,11 @@ sub _create_polygon_file {
     });
 
     my $name = 'a';
-    foreach my $b (@$bounds) {
-        my $x1 = $b->[0] + 0.5;
-        my $x2 = $b->[2] + 0.5;
-        my $y1 = $b->[1] + 0.5;
-        my $y2 = $b->[3] + 0.5;
+    foreach my $bb (@$bounds) {
+        my $x1 = $bb->[0] + 0.5;
+        my $x2 = $bb->[2] + 0.5;
+        my $y1 = $bb->[1] + 0.5;
+        my $y2 = $bb->[3] + 0.5;
 
         my $wkt = "POLYGON (($x1 $y1, $x1 $y2, $x2 $y2, $x2 $y1, $x1 $y1))";
 

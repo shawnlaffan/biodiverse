@@ -379,20 +379,16 @@ sub get_cache_sp_point_in_poly_shape {
     return $cached if $cached;
 
     my $poly_layer = $self->get_gdal_polygon_layer (%args);
+    $poly_layer->ResetReading;
 
     my $point_fc = $self->get_basedata_ref->get_groups_as_geopackage(as_points => 1, %args{axes});
     my $point_layer = $point_fc->GetLayerByIndex(0);
+    $point_layer->ResetReading;
 
-    #  initialise hash with one key per element
+    #  initialise intersection hash with one key per element
+    my $groups = $self->get_basedata_ref->get_groups;
     my %intersection_hash;
-    $point_layer->ResetReading;
-    while (my $feature = $point_layer->GetNextFeature) {
-        my $key = $feature->GetField('ELEMENT');
-        $intersection_hash{$key} = 0;
-    }
-    $point_layer->ResetReading;
-
-    $poly_layer->ResetReading;
+    @intersection_hash{@$groups} = (0) x @$groups;
 
     #  now assign 1 to all intersecting features
     my $intersection = $point_layer->Intersection($poly_layer);

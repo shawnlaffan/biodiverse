@@ -173,10 +173,11 @@ sub test_points_in_polygons {
         is ([sort @$list_ref], $expected_nbrs{$el}, "sp_points_in_same_poly_shape correct nbrs for $el");
     }
 
+    my $cond = "sp_point_in_poly_shape (file => '$polygon_file')";
     my $sp_to_test2 = $bd->add_spatial_output (name => 'test_sp_point_in_poly_shape');
     $sp_to_test2->run_analysis (
         calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
-        spatial_conditions => ["sp_point_in_poly_shape (file => '$polygon_file')"],
+        spatial_conditions => [$cond],
     );
 
     my $expected = [qw /
@@ -190,34 +191,36 @@ sub test_points_in_polygons {
     #  should all be the same
     foreach my $el (keys %expected_nbrs) {
         my $list_ref = $sp_to_test2->get_list_ref (element => $el, list => '_NBR_SET1');
-        is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el");
+        is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el, $cond");
     }
 
     #  same as sp_to_test2 but with the aggregate disabled
+    $cond = "1 && sp_point_in_poly_shape (file => '$polygon_file')";
     my $sp_to_test2a = $bd->add_spatial_output (name => 'test_sp_point_in_poly_shape2a');
     $sp_to_test2a->run_analysis (
         calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
-        spatial_conditions => ["1 && sp_point_in_poly_shape (file => '$polygon_file')"],
+        spatial_conditions => [$cond],
     );
 
     #  should all be the same
     foreach my $el (keys %expected_nbrs) {
         my $list_ref = $sp_to_test2a->get_list_ref (element => $el, list => '_NBR_SET1');
-        is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el");
+        is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el, $cond");
     }
 
     #  same as sp_to_test2a but with a coord not among the group centroids
+    $cond = "1 && sp_point_in_poly_shape (file => '$polygon_file', point => [1.1,1.1])";
     my $sp_to_test2b = $bd->add_spatial_output (name => 'test_sp_point_in_poly_shape2b');
     $sp_to_test2b->run_analysis (
         calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
-        spatial_conditions => ["1 && sp_point_in_poly_shape (file => '$polygon_file', point => [1.1,1.1])"],
+        spatial_conditions => [$cond],
     );
 
     #  should all be the same
     my $exp = [sort $sp_to_test2b->get_element_list];
     foreach my $el (keys %expected_nbrs) {
         my $list_ref = $sp_to_test2b->get_list_ref (element => $el, list => '_NBR_SET1');
-        is ([sort @$list_ref], $exp, "sp_point_in_poly_shape correct nbrs for $el");
+        is ([sort @$list_ref], $exp, "sp_point_in_poly_shape correct nbrs for $el, $cond");
     }
 
 

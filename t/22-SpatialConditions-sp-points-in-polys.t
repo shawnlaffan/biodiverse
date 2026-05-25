@@ -52,7 +52,7 @@ sub main {
 
 
 sub _create_polygon_file {
-    my ($type, $bounds, $file) = @_;
+    my ($type, $bounds, $file, $lyr_name) = @_;
 
     state %drivers = (
         shp  => 'ESRI Shapefile',
@@ -65,23 +65,30 @@ sub _create_polygon_file {
         gdb  => 'gdb',
     );
 
+    state $i = 0;
+    $i++;
     my $driver = $drivers{$type} // croak "invalid type $type";
-    $file //= (path (tempdir(), 'sp_points_in_poly_shape_tester') . time() . '.' . $extensions{$type});
+    my $poss_name = path (tempdir(), 'sp_points_in_poly_shape_tester' . "_${i}." . $extensions{$type});
+    while ($poss_name->exists) {
+        $i++;
+        $poss_name = (path (tempdir(), 'sp_points_in_poly_shape_tester') . "_${i}." . $extensions{$type});
+    }
+    $file //= $poss_name;
 
     my $layer = Geo::GDAL::FFI::GetDriver($driver)
         ->Create($file)
         ->CreateLayer({
-        Name => 'for_testing_' . time(),
+        Name => $lyr_name // ('for_testing_' . time()),
         GeometryType => 'Polygon',
         Fields => ['name'],
     });
 
     my $name = 'a';
-    foreach my $b (@$bounds) {
-        my $x1 = $b->[0] + 0.5;
-        my $x2 = $b->[2] + 0.5;
-        my $y1 = $b->[1] + 0.5;
-        my $y2 = $b->[3] + 0.5;
+    foreach my $bb (@$bounds) {
+        my $x1 = $bb->[0] + 0.5;
+        my $x2 = $bb->[2] + 0.5;
+        my $y1 = $bb->[1] + 0.5;
+        my $y2 = $bb->[3] + 0.5;
 
         my $wkt = "POLYGON (($x1 $y1, $x1 $y2, $x2 $y2, $x2 $y1, $x1 $y1))";
 
@@ -96,6 +103,45 @@ sub _create_polygon_file {
     return $file;
 }
 
+sub test_get_gdal_polygon_layer {
+    my $bounds = [[0, 0, 2, 2.4], [2, 0, 5, 2.4], [0, 2.4, 4, 3.4], [4, 3.4, 10, 10]];
+
+    foreach my $type ('shp', 'gpkg', 'gdb') {
+        my @lyr_names = 'layer';
+        push @lyr_names, undef
+            if $type ne 'shp';
+        foreach my $lyr_name (@lyr_names) {
+            my $polygon_file = _create_polygon_file('gpkg', $bounds, undef, $lyr_name);
+            $polygon_file .= "/$lyr_name" if defined $lyr_name;
+
+            my $cond = Biodiverse::SpatialConditions->new(conditions => 'sp_self_only()');
+
+            my $layer = $cond->get_gdal_polygon_layer (
+                file => $polygon_file,
+            );
+
+            is $layer->GetFeatureCount(), 4, "GDAL poly data set, $type, layer name: " . ($lyr_name // 'undef');
+
+            my $layer_subset = $cond->get_gdal_polygon_layer (
+                file       => $polygon_file,
+                field_name => 'name',
+                field_val  => 'b',
+            );
+
+            is $layer_subset->GetFeatureCount(), 1, "GDAL poly data set $type, filtered";
+
+            my $fid_subset = $cond->get_gdal_polygon_layer (
+                file       => $polygon_file,
+                field_val  => '2',
+            );
+
+            is $fid_subset->GetFeatureCount(), 1, "GDAL poly data set $type, one record filtered by FID";
+
+            my $feature = $fid_subset->GetNextFeature;
+            is $feature->GetField('NAME'), 'b', "GDAL poly data set $type, record filtered by FID";
+        }
+    }
+}
 
 sub test_points_in_polygons {
     my $bd = Biodiverse::BaseData->new (
@@ -132,15 +178,19 @@ sub test_points_in_polygons {
 
     # $bd->save ();
 
-    foreach my $el (keys %expected_nbrs) {
+    foreach my $el (sort keys %expected_nbrs) {
         my $list_ref = $sp_to_test1->get_list_ref (element => $el, list => '_NBR_SET1');
-        is ([sort @$list_ref], $expected_nbrs{$el}, "sp_points_in_same_poly_shape correct nbrs for $el");
+        is ([sort @$list_ref],
+            $expected_nbrs{$el},
+            "sp_points_in_same_poly_shape correct nbrs for $el",
+        );
     }
 
+    my $cond = "sp_point_in_poly_shape (file => '$polygon_file')";
     my $sp_to_test2 = $bd->add_spatial_output (name => 'test_sp_point_in_poly_shape');
     $sp_to_test2->run_analysis (
         calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
-        spatial_conditions => ["sp_point_in_poly_shape (file => '$polygon_file')"],
+        spatial_conditions => [$cond],
     );
 
     my $expected = [qw /
@@ -152,12 +202,42 @@ sub test_points_in_polygons {
     /];
 
     #  should all be the same
-    foreach my $el (keys %expected_nbrs) {
+    foreach my $el (sort keys %expected_nbrs) {
         my $list_ref = $sp_to_test2->get_list_ref (element => $el, list => '_NBR_SET1');
-        is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el");
+        is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el, $cond");
     }
 
-    my $cond = <<~"EOC"
+    #  same as sp_to_test2 but with the aggregate disabled
+    $cond = "1 && sp_point_in_poly_shape (file => '$polygon_file')";
+    my $sp_to_test2a = $bd->add_spatial_output (name => 'test_sp_point_in_poly_shape2a');
+    $sp_to_test2a->run_analysis (
+        calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
+        spatial_conditions => [$cond],
+    );
+
+    #  should all be the same
+    foreach my $el (sort keys %expected_nbrs) {
+        my $list_ref = $sp_to_test2a->get_list_ref (element => $el, list => '_NBR_SET1');
+        is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el, $cond");
+    }
+
+    #  same as sp_to_test2a but with a coord not among the group centroids
+    $cond = "1 && sp_point_in_poly_shape (file => '$polygon_file', point => [1.1,1.1])";
+    my $sp_to_test2b = $bd->add_spatial_output (name => 'test_sp_point_in_poly_shape2b');
+    $sp_to_test2b->run_analysis (
+        calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
+        spatial_conditions => [$cond],
+    );
+
+    #  should all be the same
+    my $exp = [sort $sp_to_test2b->get_element_list];
+    foreach my $el (sort keys %expected_nbrs) {
+        my $list_ref = $sp_to_test2b->get_list_ref (element => $el, list => '_NBR_SET1');
+        is ([sort @$list_ref], $exp, "sp_point_in_poly_shape correct nbrs for $el, $cond");
+    }
+
+
+    $cond = <<~"EOC"
         sp_point_in_poly_shape (
             file       => '$polygon_file',
             field_name => 'name',
@@ -179,17 +259,21 @@ sub test_points_in_polygons {
     /];
 
     #  should all be the same
-    foreach my $el (keys %expected_nbrs) {
+    foreach my $el (sort keys %expected_nbrs) {
         my $list_ref = $sp_to_test3->get_list_ref (element => $el, list => '_NBR_SET1');
-        is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el with fild name and val");
+        is ([sort @$list_ref],
+            $expected,
+            "sp_point_in_poly_shape correct nbrs for $el with field name and val"
+        ) or diag $cond;
     }
 
+    $cond = "! $cond";
     my $sp_to_test4 = $bd->add_spatial_output (name => 'test_sp_point_in_poly_shape4 negated');
     $sp_to_test4->run_analysis (
         calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
-        spatial_conditions => ["! $cond"],
+        spatial_conditions => [$cond],
     );
-# diag "! $cond";
+
     $expected = [qw /
         1:1 1:2 1:3 1:4 1:5
         2:1 2:2 2:3 2:4 2:5
@@ -199,10 +283,43 @@ sub test_points_in_polygons {
     /];
 
     #  should all be the same
-    foreach my $el (keys %expected_nbrs) {
+    foreach my $el (sort keys %expected_nbrs) {
         my $list_ref = $sp_to_test4->get_list_ref (element => $el, list => '_NBR_SET1');
-        is ([sort @$list_ref], $expected, "sp_point_in_poly_shape correct nbrs for $el with fild name and val");
+        is ([sort @$list_ref],
+            $expected,
+            "negated sp_point_in_poly_shape correct nbrs for $el with field name and val"
+        ) or diag $cond;
     }
+
+    my $cond_FID = <<~"EOC"
+            sp_point_in_poly_shape (
+                file       => '$polygon_file',
+                field_val  => '2',
+            )
+        EOC
+    ;
+
+    my $sp_to_test_FID = $bd->add_spatial_output (name => 'test_sp_point_in_poly_shape_FID');
+    $sp_to_test_FID->run_analysis (
+        calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
+        spatial_conditions => [$cond_FID],
+    );
+
+    $expected = [qw /
+        3:1 3:2
+        4:1 4:2
+        5:1 5:2
+    /];
+
+    #  should all be the same
+    foreach my $el (sort keys %expected_nbrs) {
+        my $list_ref = $sp_to_test_FID->get_list_ref (element => $el, list => '_NBR_SET1');
+        is ([sort @$list_ref],
+            $expected,
+            "sp_point_in_poly_shape correct nbrs for $el with field_val only"
+        );
+    }
+
 
 }
 

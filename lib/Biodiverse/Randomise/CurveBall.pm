@@ -379,22 +379,8 @@ sub rand_curveball {
             }
         }
         else {
-            #  Old and incorrect method as the number of swaps is in the interval [0,$n], not exactly $n.
-            # #  Get a random subset of the longer array.
-            # #  Sort is needed to guarantee repeatability, and in-place sort is optimised by Perl.
-            # #  In-place shuffle is apparently fastest (MRMA docs)
-            # if (@swappable_from1 > $max_labels_to_swap) {
-            #     @swappable_from1 = sort @swappable_from1;
-            #     $rand->shuffle (\@swappable_from1);
-            #     @swappable_from1 = @swappable_from1[0..$max_labels_to_swap-1];
-            # }
-            # elsif (@swappable_from2 > $max_labels_to_swap) {
-            #     @swappable_from2 = sort @swappable_from2;
-            #     $rand->shuffle (\@swappable_from2);
-            #     @swappable_from2 = @swappable_from2[0..$max_labels_to_swap-1];
-            # }
-
             #  Concatenate the two swappable sets, then go looking for which ones need to be swapped.
+            #  This is the as-published method.
             #  The search uses while-loops to avoid grepping very large lists for small numbers of possible swaps.
 
             #  Each list is already sorted so no need to re-sort the whole thing.

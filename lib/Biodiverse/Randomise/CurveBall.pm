@@ -294,7 +294,7 @@ sub rand_curveball {
 
             my $nswaps = 0;
             if ($n1 == 1) {
-                #  straight proportional sample 1/(n1+n2)
+                #  straight proportional sample 1/(1+n2)
                 $nswaps = ($rand->rand > 1/(1+$n2)) || 0;
             }
             elsif ($ratio <= 0.05) {
@@ -303,43 +303,57 @@ sub rand_curveball {
                 $nswaps = $n1 - $rand->binomial($ratio, $n1);
             }
             elsif (!!$use_hyper) {
-                #  Hypergeometric sampler.  Slow.
-                use PDL::Lite;
-                use PDL::GSL::CDF qw/gsl_cdf_hypergeometric_P/;
-                my $r    = 1 - $rand->rand;  #  interval (0,1]
                 my $N    = $n1 + $n2;
-                my ($kmin, $kmax) = (0, $n1);
-                #  We normally don't need all the values in the CDF.
-                #  This approach gets us the centre of mass within 4sd of the mean
-                #  which should cover 99.99% or more of cases.
-                if ($N > 40) {  #  arbitrary threshold
-                    my $mean  = $n1 * $n1 / $N;
-                    #  Width is a multiple of the SD.  We could use 3 but...
-                    my $width = 4 * sqrt($mean * ($N-$n1) / $N * ($N-$n1) / ($N-1));
-                    my $kleft  = max(0,  floor($mean - $width));
-                    my $kright = min($n1, ceil($mean + $width));
-                    $kmin = $kleft
-                        if $kleft > 0
-                            && (   $r > 0.01  #  avoid some gsl calls - micro-optimisation
+                my $mean = $n1 * $n1 / $N;
+                my $sd   = sqrt($mean * ($N - $n1) / $N * ($N - $n1) / ($N - 1));
+                #  We could use 3*sd but...
+                my $sd4  = 4 * $sd;
+
+                if ($N > 50 && $mean > $sd4) {
+                    #  Gaussian approximation is good enough if we have sufficient data
+                    #  and the mean is far enough (>4sd) away from the "edge".
+                    #  Only need to check left edge as n1<n2 so mean is <=0.5.
+                    #  Generated value is fraction remaining so take n1 complement.
+                    $nswaps = $n1 - floor (0.5 + $rand->gaussian($sd, $mean));
+                    next MAIN_ITER if $nswaps <= 0;
+                    $nswaps = $n1 if $nswaps > $n1;
+                }
+                else {
+                    #  Hypergeometric sampler.  Comparatively slow.
+                    use PDL::Lite;
+                    use PDL::GSL::CDF qw/gsl_cdf_hypergeometric_P/;
+                    my $r = 1 - $rand->rand;  #  interval (0,1]
+                    my ($kmin, $kmax) = (0, $n1);
+                    if ($N > 40) {
+                        #  arbitrary threshold
+                        #  We normally don't need all the values in the CDF.
+                        #  This approach gets us the centre of mass within 4sd of the mean
+                        #  which should cover 99.99% or more of cases.
+                        my $kleft  = max(0,  floor($mean - $sd4));
+                        my $kright = min($n1, ceil($mean + $sd4));
+                        $kmin = $kleft
+                            if $kleft > 0
+                                && ($r > 0.01 #  avoid some gsl calls - micro-optimisation
                                 || $r > gsl_cdf_hypergeometric_P($kleft, $n1, $n2, $n1)->at(0)
                             );
-                    $kmax = $kright
-                        if $kright < $n1
-                            && (   $r < 0.99  #  avoid some gsl calls - micro-optimisation
+                        $kmax = $kright
+                            if $kright < $n1
+                                && ($r < 0.99 #  avoid some gsl calls - micro-optimisation
                                 || $r < gsl_cdf_hypergeometric_P($kright, $n1, $n2, $n1)->at(0)
                             );
-                }
-                my $cdf  = $cum_hgeom_cache{"$n1:$n2:$kmin:$kmax"} //= do {
-                    my $k = $sequence_cache{"$kmin:$kmax"}  #  caching helps across many iterations
-                        //= $kmin
-                        ? $kk->slice("$kmin:$kmax")  #  slices give a small speed gain
-                        : PDL->sequence(PDL::indx(), $kmax+1);
-                    $k->gsl_cdf_hypergeometric_P($n1, $n2, $n1);
-                };
+                    }
+                    my $cdf = $cum_hgeom_cache{"$n1:$n2:$kmin:$kmax"} //= do {
+                        my $k = $sequence_cache{"$kmin:$kmax"} #  caching helps across many iterations
+                            //= $kmin
+                            ? $kk->slice("$kmin:$kmax") #  slices give a small speed gain
+                            : PDL->sequence(PDL::indx(), $kmax + 1);
+                        $k->gsl_cdf_hypergeometric_P($n1, $n2, $n1);
+                    };
 
-                #  The hypergeom distr tells us how many remain so the swap count is the n1 complement
-                #  for the leftmost search.  This is the kmax complement for the subset adjusted for kmin.
-                $nswaps = $kmax - PDL::vsearch_insert_leftmost($r, $cdf)->sclr + $kmin;
+                    #  The hypergeom distr tells us how many remain so the swap count is the n1 complement
+                    #  for the leftmost search.  This is the kmax complement for the subset adjusted for kmin.
+                    $nswaps = $kmax - PDL::vsearch_insert_leftmost($r, $cdf)->sclr + $kmin;
+                }
             }
 
             next MAIN_ITER if !$nswaps;
@@ -365,22 +379,8 @@ sub rand_curveball {
             }
         }
         else {
-            #  Old and incorrect method as the number of swaps is in the interval [0,$n], not exactly $n.
-            # #  Get a random subset of the longer array.
-            # #  Sort is needed to guarantee repeatability, and in-place sort is optimised by Perl.
-            # #  In-place shuffle is apparently fastest (MRMA docs)
-            # if (@swappable_from1 > $max_labels_to_swap) {
-            #     @swappable_from1 = sort @swappable_from1;
-            #     $rand->shuffle (\@swappable_from1);
-            #     @swappable_from1 = @swappable_from1[0..$max_labels_to_swap-1];
-            # }
-            # elsif (@swappable_from2 > $max_labels_to_swap) {
-            #     @swappable_from2 = sort @swappable_from2;
-            #     $rand->shuffle (\@swappable_from2);
-            #     @swappable_from2 = @swappable_from2[0..$max_labels_to_swap-1];
-            # }
-
             #  Concatenate the two swappable sets, then go looking for which ones need to be swapped.
+            #  This is the as-published method.
             #  The search uses while-loops to avoid grepping very large lists for small numbers of possible swaps.
 
             #  Each list is already sorted so no need to re-sort the whole thing.

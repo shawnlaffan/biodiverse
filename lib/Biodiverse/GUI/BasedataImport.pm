@@ -345,12 +345,19 @@ sub run {
         # find available columns from first file, assume all the same
         croak 'no files given' if !scalar @filenames;
 
+        my %fname_layers;
         my $fnamebase = $filenames[0];
         my $shapefile  = eval {
             Geo::GDAL::FFI::Open($fnamebase);
         };
         croak "$@\n" if $@;
-        my $schema     = $shapefile->GetLayer->GetDefn->GetSchema;
+        my @layers;
+        if ($shapefile->GetLayerCount > 1) {
+            @layers = get_gdal_layer_selection($shapefile);
+            croak 'No layers selected' if !@layers;
+            $fname_layers{$fnamebase} = \@layers;
+        }
+        my $schema     = $shapefile->GetLayer($layers[0] // ())->GetDefn->GetSchema;
         my $shape_type = $schema->{GeometryFields}[0]{Type};
 
         #  this is all of the standards now, but not all those supported by GDAL
@@ -896,6 +903,69 @@ sub run {
     }
 
     return;
+}
+
+sub get_gdal_layer_selection {
+    my ($ds) = @_;
+    my @layers = $ds->GetLayerNames;
+    my $ds_name = $ds->GetDescription;
+    my $dlg = Gtk3::Dialog->new(
+        "Select layers",
+        undef,
+        'modal',
+        'gtk-cancel' => 'cancel',
+        'gtk-ok'     => 'ok',
+    );
+    my $box = $dlg->get_content_area();
+    $box->set_spacing(10);
+
+    $box->add(Gtk3::Label->new("Note that the system assumes all selected layers have the same fields."));
+
+    my $f_label = Gtk3::Label->new("Database: $ds_name");
+    $f_label->set (halign => 'GTK_ALIGN_START');
+    $box->add($f_label);
+    $box->add (Gtk3::Separator->new ('GTK_ORIENTATION_HORIZONTAL'));
+
+    my $button_box = Gtk3::Box->new('GTK_ORIENTATION_HORIZONTAL', 10);
+
+    my $select_all  = Gtk3::Button->new_with_label ('Select all');
+    my $select_none = Gtk3::Button->new_with_label ('Clear selection');
+    $button_box->add ($select_all);
+    $button_box->add ($select_none);
+    $box->add($button_box);
+
+    $box->add (Gtk3::Separator->new ('GTK_ORIENTATION_HORIZONTAL'));
+
+    my $toggle_box = Gtk3::Box->new('GTK_ORIENTATION_VERTICAL', 5);
+
+    my %checks;
+    foreach my $lyr (@layers) {
+        my $check = Gtk3::CheckButton->new_with_label ($lyr);
+        $toggle_box->add ($check);
+        $checks{$lyr} = $check;
+    }
+
+    my $scroll = Gtk3::ScrolledWindow->new;
+    $scroll->set_propagate_natural_height(1);
+    $scroll->add_with_viewport($toggle_box);
+    $box->add ($scroll);
+
+    $select_all->signal_connect_swapped  (clicked => sub { $_->set_active (1) for values %checks });
+    $select_none->signal_connect_swapped (clicked => sub { $_->set_active (0) for values %checks });
+
+
+    $dlg->show_all;
+
+    use experimental 'defer';
+    defer {
+        $dlg->destroy;
+    };
+
+    return if $dlg->run() ne 'ok';
+
+    my @selected = grep {$checks{$_}->get_active} @layers;
+
+    return @selected;
 }
 
 sub cleanup_new_basedatas {

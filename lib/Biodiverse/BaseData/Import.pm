@@ -1263,15 +1263,8 @@ sub import_data_shapefile {
             }
         }
 
-        #  not yet a Geo::GDAL::FFI exported method
-        #my $shape_count = $layer->GetFeatureCount();
-        my $shape_count = Geo::GDAL::FFI::OGR_L_GetFeatureCount($$layer);
-        #  fallback
-        if ($shape_count < 0) {
-            $shape_count = 0;
-            $shape_count++ while $layer->GetNextFeature;
-            $layer->ResetReading;
-        }
+        #  force the count
+        my $shape_count = $layer->GetFeatureCount(1);
         say "File has $shape_count shapes";
 
         %fld_names = %fld_names{@field_names_used_lc};

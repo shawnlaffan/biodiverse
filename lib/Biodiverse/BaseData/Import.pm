@@ -1086,7 +1086,8 @@ sub import_data_raster {
     return 1;
 }
 
-# subroutine to read a data file as shapefile.  arguments
+# subroutine to read a geospatial feature data set such as a shapefile.
+#   arguments:
 # input_files: list of files to read(?)
 # label_fields: fields which are read as labels (from ('x','y','z','m'))
 # group_fields: fields which are read as labels (from ('x','y','z','m'))
@@ -1188,8 +1189,8 @@ sub import_data_shapefile {
 
         # open as shapefile
         my $fnamebase = $file;
-        my $layer_dataset = Geo::GDAL::FFI::Open($fnamebase);
-        my $layer = $layer_dataset->GetLayer;
+        my $layer = $self->get_gdal_feature_class_layer_from_path (file => $file);
+        my $layer_dataset = $layer->GetParentDataset;
         $layer->ResetReading;
         my $defn = $layer->GetDefn;
         my $layer_name = $defn->GetName;
@@ -1204,7 +1205,7 @@ sub import_data_shapefile {
         #  keys are case insensitive, values store case
         my %fld_names = map {lc ($_->{Name}) => $_->{Name}} @{$schema->{Fields}};
         foreach my $key (@label_field_names) {
-            croak "Shapefile $file does not have a field called $key\n"
+            croak "Feature layer $layer_name in file $file does not have a field called $key\n"
               if ($key !~ /^:/) && !exists $fld_names{$key};
         }
 
@@ -1220,7 +1221,8 @@ sub import_data_shapefile {
             my $shape_x_index = first_index {$_ eq ':shape_x'} @group_field_names;
             my $shape_y_index = first_index {$_ eq ':shape_y'} @group_field_names;
             
-            if (-w path($fnamebase)->parent->stringify
+            if ($layer_dataset->GetDriver =~ /Shapefile/i
+                && -w path($fnamebase)->parent->stringify
                 && -w $fnamebase) {
                 #  only works for shapefiles
                 eval {

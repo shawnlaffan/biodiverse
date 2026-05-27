@@ -47,6 +47,7 @@ our $VERSION = '5.0';
 
 use parent qw {
     Biodiverse::Common
+    Biodiverse::Common::IO
     Biodiverse::BaseData::Import
     Biodiverse::BaseData::ManageOutputs
     Biodiverse::BaseData::Exclusions

@@ -260,6 +260,24 @@ sub _test_import_shapefile_polygon {
     }    
 }
 
+
+#  Would be nice to build the geopackage on-the-fly but there are
+#  multipolygon warnings due to the shapefile having a mix of single
+#  and multipart features.
+#  Once we are at GDAL 3.14 we can pass a PROMOTE_TO_MULTI=YES arg
+#  to CopyLayer and maybe generate as needed.
+sub test_import_gpkg_polygon_default {
+    use FindBin qw /$Bin/;
+    my $fname = $Bin . '/data/polygon data.gpkg';
+    my $layer_name = 'layer_1';
+
+    my $file_lyr_path = "${fname}/${layer_name}";
+    _test_import_shapefile_polygon (
+        fname   => $file_lyr_path,
+        expected_total_count => 261,  #  same as test_import_shapefile_polygon_default
+    );
+}
+
 sub test_import_shapefile_polygon_default {
     use FindBin qw /$Bin/;
     my $fname = $Bin . '/data/polygon data.shp';

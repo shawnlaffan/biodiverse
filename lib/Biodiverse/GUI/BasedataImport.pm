@@ -1426,7 +1426,8 @@ sub make_filename_dialog {
 
     $shapefiles_filter = Gtk3::FileFilter->new();
     $shapefiles_filter->add_pattern('*.shp');
-    $shapefiles_filter->set_name('shapefiles');
+    $shapefiles_filter->add_pattern('*.gpkg');
+    $shapefiles_filter->set_name('feature data');
 
     $spreadsheets_filter = Gtk3::FileFilter->new();
     $spreadsheets_filter->add_pattern('*.xlsx');

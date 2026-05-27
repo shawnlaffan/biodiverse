@@ -41,7 +41,9 @@ sub get_gdal_feature_class_layer_from_path {
 
     my ($ds_name, $layer_name) = $self->_parse_gdal_dataset_layer_string_aa($filename);
 
-    my $dataset = Geo::GDAL::FFI::Open($ds_name);
+    my $gdal_args = $args{args};
+
+    my $dataset = Geo::GDAL::FFI::Open($ds_name, $gdal_args);
     if (!length $layer_name) {
         $layer_name = ($dataset->GetLayerNames)[0];
     }

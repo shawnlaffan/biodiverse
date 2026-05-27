@@ -1130,7 +1130,7 @@ sub import_data_shapefile {
     my @group_origins = $self->get_cell_origins;
     my @group_sizes   = $self->get_cell_sizes;
 
-    say '[BASEDATA] Loading from files as shapefile '
+    say '[BASEDATA] Loading feature data from '
       . join( q{ }, @{ $args{input_files} } );
 
     # needed to construct the groups and labels

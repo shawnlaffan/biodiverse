@@ -277,9 +277,8 @@ sub test_import_gpkg_polygon_default {
         expected_total_count => 261,  #  same as test_import_shapefile_polygon_default
     );
 
-    my $file_lyr_path = $fname;
     _test_import_shapefile_polygon (
-        fname   => $file_lyr_path,
+        fname   => $fname,
         expected_total_count => 261,  #  same as test_import_shapefile_polygon_default
     );
 

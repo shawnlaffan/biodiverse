@@ -44,14 +44,9 @@ my $btn_next           = "btnNext$import_n";
 my $file_format        = "format_box$import_n";
 my $filechooser_input  = "filechooserInput$import_n";
 my $txt_import_new     = "txtImportNew$import_n";
-my $table_parameters   = "tableParameters$import_n";
 my $importmethod_combo = "format_box$import_n";      # not sure about the suffix
 my $combo_import_basedatas     = "comboImportBasedatas$import_n";
 my $chk_import_one_bd_per_file = "chk_import_one_bd_per_file$import_n";
-
-my $text_idx      = 0;    # index in combo box
-my $raster_idx    = 1;    # index in combo box of raster format
-my $shapefile_idx = 2;    # index in combo box
 
 # maintain reference for these, to allow referring when import method changes
 # (Not sure whey they are package lexicals)
@@ -495,8 +490,8 @@ sub run {
             my $spreadsheet_params_table = $s_dlgxml->get_object('tableImportParameters');
 
      # (passing $dlgxml because generateFile uses existing widget on the dialog)
-            my $parameters_table = Biodiverse::GUI::ParametersTable->new;
-            my $extractors = $parameters_table->fill(
+            my $ss_parameters_table = Biodiverse::GUI::ParametersTable->new;
+            my $ss_extractors = $ss_parameters_table->fill(
                 [$param],
                 $spreadsheet_params_table,
                 $s_dlgxml
@@ -506,7 +501,7 @@ sub run {
             $response = $dlg->run;
 
             #  harvest before dlg destruction
-            my $chosen_params = $parameters_table->extract($extractors);
+            my $chosen_params = $ss_parameters_table->extract($ss_extractors);
 
             $dlg->destroy;
 
@@ -885,9 +880,8 @@ sub run {
             my $message
               = "No valid records were imported into this basedata.\n"
               . 'do you want to add it to the project anyway?';
-            my $response =
-              Biodiverse::GUI::YesNoCancel->run( { header => $message } );
-            return if $response ne 'yes';
+            return
+              if Biodiverse::GUI::YesNoCancel->run( { header => $message } ) ne 'yes';
         }
 
         #  warn about possible lat/long basedata with large cell sizes
@@ -902,13 +896,13 @@ sub run {
               . "then the default cellsize of $default_cell_size will be far too large.\n"
               . qq{See https://github.com/shawnlaffan/biodiverse/wiki/FAQ#i-imported-my-data-and-it-only-has-one-cell\n}
               . "Do you want to add it to the project anyway?";
-            my $response =
+            my $resp =
               Biodiverse::GUI::YesNoCancel->run( {
                 header => $header,
                 text   => $message,
                 hide_cancel => 1,
             } );
-            return if $response ne 'yes';
+            return if $resp ne 'yes';
         }
 
         if ( $use_new || $one_basedata_per_file ) {
@@ -923,14 +917,12 @@ sub run {
                 my $message =
                     "No valid records were imported into any basedata.\n"
                   . 'do you want to add them to the project anyway?';
-                my $response =
-                  Biodiverse::GUI::YesNoCancel->run( { header => $message } );
-                return if $response ne 'yes';
+                return if Biodiverse::GUI::YesNoCancel->run( { header => $message } ) ne 'yes';
             }
 
-            foreach my $file ( keys %multiple_brefs ) {
-                next if !$multiple_is_new{$file};
-                $gui->get_project->add_base_data( $multiple_brefs{$file} );
+            foreach my $mb_file ( keys %multiple_brefs ) {
+                next if !$multiple_is_new{$mb_file};
+                $gui->get_project->add_base_data( $multiple_brefs{$mb_file} );
             }
         }
 
@@ -1295,8 +1287,6 @@ sub show_expl_dialog {
     my $dlg = Gtk3::Dialog->new( 'Column options',
         $parent, 'destroy-with-parent', 'gtk-ok' => 'ok', );
 
-    my $text_wrapper = Text::Wrapper->new( columns => 90 );
-
     my $table = Gtk3::Table->new( 1 + scalar keys %$expl_hash, 2, 0);
     $table->set_row_spacings(5);
     $table->set_col_spacings(5);
@@ -1322,8 +1312,6 @@ sub show_expl_dialog {
     $label2->set_use_markup(1);
     $table->attach( $label2, 1, 2, $col, $col + 1, [ 'expand', 'fill' ],
         'shrink', 0, 0 );
-
-    my $text;
 
     #while (my ($label, $expl) = each %explain) {
     foreach my $label ( sort keys %$expl_hash ) {
@@ -2105,12 +2093,12 @@ sub get_remap_info {
         exclude_cols     => \@exclude_cols,
     );
 
-    foreach my $type ( @$other_properties, 'Property' ) {
-        my $ref = $column_settings->{$type};
+    foreach my $p_type ( @$other_properties, 'Property' ) {
+        my $ref = $column_settings->{$p_type};
         next if !defined $ref;
         $ref = [$ref] if !is_arrayref $ref;
         foreach my $i (@$ref) {
-            my $t = $type;
+            my $t = $p_type;
             if ( $t eq 'Property' ) {
                 $t = $i->{name};
             }
@@ -2203,7 +2191,6 @@ sub get_remap_column_settings {
     my $cols    = shift;
     my $headers = shift;
     my $num     = @$cols;
-    my ( @in, @out );
     my %results;
 
     foreach my $i ( 0 .. ( $num - 1 ) ) {

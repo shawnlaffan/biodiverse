@@ -109,7 +109,7 @@ sub run {
     my $read_format_is_shp    = $read_format eq 'shapefile';
     my $read_format_is_spreadsheet = $read_format eq 'spreadsheet';
 
-    my $read_format_uses_columns = grep {$read_format eq $_} (qw /shapefile text spreadsheet/);
+    my $read_format_uses_columns = !$read_format_is_raster;
 
     my ( $use_new, $basedata_ref );
 

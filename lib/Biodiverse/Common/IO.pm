@@ -2,6 +2,8 @@ package Biodiverse::Common::IO;
 use 5.036;
 use warnings;
 
+our $VERSION = '5.0';
+
 use Carp qw /croak/;
 
 use Geo::GDAL::FFI;

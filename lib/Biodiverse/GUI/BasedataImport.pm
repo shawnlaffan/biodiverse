@@ -121,6 +121,7 @@ sub run {
 
         #  get the layers for the feature databases
         #  ideally we would develop a treeview widget to select them all at once...
+        my @f2;
         foreach my $fname (@filenames) {
             my $db = eval {
                 Geo::GDAL::FFI::Open($fname);
@@ -131,19 +132,13 @@ sub run {
             if ($db->GetLayerCount > 1) {
                 @db_layers = get_gdal_layer_selection($db);
                 croak 'No layers selected' if !@db_layers;
-                $feature_db_layers{$fname} = \@db_layers;
+                push @f2, map {"$fname/$_"} @db_layers;
+            }
+            else {
+                push @f2, $fname;
             }
         }
 
-        my @f2;
-        foreach my $f (@filenames) {
-            if (defined $feature_db_layers{$f}) {
-                push @f2, map {"$f/$_"} @{$feature_db_layers{$f}};
-            }
-            else {
-                push @f2, $f;
-            }
-        }
         @filenames = @f2;
     }
 

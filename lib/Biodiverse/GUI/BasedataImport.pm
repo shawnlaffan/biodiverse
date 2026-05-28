@@ -108,12 +108,10 @@ sub run {
     #  do we want to import each file into its own basedata?
     my $w = $dlgxml->get_object($chk_import_one_bd_per_file);
     my $one_basedata_per_file = $w->get_active();
-    my %multiple_brefs
-      ;    # mapping from basedata name (eg from shortened file) to basedata ref
-    my %multiple_file_lists
-      ;    # mapping from basedata name to array (ref) of files
-    my %multiple_is_new
-      ; # mapping from basedata name to flag indicating if new (vs existing) basedata ref
+    #  mappings from basedata name:
+    my %multiple_brefs;      # to basedata ref
+    my %multiple_file_lists; # to array (ref) of files
+    my %multiple_is_new;     # to flag indicating if new (vs existing) basedata ref
 
     if ($one_basedata_per_file) {
 

@@ -91,10 +91,13 @@ sub run {
     my ( $dlgxml, $dlg ) = make_filename_dialog($gui);
     my $response = $dlg->run();
 
+    #  would be nice to destroy $dlg in a defer block but code is convoluted at the moment
     if ( $response ne 'ok' ) {    #  clean up and drop out
         $dlg->destroy;
         return;
     }
+
+    $dlg->hide;
 
     # interpret if raster, text etc depending on format box
     my $read_format = lc $dlgxml->get_object($file_format)->get_active_text;
@@ -109,6 +112,41 @@ sub run {
     # Get selected filenames
     \my @filenames = $dlgxml->get_object($filechooser_input)->get_filenames();
     my @def_cellsizes = ( $default_cell_size, $default_cell_size );
+
+    if (!!$read_format_is_shp) {
+
+        my %feature_db_layers;
+
+        #  get the layers for the feature databases
+        #  ideally we would develop a treeview widget to select them all at once...
+        foreach my $fname (@filenames) {
+            my $db = eval {
+                Geo::GDAL::FFI::Open($fname);
+            };
+            croak "$@\n" if $@;
+            $feature_db_layers{$fname} = undef;
+            my @db_layers;
+            if ($db->GetLayerCount > 1) {
+                @db_layers = get_gdal_layer_selection($db);
+                if (!@db_layers) {
+                    $dlg->destroy;
+                    croak 'No layers selected';
+                }
+                $feature_db_layers{$fname} = \@db_layers;
+            }
+        }
+
+        my @f2;
+        foreach my $f (@filenames) {
+            if (defined $feature_db_layers{$f}) {
+                push @f2, map {"$f/$_"} @{$feature_db_layers{$f}};
+            }
+            else {
+                push @f2, $f;
+            }
+        }
+        @filenames = @f2;
+    }
 
     $use_new = $dlgxml->get_object($chk_new)->get_active();
 
@@ -134,6 +172,7 @@ sub run {
             my $dispname = "unnamed_$count";
             $count++;
             my $existing = 0;
+            #  does not handle /path/to/some.gpkg/layer - should it?
             if ( $file =~ /\.[^.]*/ ) {
                 my ( $name, $dir, $suffix ) = fileparse( $file, qr/\.[^.]*/ );
                 $dispname = $name;
@@ -335,58 +374,17 @@ sub run {
             $import_params{raster_cellsize_n}
         );
     }
-    elsif ( $read_format_is_shp  ) {
+    elsif ( !!$read_format_is_shp  ) {
         
         # find available columns from first file, assume all the same
         croak 'no files given' if !scalar @filenames;
 
-        my %feature_db_layers;
-
-        my $fnamebase = $filenames[0];
-        my $shapefile  = eval {
-            Geo::GDAL::FFI::Open($fnamebase);
-        };
-        croak "$@\n" if $@;
-        $feature_db_layers{$fnamebase} = undef;
-        my @layers;
-        if ($shapefile->GetLayerCount > 1) {
-            @layers = get_gdal_layer_selection($shapefile);
-            croak 'No layers selected' if !@layers;
-            $feature_db_layers{$fnamebase} = \@layers;
-        }
-        my $schema     = $shapefile->GetLayer($layers[0] // ())->GetDefn->GetSchema;
+        my $fnamebase  = $filenames[0];
+        my $layer = Biodiverse::Common::IO->get_gdal_feature_class_layer_from_path(file => $fnamebase);
+        my $schema     = $layer->GetDefn->GetSchema;
         my $shape_type = $schema->{GeometryFields}[0]{Type};
 
-        #  get the layers for the remaining feature databases
-        #  ideally we would develop a treeview widget to select them all at once...
-        if (@filenames > 1) {
-            foreach my $fname (@filenames[1..$#filenames]) {
-                my $db = eval {
-                    Geo::GDAL::FFI::Open($fname);
-                };
-                croak "$@\n" if $@;
-                $feature_db_layers{$fname} = undef;
-                my @db_layers;
-                if ($db->GetLayerCount > 1) {
-                    @db_layers = get_gdal_layer_selection($db);
-                    croak 'No layers selected' if !@db_layers;
-                    $feature_db_layers{$fname} = \@db_layers;
-                }
-            }
-        }
-
-        my @f2;
-        foreach my $f (@filenames) {
-            if (defined $feature_db_layers{$f}) {
-                push @f2, map {"$f/$_"} @{$feature_db_layers{$f}};
-            }
-            else {
-                push @f2, $f;
-            }
-        }
-        @filenames = @f2;
-
-        #  this is all of the standards now, but not all those supported by GDAL
+        #  this is all of the common types, but not all those supported by GDAL
         croak '[BASEDATA] Import of point, polygon and polyline shapefiles only is supported.  '
           . "$fnamebase is type $shape_type\n"
           if not $shape_type =~ /Point|Polygon|Line/i;

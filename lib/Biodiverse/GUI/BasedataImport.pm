@@ -96,6 +96,13 @@ sub run {
         return;
     }
 
+    # interpret if raster, text etc depending on format box
+    my $read_format = lc $dlgxml->get_object($file_format)->get_active_text;
+    my $read_format_is_text   = $read_format eq 'text';
+    my $read_format_is_raster = $read_format eq 'raster';
+    my $read_format_is_shp    = $read_format eq 'shapefile';
+    my $read_format_is_spreadsheet = $read_format eq 'spreadsheet';
+
     my ( $use_new, $basedata_ref );
     my @format_uses_columns = qw /shapefile text spreadsheet/;
 
@@ -122,8 +129,8 @@ sub run {
         my $count = 0;
         foreach my $file (@filenames) {
 
-         # use basedata_ref locally, and then maintain a ref to the last created
-         # basedata for some of the subsequent 'get' calls
+            # use basedata_ref locally, and then maintain a ref to the last created
+            # basedata for some of the subsequent 'get' calls
             my $dispname = "unnamed_$count";
             $count++;
             my $existing = 0;
@@ -131,8 +138,8 @@ sub run {
                 my ( $name, $dir, $suffix ) = fileparse( $file, qr/\.[^.]*/ );
                 $dispname = $name;
 
-    # if use_new flag is not set, check if basedata exists with given file
-    # name, if so add to existing.  if not found, a new basedata will be created
+                # If use_new flag is not set, check if basedata exists with given file
+                # name, if so add to existing.  If not found, a new basedata will be created.
                 if ( !$use_new ) {
                     foreach my $existing_bdref (@$basedata_list) {
                         if ( $existing_bdref->get_param('NAME') eq $dispname ) {
@@ -178,13 +185,6 @@ sub run {
         $multiple_brefs{$basedata_name}      = $basedata_ref;
         $multiple_file_lists{$basedata_name} = \@filenames;
     }
-
-    # interpret if raster, text etc depending on format box
-    my $read_format = lc $dlgxml->get_object($file_format)->get_active_text;
-    my $read_format_is_text   = $read_format eq 'text';
-    my $read_format_is_raster = $read_format eq 'raster';
-    my $read_format_is_shp    = $read_format eq 'shapefile';
-    my $read_format_is_spreadsheet = $read_format eq 'spreadsheet';
 
     $dlg->destroy();
 

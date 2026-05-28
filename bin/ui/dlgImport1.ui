@@ -326,6 +326,7 @@
                       <item translatable="yes">Text</item>
                       <item translatable="yes">Raster</item>
                       <item translatable="yes">Shapefile</item>
+                      <item translatable="yes">Feature data</item>
                       <item translatable="yes">Spreadsheet</item>
                     </items>
                   </object>

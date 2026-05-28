@@ -59,6 +59,7 @@ my $txtcsv_filter;
 my $allfiles_filter;
 my $shapefiles_filter;
 my $spreadsheets_filter;
+my $features_filter;
 my $rasters_filter;
 
 my $default_cell_size = 100000;
@@ -104,6 +105,8 @@ sub run {
 
     # interpret if raster, text etc depending on format box
     my $read_format = lc $dlgxml->get_object($file_format)->get_active_text;
+    #  'feature data' is a generalised file selector for the shapefile imports
+    $read_format = 'shapefile' if $read_format eq 'feature data';
     my $read_format_is_text   = $read_format eq 'text';
     my $read_format_is_raster = $read_format eq 'raster';
     my $read_format_is_shp    = $read_format eq 'shapefile';
@@ -1532,9 +1535,13 @@ sub make_filename_dialog {
 
     $shapefiles_filter = Gtk3::FileFilter->new();
     $shapefiles_filter->add_pattern('*.shp');
-    $shapefiles_filter->add_pattern('*.gpkg');
-    $shapefiles_filter->add_pattern('*.gdbtable');
-    $shapefiles_filter->set_name('feature data');
+    $shapefiles_filter->set_name('shapefiles');
+
+    $features_filter = Gtk3::FileFilter->new();
+    $features_filter->add_pattern('*.shp');
+    $features_filter->add_pattern('*.gpkg');
+    $features_filter->add_pattern('*.gdbtable');
+    $features_filter->set_name('feature data');
 
     $spreadsheets_filter = Gtk3::FileFilter->new();
     $spreadsheets_filter->add_pattern('*.xlsx');
@@ -1555,6 +1562,7 @@ sub make_filename_dialog {
     $filechooser->add_filter($rasters_filter);
     $filechooser->add_filter($shapefiles_filter);
     $filechooser->add_filter($spreadsheets_filter);
+    $filechooser->add_filter($features_filter);
     $filechooser->add_filter($allfiles_filter);
 
 
@@ -1597,6 +1605,7 @@ sub on_import_method_changed {
         text        => $txtcsv_filter,
         raster      => $rasters_filter,
         shapefile   => $shapefiles_filter,
+        'feature data' => $features_filter,
         spreadsheet => $spreadsheets_filter,
     );
 

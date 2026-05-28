@@ -264,7 +264,6 @@ sub run {
         #  until we remove it completely from the import stage
         my $p  = $args{parameters};
         my @p2 = grep {
-            print $_->get_name;
             not $_->get_name =~ /use_(label|group)_properties/
         } @$p;
         $args{parameters} = \@p2;

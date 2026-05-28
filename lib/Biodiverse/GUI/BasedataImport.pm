@@ -20,6 +20,7 @@ use List::MoreUtils qw /first_index/;
 use Spreadsheet::Read 0.60;
 use Ref::Util qw { :all };
 use Geo::GDAL::FFI;
+use Path::Tiny qw /path/;
 
 
 no warnings 'redefine';  #  getting redefine warnings, which aren't a problem for us
@@ -119,6 +120,11 @@ sub run {
     if (!!$read_format_is_shp) {
 
         my %feature_db_layers;
+
+        #  Fix any gdb selections.
+        #  We cannot specify the layer name from the gdbtable.
+        #  Users might select multiple such files, in which case we uniqify to the db name.
+        @filenames = List::Util::uniq +map {$_ =~ /\.gdbtable$/ ? path($_)->parent : $_} @filenames;
 
         #  get the layers for the feature databases
         #  ideally we would develop a treeview widget to select them all at once...
@@ -1527,6 +1533,7 @@ sub make_filename_dialog {
     $shapefiles_filter = Gtk3::FileFilter->new();
     $shapefiles_filter->add_pattern('*.shp');
     $shapefiles_filter->add_pattern('*.gpkg');
+    $shapefiles_filter->add_pattern('*.gdbtable');
     $shapefiles_filter->set_name('feature data');
 
     $spreadsheets_filter = Gtk3::FileFilter->new();

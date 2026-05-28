@@ -26,7 +26,7 @@ sub _parse_gdal_dataset_layer_string_aa {
         $layer_name = $p->basename =~ s/.shp$//r;
         $fname      = $fstring;
     }
-    elsif ($fstring =~ /\.gpkg$/) {
+    elsif ($fstring =~ /\.(gpkg|gdb)$/) {
         $fname      = $fstring;
     }
     else {

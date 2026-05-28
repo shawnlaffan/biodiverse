@@ -91,12 +91,14 @@ sub run {
     my ( $dlgxml, $dlg ) = make_filename_dialog($gui);
     my $response = $dlg->run();
 
-    #  would be nice to destroy $dlg in a defer block but code is convoluted at the moment
-    if ( $response ne 'ok' ) {    #  clean up and drop out
-        $dlg->destroy;
-        return;
-    }
+    use experimental qw /defer/;
+    #  clean up on exit
+    defer {$dlg->destroy};
 
+    return if $response ne 'ok';
+
+    #  Ths instance of $dlg could be destroyed between now and end of sub scope
+    #  so hide it and let the defer block handle destruction
     $dlg->hide;
 
     # interpret if raster, text etc depending on format box
@@ -128,10 +130,7 @@ sub run {
             my @db_layers;
             if ($db->GetLayerCount > 1) {
                 @db_layers = get_gdal_layer_selection($db);
-                if (!@db_layers) {
-                    $dlg->destroy;
-                    croak 'No layers selected';
-                }
+                croak 'No layers selected' if !@db_layers;
                 $feature_db_layers{$fname} = \@db_layers;
             }
         }
@@ -224,8 +223,6 @@ sub run {
         $multiple_brefs{$basedata_name}      = $basedata_ref;
         $multiple_file_lists{$basedata_name} = \@filenames;
     }
-
-    $dlg->destroy();
 
     #########
     # 1a. Get parameters to use

@@ -793,18 +793,21 @@ sub run {
               foreach my $filelist ( values %multiple_file_lists ) {
                 foreach my $file (@$filelist) {
                     #  not sure we want to go through the lot - what if we have 1000 point files?
-                    my $shapefile  = eval {
-                        Geo::GDAL::FFI::Open($file);
+                    my ($ds_name, $layer_name)
+                        = Biodiverse::Common::IO->_parse_gdal_dataset_layer_string_aa($file);
+                    my $ds  = eval {
+                        Geo::GDAL::FFI::Open($ds_name);
                     };
                     croak $@ if $@;
-                    my $schema     = $shapefile->GetLayer->GetDefn->GetSchema;
+                    my $schema     = $ds->GetLayer->GetDefn->GetSchema;
                     my $shape_type = $schema->{GeometryFields}[0]{Type};
-                    if ($shape_type =~ /Poly/i) {
-                        my $have_shapexy = grep {$_ =~ /\:shape_[xy]/} @group_col_names;
-                        croak "polygon and polyline imports must have :shape_x and :shape_y columns specified\n"
-                          if $have_shapexy != 2;
-                        last FILE;  #  no need to check more if the first case passes
-                    }
+
+                    next if $shape_type =~ /point/i;
+
+                    my $count_shapexy = grep {$_ =~ /\:shape_[xy]/} @group_col_names;
+                    croak "polygon and polyline imports must have :shape_x and :shape_y columns specified\n"
+                      if $count_shapexy != 2;
+                    last FILE;  #  all is ok if the first case passes
                 }
             }
         }

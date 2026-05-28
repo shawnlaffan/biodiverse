@@ -1513,8 +1513,9 @@ sub make_filename_dialog {
 
     # define file selection filters (stored in txtcsv_filter etc)
     $txtcsv_filter = Gtk3::FileFilter->new();
-    $txtcsv_filter->add_pattern('*.csv');
-    $txtcsv_filter->add_pattern('*.txt');
+    foreach my $pat (qw /csv txt/) {
+        $txtcsv_filter->add_pattern("*.$pat");
+    }
     $txtcsv_filter->set_name('txt and csv files');
 
     $allfiles_filter = Gtk3::FileFilter->new();
@@ -1526,24 +1527,22 @@ sub make_filename_dialog {
     $shapefiles_filter->set_name('shapefiles');
 
     $features_filter = Gtk3::FileFilter->new();
-    $features_filter->add_pattern('*.shp');
-    $features_filter->add_pattern('*.gpkg');
-    $features_filter->add_pattern('*.gdbtable');
+    foreach my $pat (qw /shp gpkg gdbtable/) {
+        $features_filter->add_pattern("*.$pat");
+    }
     $features_filter->set_name('feature data');
 
     $spreadsheets_filter = Gtk3::FileFilter->new();
-    $spreadsheets_filter->add_pattern('*.xlsx');
-    $spreadsheets_filter->add_pattern('*.xls');
-    $spreadsheets_filter->add_pattern('*.ods');
+    foreach my $pat (qw /xlsx xls ods/) {
+        $spreadsheets_filter->add_pattern("*.$pat");
+    }
     $spreadsheets_filter->set_name('spreadsheets');
 
     #  could use a custom filter to detect more formats
     $rasters_filter = Gtk3::FileFilter->new();
-    $rasters_filter->add_pattern('*.tif');
-    $rasters_filter->add_pattern('*.tiff');
-    $rasters_filter->add_pattern('*.img');
-    $rasters_filter->add_pattern('*.asc');
-    $rasters_filter->add_pattern('*.flt');
+    foreach my $pat (qw /tif tiff img asc flt/) {
+        $rasters_filter->add_pattern("*.$pat");
+    }
     $rasters_filter->set_name('rasters');
     
     $filechooser->add_filter($txtcsv_filter);

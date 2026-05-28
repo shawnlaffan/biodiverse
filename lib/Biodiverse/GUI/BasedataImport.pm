@@ -108,8 +108,9 @@ sub run {
     my $read_format_is_shp    = $read_format eq 'shapefile';
     my $read_format_is_spreadsheet = $read_format eq 'spreadsheet';
 
+    my $read_format_uses_columns = grep {$read_format eq $_} (qw /shapefile text spreadsheet/);
+
     my ( $use_new, $basedata_ref );
-    my @format_uses_columns = qw /shapefile text spreadsheet/;
 
     # Get selected filenames
     \my @filenames = $dlgxml->get_object($filechooser_input)->get_filenames();
@@ -553,7 +554,7 @@ sub run {
     # 2. Get column types (using first file...)
     #########
     my $column_settings;
-    if ( scalar grep { $_ eq $read_format } @format_uses_columns ) {
+    if ( !!$read_format_uses_columns ) {
 
         my @file_names_tmp = @filenames[0 .. min (4, $#filenames)];
         if ( scalar @filenames > 5 ) {
@@ -633,7 +634,7 @@ sub run {
     # 3. Get column order
     #########
     my $reorder_params;
-    if ( my $xx = grep { $_ eq $read_format } @format_uses_columns ) {
+    if ( !!$read_format_uses_columns ) {
         my $old_labels_array = $column_settings->{labels};
         if ($use_matrix) {
             $column_settings->{labels} =

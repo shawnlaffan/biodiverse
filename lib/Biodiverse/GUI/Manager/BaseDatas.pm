@@ -928,7 +928,6 @@ sub get_origin_table_widget {
 
                 if (fmod ($val_in_cell_units, 1)) {
                     my $remainder = fmod ($val - $origins_array[$j], $cellsize_array[$j]);
-                    say join ' ', $val, $val_in_cell_units, $remainder;
                     if (abs ($remainder) > 1e-12) {
                         $widget->set_value($val - $remainder);
                     }

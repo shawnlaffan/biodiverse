@@ -20,6 +20,7 @@ use List::MoreUtils qw /first_index/;
 use Spreadsheet::Read 0.60;
 use Ref::Util qw { :all };
 use Geo::GDAL::FFI;
+use Path::Tiny qw /path/;
 
 
 no warnings 'redefine';  #  getting redefine warnings, which aren't a problem for us
@@ -43,22 +44,13 @@ my $btn_next           = "btnNext$import_n";
 my $file_format        = "format_box$import_n";
 my $filechooser_input  = "filechooserInput$import_n";
 my $txt_import_new     = "txtImportNew$import_n";
-my $table_parameters   = "tableParameters$import_n";
 my $importmethod_combo = "format_box$import_n";      # not sure about the suffix
 my $combo_import_basedatas     = "comboImportBasedatas$import_n";
 my $chk_import_one_bd_per_file = "chk_import_one_bd_per_file$import_n";
 
-my $text_idx      = 0;    # index in combo box
-my $raster_idx    = 1;    # index in combo box of raster format
-my $shapefile_idx = 2;    # index in combo box
-
-# maintain reference for these, to allow referring when import method changes
-# (Not sure whey they are package lexicals)
-my $txtcsv_filter;
-my $allfiles_filter;
-my $shapefiles_filter;
-my $spreadsheets_filter;
-my $rasters_filter;
+# maintain reference for the filters, to allow referring when import method changes
+# (Not sure whey this is a package lexical)
+my %file_filters;
 
 my $default_cell_size = 100000;
 
@@ -91,36 +83,74 @@ sub run {
     my ( $dlgxml, $dlg ) = make_filename_dialog($gui);
     my $response = $dlg->run();
 
-    if ( $response ne 'ok' ) {    #  clean up and drop out
-        $dlg->destroy;
-        return;
-    }
+    use experimental qw /defer/;
+    #  clean up on exit
+    defer {$dlg->destroy};
+
+    return if $response ne 'ok';
+
+    #  Ths instance of $dlg could be destroyed between now and end of sub scope
+    #  so hide it and let the defer block handle destruction
+    $dlg->hide;
+
+    # interpret if raster, text etc depending on format box
+    my $read_format = lc $dlgxml->get_object($file_format)->get_active_text;
+    #  'feature data' is a generalised file selector for the shapefile imports
+    $read_format = 'shapefile' if $read_format eq 'feature data';
+    my $read_format_is_text   = $read_format eq 'text';
+    my $read_format_is_raster = $read_format eq 'raster';
+    my $read_format_is_shp    = $read_format eq 'shapefile';
+    my $read_format_is_spreadsheet = $read_format eq 'spreadsheet';
+
+    my $read_format_uses_columns = !$read_format_is_raster;
 
     my ( $use_new, $basedata_ref );
-    my @format_uses_columns = qw /shapefile text spreadsheet/;
 
     # Get selected filenames
     \my @filenames = $dlgxml->get_object($filechooser_input)->get_filenames();
-    my @file_names_tmp = @filenames;
-    if ( scalar @filenames > 5 ) {
-        @file_names_tmp = @filenames[ 0 .. 5 ];
-        push @file_names_tmp,
-          '... plus ' . ( scalar @filenames - 5 ) . ' others';
-    }
-    my $file_list_as_text = join( "\n", @file_names_tmp );
     my @def_cellsizes = ( $default_cell_size, $default_cell_size );
+
+    if (!!$read_format_is_shp) {
+
+        my %feature_db_layers;
+
+        #  Fix any gdb selections.
+        #  We cannot specify the layer name from the gdbtable.
+        #  Users might select multiple such files, in which case we uniqify to the db name.
+        @filenames = List::Util::uniq +map {$_ =~ /\.gdbtable$/ ? path($_)->parent : $_} @filenames;
+
+        #  get the layers for the feature databases
+        #  ideally we would develop a treeview widget to select them all at once...
+        my @f2;
+        foreach my $fname (@filenames) {
+            my $db = eval {
+                Geo::GDAL::FFI::Open($fname);
+            };
+            croak "$@\n" if $@;
+            $feature_db_layers{$fname} = undef;
+            my @db_layers;
+            if ($db->GetLayerCount > 1) {
+                @db_layers = get_gdal_layer_selection($db);
+                croak 'No layers selected' if !@db_layers;
+                push @f2, map {"$fname/$_"} @db_layers;
+            }
+            else {
+                push @f2, $fname;
+            }
+        }
+
+        @filenames = @f2;
+    }
 
     $use_new = $dlgxml->get_object($chk_new)->get_active();
 
     #  do we want to import each file into its own basedata?
     my $w = $dlgxml->get_object($chk_import_one_bd_per_file);
     my $one_basedata_per_file = $w->get_active();
-    my %multiple_brefs
-      ;    # mapping from basedata name (eg from shortened file) to basedata ref
-    my %multiple_file_lists
-      ;    # mapping from basedata name to array (ref) of files
-    my %multiple_is_new
-      ; # mapping from basedata name to flag indicating if new (vs existing) basedata ref
+    #  mappings from basedata name:
+    my %multiple_brefs;      # to basedata ref
+    my %multiple_file_lists; # to array (ref) of files
+    my %multiple_is_new;     # to flag indicating if new (vs existing) basedata ref
 
     if ($one_basedata_per_file) {
 
@@ -131,17 +161,18 @@ sub run {
         my $count = 0;
         foreach my $file (@filenames) {
 
-         # use basedata_ref locally, and then maintain a ref to the last created
-         # basedata for some of the subsequent 'get' calls
+            # use basedata_ref locally, and then maintain a ref to the last created
+            # basedata for some of the subsequent 'get' calls
             my $dispname = "unnamed_$count";
             $count++;
             my $existing = 0;
+            #  does not handle /path/to/some.gpkg/layer - should it?
             if ( $file =~ /\.[^.]*/ ) {
                 my ( $name, $dir, $suffix ) = fileparse( $file, qr/\.[^.]*/ );
                 $dispname = $name;
 
-    # if use_new flag is not set, check if basedata exists with given file
-    # name, if so add to existing.  if not found, a new basedata will be created
+                # If use_new flag is not set, check if basedata exists with given file
+                # name, if so add to existing.  If not found, a new basedata will be created.
                 if ( !$use_new ) {
                     foreach my $existing_bdref (@$basedata_list) {
                         if ( $existing_bdref->get_param('NAME') eq $dispname ) {
@@ -188,11 +219,6 @@ sub run {
         $multiple_file_lists{$basedata_name} = \@filenames;
     }
 
-    # interpret if raster, text etc depending on format box
-    my $read_format = lc $dlgxml->get_object($file_format)->get_active_text;
-
-    $dlg->destroy();
-
     #########
     # 1a. Get parameters to use
     #########
@@ -207,7 +233,7 @@ sub run {
     $file_title->set_alignment( 0, 1 );
     $vbox->pack_start( $file_title, 0, 0, 0 );
 
-    my $file_list_label = Gtk3::Label->new( $file_list_as_text . "\n\n" );
+    my $file_list_label = Gtk3::Label->new( "" );
     $file_list_label->set_alignment( 0, 1 );
     $vbox->pack_start( $file_list_label, 0, 0, 0 );
     my $import_vbox = $dlgxml->get_object('import_parameters_vbox');
@@ -220,13 +246,13 @@ sub run {
     my %args = $basedata_ref->get_args( sub => 'import_data_common' );
 
     # set visible fields in import dialog
-    if ( $read_format eq 'text' ) {
+    if ( !!$read_format_is_text ) {
         my %text_args = $basedata_ref->get_args( sub => 'import_data_text' );
 
         # add new params to args
         push @{ $args{parameters} }, @{ $text_args{parameters} };
     }
-    elsif ( $read_format eq 'raster' ) {
+    elsif (!!$read_format_is_raster) {
         my %raster_args =
           $basedata_ref->get_args( sub => 'import_data_raster' );
 
@@ -238,7 +264,6 @@ sub run {
         #  until we remove it completely from the import stage
         my $p  = $args{parameters};
         my @p2 = grep {
-            print $_->get_name;
             not $_->get_name =~ /use_(label|group)_properties/
         } @$p;
         $args{parameters} = \@p2;
@@ -280,7 +305,7 @@ sub run {
 
     my @cell_sizes;
     my @cell_origins;
-    if ( $read_format eq 'raster' ) {
+    if ( !!$read_format_is_raster ) {
 
         # set some default values (a bit of a hack)
         @cell_sizes   = $basedata_ref->get_cell_sizes;
@@ -330,7 +355,7 @@ sub run {
 
     # (no pre-processing needed for raster)
 
-    if ( $read_format eq 'raster' ) {
+    if ( !!$read_format_is_raster ) {
 
         # just set cell sizes etc values from dialog
         @cell_origins =
@@ -340,20 +365,17 @@ sub run {
             $import_params{raster_cellsize_n}
         );
     }
-    elsif ( $read_format eq 'shapefile' ) {
+    elsif ( !!$read_format_is_shp  ) {
         
         # find available columns from first file, assume all the same
         croak 'no files given' if !scalar @filenames;
 
-        my $fnamebase = $filenames[0];
-        my $shapefile  = eval {
-            Geo::GDAL::FFI::Open($fnamebase);
-        };
-        croak "$@\n" if $@;
-        my $schema     = $shapefile->GetLayer->GetDefn->GetSchema;
+        my $fnamebase  = $filenames[0];
+        my $layer = Biodiverse::Common::IO->get_gdal_feature_class_layer_from_path(file => $fnamebase);
+        my $schema     = $layer->GetDefn->GetSchema;
         my $shape_type = $schema->{GeometryFields}[0]{Type};
 
-        #  this is all of the standards now, but not all those supported by GDAL
+        #  this is all of the common types, but not all those supported by GDAL
         croak '[BASEDATA] Import of point, polygon and polyline shapefiles only is supported.  '
           . "$fnamebase is type $shape_type\n"
           if not $shape_type =~ /Point|Polygon|Line/i;
@@ -378,7 +400,7 @@ sub run {
 
         $col_names_for_dialog = \@field_names;
     }
-    elsif ( $read_format eq 'text' || $read_format eq 'spreadsheet' ) {
+    elsif ( $read_format_is_text || $read_format_is_spreadsheet ) {
 
         # process as tabular input, get columns from file
 
@@ -387,7 +409,7 @@ sub run {
         my $filename_utf8 = Glib::filename_display_name $filenames[0];
         my ( @line2_cols, @header );
 
-        if ( $read_format eq 'text' ) {
+        if ( !!$read_format_is_text ) {
 
             my $fh = $gui->get_project->get_file_handle (
                file_name => $filename_utf8,
@@ -462,8 +484,8 @@ sub run {
             my $spreadsheet_params_table = $s_dlgxml->get_object('tableImportParameters');
 
      # (passing $dlgxml because generateFile uses existing widget on the dialog)
-            my $parameters_table = Biodiverse::GUI::ParametersTable->new;
-            my $extractors = $parameters_table->fill(
+            my $ss_parameters_table = Biodiverse::GUI::ParametersTable->new;
+            my $ss_extractors = $ss_parameters_table->fill(
                 [$param],
                 $spreadsheet_params_table,
                 $s_dlgxml
@@ -473,7 +495,7 @@ sub run {
             $response = $dlg->run;
 
             #  harvest before dlg destruction
-            my $chosen_params = $parameters_table->extract($extractors);
+            my $chosen_params = $ss_parameters_table->extract($ss_extractors);
 
             $dlg->destroy;
 
@@ -530,7 +552,16 @@ sub run {
     # 2. Get column types (using first file...)
     #########
     my $column_settings;
-    if ( my $xx = grep { $_ eq $read_format } @format_uses_columns ) {
+    if ( !!$read_format_uses_columns ) {
+
+        my @file_names_tmp = @filenames[0 .. min (4, $#filenames)];
+        if ( scalar @filenames > 5 ) {
+            push @file_names_tmp,
+                '(Showing first 5 of ' . (scalar @filenames) . ')';
+        }
+        my $file_list_as_text = join( "\n", @file_names_tmp );
+        $file_list_label->set_text ($file_list_as_text);
+
         my $row_widgets;
         ( $dlg, $row_widgets ) = make_columns_dialog(
             header            => $col_names_for_dialog,
@@ -539,6 +570,7 @@ sub run {
             file_list_text    => $file_list_as_text,
             max_opt_rows      => $import_params{max_opt_cols},
             gp_axis_precision => $import_params{gp_axis_precision},
+            file_layer_label  => $read_format_is_shp ? 'Files and layers' : undef,
         );
 
       GET_COLUMN_TYPES:
@@ -600,7 +632,7 @@ sub run {
     # 3. Get column order
     #########
     my $reorder_params;
-    if ( my $xx = grep { $_ eq $read_format } @format_uses_columns ) {
+    if ( !!$read_format_uses_columns ) {
         my $old_labels_array = $column_settings->{labels};
         if ($use_matrix) {
             $column_settings->{labels} =
@@ -686,7 +718,7 @@ sub run {
     my $success = 1;
 
     # run appropriate import routine
-    if ( $read_format eq 'raster' ) {
+    if ( !!$read_format_is_raster ) {
         my $labels_as_bands = $import_params{labels_as_bands};
         foreach my $bdata ( keys %multiple_file_lists ) {
             $success &&= eval {
@@ -701,7 +733,7 @@ sub run {
             };
         }
     }
-    elsif ( $read_format eq 'shapefile' or $read_format eq 'spreadsheet' ) {
+    elsif ( $read_format_is_shp or $read_format_is_spreadsheet ) {
 
         #  shapefiles and spreadsheets import based on names, so extract them
         my ( @group_col_names, @label_col_names );
@@ -747,27 +779,30 @@ sub run {
             push @sample_count_col_names, $specs->{name};
         }
 
-        if ($read_format eq 'shapefile') {
+        if (!!$read_format_is_shp) {
             FILE:
               foreach my $filelist ( values %multiple_file_lists ) {
                 foreach my $file (@$filelist) {
                     #  not sure we want to go through the lot - what if we have 1000 point files?
-                    my $shapefile  = eval {
-                        Geo::GDAL::FFI::Open($file);
+                    my ($ds_name, $layer_name)
+                        = Biodiverse::Common::IO->_parse_gdal_dataset_layer_string_aa($file);
+                    my $ds  = eval {
+                        Geo::GDAL::FFI::Open($ds_name);
                     };
                     croak $@ if $@;
-                    my $schema     = $shapefile->GetLayer->GetDefn->GetSchema;
+                    my $schema     = $ds->GetLayer->GetDefn->GetSchema;
                     my $shape_type = $schema->{GeometryFields}[0]{Type};
-                    if ($shape_type =~ /Poly/i) {
-                        my $have_shapexy = grep {$_ =~ /\:shape_[xy]/} @group_col_names;
-                        croak "polygon and polyline imports must have :shape_x and :shape_y columns specified\n"
-                          if $have_shapexy != 2;
-                        last FILE;  #  no need to check more if the first case passes
-                    }
+
+                    next if $shape_type =~ /point/i;
+
+                    my $count_shapexy = grep {$_ =~ /\:shape_[xy]/} @group_col_names;
+                    croak "polygon and polyline imports must have :shape_x and :shape_y columns specified\n"
+                      if $count_shapexy != 2;
+                    last FILE;  #  all is ok if the first case passes
                 }
             }
         }
-        elsif ($read_format eq 'spreadsheet') {
+        elsif (!!$read_format_is_spreadsheet) {
             #  repetition is perhaps overkill but 
             #  sometimes but any extras are ignored
             $rest_of_options{sheet_ids} 
@@ -792,7 +827,7 @@ sub run {
             } // 0;
         }
     }
-    elsif ( $read_format eq 'text' ) {
+    elsif ( !!$read_format_is_text ) {
         my $progress;
         my $num_files = keys %multiple_file_lists;
         if ($num_files > 1) {
@@ -839,9 +874,8 @@ sub run {
             my $message
               = "No valid records were imported into this basedata.\n"
               . 'do you want to add it to the project anyway?';
-            my $response =
-              Biodiverse::GUI::YesNoCancel->run( { header => $message } );
-            return if $response ne 'yes';
+            return
+              if Biodiverse::GUI::YesNoCancel->run( { header => $message } ) ne 'yes';
         }
 
         #  warn about possible lat/long basedata with large cell sizes
@@ -856,13 +890,13 @@ sub run {
               . "then the default cellsize of $default_cell_size will be far too large.\n"
               . qq{See https://github.com/shawnlaffan/biodiverse/wiki/FAQ#i-imported-my-data-and-it-only-has-one-cell\n}
               . "Do you want to add it to the project anyway?";
-            my $response =
+            my $resp =
               Biodiverse::GUI::YesNoCancel->run( {
                 header => $header,
                 text   => $message,
                 hide_cancel => 1,
             } );
-            return if $response ne 'yes';
+            return if $resp ne 'yes';
         }
 
         if ( $use_new || $one_basedata_per_file ) {
@@ -877,14 +911,12 @@ sub run {
                 my $message =
                     "No valid records were imported into any basedata.\n"
                   . 'do you want to add them to the project anyway?';
-                my $response =
-                  Biodiverse::GUI::YesNoCancel->run( { header => $message } );
-                return if $response ne 'yes';
+                return if Biodiverse::GUI::YesNoCancel->run( { header => $message } ) ne 'yes';
             }
 
-            foreach my $file ( keys %multiple_brefs ) {
-                next if !$multiple_is_new{$file};
-                $gui->get_project->add_base_data( $multiple_brefs{$file} );
+            foreach my $mb_file ( keys %multiple_brefs ) {
+                next if !$multiple_is_new{$mb_file};
+                $gui->get_project->add_base_data( $multiple_brefs{$mb_file} );
             }
         }
 
@@ -896,6 +928,69 @@ sub run {
     }
 
     return;
+}
+
+sub get_gdal_layer_selection {
+    my ($ds) = @_;
+    my @layers = $ds->GetLayerNames;
+    my $ds_name = $ds->GetDescription;
+    my $dlg = Gtk3::Dialog->new(
+        "Select layers",
+        undef,
+        'modal',
+        'gtk-cancel' => 'cancel',
+        'gtk-ok'     => 'ok',
+    );
+    my $box = $dlg->get_content_area();
+    $box->set_spacing(10);
+
+    $box->add(Gtk3::Label->new("Note that the system assumes all selected layers have the same fields."));
+
+    my $f_label = Gtk3::Label->new("Database: $ds_name");
+    $f_label->set (halign => 'GTK_ALIGN_START');
+    $box->add($f_label);
+    $box->add (Gtk3::Separator->new ('GTK_ORIENTATION_HORIZONTAL'));
+
+    my $button_box = Gtk3::Box->new('GTK_ORIENTATION_HORIZONTAL', 10);
+
+    my $select_all  = Gtk3::Button->new_with_label ('Select all');
+    my $select_none = Gtk3::Button->new_with_label ('Clear selection');
+    $button_box->add ($select_all);
+    $button_box->add ($select_none);
+    $box->add($button_box);
+
+    $box->add (Gtk3::Separator->new ('GTK_ORIENTATION_HORIZONTAL'));
+
+    my $toggle_box = Gtk3::Box->new('GTK_ORIENTATION_VERTICAL', 5);
+
+    my %checks;
+    foreach my $lyr (@layers) {
+        my $check = Gtk3::CheckButton->new_with_label ($lyr);
+        $toggle_box->add ($check);
+        $checks{$lyr} = $check;
+    }
+
+    my $scroll = Gtk3::ScrolledWindow->new;
+    $scroll->set_propagate_natural_height(1);
+    $scroll->add_with_viewport($toggle_box);
+    $box->add ($scroll);
+
+    $select_all->signal_connect_swapped  (clicked => sub { $_->set_active (1) for values %checks });
+    $select_none->signal_connect_swapped (clicked => sub { $_->set_active (0) for values %checks });
+
+
+    $dlg->show_all;
+
+    use experimental 'defer';
+    defer {
+        $dlg->destroy;
+    };
+
+    return if $dlg->run() ne 'ok';
+
+    my @selected = grep {$checks{$_}->get_active} @layers;
+
+    return @selected;
 }
 
 sub cleanup_new_basedatas {
@@ -1186,8 +1281,6 @@ sub show_expl_dialog {
     my $dlg = Gtk3::Dialog->new( 'Column options',
         $parent, 'destroy-with-parent', 'gtk-ok' => 'ok', );
 
-    my $text_wrapper = Text::Wrapper->new( columns => 90 );
-
     my $table = Gtk3::Table->new( 1 + scalar keys %$expl_hash, 2, 0);
     $table->set_row_spacings(5);
     $table->set_col_spacings(5);
@@ -1213,8 +1306,6 @@ sub show_expl_dialog {
     $label2->set_use_markup(1);
     $table->attach( $label2, 1, 2, $col, $col + 1, [ 'expand', 'fill' ],
         'shrink', 0, 0 );
-
-    my $text;
 
     #while (my ($label, $expl) = each %explain) {
     foreach my $label ( sort keys %$expl_hash ) {
@@ -1414,41 +1505,40 @@ sub make_filename_dialog {
     use Cwd;
     $filechooser->set_current_folder_uri( getcwd() );
 
-    # define file selection filters (stored in txtcsv_filter etc)
-    $txtcsv_filter = Gtk3::FileFilter->new();
-    $txtcsv_filter->add_pattern('*.csv');
-    $txtcsv_filter->add_pattern('*.txt');
-    $txtcsv_filter->set_name('txt and csv files');
+    my @params = (
+        text => {
+            name     => 'txt and csv files',
+            patterns => [ qw/csv txt/ ],
+        },
+        shapefile => {
+            patterns => [ 'shp' ],
+        },
+        'feature data'  => {
+            patterns => [ qw/shp gpkg gdbtable/ ],
+        },
+        'spreadsheet' => {
+            name     => 'spreadsheets',
+            patterns => [ qw/xlsx xls ods/ ],
+        },
+        'raster' => {
+            name     => 'rasters',
+            patterns => [ qw/tif tiff img asc flt/ ],
+        },
+        'all files' => {
+            patterns => [ '*' ],
+        },
+    );
 
-    $allfiles_filter = Gtk3::FileFilter->new();
-    $allfiles_filter->add_pattern('*');
-    $allfiles_filter->set_name('all files');
-
-    $shapefiles_filter = Gtk3::FileFilter->new();
-    $shapefiles_filter->add_pattern('*.shp');
-    $shapefiles_filter->set_name('shapefiles');
-
-    $spreadsheets_filter = Gtk3::FileFilter->new();
-    $spreadsheets_filter->add_pattern('*.xlsx');
-    $spreadsheets_filter->add_pattern('*.xls');
-    $spreadsheets_filter->add_pattern('*.ods');
-    $spreadsheets_filter->set_name('spreadsheets');
-
-    #  could use a custom filter to detect more formats
-    $rasters_filter = Gtk3::FileFilter->new();
-    $rasters_filter->add_pattern('*.tif');
-    $rasters_filter->add_pattern('*.tiff');
-    $rasters_filter->add_pattern('*.img');
-    $rasters_filter->add_pattern('*.asc');
-    $rasters_filter->add_pattern('*.flt');
-    $rasters_filter->set_name('rasters');
-    
-    $filechooser->add_filter($txtcsv_filter);
-    $filechooser->add_filter($rasters_filter);
-    $filechooser->add_filter($shapefiles_filter);
-    $filechooser->add_filter($spreadsheets_filter);
-    $filechooser->add_filter($allfiles_filter);
-
+    use experimental qw /for_list/;
+    foreach my ($type, $data) (@params) {
+        my $f = Gtk3::FileFilter->new();
+        foreach my $pat (@{$data->{patterns}}) {
+            $f->add_pattern("*.$pat");
+        }
+        $f->set_name($data->{name} // $type);
+        $filechooser->add_filter($f);
+        $file_filters{$type} = $f;
+    }
 
     $filechooser->set_select_multiple(1);
     $filechooser->signal_connect(
@@ -1485,14 +1575,7 @@ sub on_import_method_changed {
     my $active_choice = lc $format_combo->get_active_text;
     my $f_widget      = $dlgxml->get_object($filechooser_input);
 
-    my %filters = (
-        text        => $txtcsv_filter,
-        raster      => $rasters_filter,
-        shapefile   => $shapefiles_filter,
-        spreadsheet => $spreadsheets_filter,
-    );
-
-    $f_widget->set_filter($filters{$active_choice});
+    $f_widget->set_filter($file_filters{$active_choice});
 
     return;
 }
@@ -1601,6 +1684,7 @@ sub make_columns_dialog {
     my $file_list    = $args{file_list_text};
     my $max_opt_rows = $args{max_opt_rows} || 100;
     my $gp_axis_prec = $args{gp_axis_precision};
+    my $file_label   = $args{file_layer_label} // 'Files';
 
     #  don't try to generate ludicrous number of rows...
     my $num_columns = min( scalar @$header, $max_opt_rows );
@@ -1618,7 +1702,7 @@ sub make_columns_dialog {
     );
 
     if ( defined $file_list ) {
-        my $file_title = Gtk3::Label->new('<b>Files:</b>');
+        my $file_title = Gtk3::Label->new("<b>$file_label:</b>");
         $file_title->set_use_markup(1);
         $file_title->set_alignment( 0, 1 );
         $dlg->get_content_area->pack_start( $file_title, 0, 0, 0 );
@@ -1987,12 +2071,12 @@ sub get_remap_info {
         exclude_cols     => \@exclude_cols,
     );
 
-    foreach my $type ( @$other_properties, 'Property' ) {
-        my $ref = $column_settings->{$type};
+    foreach my $p_type ( @$other_properties, 'Property' ) {
+        my $ref = $column_settings->{$p_type};
         next if !defined $ref;
         $ref = [$ref] if !is_arrayref $ref;
         foreach my $i (@$ref) {
-            my $t = $type;
+            my $t = $p_type;
             if ( $t eq 'Property' ) {
                 $t = $i->{name};
             }
@@ -2085,7 +2169,6 @@ sub get_remap_column_settings {
     my $cols    = shift;
     my $headers = shift;
     my $num     = @$cols;
-    my ( @in, @out );
     my %results;
 
     foreach my $i ( 0 .. ( $num - 1 ) ) {

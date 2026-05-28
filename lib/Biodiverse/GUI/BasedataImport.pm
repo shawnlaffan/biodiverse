@@ -181,6 +181,10 @@ sub run {
 
     # interpret if raster, text etc depending on format box
     my $read_format = lc $dlgxml->get_object($file_format)->get_active_text;
+    my $read_format_is_text   = $read_format eq 'text';
+    my $read_format_is_raster = $read_format eq 'raster';
+    my $read_format_is_shp    = $read_format eq 'shapefile';
+    my $read_format_is_spreadsheet = $read_format eq 'spreadsheet';
 
     $dlg->destroy();
 
@@ -211,13 +215,13 @@ sub run {
     my %args = $basedata_ref->get_args( sub => 'import_data_common' );
 
     # set visible fields in import dialog
-    if ( $read_format eq 'text' ) {
+    if ( !!$read_format_is_text ) {
         my %text_args = $basedata_ref->get_args( sub => 'import_data_text' );
 
         # add new params to args
         push @{ $args{parameters} }, @{ $text_args{parameters} };
     }
-    elsif ( $read_format eq 'raster' ) {
+    elsif (!!$read_format_is_raster) {
         my %raster_args =
           $basedata_ref->get_args( sub => 'import_data_raster' );
 
@@ -271,7 +275,7 @@ sub run {
 
     my @cell_sizes;
     my @cell_origins;
-    if ( $read_format eq 'raster' ) {
+    if ( !!$read_format_is_raster ) {
 
         # set some default values (a bit of a hack)
         @cell_sizes   = $basedata_ref->get_cell_sizes;
@@ -321,7 +325,7 @@ sub run {
 
     # (no pre-processing needed for raster)
 
-    if ( $read_format eq 'raster' ) {
+    if ( !!$read_format_is_raster ) {
 
         # just set cell sizes etc values from dialog
         @cell_origins =
@@ -331,7 +335,7 @@ sub run {
             $import_params{raster_cellsize_n}
         );
     }
-    elsif ( $read_format eq 'shapefile' ) {
+    elsif ( $read_format_is_shp  ) {
         
         # find available columns from first file, assume all the same
         croak 'no files given' if !scalar @filenames;
@@ -407,7 +411,7 @@ sub run {
 
         $col_names_for_dialog = \@field_names;
     }
-    elsif ( $read_format eq 'text' || $read_format eq 'spreadsheet' ) {
+    elsif ( $read_format_is_text || $read_format_is_spreadsheet ) {
 
         # process as tabular input, get columns from file
 
@@ -416,7 +420,7 @@ sub run {
         my $filename_utf8 = Glib::filename_display_name $filenames[0];
         my ( @line2_cols, @header );
 
-        if ( $read_format eq 'text' ) {
+        if ( !!$read_format_is_text ) {
 
             my $fh = $gui->get_project->get_file_handle (
                file_name => $filename_utf8,
@@ -577,7 +581,7 @@ sub run {
             file_list_text    => $file_list_as_text,
             max_opt_rows      => $import_params{max_opt_cols},
             gp_axis_precision => $import_params{gp_axis_precision},
-            file_layer_label  => $read_format eq 'shapefile' ? 'Files and layers' : undef,
+            file_layer_label  => $read_format_is_shp ? 'Files and layers' : undef,
         );
 
       GET_COLUMN_TYPES:
@@ -725,7 +729,7 @@ sub run {
     my $success = 1;
 
     # run appropriate import routine
-    if ( $read_format eq 'raster' ) {
+    if ( !!$read_format_is_raster ) {
         my $labels_as_bands = $import_params{labels_as_bands};
         foreach my $bdata ( keys %multiple_file_lists ) {
             $success &&= eval {
@@ -740,7 +744,7 @@ sub run {
             };
         }
     }
-    elsif ( $read_format eq 'shapefile' or $read_format eq 'spreadsheet' ) {
+    elsif ( $read_format_is_shp or $read_format_is_spreadsheet ) {
 
         #  shapefiles and spreadsheets import based on names, so extract them
         my ( @group_col_names, @label_col_names );
@@ -786,7 +790,7 @@ sub run {
             push @sample_count_col_names, $specs->{name};
         }
 
-        if ($read_format eq 'shapefile') {
+        if (!!$read_format_is_shp) {
             FILE:
               foreach my $filelist ( values %multiple_file_lists ) {
                 foreach my $file (@$filelist) {
@@ -809,7 +813,7 @@ sub run {
                 }
             }
         }
-        elsif ($read_format eq 'spreadsheet') {
+        elsif (!!$read_format_is_spreadsheet) {
             #  repetition is perhaps overkill but 
             #  sometimes but any extras are ignored
             $rest_of_options{sheet_ids} 
@@ -834,7 +838,7 @@ sub run {
             } // 0;
         }
     }
-    elsif ( $read_format eq 'text' ) {
+    elsif ( !!$read_format_is_text ) {
         my $progress;
         my $num_files = keys %multiple_file_lists;
         if ($num_files > 1) {

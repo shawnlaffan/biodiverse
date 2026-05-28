@@ -101,13 +101,6 @@ sub run {
 
     # Get selected filenames
     \my @filenames = $dlgxml->get_object($filechooser_input)->get_filenames();
-    my @file_names_tmp = @filenames;
-    if ( scalar @filenames > 5 ) {
-        @file_names_tmp = @filenames[ 0 .. 5 ];
-        push @file_names_tmp,
-          '... plus ' . ( scalar @filenames - 5 ) . ' others';
-    }
-    my $file_list_as_text = join( "\n", @file_names_tmp );
     my @def_cellsizes = ( $default_cell_size, $default_cell_size );
 
     $use_new = $dlgxml->get_object($chk_new)->get_active();
@@ -207,7 +200,7 @@ sub run {
     $file_title->set_alignment( 0, 1 );
     $vbox->pack_start( $file_title, 0, 0, 0 );
 
-    my $file_list_label = Gtk3::Label->new( $file_list_as_text . "\n\n" );
+    my $file_list_label = Gtk3::Label->new( "" );
     $file_list_label->set_alignment( 0, 1 );
     $vbox->pack_start( $file_list_label, 0, 0, 0 );
     my $import_vbox = $dlgxml->get_object('import_parameters_vbox');
@@ -345,20 +338,51 @@ sub run {
         # find available columns from first file, assume all the same
         croak 'no files given' if !scalar @filenames;
 
-        my %fname_layers;
+        my %feature_db_layers;
+
         my $fnamebase = $filenames[0];
         my $shapefile  = eval {
             Geo::GDAL::FFI::Open($fnamebase);
         };
         croak "$@\n" if $@;
+        $feature_db_layers{$fnamebase} = undef;
         my @layers;
         if ($shapefile->GetLayerCount > 1) {
             @layers = get_gdal_layer_selection($shapefile);
             croak 'No layers selected' if !@layers;
-            $fname_layers{$fnamebase} = \@layers;
+            $feature_db_layers{$fnamebase} = \@layers;
         }
         my $schema     = $shapefile->GetLayer($layers[0] // ())->GetDefn->GetSchema;
         my $shape_type = $schema->{GeometryFields}[0]{Type};
+
+        #  get the layers for the remaining feature databases
+        #  ideally we would develop a treeview widget to select them all at once...
+        if (@filenames > 1) {
+            foreach my $fname (@filenames[1..$#filenames]) {
+                my $db = eval {
+                    Geo::GDAL::FFI::Open($fname);
+                };
+                croak "$@\n" if $@;
+                $feature_db_layers{$fname} = undef;
+                my @db_layers;
+                if ($db->GetLayerCount > 1) {
+                    @db_layers = get_gdal_layer_selection($db);
+                    croak 'No layers selected' if !@db_layers;
+                    $feature_db_layers{$fname} = \@db_layers;
+                }
+            }
+        }
+
+        my @f2;
+        foreach my $f (@filenames) {
+            if (defined $feature_db_layers{$f}) {
+                push @f2, map {"$f/$_"} @{$feature_db_layers{$f}};
+            }
+            else {
+                push @f2, $f;
+            }
+        }
+        @filenames = @f2;
 
         #  this is all of the standards now, but not all those supported by GDAL
         croak '[BASEDATA] Import of point, polygon and polyline shapefiles only is supported.  '
@@ -537,7 +561,16 @@ sub run {
     # 2. Get column types (using first file...)
     #########
     my $column_settings;
-    if ( my $xx = grep { $_ eq $read_format } @format_uses_columns ) {
+    if ( scalar grep { $_ eq $read_format } @format_uses_columns ) {
+
+        my @file_names_tmp = @filenames[0 .. min (3, $#filenames)];
+        if ( scalar @filenames > 4 ) {
+            push @file_names_tmp,
+                '... plus ' . ( scalar @filenames - 5 ) . ' others';
+        }
+        my $file_list_as_text = join( "\n", @file_names_tmp );
+        $file_list_label->set_text ($file_list_as_text);
+
         my $row_widgets;
         ( $dlg, $row_widgets ) = make_columns_dialog(
             header            => $col_names_for_dialog,
@@ -546,6 +579,7 @@ sub run {
             file_list_text    => $file_list_as_text,
             max_opt_rows      => $import_params{max_opt_cols},
             gp_axis_precision => $import_params{gp_axis_precision},
+            file_layer_label  => $read_format eq 'shapefile' ? 'Files and layers' : undef,
         );
 
       GET_COLUMN_TYPES:
@@ -1672,6 +1706,7 @@ sub make_columns_dialog {
     my $file_list    = $args{file_list_text};
     my $max_opt_rows = $args{max_opt_rows} || 100;
     my $gp_axis_prec = $args{gp_axis_precision};
+    my $file_label   = $args{file_layer_label} // 'Files';
 
     #  don't try to generate ludicrous number of rows...
     my $num_columns = min( scalar @$header, $max_opt_rows );
@@ -1689,7 +1724,7 @@ sub make_columns_dialog {
     );
 
     if ( defined $file_list ) {
-        my $file_title = Gtk3::Label->new('<b>Files:</b>');
+        my $file_title = Gtk3::Label->new("<b>$file_label:</b>");
         $file_title->set_use_markup(1);
         $file_title->set_alignment( 0, 1 );
         $dlg->get_content_area->pack_start( $file_title, 0, 0, 0 );

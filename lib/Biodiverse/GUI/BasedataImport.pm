@@ -565,10 +565,10 @@ sub run {
     my $column_settings;
     if ( scalar grep { $_ eq $read_format } @format_uses_columns ) {
 
-        my @file_names_tmp = @filenames[0 .. min (3, $#filenames)];
-        if ( scalar @filenames > 4 ) {
+        my @file_names_tmp = @filenames[0 .. min (4, $#filenames)];
+        if ( scalar @filenames > 5 ) {
             push @file_names_tmp,
-                '... plus ' . ( scalar @filenames - 5 ) . ' others';
+                '(Showing first 5 of ' . (scalar @filenames) . ')';
         }
         my $file_list_as_text = join( "\n", @file_names_tmp );
         $file_list_label->set_text ($file_list_as_text);

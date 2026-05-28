@@ -48,14 +48,9 @@ my $importmethod_combo = "format_box$import_n";      # not sure about the suffix
 my $combo_import_basedatas     = "comboImportBasedatas$import_n";
 my $chk_import_one_bd_per_file = "chk_import_one_bd_per_file$import_n";
 
-# maintain reference for these, to allow referring when import method changes
-# (Not sure whey they are package lexicals)
-my $txtcsv_filter;
-my $allfiles_filter;
-my $shapefiles_filter;
-my $spreadsheets_filter;
-my $features_filter;
-my $rasters_filter;
+# maintain reference for the filters, to allow referring when import method changes
+# (Not sure whey this is a package lexical)
+my %file_filters;
 
 my $default_cell_size = 100000;
 
@@ -1511,47 +1506,40 @@ sub make_filename_dialog {
     use Cwd;
     $filechooser->set_current_folder_uri( getcwd() );
 
-    # define file selection filters (stored in txtcsv_filter etc)
-    $txtcsv_filter = Gtk3::FileFilter->new();
-    foreach my $pat (qw /csv txt/) {
-        $txtcsv_filter->add_pattern("*.$pat");
+    my @params = (
+        text => {
+            name     => 'txt and csv files',
+            patterns => [ qw/csv txt/ ],
+        },
+        shapefile => {
+            patterns => [ 'shp' ],
+        },
+        'feature data'  => {
+            patterns => [ qw/shp gpkg gdbtable/ ],
+        },
+        'spreadsheet' => {
+            name     => 'spreadsheets',
+            patterns => [ qw/xlsx xls ods/ ],
+        },
+        'raster' => {
+            name     => 'rasters',
+            patterns => [ qw/tif tiff img asc flt/ ],
+        },
+        'all files' => {
+            patterns => [ '*' ],
+        },
+    );
+
+    use experimental qw /for_list/;
+    foreach my ($type, $data) (@params) {
+        my $f = Gtk3::FileFilter->new();
+        foreach my $pat (@{$data->{patterns}}) {
+            $f->add_pattern("*.$pat");
+        }
+        $f->set_name($data->{name} // $type);
+        $filechooser->add_filter($f);
+        $file_filters{$type} = $f;
     }
-    $txtcsv_filter->set_name('txt and csv files');
-
-    $allfiles_filter = Gtk3::FileFilter->new();
-    $allfiles_filter->add_pattern('*');
-    $allfiles_filter->set_name('all files');
-
-    $shapefiles_filter = Gtk3::FileFilter->new();
-    $shapefiles_filter->add_pattern('*.shp');
-    $shapefiles_filter->set_name('shapefiles');
-
-    $features_filter = Gtk3::FileFilter->new();
-    foreach my $pat (qw /shp gpkg gdbtable/) {
-        $features_filter->add_pattern("*.$pat");
-    }
-    $features_filter->set_name('feature data');
-
-    $spreadsheets_filter = Gtk3::FileFilter->new();
-    foreach my $pat (qw /xlsx xls ods/) {
-        $spreadsheets_filter->add_pattern("*.$pat");
-    }
-    $spreadsheets_filter->set_name('spreadsheets');
-
-    #  could use a custom filter to detect more formats
-    $rasters_filter = Gtk3::FileFilter->new();
-    foreach my $pat (qw /tif tiff img asc flt/) {
-        $rasters_filter->add_pattern("*.$pat");
-    }
-    $rasters_filter->set_name('rasters');
-    
-    $filechooser->add_filter($txtcsv_filter);
-    $filechooser->add_filter($rasters_filter);
-    $filechooser->add_filter($shapefiles_filter);
-    $filechooser->add_filter($spreadsheets_filter);
-    $filechooser->add_filter($features_filter);
-    $filechooser->add_filter($allfiles_filter);
-
 
     $filechooser->set_select_multiple(1);
     $filechooser->signal_connect(
@@ -1588,15 +1576,7 @@ sub on_import_method_changed {
     my $active_choice = lc $format_combo->get_active_text;
     my $f_widget      = $dlgxml->get_object($filechooser_input);
 
-    my %filters = (
-        text        => $txtcsv_filter,
-        raster      => $rasters_filter,
-        shapefile   => $shapefiles_filter,
-        'feature data' => $features_filter,
-        spreadsheet => $spreadsheets_filter,
-    );
-
-    $f_widget->set_filter($filters{$active_choice});
+    $f_widget->set_filter($file_filters{$active_choice});
 
     return;
 }

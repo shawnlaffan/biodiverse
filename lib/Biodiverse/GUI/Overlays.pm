@@ -63,7 +63,7 @@ sub show_dialog {
     $table_window->add($table);
 
     my %buttons = map {$_ => $dlgxml->get_object($_)}
-        (qw /btnAdd btnDelete btnClear btnSet btnOverlayCancel btn_overlay_set_default_colour/);
+        (qw /btnAdd btnClear btnSet btnOverlayCancel btn_overlay_set_default_colour/);
     my %components = (
         dialog        => $dlg,
         colour_button => $colour_button,
@@ -102,10 +102,6 @@ sub set_button_actions {
     #  these are always the same
     $signals->{btnAdd} //= $buttons->{btnAdd}->signal_connect_swapped(
         clicked => \&on_add,
-        $project,
-    );
-    $signals->{btnDelete} //= $buttons->{btnDelete}->signal_connect_swapped(
-        clicked => \&on_delete,
         $project,
     );
     $signals->{btnOverlayCancel} //= $buttons->{btnOverlayCancel}->signal_connect_swapped(
@@ -150,7 +146,8 @@ sub update_overlay_table {
 
         $table->insert_row(0);
         my $i = -1;
-        foreach my $label_text ('Reorder', 'Layer', 'Type', 'Colour', 'Plot above cells', 'Line width', 'Opacity') {
+        my @headings = (qw /Reorder Layer Type Colour/, 'Plot above cells', 'Line width', qw/Opacity Remove/);
+        foreach my $label_text (@headings) {
             $i++;
             my $label = Gtk3::Label->new($label_text);
             $label->set_use_markup(1);
@@ -182,7 +179,8 @@ sub overlay_table_insert_row {
 
     my ($table, $row, $entry) = @args{qw/table row entry project/};
 
-    my $components = Biodiverse::GUI::GUIManager->instance->get_overlay_components // {};
+    my $gui = Biodiverse::GUI::GUIManager->instance;
+    my $components = $gui->get_overlay_components // {};
     my $extractors = $components->{extractors} //= [];
 
     $table->insert_row ($row);
@@ -286,6 +284,23 @@ sub overlay_table_insert_row {
     $alpha->set_halign('center');
     $table->attach ($alpha, ++$col, $row, 1, 1);
     push @$widget_array, $alpha;
+
+    my $btn_remove = Gtk3::Button->new_from_icon_name ('process-stop', 4);
+    $btn_remove->set_tooltip_text ("Remove layer");
+    $btn_remove->set_halign('center');
+    $table->attach ($btn_remove, ++$col, $row, 1, 1);
+    push @$widget_array, $btn_remove;
+    $btn_remove->signal_connect (
+        clicked => sub {
+            my $ex_idx = firstidx {$_->{widgets} eq $widget_array} @$extractors;
+            return if $ex_idx < 0;
+            splice @$extractors, $ex_idx, 1;
+            $gui->get_project->delete_overlay($entry->{name}, $ex_idx);
+            my $grid_row = $ex_idx + 1;
+            $table->remove_row ($grid_row);
+            $table->show_all;
+        }
+    );
 
     #  the array is one shorter than the grid due to the header
     my $callbacks = {

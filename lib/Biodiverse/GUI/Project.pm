@@ -1563,11 +1563,6 @@ sub delete_overlay {
 
     splice( @$overlays, $array_idx, 1 );
 
-    my $overlay_components = Biodiverse::GUI::GUIManager->instance->get_overlay_components;
-    if (my $extractors = $overlay_components->{extractors}) {
-        splice @$extractors, $array_idx, 1;
-    }
-
     # remove from hash if no longer needed
     if (!grep {path ($_->{name}) eq $name} @$overlays) {
         delete $self->{overlay_objects}{$name};

@@ -271,7 +271,7 @@ sub test_import_gpkg_polygon_default {
     my $fname = $Bin . '/data/polygon data.gpkg';
     my $layer_name = 'layer_1';
 
-    my $file_lyr_path = "${fname}/${layer_name}";
+    my $file_lyr_path = "${fname}:${layer_name}";
     _test_import_shapefile_polygon (
         fname   => $file_lyr_path,
         expected_total_count => 261,  #  same as test_import_shapefile_polygon_default

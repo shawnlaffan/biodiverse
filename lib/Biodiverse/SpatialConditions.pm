@@ -28,6 +28,7 @@ use parent qw /
     Biodiverse::SpatialConditions::GroupVals
     Biodiverse::SpatialConditions::Vectorise
     Biodiverse::Common
+    Biodiverse::Common::IO
 /;
 
 our $VERSION = '5.0';

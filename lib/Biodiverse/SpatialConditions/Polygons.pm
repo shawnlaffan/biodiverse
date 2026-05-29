@@ -79,7 +79,7 @@ sub _get_shp_examples {
 
         # Is the neighbour coord in a geopackage layer?
         sp_point_in_poly_shape (
-            file  => 'c:/biodiverse/data/coastline.gpkg/layername',
+            file  => 'c:/biodiverse/data/coastline.gpkg:layername',
             point => \@nbrcoord,
         );
 
@@ -238,10 +238,10 @@ sub get_metadata_sp_points_in_same_poly_shape {
         sp_points_in_same_poly_shape (file => 'path/to/a/shapefile')
 
         #  define neighbour sets using a layer called "somename" in a geopackage called file.gpkg
-        sp_points_in_same_poly_shape (file => 'path/to/a/file.gpkg/somename')
+        sp_points_in_same_poly_shape (file => 'path/to/a/file.gpkg:somename')
 
         #  define neighbour sets using a layer called "somename" in a geodatabase called file.gdb
-        sp_points_in_same_poly_shape (file => 'path/to/a/file.gdb/somename')
+        sp_points_in_same_poly_shape (file => 'path/to/a/file.gdb:somename')
 
         #  return true when the neighbour coord is in the same
         #  polygon as an arbitrary point
@@ -410,30 +410,6 @@ sub get_cache_sp_points_in_same_poly_shape {
     return $cache;
 }
 
-#  parse a filename with layer appended
-sub _parse_gdal_dataset_layer_string_aa {
-    my ($self, $fstring) = @_;
-
-    if ($fstring =~ /\.gdbtable$/) {
-        $fstring = path($fstring)->parent;
-        croak "Invalid geodatabase $fstring" if $fstring !~ /\.gdb$/;
-    }
-
-    my $p = path ($fstring);
-
-    my ($fname, $layer_name);
-    if ($fstring =~ /\.shp$/) {
-        $layer_name = $p->basename =~ s/.shp$//r;
-        $fname      = $fstring;
-    }
-    else {
-        $fname      = $p->parent->stringify;
-        $layer_name = $p->basename;
-    }
-
-    return wantarray ? ($fname, $layer_name) : [$fname, $layer_name];
-}
-
 sub get_gdal_polygon_layer {
     my ($self, %args) = @_;
 
@@ -459,32 +435,14 @@ sub get_gdal_polygon_layer {
 
     return $cached if $cached;
 
-    my $p = path ($filename);
-    my ($dataset, $layer, $layer_name);
-    if ($filename =~ /\.shp$/) {
-        $dataset    = Geo::GDAL::FFI::Open("$filename");
-        $layer_name = $p->basename =~ s/.shp$//r;
-        $layer      = $dataset->GetLayer();
-    }
-    else {
-        my $ds;
-        if ($p =~ /\.\w+$/) {
-            $ds = "$p";
-        }
-        else {
-            $ds = $p->parent->stringify;
-            $layer_name = $p->basename;
-        }
-        $dataset = Geo::GDAL::FFI::Open($ds);
-
-        if (!length $layer_name) {
-            $layer_name = ($dataset->GetLayerNames)[0];
-        }
-        $layer = $dataset->GetLayerByName($layer_name);
-    }
+    my $layer = $self->get_gdal_feature_class_layer_from_path(path => $filename);
 
     if (defined $field_name || defined $field_val) {
+        my $dataset    = $layer->GetParentDataset;
+        my $layer_name = $layer->GetName;
+
         if (defined $field_name) {
+
             $layer = $dataset->ExecuteSQL(
                 qq{SELECT * FROM "$layer_name" WHERE "$field_name" = "$field_val"},
                 undef,

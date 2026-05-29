@@ -111,8 +111,8 @@ sub test_get_gdal_polygon_layer {
         push @lyr_names, undef
             if $type ne 'shp';
         foreach my $lyr_name (@lyr_names) {
-            my $polygon_file = _create_polygon_file('gpkg', $bounds, undef, $lyr_name);
-            $polygon_file .= "/$lyr_name" if defined $lyr_name;
+            my $polygon_file = _create_polygon_file($type, $bounds, undef, $lyr_name);
+            $polygon_file .= ":$lyr_name" if defined $lyr_name;
 
             my $cond = Biodiverse::SpatialConditions->new(conditions => 'sp_self_only()');
 
@@ -129,6 +129,11 @@ sub test_get_gdal_polygon_layer {
             );
 
             is $layer_subset->GetFeatureCount(), 1, "GDAL poly data set $type, filtered";
+
+            if ($type eq 'shp') {
+                #  make sure we can handle shapefiles with no extension for back compat.
+                $polygon_file =~ s/\.shp//;
+            }
 
             my $fid_subset = $cond->get_gdal_polygon_layer (
                 file       => $polygon_file,

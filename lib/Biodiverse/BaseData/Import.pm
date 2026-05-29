@@ -1189,7 +1189,7 @@ sub import_data_shapefile {
 
         # open as shapefile
         my $fnamebase = $file;
-        my $layer = $self->get_gdal_feature_class_layer_from_path (file => $file);
+        my $layer = $self->get_gdal_feature_class_layer_from_path (path => $file);
         my $layer_dataset = $layer->GetParentDataset;
         $layer->ResetReading;
         my $defn = $layer->GetDefn;

@@ -132,7 +132,7 @@ sub run {
             if ($db->GetLayerCount > 1) {
                 @db_layers = get_gdal_layer_selection($db);
                 croak 'No layers selected' if !@db_layers;
-                push @f2, map {"$fname/$_"} @db_layers;
+                push @f2, map {"${fname}:$_"} @db_layers;
             }
             else {
                 push @f2, $fname;
@@ -371,7 +371,7 @@ sub run {
         croak 'no files given' if !scalar @filenames;
 
         my $fnamebase  = $filenames[0];
-        my $layer = Biodiverse::Common::IO->get_gdal_feature_class_layer_from_path(file => $fnamebase);
+        my $layer = Biodiverse::Common->get_gdal_feature_class_layer_from_path(path => $fnamebase);
         my $schema     = $layer->GetDefn->GetSchema;
         my $shape_type = $schema->{GeometryFields}[0]{Type};
 
@@ -785,7 +785,7 @@ sub run {
                 foreach my $file (@$filelist) {
                     #  not sure we want to go through the lot - what if we have 1000 point files?
                     my ($ds_name, $layer_name)
-                        = Biodiverse::Common::IO->_parse_gdal_dataset_layer_string_aa($file);
+                        = Biodiverse::Common->_parse_gdal_dataset_layer_string_aa($file);
                     my $ds  = eval {
                         Geo::GDAL::FFI::Open($ds_name);
                     };

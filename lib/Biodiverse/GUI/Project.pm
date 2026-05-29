@@ -1515,6 +1515,7 @@ sub get_overlay_list {
     return $self->{OVERLAYS};
 }
 
+#  no longer used - should delete
 sub overlay_is_valid {
     my ($self, %args) = @_;
     my $shapefile = $args{shapefile};

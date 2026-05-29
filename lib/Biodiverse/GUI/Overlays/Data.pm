@@ -14,6 +14,8 @@ use Ref::Util qw /is_arrayref/;
 
 use Biodiverse::GUI::Overlays::Geometry;
 
+use parent 'Biodiverse::Common';
+
 #  filebase matches Geo::Shapefile and makes some things easier later on
 sub new {
     my ($class, $file) = @_;
@@ -23,27 +25,7 @@ sub new {
 sub get_layer_object {
     my $self = shift;
 
-    my $source = $self->{filebase};
-
-    my $p  = path ($source);
-    my $db = $p->parent;
-    my $layer_name = $p->basename;
-    my $layer;
-    if ($layer_name =~ /.shp$/) {
-        $layer = Geo::GDAL::FFI::Open($source)->GetLayer();
-    }
-    else {
-        $layer = Geo::GDAL::FFI::Open($db)->GetLayer($layer_name || 0);
-        # my $ds = Geo::GDAL::FFI::Open($db);
-        # for my $i (0 .. $ds->GetLayerCount-1) {
-        #     my $name = Geo::GDAL::FFI::OGR_L_GetName (Geo::GDAL::FFI::GDALDatasetGetLayer($$ds, $i));
-        #     say $name;
-        # }
-        # my $x = $layer->GetFeature(1);
-        # say $x;
-    }
-
-    return $layer;
+    return $self->get_gdal_feature_class_layer_from_path (path => $self->{filebase});
 }
 
 sub load_data {

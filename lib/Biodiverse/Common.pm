@@ -48,7 +48,7 @@ use Biodiverse::Exception;
 
 use Clone ();
 
-use parent qw(Biodiverse::Common::Caching);
+use parent qw(Biodiverse::Common::Caching Biodiverse::Common::IO);
 
 our $VERSION = '5.0';
 

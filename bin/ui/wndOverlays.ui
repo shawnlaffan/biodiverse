@@ -118,23 +118,6 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="btnDelete">
-                <property name="label">Remove</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="can-default">True</property>
-                <property name="receives-default">True</property>
-                <property name="has-tooltip">True</property>
-                <property name="tooltip-text" translatable="yes">Remove selected entry from the list</property>
-                <property name="use-stock">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-            <child>
               <object class="GtkButton" id="btnClear">
                 <property name="label">gtk-clear</property>
                 <property name="visible">True</property>

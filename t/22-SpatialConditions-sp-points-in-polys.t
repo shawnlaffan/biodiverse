@@ -111,8 +111,8 @@ sub test_get_gdal_polygon_layer {
         push @lyr_names, undef
             if $type ne 'shp';
         foreach my $lyr_name (@lyr_names) {
-            my $polygon_file = _create_polygon_file('gpkg', $bounds, undef, $lyr_name);
-            $polygon_file .= "/$lyr_name" if defined $lyr_name;
+            my $polygon_file = _create_polygon_file($type, $bounds, undef, $lyr_name);
+            $polygon_file .= ":$lyr_name" if defined $lyr_name;
 
             my $cond = Biodiverse::SpatialConditions->new(conditions => 'sp_self_only()');
 

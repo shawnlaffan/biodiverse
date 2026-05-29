@@ -410,30 +410,6 @@ sub get_cache_sp_points_in_same_poly_shape {
     return $cache;
 }
 
-#  parse a filename with layer appended
-sub _parse_gdal_dataset_layer_string_aa {
-    my ($self, $fstring) = @_;
-
-    if ($fstring =~ /\.gdbtable$/) {
-        $fstring = path($fstring)->parent;
-        croak "Invalid geodatabase $fstring" if $fstring !~ /\.gdb$/;
-    }
-
-    my $p = path ($fstring);
-
-    my ($fname, $layer_name);
-    if ($fstring =~ /\.shp$/) {
-        $layer_name = $p->basename =~ s/.shp$//r;
-        $fname      = $fstring;
-    }
-    else {
-        $fname      = $p->parent->stringify;
-        $layer_name = $p->basename;
-    }
-
-    return wantarray ? ($fname, $layer_name) : [$fname, $layer_name];
-}
-
 sub get_gdal_polygon_layer {
     my ($self, %args) = @_;
 

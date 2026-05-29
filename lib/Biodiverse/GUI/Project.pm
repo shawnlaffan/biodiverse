@@ -1551,17 +1551,22 @@ sub get_overlay_shape_object {
 }
 
 sub delete_overlay {
-    my ($self, $name, $array_iter) = @_;
+    my ($self, $name, $array_idx) = @_;
 
     my $overlays = $self->{OVERLAYS};
 
     $name = path ($name);
 
     # Remove from list unless not found or possible
-    $array_iter //= List::Util::first {path ($_) eq $name} @$overlays;
-    return if $array_iter < 0 || $array_iter > $#$overlays;
+    $array_idx //= List::Util::first {path ($_) eq $name} @$overlays;
+    return if $array_idx < 0 || $array_idx > $#$overlays;
 
-    splice( @$overlays, $array_iter, 1 );
+    splice( @$overlays, $array_idx, 1 );
+
+    my $overlay_components = Biodiverse::GUI::GUIManager->instance->get_overlay_components;
+    if (my $extractors = $overlay_components->{extractors}) {
+        splice @$extractors, $array_idx, 1;
+    }
 
     # remove from hash if no longer needed
     if (!grep {path ($_->{name}) eq $name} @$overlays) {

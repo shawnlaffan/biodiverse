@@ -130,6 +130,11 @@ sub test_get_gdal_polygon_layer {
 
             is $layer_subset->GetFeatureCount(), 1, "GDAL poly data set $type, filtered";
 
+            if ($type eq 'shp') {
+                #  make sure we can handle shapefiles with no extension for back compat.
+                $polygon_file =~ s/\.shp//;
+            }
+
             my $fid_subset = $cond->get_gdal_polygon_layer (
                 file       => $polygon_file,
                 field_val  => '2',

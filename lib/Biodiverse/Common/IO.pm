@@ -19,19 +19,27 @@ sub _parse_gdal_dataset_layer_string_aa {
         croak "Invalid geodatabase $fstring" if $fstring !~ /\.gdb$/;
     }
 
-    my $p = path ($fstring);
-
     my ($fname, $layer_name);
-    if ($fstring =~ /\.shp$/) {
+
+    my $p = path ($fstring);
+    my $basename = $p->basename;
+    if ($basename =~ /:/) {
+        (undef, $layer_name) = split ':', $basename;
+        $fstring =~ s/:$layer_name$//;
+        $layer_name = undef if $layer_name eq '';
+        $p = path ($fstring);  #  update
+    }
+    $fname = $fstring;
+
+    #  Shapefiles can be passed without an extension in the spatial conditions
+    #  as Geo::Shapefile, which was what we used, supports this.
+    if (!$self->file_exists_aa($fname) && $self->file_exists_aa("$fname.shp")) {
+        $fname .= '.shp';
+        $p = path($fname);
+    }
+
+    if ($fname =~ /\.shp$/) {
         $layer_name = $p->basename =~ s/.shp$//r;
-        $fname      = $fstring;
-    }
-    elsif ($fstring =~ /\.(gpkg|gdb)$/) {
-        $fname      = $fstring;
-    }
-    else {
-        $fname      = $p->parent->stringify;
-        $layer_name = $p->basename;
     }
 
     return wantarray ? ($fname, $layer_name) : [$fname, $layer_name];
@@ -40,7 +48,7 @@ sub _parse_gdal_dataset_layer_string_aa {
 sub get_gdal_feature_class_layer_from_path {
     my ($self, %args) = @_;
 
-    my $filename = $args{file};
+    my $filename = $args{path};
 
     my ($ds_name, $layer_name) = $self->_parse_gdal_dataset_layer_string_aa($filename);
 

@@ -2031,8 +2031,6 @@ sub on_matrix_hover {
 sub on_matrix_clicked {
     my ($self, $cells, undef, $rect) = @_;
 
-    return if !$self->{matrix_grid}->current_matrix_overlaps;
-
     return if $self->{tool} ne 'Select';
 
     #  list1 is the y-axis
@@ -2041,6 +2039,12 @@ sub on_matrix_clicked {
 
     my $hsel = $hlist->get_selection;
     my $vsel = $vlist->get_selection;
+
+    if (!$self->{matrix_grid}->current_matrix_overlaps) {
+        $hsel->unselect_all;
+        $vsel->unselect_all;
+        return;
+    }
 
     my $sel_mode = $self->get_selection_mode;
 

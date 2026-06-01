@@ -1233,10 +1233,10 @@ sub get_metadata_sp_in_assemblage_range {
         ],
         result_type    => ($is_defq ? 'always_same' : 'complex'),
         index_no_use   => 1, #  turn index off since this doesn't cooperate with the search method
-        # aggregate_substitute_method => {
-            # re_name => 'in_label_range',
-            # method  => '_aggregate_get_groups_in_label_range',
-        # },
+        aggregate_substitute_method => {
+            re_name => 'in_assemblage_range',
+            method  => '_aggregate_get_groups_in_assemblage_range',
+        },
     );
     return $self->metadata_class->new (\%metadata);
 }
@@ -1281,6 +1281,29 @@ sub get_assemblage_range_hash {
     }
 
     return wantarray ? %range : \%range;
+}
+
+sub _aggregate_get_groups_in_assemblage_range {
+    my ($self) = @_;
+
+    #  no point continuing if no basedata
+    return if !defined $self->get_basedata_ref;
+
+    my $conditions = $self->get_conditions_nws;
+
+    my $re = $self->get_regex (name => 'in_assemblage_range');
+
+    return if not $conditions =~ /$re/ms;
+
+    my $negated = !!$+{negated};
+
+    my $method_args_hash = $self->get_param ('METHOD_ARG_HASHES');
+    my $range_method = $+{range_method};
+    my $range_args   = $+{range_args};
+    my $method_args  = $method_args_hash->{$range_method . $range_args} // {};
+
+    my $in_polygon = $self->get_assemblage_range_hash (%$method_args);
+    return $self->_return_aggregate_hash ($in_polygon, $negated);
 }
 
 1;

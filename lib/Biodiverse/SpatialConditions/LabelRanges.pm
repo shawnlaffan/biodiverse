@@ -1225,7 +1225,6 @@ sub get_metadata_sp_in_assemblage_range {
         optional_args  => [
             !$is_defq ? 'group' : (),
             qw/
-
                 axes         circumcircle convex_hull
                 concave_hull hull_ratio   allow_holes
                 buffer_dist

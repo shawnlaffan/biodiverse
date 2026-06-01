@@ -67,7 +67,6 @@ my %test_reqs = (
     "Test2::Suite" => 0,
     #$^O ne 'MSWin32' ? (suggests "Test2::Harness") : ();
     "Data::Section::Simple" => 0,
-    "Perl::Tidy" => 0,
     "Devel::Symdump" => 0,
     "File::Compare" => 0,
     "Scalar::Util::Numeric" => 0,

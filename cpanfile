@@ -65,7 +65,6 @@ suggests "Data::Recursive";
     $^O ne 'MSWin32' ? (suggests "Test2::Harness") : ();
     requires "Data::Section::Simple";
     #requires "Test::Deep";
-    requires "Perl::Tidy";
     #requires "Test::Most";
     requires "Devel::Symdump";
     requires "File::Compare";

@@ -117,7 +117,8 @@ sub run_case {
 
     ok (@conds, "Test case $k actually contained conditions");
 
-    while (my ($cond, $v1ref) = splice @conds, 0, 2) {
+    use experimental qw /for_list/;
+    foreach my ($cond, $v1ref) (@conds) {
         my %v1 = %$v1ref;
 
         my ($includes, $excludes) = @v1{'includes', 'excludes'};
@@ -132,6 +133,8 @@ sub run_case {
             print_results => 0,
         ) };
     }
+
+    $bd->save;
 }
 
 my $data = get_data_section;

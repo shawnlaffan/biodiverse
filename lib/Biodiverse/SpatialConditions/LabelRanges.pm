@@ -1306,4 +1306,13 @@ sub _aggregate_get_groups_in_assemblage_range {
     return $self->_return_aggregate_hash ($in_polygon, $negated);
 }
 
+sub vec_sp_in_assemblage_range {
+    my ($self, %args) = @_;
+
+    my $href = $self->get_assemblage_range_hash (%args);
+
+    return $self->_aggregate_hash_to_pdl ($href);
+}
+
+
 1;

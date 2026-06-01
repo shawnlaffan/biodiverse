@@ -199,9 +199,10 @@ sub test_vectorised_conditions {
         q{sp_ellipse(minor_radius => 1, major_radius => 3)},
         q{sp_get_spatial_output_list_value(output => 'test_1', index => 'ENDW_WE') >= .12},
         #  label range methods trigger aggregate variants first
-        #  so test comined versions to ensure we hit the vectorised code
+        #  so test compound conditions to ensure we hit the vectorised code
         q{sp_in_label_ancestor_range(label => '1', by_depth => 1, target => 1) || sp_self_only()},
         q{sp_in_label_ancestor_range(label => 'not_in_tree', by_depth => 1, target => 1) || sp_self_only()},
+        q{sp_in_assemblage_range() || sp_self_only()},
         q{sp_shape_of_label_range (label => '1') || sp_self_only()},
         q{sp_shape_of_label_ancestor_range (label => '1', by_depth => 1, target => 1) || sp_self_only()},
         #  defq twice - code below will run a defq for the first but not the second

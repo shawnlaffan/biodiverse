@@ -1147,4 +1147,100 @@ sub get_group_hash_sp_shape_of_label_ancestor_range {
     return wantarray ? %$groups_in_polygon : $groups_in_polygon;
 }
 
+
+sub get_metadata_sp_in_assemblage_range {
+    my $self = shift;
+
+    my $description = <<~'EOD'
+        (Available from version 5.1)
+
+        Is a group within the range of any of the labels
+        in the assemblage found in the processing group?
+
+        Returns true if the group falls within the range of
+        any of the any of the assemblage label
+        ranges.  The range is by default defined as the set of
+        groups in the basedata containing that label.
+
+        The underlying algorithm checks each of the terminal
+        ranges using [sp_in_label_range()](#sp_in_label_range).
+        This means the search can also use the convex/concave
+        hull or circumcircle of each terminal, as well as
+        setting other arguments such as the `buffer_dist`
+        and using a default label in some circumstances.
+
+        Note that the range of each of the assemblage labels
+        is assessed separately, i.e. the union of the
+        hulls/circles is used.  The ranges are not aggregated
+        before a hull or circumcircle is calculated.
+
+        EOD
+    ;
+
+    my $example = <<~'EOEX'
+        # Are we in the range of any of the labels in the
+        # processing group's assemblage?
+        sp_in_assemblage_range()
+
+        #  Are we in any of the assemblage labels' convex hulls?
+        sp_in_assemblage_range(
+          convex_hull => 1,
+        )
+
+        #  Are we in any of the assemblage labels' concave hulls
+        #  with a ratio parameter of 0.5?
+        sp_in_assemblage_range(
+          concave_hull => 1,
+          hull_ratio   => 0.5,
+        )
+
+        #  Or the circumscribing circles?
+        sp_in_assemblage_range(
+          circumcircle => 1,
+        )
+
+        EOEX
+    ;
+
+    my %metadata = (
+        description   => $description,
+        example       => $example,
+        # required_args  => [],
+        optional_args  => [
+            # qw/
+            #     axes         circumcircle convex_hull
+            #     concave_hull hull_ratio   allow_holes
+            #     buffer_dist
+            # /,
+        ],
+        result_type    => 'complex',
+        index_no_use   => 1, #  turn index off since this doesn't cooperate with the search method
+        # aggregate_substitute_method => {
+            # re_name => 'in_label_range',
+            # method  => '_aggregate_get_groups_in_label_range',
+        # },
+    );
+    return $self->metadata_class->new (\%metadata);
+}
+
+sub sp_in_assemblage_range {
+    my ($self, %args) = @_;
+
+    #  aggregate range for processing group
+    my $coord     = $self->get_current_coord_id (type => 'proc');
+    my $nbr_coord = $self->get_current_coord_id (type => 'nbr');
+
+    my $cache = $self->get_cached_href('sp_in_assemblage_range_range');
+    my $assemblage_range = $cache->{$coord} //= do {
+        my $bd = $self->get_basedata_ref;
+        my $assemblage = $bd->get_labels_in_group_as_hash_aa ($coord);
+        $bd->get_range_union(
+            labels      => $assemblage,
+            return_hash => 1,
+        );
+    };
+
+    return exists $assemblage_range->{$nbr_coord};
+}
+
 1;

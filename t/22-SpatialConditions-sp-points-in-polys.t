@@ -1260,3 +1260,72 @@ sub test_sp_shape_of_label_ancestor_range {
     }
     # $bd->save;
 }
+
+
+#  If this passes then the convex/concave hull stuff will also as they use the same underlying engine
+sub test_sp_in_assemblage_range_circumcircle {
+    my $bd = get_basedata_object_from_site_data (
+        CELL_SIZES => [100000, 100000],
+    );
+
+    my $cond = <<~'EOC'
+        sp_in_assemblage_range(
+          circumcircle => 1,
+          group => '2050000:1350000',
+        );
+        EOC
+    ;
+
+    my $exp = { map {$_ => 1} qw/
+        1950000:1350000 1950000:1450000 2050000:1250000
+        2050000:1350000 2150000:1050000 2150000:1150000
+        2150000:1250000 2250000:950000  2250000:1050000
+        2250000:1250000 2350000:950000  2350000:1050000
+        2350000:1150000 2350000:1250000 2450000:1150000
+        2450000:1250000
+    / };
+
+    my $sp = $bd->add_spatial_output(name => "test_defq");
+    $sp->run_analysis(
+        calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
+        spatial_conditions => [ 'sp_self_only()' ],
+        definition_query   => $cond,
+    );
+
+    my $passed = $sp->get_groups_that_pass_def_query();
+    is $passed, $exp, 'Expected def query sp_in_assemblage_range';
+
+    #  check pos buffer
+    $cond = <<~'EOC'
+        sp_in_assemblage_range(
+          circumcircle => 1,
+          group        => '2050000:1350000',
+          buffer_dist  => 100000,
+        );
+        EOC
+    ;
+
+    $sp = $bd->add_spatial_output(name => "test_buff_dist");
+    eval {
+        $sp->run_analysis(
+            calculations       => [ 'calc_endemism_whole', 'calc_element_lists_used' ],
+            spatial_conditions => [ 'sp_self_only()' ],
+            definition_query   => $cond,
+        );
+    };
+
+    my @exp_buf_pos_arr = qw /
+        1950000:1350000 1950000:1450000 2050000:1250000
+        2050000:1350000 2150000:1050000 2150000:1150000
+        2150000:1250000 2250000:950000  2250000:1050000
+        2250000:1250000 2350000:950000  2350000:1050000
+        2350000:1150000 2350000:1250000 2450000:950000
+        2450000:1050000 2450000:1150000 2450000:1250000
+    /;
+
+    my $exp_buf_pos = {map {$_ => 1} @exp_buf_pos_arr};
+
+    $passed = $sp->get_groups_that_pass_def_query();
+    is $passed, $exp_buf_pos, 'sp_in_assemblage_range expected def query, circumcircle buffer_dist is positive';
+
+}

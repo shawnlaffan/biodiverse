@@ -1097,10 +1097,16 @@ sub run_indices_test1 {
 
         #  now we need to check the results
         my $subtest_name = "Result set matches for neighbour count $nbr_list_count";
-        my $expected = $expected_results->{$nbr_list_count}
-                     // eval $dss->get_data_section(
-                            "RESULTS_${nbr_list_count}_NBR_LISTS"
-                        );
+        my $expected = $expected_results->{$nbr_list_count};
+        if (!defined $expected) {
+            my $content = $dss->get_data_section(
+                "RESULTS_${nbr_list_count}_NBR_LISTS"
+            );
+            if (!eval {$expected = decode_json ($content); 1}) {
+                say STDERR "Processing PP for $0, $nbr_list_count";
+                $expected = eval $content;
+            }
+        }
         diag "Problem with data section: $EVAL_ERROR" if $EVAL_ERROR;
         if ($expected_results_overlay && $expected_results_overlay->{$nbr_list_count}) {
             my $hash = $expected_results_overlay->{$nbr_list_count};

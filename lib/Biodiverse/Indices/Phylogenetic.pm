@@ -1821,18 +1821,16 @@ sub get_node_range_hash {
 
     my $return_lists = $args{return_lists};
 
-    my $progress_bar = Biodiverse::Progress->new();    
-
-    say "[PD INDICES] Calculating range for each node in the tree";
-
-    my $tree  = $args{trimmed_tree} || croak "Argument trimmed_tree missing\n";  
+    my $tree  = $args{trimmed_tree} || croak "Argument trimmed_tree missing\n";
     my $nodes = $tree->get_node_hash;
     my %node_range;
 
     my $to_do = scalar keys %$nodes;
     my $count = 0;
-    # print "[PD INDICES] Progress (% of $to_do nodes): ";
 
+    say "[PD INDICES] Calculating range for each node in the tree";
+
+    my $progress_bar = Biodiverse::Progress->new();
     $progress_bar->update(
         "Calculating node ranges\n",
         $count / $to_do,

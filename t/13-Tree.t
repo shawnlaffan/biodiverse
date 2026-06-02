@@ -192,6 +192,36 @@ sub test_ancestor_by {
     is $from_node->get_ancestor_by_length_aa(-0.025)->get_name, '123___', '-ve ancestor by length call';
 }
 
+sub test_sha256_topology {
+    my $tree = Biodiverse::Tree->new (NAME => 'topo');
+    #  bifurcating number scheme
+    my @nums = qw /1 2 3 4 5 6 7 14 15/;
+    my %nodes;
+    my $len = 1; #  ensure diff branch lengths
+    for my $num (@nums) {
+        my $node = $tree->add_node(name => $num, length => $len++);
+        $nodes{$num} = $node;
+    }
+    $nodes{1}->add_children(children => [$nodes{2}, $nodes{3}]);
+    $nodes{2}->add_children(children => [$nodes{4}, $nodes{5}]);
+    $nodes{3}->add_children(children => [$nodes{6}, $nodes{7}]);
+    $nodes{7}->add_children(children => [$nodes{14}, $nodes{15}]);
+
+    my $eq_tree = $tree->clone_tree_with_equalised_branch_lengths();
+
+    is $tree->get_sha256_topology,
+        $eq_tree->get_sha256_topology,
+        'SHA256 scores match for same topology, diff branch lens';
+
+    my $tree2 = $tree->clone;
+    $tree->delete_node (node => 14);
+    $tree->delete_node (node => 15);
+    isnt $tree->get_sha256_topology,
+        $tree2->get_sha256_topology,
+        'SHA256 scores do not match for diff topology';
+
+}
+
 
 sub test_is_ultrametric {
     my $tree = Biodiverse::Tree->new (NAME => 'ultron');

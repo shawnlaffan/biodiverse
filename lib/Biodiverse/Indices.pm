@@ -69,6 +69,7 @@ sub new {
     #  avoid memory leak probs with circular refs to parents
     #  ensures children are destroyed when parent is destroyed
     $self->weaken_basedata_ref;
+    $self->weaken_param('OUTPUT_REF') if $args{OUTPUT_REF};
 
     return $self;
 }

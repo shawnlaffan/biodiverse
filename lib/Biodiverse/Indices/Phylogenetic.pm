@@ -1820,19 +1820,45 @@ sub get_node_range_hash {
     my %args = @_;
 
     my $return_lists = $args{return_lists};
+    my $rlist_key = $return_lists ? 'return_lists' : 'return_scalars';
 
-    my $progress_bar = Biodiverse::Progress->new();    
+    my $tree  = $args{trimmed_tree} || croak "Argument trimmed_tree missing\n";
 
-    say "[PD INDICES] Calculating range for each node in the tree";
+    #  cache on the parent output ref
+    my $output_ref = $self->get_param('OUTPUT_REF') // $self;
+    my $cache = $output_ref->get_cached_href ('get_node_range_hash');
+    my $sha = $tree->get_sha256_topology;
 
-    my $tree  = $args{trimmed_tree} || croak "Argument trimmed_tree missing\n";  
+    #  Keying by sha allows more general re-use by other code,
+    #  e.g. derived eq length trees have the same topology.
+    #  Such ranges are invariant for this basedata.
+    if (my $cached = $cache->{$sha}{$rlist_key}) {
+        my %results = (node_range => $cached);
+        return wantarray ? %results : \%results;
+    }
+    {
+        #  did a sibling output use ranges from the same tree?
+        my $bd = $self->get_basedata_ref;
+        my @outputs = ($bd->get_spatial_output_refs, $bd->get_cluster_output_refs);
+        foreach my $oref (grep {$_ ne $output_ref} @outputs) {
+            $cache = $oref->get_cached_href ('get_node_range_hash');
+            no autovivification;
+            if (my $cached = $cache->{$sha}{$rlist_key}) {
+                my %results = (node_range => $cached);
+                return wantarray ? %results : \%results;
+            }
+        }
+    }
+
     my $nodes = $tree->get_node_hash;
     my %node_range;
 
     my $to_do = scalar keys %$nodes;
     my $count = 0;
-    # print "[PD INDICES] Progress (% of $to_do nodes): ";
 
+    say "[PD INDICES] Calculating range for each node in the tree";
+
+    my $progress_bar = Biodiverse::Progress->new();
     $progress_bar->update(
         "Calculating node ranges\n",
         $count / $to_do,
@@ -1872,6 +1898,8 @@ sub get_node_range_hash {
             );
         }
     }
+
+    $cache->{$sha}{$rlist_key} = \%node_range;
 
     my %results = (node_range => \%node_range);
 

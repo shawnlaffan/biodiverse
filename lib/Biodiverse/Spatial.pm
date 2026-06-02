@@ -798,6 +798,7 @@ sub sp_calc {
 
     my $indices_object = Biodiverse::Indices->new(
         BASEDATA_REF => $bd,
+        OUTPUT_REF   => $self,
         NAME         => 'Indices for ' . $self->get_param('NAME'),
     );
 

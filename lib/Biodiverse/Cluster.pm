@@ -89,7 +89,10 @@ sub get_valid_indices {
     my %args = @_;
 
     my $bd = $args{BASEDATA_REF} || $self->get_param('BASEDATA_REF');
-    my $indices = Biodiverse::Indices->new(BASEDATA_REF => $bd);
+    my $indices = Biodiverse::Indices->new(
+        BASEDATA_REF => $bd,
+        OUTPUT_REF   => $self,
+    );
 
     my $method = $self->get_valid_indices_sub;
     return $indices->$method (@_);
@@ -678,8 +681,9 @@ sub get_indices_object_for_matrix_and_clustering {
     my $bd = $self->get_param ('BASEDATA_REF');
 
     $indices_object = Biodiverse::Indices->new(
-        BASEDATA_REF    => $bd,
-        NAME            => 'Indices for ' . $self->get_param ('NAME'),
+        BASEDATA_REF => $bd,
+        OUTPUT_REF   => $self,
+        NAME         => 'Indices for ' . $self->get_param ('NAME'),
     );
     $indices_object->set_pairwise_mode (1);
     $self->set_param (INDICES_OBJECT => $indices_object);
@@ -1773,7 +1777,10 @@ sub setup_tie_breaker {
 
     return if !$tie_breaker;  #  old school clusters did not have one
     
-    my $indices_object = Biodiverse::Indices->new (BASEDATA_REF => $self->get_basedata_ref);
+    my $indices_object = Biodiverse::Indices->new (
+        BASEDATA_REF => $self->get_basedata_ref,
+        OUTPUT_REF   => $self,
+    );
     my $analysis_args = $self->get_param('ANALYSIS_ARGS');
 
     my $it = natatime 2, @$tie_breaker;
@@ -2753,7 +2760,10 @@ sub sp_calc {
     my $bd = $self->get_param('BASEDATA_REF');
     croak "No BaseData ref\n" if not defined $bd;
 
-    my $indices_object = Biodiverse::Indices->new(BASEDATA_REF => $bd);
+    my $indices_object = Biodiverse::Indices->new(
+        BASEDATA_REF => $bd,
+        OUTPUT_REF   => $self,
+    );
 
     my $prev_sp_calc_count = $self->get_param('SP_CALC_COUNT');
 

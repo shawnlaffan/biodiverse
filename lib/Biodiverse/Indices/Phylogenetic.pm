@@ -1840,9 +1840,11 @@ sub get_node_range_hash {
         my $bd = $self->get_basedata_ref;
         my @outputs = ($bd->get_spatial_output_refs, $bd->get_cluster_output_refs);
         foreach my $oref (grep {$_ ne $output_ref} @outputs) {
-            $cache = $oref->get_cached_href ('get_node_range_hash');
+            my $ocache = $oref->get_cached_href ('get_node_range_hash');
             no autovivification;
-            if (my $cached = $cache->{$sha}{$rlist_key}) {
+            if (my $cached = $ocache->{$sha}{$rlist_key}) {
+                #  store on ourselves in the event the other analysis is deleted
+                $cache->{$sha}{$rlist_key} = $cached;
                 my %results = (node_range => $cached);
                 return wantarray ? %results : \%results;
             }

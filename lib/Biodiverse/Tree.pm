@@ -3892,6 +3892,30 @@ sub get_most_recent_line_colours {
     $self->get_cached_value_dor_set_default_href ('MOST_RECENT_LINE_COLOURS');
 }
 
+#  Get an sha of the topology only,
+#  i.e. ignoring branch lengths and all the other stuff.
+sub get_sha256_topology {
+    my $self = shift;
+
+    my $cache_name = 'SHA256_TOPOLOGY';
+    my $cached = $self->get_cached_value ($cache_name);
+
+    return $cached if $cached;
+
+    use Digest::SHA qw/sha256_hex/;
+
+    my $data = $self->get_node_name_parent_hash;
+
+    use JSON::MaybeXS;
+    my $json = JSON::MaybeXS->new(utf8 => 1, canonical => 1, pretty => 0);
+    my $string = $json->encode($data);
+    my $sha = sha256_hex $string;
+    $self->set_cached_value($cache_name => $sha);
+
+    return $sha;
+}
+
+
 1;
 
 __END__

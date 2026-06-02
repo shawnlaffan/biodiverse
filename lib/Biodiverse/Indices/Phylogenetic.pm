@@ -1822,6 +1822,18 @@ sub get_node_range_hash {
     my $return_lists = $args{return_lists};
 
     my $tree  = $args{trimmed_tree} || croak "Argument trimmed_tree missing\n";
+
+    my $cache = $self->get_cached_href ('get_node_range_hash');
+    my $sha = $tree->get_sha256_topology;
+
+    #  Keying by sha allows more general re-use by other code,
+    #  e.g. derived eq length trees have the same topology.
+    #  Such ranges are invariant for this basedata.
+    if (my $cached = $cache->{$sha}{$return_lists}) {
+        my %results = (node_range => $cached);
+        return wantarray ? %results : \%results;
+    }
+
     my $nodes = $tree->get_node_hash;
     my %node_range;
 
@@ -1870,6 +1882,8 @@ sub get_node_range_hash {
             );
         }
     }
+
+    $cache->{$sha}{$return_lists} = \%node_range;
 
     my %results = (node_range => \%node_range);
 

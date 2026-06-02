@@ -47,20 +47,20 @@ done_testing;
 __DATA__
 
 @@ RESULTS_2_NBR_LISTS
-{   BC_A             => 6,
-    BC_B             => 77,
-    BC_W             => 6,
-    BETA_2           => 0,
-    BRAY_CURTIS      => '0.855421686746988',
-    JACCARD          => '0.857142857142857',
-    NEST_RESULTANT   => '0.75',
-    PHYLO_JACCARD    => '0.84379791173084',
-    PHYLO_S2         => 0,
-    PHYLO_SORENSON   => '0.729801407809261',
-    S2               => 0,
-    SORENSON         => '0.75'
+{
+   "BC_A" : 6,
+   "BC_B" : 77,
+   "BC_W" : 6,
+   "BETA_2" : 0,
+   "BRAY_CURTIS" : "0.855421686746988",
+   "JACCARD" : "0.857142857142857",
+   "NEST_RESULTANT" : "0.75",
+   "PHYLO_JACCARD" : "0.84379791173084",
+   "PHYLO_S2" : 0,
+   "PHYLO_SORENSON" : "0.729801407809261",
+   "S2" : 0,
+   "SORENSON" : "0.75"
 }
-
 
 @@ RESULTS_1_NBR_LISTS
 {}

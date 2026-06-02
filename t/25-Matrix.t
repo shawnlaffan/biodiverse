@@ -611,7 +611,9 @@ sub get_matrix_data {
 
 sub get_exported_matrix_data {
     my $data = get_data_section('EXPORTED_MATRIX_DATA');
-    my $hash = eval $data;
+    use JSON::MaybeXS;
+    my $json = JSON->new->pretty->canonical(1);
+    my $hash = $json->decode ($data);
     return $hash;
 }
 
@@ -634,350 +636,351 @@ f 1
 
 @@ EXPORTED_MATRIX_DATA
 {
-  gdm => [
+  "gdm": [
     [
-      'x1',
-      'y1',
-      'x2',
-      'y2',
-      'Value'
+      "x1",
+      "y1",
+      "x2",
+      "y2",
+      "Value"
     ],
     [
-      'a',
-      undef,
-      'b',
-      undef,
-      '1'
+      "a",
+      null,
+      "b",
+      null,
+      "1"
     ],
     [
-      'a',
-      undef,
-      'c',
-      undef,
-      '2'
+      "a",
+      null,
+      "c",
+      null,
+      "2"
     ],
     [
-      'a',
-      undef,
-      'd',
-      undef,
-      '4'
+      "a",
+      null,
+      "d",
+      null,
+      "4"
     ],
     [
-      'a',
-      undef,
-      'e',
-      undef,
-      '1'
+      "a",
+      null,
+      "e",
+      null,
+      "1"
     ],
     [
-      'a',
-      undef,
-      'f',
-      undef,
-      '1'
+      "a",
+      null,
+      "f",
+      null,
+      "1"
     ],
     [
-      'b',
-      undef,
-      'a',
-      undef,
-      '1'
+      "b",
+      null,
+      "a",
+      null,
+      "1"
     ],
     [
-      'b',
-      undef,
-      'c',
-      undef,
-      '3'
+      "b",
+      null,
+      "c",
+      null,
+      "3"
     ],
     [
-      'b',
-      undef,
-      'd',
-      undef,
-      '5'
+      "b",
+      null,
+      "d",
+      null,
+      "5"
     ],
     [
-      'b',
-      undef,
-      'e',
-      undef,
-      '2'
+      "b",
+      null,
+      "e",
+      null,
+      "2"
     ],
     [
-      'c',
-      undef,
-      'a',
-      undef,
-      '2'
+      "c",
+      null,
+      "a",
+      null,
+      "2"
     ],
     [
-      'c',
-      undef,
-      'b',
-      undef,
-      '3'
+      "c",
+      null,
+      "b",
+      null,
+      "3"
     ],
     [
-      'c',
-      undef,
-      'd',
-      undef,
-      '6'
+      "c",
+      null,
+      "d",
+      null,
+      "6"
     ],
     [
-      'c',
-      undef,
-      'e',
-      undef,
-      '3'
+      "c",
+      null,
+      "e",
+      null,
+      "3"
     ],
     [
-      'd',
-      undef,
-      'a',
-      undef,
-      '4'
+      "d",
+      null,
+      "a",
+      null,
+      "4"
     ],
     [
-      'd',
-      undef,
-      'b',
-      undef,
-      '5'
+      "d",
+      null,
+      "b",
+      null,
+      "5"
     ],
     [
-      'd',
-      undef,
-      'c',
-      undef,
-      '6'
+      "d",
+      null,
+      "c",
+      null,
+      "6"
     ],
     [
-      'd',
-      undef,
-      'e',
-      undef,
-      '4'
+      "d",
+      null,
+      "e",
+      null,
+      "4"
     ],
     [
-      'e',
-      undef,
-      'a',
-      undef,
-      '1'
+      "e",
+      null,
+      "a",
+      null,
+      "1"
     ],
     [
-      'e',
-      undef,
-      'b',
-      undef,
-      '2'
+      "e",
+      null,
+      "b",
+      null,
+      "2"
     ],
     [
-      'e',
-      undef,
-      'c',
-      undef,
-      '3'
+      "e",
+      null,
+      "c",
+      null,
+      "3"
     ],
     [
-      'e',
-      undef,
-      'd',
-      undef,
-      '4'
+      "e",
+      null,
+      "d",
+      null,
+      "4"
     ],
     [
-      'f',
-      undef,
-      'a',
-      undef,
-      '1'
+      "f",
+      null,
+      "a",
+      null,
+      "1"
     ]
   ],
-  normal => [
+  "normal": [
     [
-      '',
-      'a',
-      'b',
-      'c',
-      'd',
-      'e',
-      'f'
+      "",
+      "a",
+      "b",
+      "c",
+      "d",
+      "e",
+      "f"
     ],
     [
-      'a',
-      undef,
-      '1',
-      '2',
-      '4',
-      '1',
-      '1'
+      "a",
+      null,
+      "1",
+      "2",
+      "4",
+      "1",
+      "1"
     ],
     [
-      'b',
-      '1',
-      undef,
-      '3',
-      '5',
-      '2',
-      undef
+      "b",
+      "1",
+      null,
+      "3",
+      "5",
+      "2",
+      null
     ],
     [
-      'c',
-      '2',
-      '3',
-      undef,
-      '6',
-      '3',
-      undef
+      "c",
+      "2",
+      "3",
+      null,
+      "6",
+      "3",
+      null
     ],
     [
-      'd',
-      '4',
-      '5',
-      '6',
-      undef,
-      '4',
-      undef
+      "d",
+      "4",
+      "5",
+      "6",
+      null,
+      "4",
+      null
     ],
     [
-      'e',
-      '1',
-      '2',
-      '3',
-      '4',
-      undef,
-      undef
+      "e",
+      "1",
+      "2",
+      "3",
+      "4",
+      null,
+      null
     ],
     [
-      'f',
-      '1',
-      undef,
-      undef,
-      undef,
-      undef,
-      undef
+      "f",
+      "1",
+      null,
+      null,
+      null,
+      null,
+      null
     ]
   ],
-  sparse => [
+  "sparse": [
     [
-      'Row',
-      'Column',
-      'Value'
+      "Row",
+      "Column",
+      "Value"
     ],
     [
-      'a',
-      'b',
-      '1'
+      "a",
+      "b",
+      "1"
     ],
     [
-      'a',
-      'c',
-      '2'
+      "a",
+      "c",
+      "2"
     ],
     [
-      'a',
-      'd',
-      '4'
+      "a",
+      "d",
+      "4"
     ],
     [
-      'a',
-      'e',
-      '1'
+      "a",
+      "e",
+      "1"
     ],
     [
-      'a',
-      'f',
-      '1'
+      "a",
+      "f",
+      "1"
     ],
     [
-      'b',
-      'a',
-      '1'
+      "b",
+      "a",
+      "1"
     ],
     [
-      'b',
-      'c',
-      '3'
+      "b",
+      "c",
+      "3"
     ],
     [
-      'b',
-      'd',
-      '5'
+      "b",
+      "d",
+      "5"
     ],
     [
-      'b',
-      'e',
-      '2'
+      "b",
+      "e",
+      "2"
     ],
     [
-      'c',
-      'a',
-      '2'
+      "c",
+      "a",
+      "2"
     ],
     [
-      'c',
-      'b',
-      '3'
+      "c",
+      "b",
+      "3"
     ],
     [
-      'c',
-      'd',
-      '6'
+      "c",
+      "d",
+      "6"
     ],
     [
-      'c',
-      'e',
-      '3'
+      "c",
+      "e",
+      "3"
     ],
     [
-      'd',
-      'a',
-      '4'
+      "d",
+      "a",
+      "4"
     ],
     [
-      'd',
-      'b',
-      '5'
+      "d",
+      "b",
+      "5"
     ],
     [
-      'd',
-      'c',
-      '6'
+      "d",
+      "c",
+      "6"
     ],
     [
-      'd',
-      'e',
-      '4'
+      "d",
+      "e",
+      "4"
     ],
     [
-      'e',
-      'a',
-      '1'
+      "e",
+      "a",
+      "1"
     ],
     [
-      'e',
-      'b',
-      '2'
+      "e",
+      "b",
+      "2"
     ],
     [
-      'e',
-      'c',
-      '3'
+      "e",
+      "c",
+      "3"
     ],
     [
-      'e',
-      'd',
-      '4'
+      "e",
+      "d",
+      "4"
     ],
     [
-      'f',
-      'a',
-      '1'
+      "f",
+      "a",
+      "1"
     ]
   ]
 }
+
 

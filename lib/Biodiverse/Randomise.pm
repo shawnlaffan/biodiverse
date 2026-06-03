@@ -710,13 +710,13 @@ sub run_randomisation {
             };
             croak $EVAL_ERROR if $EVAL_ERROR;
 
-            #  and now remove this output to save a bit of memory
-            #  unless we've been told to keep it
-            #  (this has not been exposed to the GUI yet)
-            if (!$retain_outputs) {
-                #$rand_bd->delete_output (output => $rand_analysis);
-                $rand_bd->delete_all_outputs();
-            }
+        }
+
+        #  Remove the outputs to save a bit of memory,
+        #  unless we've been told to keep them.
+        #  (This has not been exposed to the GUI yet)
+        if (!$retain_outputs) {
+            $rand_bd->delete_all_outputs();
         }
 
         #  this argument is not yet exposed to the GUI

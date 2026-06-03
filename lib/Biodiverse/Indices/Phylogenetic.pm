@@ -1099,7 +1099,6 @@ sub _calc_pd_pe_clade_contributions {
             $clade_score{$node_name} = $wt_sum;
         }
     }
-say 'x';
     my %results = (
         "${res_pfx}CLADE_SCORE"   => \%clade_score,
         "${res_pfx}CLADE_CONTR"   => \%contr,
@@ -1819,10 +1818,25 @@ sub get_node_range_hash {
     my $self = shift;
     my %args = @_;
 
+    my $tree  = $args{trimmed_tree} || croak "Argument trimmed_tree missing\n";
+
     my $return_lists = $args{return_lists};
     my $rlist_key = $return_lists ? 'return_lists' : 'return_scalars';
 
-    my $tree  = $args{trimmed_tree} || croak "Argument trimmed_tree missing\n";
+    if (my $range_hash = $args{node_range_hash}) {
+        if (!$return_lists) {
+            #  all tree branches must be on the range hash
+            my $node_names = $tree->get_node_names;
+            croak "Nodes missing from node_range_hash passed as a user arg"
+              if any {!exists $range_hash->{$_}} @$node_names;
+            #  Check if ranges are less than in the basedata?
+            #  Would cause many numeric issues if they are.
+            my %results = (node_range => $range_hash);
+            #  No caching of these results as it would "infect"
+            #  analyses not passed the arg.
+            return wantarray ? %results : \%results;
+        }
+    }
 
     #  cache on the parent output ref
     my $output_ref = $self->get_param('OUTPUT_REF') // $self;
@@ -1841,9 +1855,11 @@ sub get_node_range_hash {
         my $bd = $self->get_basedata_ref;
         my @outputs = ($bd->get_spatial_output_refs, $bd->get_cluster_output_refs);
         foreach my $oref (grep {$_ ne $output_ref} @outputs) {
-            $cache = $oref->get_cached_href ('get_node_range_hash');
+            my $ocache = $oref->get_cached_href ('get_node_range_hash');
             no autovivification;
-            if (my $cached = $cache->{$sha}{$rlist_key}) {
+            if (my $cached = $ocache->{$sha}{$rlist_key}) {
+                #  store on ourselves in the event the other analysis is deleted
+                $cache->{$sha}{$rlist_key} = $cached;
                 my %results = (node_range => $cached);
                 return wantarray ? %results : \%results;
             }

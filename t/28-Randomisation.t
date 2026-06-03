@@ -2245,6 +2245,75 @@ sub print_randomisation_result_set_to_fh {
     return;   
 }
 
+sub test_use_orig_bd_node_range_hash {
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
+    my $tree  = get_tree_object_from_sample_data();
+
+    my %sp_args = (
+        calculations       => [qw /calc_pd/],
+        spatial_conditions => ['sp_select_all()'],
+        tree_ref           => $tree,
+    );
+
+    my $sp1a = $bd->add_spatial_output (name => 'sp1b');
+    $sp1a->run_analysis (%sp_args);
+
+    #  this should have the same cached range hash as sp1a
+    my $sp1b = $bd->add_spatial_output (name => 'sp1a');
+    $sp1b->run_analysis (%sp_args);
+
+    my $tree_sha = $tree->get_sha256_topology;
+    my $cached_rhash = $sp1a->get_cached_href ('get_node_range_hash');
+    my $range_hash = $cached_rhash->{$tree_sha}{return_scalars};
+    my %rhash_modfd = map {$_ => $range_hash->{$_} + 10} keys %$range_hash;
+    my $sp1_range_hash = \%rhash_modfd;
+
+    my $sp2 = $bd->add_spatial_output (name => 'sp2');
+    $sp2->run_analysis (
+        %sp_args,
+        node_range_hash    => $sp1_range_hash,
+    );
+
+    my $rand = $bd->add_randomisation_output (name => 'rr');
+
+    my %rand_func_args = (
+        function   => 'rand_csr_by_group',
+        iterations => 1,
+        return_rand_bd_array => 1,
+        retain_outputs       => 1,
+    );
+    my $bd_array = $rand->run_analysis (%rand_func_args);
+
+    my $rand_bd = $bd_array->[0];
+    my ($rsp1a, $rsp1b, $rsp2)
+        = sort {$a->get_name cmp $b->get_name} $rand_bd->get_output_refs;
+
+    my $rsp1a_cache = $rsp1a->get_cached_href ('get_node_range_hash');
+    my $rsp1a_range_hash = $rsp1a_cache->{$tree_sha}{return_scalars};
+    my $rsp1b_cache = $rsp1b->get_cached_href ('get_node_range_hash');
+    my $rsp1b_range_hash = $rsp1b_cache->{$tree_sha}{return_scalars};
+    my $rsp2_cache = $rsp2->get_cached_href ('get_node_range_hash');
+    my $rsp2_range_hash = $rsp2_cache->{$tree_sha}{return_scalars};
+
+    my $pfx = 'test_use_orig_bd_node_range_hash';
+    isnt ref $rsp1a_range_hash,
+        $sp1_range_hash,
+        "$pfx: range hash refs different after randomisation when "
+        . "not passed as an arg";
+
+    is ref $rsp1a_range_hash,
+        ref $rsp1b_range_hash,
+        "$pfx: range hash refs same for rand sp outputs "
+        . "after randomisation when not passed as an arg";
+
+    #  if it is defined then caching has triggered and the override arg never made it
+    is $rsp2_range_hash,
+        undef,
+        "$pfx: cached range hash undefined after randomisation when passed as an arg";
+
+    return;
+}
+
 
 
 __DATA__

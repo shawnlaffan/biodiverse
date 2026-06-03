@@ -710,13 +710,13 @@ sub run_randomisation {
             };
             croak $EVAL_ERROR if $EVAL_ERROR;
 
-            #  and now remove this output to save a bit of memory
-            #  unless we've been told to keep it
-            #  (this has not been exposed to the GUI yet)
-            if (!$retain_outputs) {
-                #$rand_bd->delete_output (output => $rand_analysis);
-                $rand_bd->delete_all_outputs();
-            }
+        }
+
+        #  Remove the outputs to save a bit of memory,
+        #  unless we've been told to keep them.
+        #  (This has not been exposed to the GUI yet)
+        if (!$retain_outputs) {
+            $rand_bd->delete_all_outputs();
         }
 
         #  this argument is not yet exposed to the GUI
@@ -1008,18 +1008,36 @@ sub override_object_analysis_args {
 
     my $tree_ref_used = $new_analysis_args->{tree_ref};
 
-    if ($tree_ref_used && $tree_shuffle_method && $tree_shuffle_method !~ /no_change$/) {
-        my $shuffled_tree = $cache->{$tree_ref_used};
-        if (!$shuffled_tree) {  # shuffle and cache if we don't already have it
-            $shuffled_tree = $tree_ref_used->clone;
-            $shuffled_tree->$tree_shuffle_method (%args);
-            $shuffled_tree->rename (
-                new_name => $shuffled_tree->get_param ('NAME') . ' ' . $iter,
-            );
-            $cache->{$tree_ref_used} = $shuffled_tree;
+    if ($tree_ref_used) {
+        if ($tree_shuffle_method && $tree_shuffle_method !~ /no_change$/) {
+            my $shuffled_tree = $cache->{$tree_ref_used};
+            if (!$shuffled_tree) {
+                # shuffle and cache if we don't already have it
+                $shuffled_tree = $tree_ref_used->clone;
+                $shuffled_tree->$tree_shuffle_method(%args);
+                $shuffled_tree->rename(
+                    new_name => $shuffled_tree->get_param('NAME') . ' ' . $iter,
+                );
+                $cache->{$tree_ref_used} = $shuffled_tree;
+            }
+            $new_analysis_args->{tree_ref} = $shuffled_tree;
+            $made_changes++;
         }
-        $new_analysis_args->{tree_ref} = $shuffled_tree;
-        $made_changes++;
+        if ($args{use_orig_bd_node_range_hash} && !defined $new_analysis_args->{node_range_hash}) {
+            my $sha = $tree_ref_used->get_sha256_topology;
+            my $bd = $self->get_basedata_ref;
+            BY_OUTPUT:
+            foreach my $o ($bd->get_cluster_output_refs, $bd->get_spatial_output_refs) {
+                my $cache = $o->get_cached_value('get_node_range_hash');
+                next BY_OUTPUT if !defined $cache;
+                no autovivification;
+                if (my $cached_rhash = $cache->{$sha}{return_scalars}) {
+                    $new_analysis_args->{node_range_hash} = $cached_rhash;
+                    $made_changes++;
+                    last BY_OUTPUT;
+                }
+            }
+        }
     }
 
     return 1 if ! $made_changes;
@@ -1128,6 +1146,7 @@ sub get_common_rand_metadata {
     my $subset_parameters = $self->get_metadata_get_rand_structured_subset;
     my $group_props_parameters  = $self->get_group_prop_metadata;
     my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
+    my $node_range_parameters   = $self->get_node_range_metadata;
 
     my $tooltip_savecp = <<~'EOT'
         Any iteration ending in this number will be saved to disk as a bds file.
@@ -1182,8 +1201,9 @@ sub get_common_rand_metadata {
                . 'cluster and region grower analyses. '
                . 'These can be slow, so this is off by default.',
         },
-        $group_props_parameters,
+        $node_range_parameters,
         $tree_shuffle_parameters,
+        $group_props_parameters,
     );
     for (@common) {
         next if blessed $_;
@@ -3424,6 +3444,28 @@ sub get_tree_shuffle_metadata {
         choices => \@choices,
         default => $default,
         tooltip => $randomise_trees_tooltip,
+        box_group => 'Trees and groups',
+    };
+    bless $metadata, $parameter_rand_metadata_class;
+
+    return $metadata;
+}
+
+sub get_node_range_metadata {
+    my $self = shift;
+
+    my $tooltip =<<~'EOT'
+        When true, the node ranges used in PE and related calculations will use
+        the ranges on the original basedata, not the randomly generated one.
+        Will not override node range tables used when running the original analyses.
+        EOT
+    ;
+
+    my $metadata = {
+        name => 'use_orig_bd_node_range_hash',
+        type => 'boolean',
+        default => 0,
+        tooltip => $tooltip,
         box_group => 'Trees and groups',
     };
     bless $metadata, $parameter_rand_metadata_class;

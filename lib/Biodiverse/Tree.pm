@@ -510,6 +510,12 @@ sub get_node_hash {
     return wantarray ? %{ $self->{TREE_BY_NAME} } : $self->{TREE_BY_NAME};
 }
 
+sub get_node_names {
+    my $self = shift;
+    my $href = $self->{TREE_BY_NAME} // {};
+    return wantarray ? keys %$href : [keys %$href];
+}
+
 sub get_node_refs {
     my $self = shift;
     my @refs = values %{ $self->get_node_hash };

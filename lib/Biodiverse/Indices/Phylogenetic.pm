@@ -1099,7 +1099,6 @@ sub _calc_pd_pe_clade_contributions {
             $clade_score{$node_name} = $wt_sum;
         }
     }
-say 'x';
     my %results = (
         "${res_pfx}CLADE_SCORE"   => \%clade_score,
         "${res_pfx}CLADE_CONTR"   => \%contr,

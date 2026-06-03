@@ -1024,18 +1024,16 @@ sub override_object_analysis_args {
             $made_changes++;
         }
         if ($args{use_orig_bd_node_range_hash} && !defined $new_analysis_args->{node_range_hash}) {
-            my $sha = $tree_ref_used->get_sha256_topology;
             my $bd = $self->get_basedata_ref;
             BY_OUTPUT:
             foreach my $o ($bd->get_cluster_output_refs, $bd->get_spatial_output_refs) {
-                my $cache = $o->get_cached_value('get_node_range_hash');
-                next BY_OUTPUT if !defined $cache;
-                no autovivification;
-                if (my $cached_rhash = $cache->{$sha}{return_scalars}) {
-                    $new_analysis_args->{node_range_hash} = $cached_rhash;
-                    $made_changes++;
-                    last BY_OUTPUT;
-                }
+                my $cached_rhash = $o->_get_cached_node_range_table_aa($tree_ref_used);
+
+                next BY_OUTPUT if !defined $cached_rhash;
+
+                $new_analysis_args->{node_range_hash} = $cached_rhash;
+                $made_changes++;
+                last BY_OUTPUT;
             }
         }
     }

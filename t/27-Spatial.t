@@ -872,9 +872,7 @@ sub test_node_range_hash {
     };
     ok ($success, 'spatial analysis without node_range_hash arg runs without error');
 
-    #  should have an API to get this
-    my $cached_rhash1 = $sp1->get_cached_href ('get_node_range_hash');
-    my $range_hash1 = $cached_rhash1->{$tree_sha}{return_scalars};
+    my $range_hash1 = $sp1->_get_cached_node_range_table_aa($tree);
 
     my $sp2 = $bd1->add_spatial_output(name => 'sp2');
     $success = eval {
@@ -884,8 +882,7 @@ sub test_node_range_hash {
     };
     ok ($success, 'spatial analysis 2 not passed node_range_hash arg runs without error');
 
-    my $cached_rhash2 = $sp2->get_cached_href ('get_node_range_hash');
-    my $range_hash2 = $cached_rhash2->{$tree_sha}{return_scalars};
+    my $range_hash2 = $sp2->_get_cached_node_range_table_aa($tree);
 
     is $range_hash1, $range_hash2, 'range hash content is the same 1&2';
     is ref $range_hash1, ref $range_hash2, 'range hash refs are the same 1&2';
@@ -901,8 +898,7 @@ sub test_node_range_hash {
     };
     ok ($success, 'spatial analysis passed node_range_hash arg runs without error');
 
-    my $cached_rhash3 = $sp3->get_cached_href ('get_node_range_hash');
-    $range_hash3 = $cached_rhash3->{$tree_sha}{return_scalars};
+    $range_hash3 = $sp3->_get_cached_node_range_table_aa($tree);
 
     is $range_hash3, undef, 'range hash content not cached when passed as an argument';
 

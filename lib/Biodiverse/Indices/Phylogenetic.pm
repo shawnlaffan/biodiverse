@@ -1818,10 +1818,25 @@ sub get_node_range_hash {
     my $self = shift;
     my %args = @_;
 
+    my $tree  = $args{trimmed_tree} || croak "Argument trimmed_tree missing\n";
+
     my $return_lists = $args{return_lists};
     my $rlist_key = $return_lists ? 'return_lists' : 'return_scalars';
 
-    my $tree  = $args{trimmed_tree} || croak "Argument trimmed_tree missing\n";
+    if (my $range_hash = $args{node_range_hash}) {
+        if (!$return_lists) {
+            #  all tree branches must be on the range hash
+            my $node_names = $tree->get_node_names;
+            croak "Nodes missing from node_range_hash passed as a user arg"
+              if any {!exists $range_hash->{$_}} @$node_names;
+            #  Check if ranges are less than in the basedata?
+            #  Would cause many numeric issues if they are.
+            my %results = (node_range => $range_hash);
+            #  No caching of these results as it would "infect"
+            #  analyses not passed the arg.
+            return wantarray ? %results : \%results;
+        }
+    }
 
     #  cache on the parent output ref
     my $output_ref = $self->get_param('OUTPUT_REF') // $self;

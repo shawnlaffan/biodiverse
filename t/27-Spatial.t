@@ -20,7 +20,7 @@ local $| = 1;
 
 use Data::Section::Simple qw(get_data_section);
 
-use Biodiverse::TestHelpers qw /:basedata/;
+use Biodiverse::TestHelpers qw /:basedata :tree/;
 use Biodiverse::Spatial;
 use Biodiverse::SpatialConditions;
 
@@ -846,4 +846,64 @@ sub get_expected_proximity_sorted_nbr_lists {
             '8.5:5.5'
           ]
     ];
+}
+
+
+sub test_node_range_hash {
+
+    my $cell_sizes = [100000, 100000];
+    my $bd1 = get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
+    $bd1->build_spatial_index (resolutions => $cell_sizes);
+
+    my $tree = get_tree_object_from_sample_data();
+    my $tree_sha = $tree->get_sha256_topology;
+
+    my $sp1 = $bd1->add_spatial_output(name => 'sp1');
+
+    my %sp_args = (
+        tree_ref           => $tree,
+        calculations       => ['calc_pe'],
+        spatial_conditions => ['sp_select_all()'],
+        definition_query   => '$y<100000', # tests run faster this way.
+    );
+
+    my $success = eval {
+        $sp1->run_analysis (%sp_args);
+    };
+    ok ($success, 'spatial analysis without node_range_hash arg runs without error');
+
+    #  should have an API to get this
+    my $cached_rhash1 = $sp1->get_cached_href ('get_node_range_hash');
+    my $range_hash1 = $cached_rhash1->{$tree_sha}{return_scalars};
+
+    my $sp2 = $bd1->add_spatial_output(name => 'sp2');
+    $success = eval {
+        $sp2->run_analysis (
+            %sp_args,
+        );
+    };
+    ok ($success, 'spatial analysis 2 not passed node_range_hash arg runs without error');
+
+    my $cached_rhash2 = $sp2->get_cached_href ('get_node_range_hash');
+    my $range_hash2 = $cached_rhash2->{$tree_sha}{return_scalars};
+
+    is $range_hash1, $range_hash2, 'range hash content is the same 1&2';
+    is ref $range_hash1, ref $range_hash2, 'range hash refs are the same 1&2';
+
+    my $range_hash3 = {%$range_hash1};
+    $_ += 100 for values %$range_hash3;
+    my $sp3 = $bd1->add_spatial_output(name => 'sp3');
+    $success = eval {
+        $sp3->run_analysis (
+            %sp_args,
+            node_range_hash => $range_hash3,
+        );
+    };
+    ok ($success, 'spatial analysis passed node_range_hash arg runs without error');
+
+    my $cached_rhash3 = $sp3->get_cached_href ('get_node_range_hash');
+    $range_hash3 = $cached_rhash3->{$tree_sha}{return_scalars};
+
+    is $range_hash3, undef, 'range hash content not cached when passed as an argument';
+
 }

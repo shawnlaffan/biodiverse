@@ -1821,7 +1821,6 @@ sub get_node_range_hash {
     my $tree  = $args{trimmed_tree} || croak "Argument trimmed_tree missing\n";
 
     my $return_lists = $args{return_lists};
-    my $rlist_key = $return_lists ? 'return_lists' : 'return_scalars';
 
     if (my $range_hash = $args{node_range_hash}) {
         if (!$return_lists) {
@@ -1838,31 +1837,27 @@ sub get_node_range_hash {
         }
     }
 
-    #  cache on the parent output ref
-    my $output_ref = $self->get_param('OUTPUT_REF') // $self;
-    my $cache = $output_ref->get_cached_href ('get_node_range_hash');
-    my $sha = $tree->get_sha256_topology;
+    #  We cache on the parent output ref.
+    #  No point caching on an unattached indices object - these are mostly in tests.
+    my $output_ref = $self->get_param('OUTPUT_REF');
 
-    #  Keying by sha allows more general re-use by other code,
-    #  e.g. derived eq length trees have the same topology.
-    #  Such ranges are invariant for this basedata.
-    if (my $cached = $cache->{$sha}{$rlist_key}) {
-        my %results = (node_range => $cached);
-        return wantarray ? %results : \%results;
-    }
-    {
+    if ($output_ref) {
+        if (my $cached = $output_ref->_get_cached_node_range_table_aa($tree, $return_lists)) {
+            my %results = (node_range => $cached);
+            return wantarray ? %results : \%results;
+        }
+
         #  did a sibling output use ranges from the same tree?
         my $bd = $self->get_basedata_ref;
         my @outputs = ($bd->get_spatial_output_refs, $bd->get_cluster_output_refs);
+
         foreach my $oref (grep {$_ ne $output_ref} @outputs) {
-            my $ocache = $oref->get_cached_href ('get_node_range_hash');
-            no autovivification;
-            if (my $cached = $ocache->{$sha}{$rlist_key}) {
-                #  store on ourselves in the event the other analysis is deleted
-                $cache->{$sha}{$rlist_key} = $cached;
-                my %results = (node_range => $cached);
-                return wantarray ? %results : \%results;
-            }
+            my $ocache = $oref->_get_cached_node_range_table_aa($tree, $return_lists);
+            next if !$ocache;
+            #  store on ourselves in the event the other analysis is deleted
+            $output_ref->_set_cached_node_range_table_aa($ocache, $tree, $return_lists);
+            my %results = (node_range => $ocache);
+            return wantarray ? %results : \%results;
         }
     }
 
@@ -1915,9 +1910,11 @@ sub get_node_range_hash {
         }
     }
 
-    $cache->{$sha}{$rlist_key} = \%node_range;
+    my $href = \%node_range;
+    $output_ref->_set_cached_node_range_table_aa ($href, $tree, $return_lists)
+      if $output_ref;
 
-    my %results = (node_range => \%node_range);
+    my %results = (node_range => $href);
 
     return wantarray ? %results : \%results;
 }

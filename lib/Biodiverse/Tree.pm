@@ -3903,7 +3903,7 @@ sub get_most_recent_line_colours {
 sub get_sha256_topology {
     my $self = shift;
 
-    my $cache_name = 'SHA256_TOPOLOGY';
+    state $cache_name = 'SHA256_TOPOLOGY';
     my $cached = $self->get_cached_value ($cache_name);
 
     return $cached if $cached;

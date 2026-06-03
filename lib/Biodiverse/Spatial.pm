@@ -23,8 +23,10 @@ use Biodiverse::Progress;
 use Biodiverse::Indices;
 
 
-
-use parent qw /Biodiverse::BaseStruct/;
+use parent qw /
+    Biodiverse::BaseStruct
+    Biodiverse::Analyses
+/;
 
 my $EMPTY_STRING = q{};
 

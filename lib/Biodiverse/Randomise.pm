@@ -1925,9 +1925,6 @@ sub rand_structured {
 
     #  make sure we randomly select from the same set of groups each time
     my @sorted_groups = sort $bd->get_groups;
-    #  make sure shuffle does not work on the original data
-    #  this is no longer used but we need to update the tests if we remove it
-    my $rand_gp_order = $rand->shuffle ([@sorted_groups]);
 
     my @sorted_labels = sort $bd->get_labels;
     #  make sure shuffle does not work on the original data

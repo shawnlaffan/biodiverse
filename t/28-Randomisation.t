@@ -455,7 +455,7 @@ sub test_rand_spatially_structured_seeded {
     );
 
     my @labels = qw /a b c d/;
-    my $k = 0;
+    my $k = 1;
     foreach my $i (0 .. $bd_size) {
         foreach my $j (0 .. $bd_size) {
             my $group = "$i:$j";

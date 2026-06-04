@@ -1863,7 +1863,13 @@ sub test_function_stability {
         }
 
         my $generate_result_sets = 0;
-        my $expected = {};  #  make sure we fail if generation is left on
+
+        state $checked;
+        if (!$checked) {
+            #  make sure we fail if generation is left on, but only check once or it gets noisy
+            is $generate_result_sets, 0, 'result generation is off';
+            $checked++;
+        }
 
         if ($generate_result_sets) {
             my $fh = get_randomisation_result_set_fh($function);
@@ -1872,7 +1878,7 @@ sub test_function_stability {
         my $data_section_name = "RAND_RESULTS_$function";
         my $exp_data = get_data_section ($data_section_name) // 'NO DATA SECTION';
         my $json = JSON->new;
-        $expected = $json->decode ($exp_data);
+        my $expected = $json->decode ($exp_data);
 
 
         is (\%got, $expected, "Stability check: Expected results for $function");

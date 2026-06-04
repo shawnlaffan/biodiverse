@@ -2097,7 +2097,7 @@ sub rand_structured {
                     my $seed_gp;
                     while (!defined $seed_gp && scalar @seed_targets) {
                         #  go looking
-                        my $jj = int($rand->rand(scalar @seed_targets));
+                        my $jj = $rand->irand % scalar @seed_targets;
                         $seed_gp = splice @seed_targets, $jj, 1;
                         no autovivification;  #  just in case
                         #  try again if it is already full
@@ -2112,7 +2112,7 @@ sub rand_structured {
                 }
 
                 #  select a group at random to assign to
-                $j //= int($rand->rand(scalar @target_groups));
+                $j //= $rand->irand % scalar @target_groups;
 
                 push @to_groups, $target_groups[$j];
 

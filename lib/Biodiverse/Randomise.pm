@@ -2309,11 +2309,11 @@ sub rand_structured {
                         #  for the random walk
                             @to_groups = uniq @to_groups;
                         }
-
-                        my $k = int $rand->rand(scalar @to_groups);
-                        my $target = $to_groups[$k];
-                        splice @to_groups, $k, 1;
-                        unshift @to_groups, $target;
+                        #  move a random group to the front of the queue
+                        if (@to_groups > 1) {
+                            my $k = $rand->irand % scalar @to_groups;
+                            unshift @to_groups, splice @to_groups, $k, 1;
+                        }
                     }
                 }
 

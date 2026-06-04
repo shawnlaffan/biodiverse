@@ -152,11 +152,13 @@ sub rand_curveball {
     my $non_zero_mx_cells = 0;  #  sum of richness and range scores
     foreach my $group (@sorted_groups) {
         my $label_hash = $bd->get_labels_in_group_as_hash_aa($group);
-        $non_zero_mx_cells += scalar keys %$label_hash;
         $lb_hash{$group} = {%$label_hash};
         if ($bd->get_richness_aa ($group) == @sorted_labels) {
             #  cannot be swapped around
             $has_max_richness{$group}++;
+        }
+        else {
+            $non_zero_mx_cells += scalar keys %$label_hash;
         }
         if ($stop_on_all_swapped) {
             $orig_gp_lb_hash{$group} = $label_hash;

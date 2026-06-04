@@ -30,14 +30,19 @@ my $parameter_rand_metadata_class = 'Biodiverse::Metadata::Parameter';
 sub get_curveball_spatial_allocation_metadata {
     my $self = shift;
 
+    my $tooltip = <<~'EOT'
+        On selecting a first group, the second group to swap labels
+        with will be selected from within the specified neighbourhood.
+        If left blank then any group can be selected.
+        EOT
+    ;
+
     my $spatial_condition_param = bless {
         name       => 'spatial_condition_for_swap_pairs',
         label_text => "Spatial condition\nto define a target swap group\nneighbourhood",
         default    => '# default is whole data set',
         type       => 'spatial_conditions',
-        tooltip    => 'On selecting a first group, the second group to swap labels with '
-            . 'will be selected within the specified neighbourhood. '
-            . 'If left blank then any group can be selected.',
+        tooltip    => $tooltip,
     }, $parameter_rand_metadata_class;
 
     return $spatial_condition_param;
@@ -46,15 +51,27 @@ sub get_curveball_spatial_allocation_metadata {
 sub get_metadata_rand_curveball {
     my $self = shift;
 
+    my $tooltip_hg =<<~'EOT'
+        If true then the number of labels to swap will be drawn
+        from a hypergeometric distribution. Binomial or gaussian
+        approximations are used if the pool of labels is sufficiently
+        large.
+        EOT
+    ;
+
+    my $tooltip_maxswaps = <<~'EOT'
+        If true then as many labels as possible will be swapped each iteration.
+        The default approach swaps a random number in the interval [0, maxswaps].
+        EOT
+    ;
+
     my $hyperball = bless {
         name       => 'use_hypergeometric',
         label_text => 'Use hypergeometric sampler',
         default    => 0,
         type       => 'boolean',
         box_group  => 'Curveball',
-        tooltip    =>
-            'If true then a hypergeometric sampling approach will be used to determine how many labels to swap. '
-                . 'This is currently slightly slower than the default approach.',
+        tooltip    => $tooltip_hg,
     }, $parameter_rand_metadata_class;
 
     my $maxswap = bless {
@@ -63,9 +80,7 @@ sub get_metadata_rand_curveball {
         default    => 0,
         type       => 'boolean',
         box_group  => 'Curveball',
-        tooltip    =>
-            'If true then as many labels as possible will be swapped each iteration. '
-                . 'The default approach swaps a random number in the interval [0, maxswaps].',
+        tooltip    => $tooltip_maxswaps,
     }, $parameter_rand_metadata_class;
 
     my @parameters = (

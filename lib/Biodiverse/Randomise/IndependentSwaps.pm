@@ -47,7 +47,7 @@ sub get_common_independent_swaps_metadata {
          increment  => 1,
          max        => 2**31-1,
          tooltip    => $tooltip_swap_count,
-         box_group  => 'Independent swaps',
+         box_group  => 'Swapping',
         },
         {name       => 'max_swap_attempts',
          type       => 'integer',
@@ -55,14 +55,14 @@ sub get_common_independent_swaps_metadata {
          increment  => 1,
          max        => 2**31-1,
          tooltip    => $tooltip_map_swap_attempts,
-         box_group  => 'Independent swaps',
+         box_group  => 'Swapping',
         },
         {name       => 'stop_on_all_swapped',
          type       => 'boolean',
          default    => 0,
          tooltip    => 'Stop swapping when each label/group pair '
                      . 'has been swapped at least once',
-         box_group  => 'Independent swaps',
+         box_group  => 'Swapping',
         },
     );
     return wantarray ? @parameters : \@parameters;

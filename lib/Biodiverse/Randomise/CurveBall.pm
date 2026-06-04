@@ -148,15 +148,20 @@ sub rand_curveball {
     my $n_groups = scalar @sorted_groups;
     my $n_labels = scalar @sorted_labels;
 
-    my (%lb_hash, %has_max_richness, %lb_gp_moved);
+    my (%lb_hash, %has_max_richness, %gp_lb_moved, %orig_gp_lb_hash);
     my $non_zero_mx_cells = 0;  #  sum of richness and range scores
     foreach my $group (@sorted_groups) {
         my $label_hash = $bd->get_labels_in_group_as_hash_aa($group);
-        $non_zero_mx_cells += scalar keys %$label_hash;
         $lb_hash{$group} = {%$label_hash};
         if ($bd->get_richness_aa ($group) == @sorted_labels) {
             #  cannot be swapped around
             $has_max_richness{$group}++;
+        }
+        else {
+            $non_zero_mx_cells += scalar keys %$label_hash;
+        }
+        if ($stop_on_all_swapped) {
+            $orig_gp_lb_hash{$group} = $label_hash;
         }
     }
 
@@ -263,17 +268,17 @@ sub rand_curveball {
         my ($group1, $group2);
 
         if ($use_spatial_swap) {
-            $group1 = $gps_with_nbrs[int $rand->rand (scalar @gps_with_nbrs)];
+            $group1 = $gps_with_nbrs[$rand->irand % @gps_with_nbrs];
             my $n = scalar @{$sp_swap_list{$group1}};
             next MAIN_ITER if !$n;
             #  we have already filtered group1 from its list
-            $group2 = $sp_swap_list{$group1}[int $rand->rand($n)]
+            $group2 = $sp_swap_list{$group1}[$rand->irand % $n]
         }
         else {
-            $group1 = $sorted_groups[int $rand->rand ($n_groups)];
-            $group2 = $sorted_groups[int $rand->rand ($n_groups)];
+            $group1 = $sorted_groups[$rand->irand % $n_groups];
+            $group2 = $sorted_groups[$rand->irand % $n_groups];
             while ($group1 eq $group2) {  #  keep trying - a bit wasteful but should be rare
-                $group2 = $sorted_groups[int $rand->rand($n_groups)];
+                $group2 = $sorted_groups[$rand->irand % $n_groups];
             }
         }
 
@@ -436,14 +441,14 @@ sub rand_curveball {
         if ($stop_on_all_swapped && @swap_from1) {
             foreach my $i (0..$#swap_from1) {
                 my $lb1 = $swap_from1[$i];
-                if ($lb_hash{$group1}{$lb1} && !$lb_gp_moved{$lb1}{$group1}) {
+                if (exists $orig_gp_lb_hash{$group1}{$lb1} && !$gp_lb_moved{$group1}{$lb1}) {
                     $moved_pairs++;
-                    $lb_gp_moved{$lb1}{$group1} = 1;
+                    $gp_lb_moved{$group1}{$lb1} = 1;
                 }
                 my $lb2 = $swap_from2[$i];
-                if ($lb_hash{$group2}{$lb2} && !$lb_gp_moved{$lb2}{$group2}) {
+                if (exists $orig_gp_lb_hash{$group2}{$lb2} && !$gp_lb_moved{$group2}{$lb2}) {
                     $moved_pairs++;
-                    $lb_gp_moved{$lb2}{$group2} = 1;
+                    $gp_lb_moved{$group2}{$lb2} = 1;
                 }
             }
         }

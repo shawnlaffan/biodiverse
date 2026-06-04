@@ -268,17 +268,17 @@ sub rand_curveball {
         my ($group1, $group2);
 
         if ($use_spatial_swap) {
-            $group1 = $gps_with_nbrs[int $rand->rand (scalar @gps_with_nbrs)];
+            $group1 = $gps_with_nbrs[$rand->irand % @gps_with_nbrs];
             my $n = scalar @{$sp_swap_list{$group1}};
             next MAIN_ITER if !$n;
             #  we have already filtered group1 from its list
-            $group2 = $sp_swap_list{$group1}[int $rand->rand($n)]
+            $group2 = $sp_swap_list{$group1}[$rand->irand % $n]
         }
         else {
-            $group1 = $sorted_groups[int $rand->rand ($n_groups)];
-            $group2 = $sorted_groups[int $rand->rand ($n_groups)];
+            $group1 = $sorted_groups[$rand->irand % $n_groups];
+            $group2 = $sorted_groups[$rand->irand % $n_groups];
             while ($group1 eq $group2) {  #  keep trying - a bit wasteful but should be rare
-                $group2 = $sorted_groups[int $rand->rand($n_groups)];
+                $group2 = $sorted_groups[$rand->irand % $n_groups];
             }
         }
 

@@ -2915,7 +2915,7 @@ sub swap_to_reach_richness_targets {
         }
 
         #  select an unassigned label and group pair
-        my $i = int $rand->rand (scalar @$cloned_bd_label_arr);
+        my $i = $rand->irand % scalar @$cloned_bd_label_arr;
         my $add_label = $cloned_bd_label_arr->[$i];
 
         my $from_groups_hash
@@ -2928,7 +2928,7 @@ sub swap_to_reach_richness_targets {
               = [sort keys %$gps_tmp];
         };
 
-        $i = int ($rand->rand (scalar @$from_cloned_groups_tmp_a));
+        $i = $rand->irand % scalar @$from_cloned_groups_tmp_a;
         my $from_group = $from_cloned_groups_tmp_a->[$i];
         my $add_count  = $from_groups_hash->{$from_group};
 
@@ -2968,7 +2968,7 @@ sub swap_to_reach_richness_targets {
               = List::Unique::DeterministicOrder->new(data => $tmp);
         };
         #  cache maintains a sorted list, so no need to re-sort.  
-        $i = int $rand->rand(scalar $target_groups_tmp_a->keys);
+        $i = int $rand->irand % scalar $target_groups_tmp_a->keys;
         my $target_group = $target_groups_tmp_a->get_key_at_pos ($i);
 
         my $target_gp_richness
@@ -3102,7 +3102,7 @@ sub swap_to_reach_richness_targets {
                   if !$key_count;
 
                 #  get one of the unfilled groups at random
-                $i = int $rand->rand ($key_count);
+                $i = $rand->irand % $key_count;
                 my $return_gp = $unfilled_list->delete_key_at_pos ($i);
 
                 $new_bd->add_element_simple_aa (

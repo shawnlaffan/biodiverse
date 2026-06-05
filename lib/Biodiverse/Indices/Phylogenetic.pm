@@ -820,13 +820,13 @@ sub calc_pe_lists {
 
 sub get_metadata_calc_pe_central {
 
-    my $desc = <<'END_PEC_DESC'
-A variant of Phylogenetic endemism (PE) that uses labels
-from neighbour set 1 but local ranges from across
-both neighbour sets 1 and 2.  Identical to PE if only
-one neighbour set is specified.
-END_PEC_DESC
-  ;
+    my $desc = <<~'END_PEC_DESC'
+        A variant of Phylogenetic endemism (PE) that uses labels
+        from neighbour set 1 but local ranges from across
+        both neighbour sets 1 and 2.  Identical to PE if only
+        one neighbour set is specified.
+        END_PEC_DESC
+    ;
 
     my $formula = [
         'PEC = \sum_{\lambda \in \Lambda } L_{\lambda}\frac{r_\lambda}{R_\lambda}',
@@ -890,12 +890,12 @@ sub calc_pe_central {
 
 sub get_metadata_calc_pe_central_lists {
 
-    my $desc = <<'END_PEC_DESC'
-Lists underlying the phylogenetic endemism central indices.
-Uses labels from neighbour set one but local ranges from across
-both neighbour sets.
-END_PEC_DESC
-  ;
+    my $desc = <<~'END_PEC_DESC'
+        Lists underlying the phylogenetic endemism central indices.
+        Uses labels from neighbour set one but local ranges from across
+        both neighbour sets.
+        END_PEC_DESC
+    ;
 
     my %metadata = (
         description     => $desc,
@@ -1418,14 +1418,28 @@ sub get_metadata_calc_pe_single {
             ' (the number of groups across the entire data set containing it).',
     ];
     
-    my $description = <<'EOD'
-PE scores, but not weighted by local ranges.
-This is the strict interpretation of the formula given in
-Rosauer et al. (2009), although the approach has always been
-implemented as the fraction of each branch's geographic range
-that is found in the sample window (see formula for PE_WE).
-EOD
-  ;
+    my $description = <<~'EOD'
+        PE scores, but not weighted by local ranges.
+        This is the strict interpretation of the formula given in
+        Rosauer et al. (2009), although the approach has always been
+        implemented as the fraction of each branch's geographic range
+        that is found in the sample window (see formula for PE_WE).
+        EOD
+    ;
+
+    my $desc_pe_we_single = <<~'EOT'
+        Phylogenetic endemism unweighted by the number of neighbours.
+        Counts each label only once, regardless of how many groups in the neighbourhood it is found in.
+        Useful if your data have sampling biases. Better with small sample windows.
+        EOT
+    ;
+
+    my $desc_pe_we_single_p = <<~'EOT'
+        Phylogenetic endemism unweighted by the number of neighbours, as a proportion of the total tree length.
+        Counts each label only once, regardless of how many groups in the neighbourhood it is found.
+        Useful if your data have sampling biases. Better with small sample windows.
+        EOT
+    ;
 
     my %metadata = (
         description     => $description,
@@ -1435,18 +1449,14 @@ EOD
         pre_calc        => [qw/_calc_pe calc_pe_lists/],
         pre_calc_global => ['get_trimmed_tree'],
         uses_nbr_lists  => 1,
+        formula         => $formula,
         indices         => {
             PE_WE_SINGLE    => {
-                description  => "Phylogenetic endemism unweighted by the number of neighbours.\n"
-                               . "Counts each label only once, regardless of how many groups in the neighbourhood it is found in.\n"
-                               . 'Useful if your data have sampling biases. '
-                               . 'Better with small sample windows.',
+                description  => $desc_pe_we_single,
                 distribution => 'nonnegative',
             },
             PE_WE_SINGLE_P  => {
-                description => "Phylogenetic endemism unweighted by the number of neighbours as a proportion of the total tree length.\n"
-                    . "Counts each label only once, regardless of how many groups in the neighbourhood it is found.\n"
-                    . "Useful if your data have sampling biases.",
+                description => $desc_pe_we_single_p,
                 distribution => 'unit_interval',
             },
         },

@@ -25,19 +25,19 @@ use Biodiverse::Metadata::Parameter;
 my $parameter_rand_metadata_class = 'Biodiverse::Metadata::Parameter';
 
 
-    my $tooltip_swap_count = <<'TOOLTIP_SWAP_COUNT'
-Target number of swaps to attempt.
-Default is twice the number of
-non-zero matrix (basedata) entries.
-TOOLTIP_SWAP_COUNT
-  ;
-  
-    my $tooltip_map_swap_attempts = <<'TOOLTIP_SWAP_ATTEMPTS'
-Maximum number of swaps to attempt.
-Default is 100 times the target
-number of swaps.
-TOOLTIP_SWAP_ATTEMPTS
-  ;
+my $tooltip_swap_count = <<~'TOOLTIP_SWAP_COUNT'
+    Target number of swaps to attempt.
+    Default is twice the number of
+    non-zero matrix (basedata) entries.
+    TOOLTIP_SWAP_COUNT
+;
+
+my $tooltip_map_swap_attempts = <<~'TOOLTIP_SWAP_ATTEMPTS'
+    Maximum number of swaps to attempt.
+    Default is 100 times the target
+    number of swaps.
+    TOOLTIP_SWAP_ATTEMPTS
+;
 
 sub get_common_independent_swaps_metadata {
     my @parameters = (
@@ -96,8 +96,6 @@ sub get_metadata_rand_independent_swaps_modified {
 
 sub rand_independent_swaps_modified {
     my ($self, %args) = @_;
-    
-    my $start_time = [gettimeofday];
 
     my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
     my $lb = $bd->get_labels_ref;
@@ -121,12 +119,6 @@ sub rand_independent_swaps_modified {
     #  the proportion of the successful trials."
 
     my $progress_bar = Biodiverse::Progress->new(no_gui_progress => $args{no_gui_progress});
-
-    my $progress_text =<<"END_PROGRESS_TEXT"
-$name
-Independent swaps randomisation
-END_PROGRESS_TEXT
-;
 
     my %empty_groups;
     @empty_groups{$bd->get_empty_groups} = undef;
@@ -152,15 +144,14 @@ END_PROGRESS_TEXT
         @sorted_groups;
 
     my (%gp_hash, %gp_list, %lb_list,
-        %gp_shadow_list, %lb_shadow_list,
+        %gp_shadow_list,
         %gp_shadow_sampler,
         %has_max_range,  #  should filter these
         %lb_gp_moved,
+        %orig_gp_lb_hash,
     );
-    my $gp_shadow_list_cache
-      = $self->get_cached_value_dor_set_default_aa (GP_SHADOW_LIST_CACHE => {});
-    my $gp_shadow_sampler_cache
-      = $self->get_cached_value_dor_set_default_aa (GP_SHADOW_SAMPLER_CACHE => {});
+    my $gp_shadow_list_cache    = $self->get_cached_href ('GP_SHADOW_LIST_CACHE');
+    my $gp_shadow_sampler_cache = $self->get_cached_href ('GP_SHADOW_SAMPLER_CACHE');
     my $non_zero_mx_cells = 0;  #  sum of richness and range scores
     my $done_count = 0;
     foreach my $label (@sorted_labels) {
@@ -175,8 +166,7 @@ END_PROGRESS_TEXT
         $gp_list{$label} = List::Unique::DeterministicOrder->new (
             data => [sort keys %$group_hash],
         );
-        my $gp_shadow_data
-          = $self->get_cached_value_dor_set_default_aa (GP_SHADOW_DATA => {});
+        my $gp_shadow_data = $self->get_cached_href ('GP_SHADOW_DATA');
         $gp_shadow_data->{$label}
           //= do {
             my $shadow_hash
@@ -293,9 +283,9 @@ END_PROGRESS_TEXT
 
         #  track before moving
         if ($stop_on_all_swapped) {
-            foreach my $pair ([$label1, $group1], [$label2, $group2]) {
-                my ($this_lb, $this_gp) = @$pair;
-                if ($gp_hash{$this_lb}{$this_gp} && !$lb_gp_moved{$this_lb}{$this_gp}) {
+            use experimental qw /for_list/;
+            foreach my ($this_lb, $this_gp) ($label1, $group1, $label2, $group2) {
+                if (exists $orig_gp_lb_hash{$this_gp}{$this_lb} && !$lb_gp_moved{$this_lb}{$this_gp}) {
                     $moved_pairs++;
                     $lb_gp_moved{$this_lb}{$this_gp} = 1;
                 }
@@ -388,8 +378,6 @@ sub get_metadata_rand_independent_swaps {
 
 sub rand_independent_swaps {
     my ($self, %args) = @_;
-    
-    my $start_time = [gettimeofday];
 
     my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
 
@@ -413,12 +401,6 @@ sub rand_independent_swaps {
 
     my $progress_bar = Biodiverse::Progress->new(no_gui_progress => $args{no_gui_progress});
 
-    my $progress_text =<<"END_PROGRESS_TEXT"
-$name
-Independent swaps randomisation
-END_PROGRESS_TEXT
-;
-
     my %empty_groups;
     @empty_groups{$bd->get_empty_groups} = undef;
     my %empty_labels;
@@ -429,21 +411,13 @@ END_PROGRESS_TEXT
     my $n_groups = scalar @sorted_groups;
     my $n_labels = scalar @sorted_labels;
     
-    my $lb = $bd->get_labels_ref;
-    my @sorted_label_ranges 
-      = map {$lb->get_variety_aa($_)} 
-        @sorted_labels;
-
-    my %richness_hash 
-      = map {$_ => $bd->get_richness_aa ($_)} 
-        @sorted_groups;
-
-    my (%gp_hash, %has_max_range, %lb_gp_moved);
+    my (%gp_hash, %has_max_range, %lb_gp_moved, %orig_lb_gp_hash);
     my $non_zero_mx_cells = 0;  #  sum of richness and range scores
     foreach my $label (@sorted_labels) {
         my $group_hash = $bd->get_groups_with_label_as_hash_aa($label);
         $non_zero_mx_cells += scalar keys %$group_hash;
         $gp_hash{$label} = {%$group_hash};
+        $orig_lb_gp_hash{$label} = {%$group_hash};
         if ($bd->get_range (element => $label) == @sorted_groups) {
             #  cannot be swapped around
             $has_max_range{$label}++;
@@ -515,9 +489,9 @@ END_PROGRESS_TEXT
 
         #  track before moving
         if ($stop_on_all_swapped) {
-            foreach my $pair ([$label1, $group1], [$label2, $group2]) {
-                my ($this_lb, $this_gp) = @$pair;
-                if ($gp_hash{$this_lb}{$this_gp} && !$lb_gp_moved{$this_lb}{$this_gp}) {
+            use experimental qw /for_list/;
+            foreach my ($this_lb, $this_gp) ($label1, $group1, $label2, $group2) {
+                if (exists $orig_lb_gp_hash{$this_lb}{$this_gp} && !$lb_gp_moved{$this_lb}{$this_gp}) {
                     $moved_pairs++;
                     $lb_gp_moved{$this_lb}{$this_gp} = 1;
                 }

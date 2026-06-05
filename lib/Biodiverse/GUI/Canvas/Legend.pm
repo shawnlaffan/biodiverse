@@ -82,6 +82,15 @@ sub new {
     }
 }
 
+sub get_font_size {
+    my $self = shift;
+    return $self->{font_size} //= $self->get_default_font_size;
+}
+
+sub set_font_size {
+    my ($self, $size) = @_;
+    return $self->{font_size} = $size;
+}
 
 sub drawable {
     my ($self) = @_;
@@ -175,7 +184,7 @@ sub draw {
         }
     }
     if (@$label_array) {
-        my $font_size = $self->{font_size};
+        my $font_size = $self->get_font_size;
         $cx->select_font_face("Sans", "normal", "normal");
         $cx->set_font_size($font_size);
         my $x_gap_extents = $cx->text_extents ('n');  #  an en-space

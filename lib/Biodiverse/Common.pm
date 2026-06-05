@@ -433,7 +433,7 @@ sub weaken_param {
             croak "Cannot weaken param $param, it does not exist\n";
         }
 
-        if (not isweak ($self->{PARAMS}{$param})) {
+        if (is_ref ($self->{PARAMS}{$param}) && !isweak ($self->{PARAMS}{$param})) {
             weaken $self->{PARAMS}{$param};
             #print "[COMMON] Weakened ref to $param, $self->{PARAMS}{$param}\n";
         }

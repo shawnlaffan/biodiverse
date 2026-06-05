@@ -411,15 +411,6 @@ sub rand_independent_swaps {
     my $n_groups = scalar @sorted_groups;
     my $n_labels = scalar @sorted_labels;
     
-    my $lb = $bd->get_labels_ref;
-    my @sorted_label_ranges 
-      = map {$lb->get_variety_aa($_)} 
-        @sorted_labels;
-
-    my %richness_hash 
-      = map {$_ => $bd->get_richness_aa ($_)} 
-        @sorted_groups;
-
     my (%gp_hash, %has_max_range, %lb_gp_moved, %orig_lb_gp_hash);
     my $non_zero_mx_cells = 0;  #  sum of richness and range scores
     foreach my $label (@sorted_labels) {

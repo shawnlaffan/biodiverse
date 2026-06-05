@@ -283,8 +283,8 @@ sub rand_independent_swaps_modified {
 
         #  track before moving
         if ($stop_on_all_swapped) {
-            foreach my $pair ([$label1, $group1], [$label2, $group2]) {
-                my ($this_lb, $this_gp) = @$pair;
+            use experimental qw /for_list/;
+            foreach my ($this_lb, $this_gp) ($label1, $group1, $label2, $group2) {
                 if (exists $orig_gp_lb_hash{$this_gp}{$this_lb} && !$lb_gp_moved{$this_lb}{$this_gp}) {
                     $moved_pairs++;
                     $lb_gp_moved{$this_lb}{$this_gp} = 1;

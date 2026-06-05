@@ -256,6 +256,15 @@
                           </object>
                         </child>
                         <child>
+                          <object class="GtkMenuItem" id="menuitem_labels_set_legend_font_size">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Set the legend text font size</property>
+                            <property name="label" translatable="yes">Set legend font size</property>
+                            <property name="use-underline">True</property>
+                          </object>
+                        </child>
+                        <child>
                           <object class="GtkMenuItem" id="menuitem_labels_background_colour">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>

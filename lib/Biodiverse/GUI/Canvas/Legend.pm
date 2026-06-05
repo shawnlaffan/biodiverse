@@ -78,7 +78,8 @@ sub new {
         $size;
     }
     sub set_default_font_size {
-        $size = shift;
+        my ($self, $val) = @_;
+        $size = $val;
     }
 }
 

@@ -61,15 +61,27 @@ sub new {
         hue         => $args{hue} // 0,
         parent      => $args{parent},
         show        => $args{show} // $args{show_legend} // 1,
-        font_size   => 15,
     };
     #  we need to know about the parent to get things like the transform matrix
     weaken $self->{parent};
 
     bless $self, $class;
 
+    $self->{font_size} = $self->get_default_font_size;
+
     return $self;
 };
+
+{
+    state $size = 15;
+    sub get_default_font_size {
+        $size;
+    }
+    sub set_default_font_size {
+        $size = shift;
+    }
+}
+
 
 sub drawable {
     my ($self) = @_;

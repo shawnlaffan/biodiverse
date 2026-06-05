@@ -25,19 +25,19 @@ use Biodiverse::Metadata::Parameter;
 my $parameter_rand_metadata_class = 'Biodiverse::Metadata::Parameter';
 
 
-    my $tooltip_swap_count = <<'TOOLTIP_SWAP_COUNT'
-Target number of swaps to attempt.
-Default is twice the number of
-non-zero matrix (basedata) entries.
-TOOLTIP_SWAP_COUNT
-  ;
-  
-    my $tooltip_map_swap_attempts = <<'TOOLTIP_SWAP_ATTEMPTS'
-Maximum number of swaps to attempt.
-Default is 100 times the target
-number of swaps.
-TOOLTIP_SWAP_ATTEMPTS
-  ;
+my $tooltip_swap_count = <<~'TOOLTIP_SWAP_COUNT'
+    Target number of swaps to attempt.
+    Default is twice the number of
+    non-zero matrix (basedata) entries.
+    TOOLTIP_SWAP_COUNT
+;
+
+my $tooltip_map_swap_attempts = <<~'TOOLTIP_SWAP_ATTEMPTS'
+    Maximum number of swaps to attempt.
+    Default is 100 times the target
+    number of swaps.
+    TOOLTIP_SWAP_ATTEMPTS
+;
 
 sub get_common_independent_swaps_metadata {
     my @parameters = (

@@ -315,17 +315,17 @@ sub to_tree {
 my $ludicrously_extreme_pos_val = 10**20;
 my $ludicrously_extreme_neg_val = -$ludicrously_extreme_pos_val;
 
-my $locale_comma_error = <<'EOLCOMMA'
-There are locale issues with the matrix value index keys.
-The index was built with a comma as the radix character,
-which is not portable.
+my $locale_comma_error = <<~'EOLCOMMA'
+    There are locale issues with the matrix value index keys.
+    The index was built with a comma as the radix character,
+    which is not portable.
 
-Please rebuild the matrix.  You might need to delete this
-matrix and any analyses that depend on it to do so.
-You could also duplicate the basedata without outputs
-and use that instead.
-EOLCOMMA
-  ;
+    Please rebuild the matrix.  You might need to delete this
+    matrix and any analyses that depend on it to do so.
+    You could also duplicate the basedata without outputs
+    and use that instead.
+    EOLCOMMA
+;
 
 
 sub get_min_value {

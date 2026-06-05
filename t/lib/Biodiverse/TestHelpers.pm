@@ -685,13 +685,13 @@ sub get_numeric_labels_basedata_object_from_site_data {
 
 sub get_element_properties_test_data {
 
-    my $data = <<'END_DATA'
-rec_num,genus,species,new_genus,new_species,range,sample_count,num
-1,Genus,sp1,Genus,sp2,,1
-10,Genus,sp18,Genus,sp2,,1
-2000,Genus,sp2,,,200,1000,2
-END_DATA
-  ;
+    my $data = <<~'END_DATA'
+        rec_num,genus,species,new_genus,new_species,range,sample_count,num
+        1,Genus,sp1,Genus,sp2,,1
+        10,Genus,sp18,Genus,sp2,,1
+        2000,Genus,sp2,,,200,1000,2
+        END_DATA
+    ;
 
 }
 

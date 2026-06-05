@@ -1035,77 +1035,77 @@ sub get_conditions_code_ref {
     return $code_ref
       if is_coderef ($code_ref);  
 
-    my $conditions_code = <<'END_OF_CONDITIONS_CODE'
-sub {
-    my $self = shift;
-    my %args = @_;
+    my $conditions_code = <<~'END_OF_CONDITIONS_CODE'
+        sub {
+            my $self = shift;
+            my %args = @_;
 
-    use experimental qw /refaliasing declared_refs/;
+            use experimental qw /refaliasing declared_refs/;
 
-    #  CHEATING... should use a generic means of getting at the caller object
-    my $basedata = $args{basedata} || $args{caller_object}; 
+            #  CHEATING... should use a generic means of getting at the caller object
+            my $basedata = $args{basedata} || $args{caller_object};
 
-    my %dists;
+            my %dists;
 
-    my ( @d, @D, $D, $Dsqr, @c, @C, $C, $Csqr );
+            my ( @d, @D, $D, $Dsqr, @c, @C, $C, $Csqr );
 
-    if ( $args{calc_distances} ) {
-        \%dists = eval { $self->get_distances(@_) };
-        croak $EVAL_ERROR if $EVAL_ERROR;
+            if ( $args{calc_distances} ) {
+                \%dists = eval { $self->get_distances(@_) };
+                croak $EVAL_ERROR if $EVAL_ERROR;
 
-        @d    = @{ $dists{d_list} };
-        @D    = @{ $dists{D_list} };
-        $D    = $dists{D};
-        $Dsqr = $dists{Dsqr};
-        @c    = @{ $dists{c_list} };
-        @C    = @{ $dists{C_list} };
-        $C    = $dists{C};
-        $Csqr = $dists{Csqr};
+                @d    = @{ $dists{d_list} };
+                @D    = @{ $dists{D_list} };
+                $D    = $dists{D};
+                $Dsqr = $dists{Dsqr};
+                @c    = @{ $dists{c_list} };
+                @C    = @{ $dists{C_list} };
+                $C    = $dists{C};
+                $Csqr = $dists{Csqr};
 
-        if ($self->get_param ('KEEP_LAST_DISTANCES')) {
-            $self->set_param (LAST_DISTS => \%dists);
+                if ($self->get_param ('KEEP_LAST_DISTANCES')) {
+                    $self->set_param (LAST_DISTS => \%dists);
+                }
+            }
+
+            #  Should only generate the shorthands when they are actually needed.
+
+            my $coord_id1 = $args{coord_id1};
+            my $coord_id2 = $args{coord_id2};
+
+            \my @coord = ($args{coord_array1} // []);
+
+            #  shorthands - most cases will be 2D
+            my ( $x, $y, $z ) = @coord[0,1,2];
+
+            my @nbrcoord = $args{coord_array2} ? @{ $args{coord_array2} } : ();
+
+            #  shorthands - most cases will be 2D
+            my ( $nbr_x, $nbr_y, $nbr_z ) = @nbrcoord[0,1,2];
+
+            #  These are used by the sp_* subs
+            my $current_args = {
+                basedata   => $basedata,
+                dists      => \%dists,
+                coord_array    => \@coord,
+                nbrcoord_array => \@nbrcoord,
+                coord_id1 => $coord_id1,
+                coord_id2 => $coord_id2,
+            };
+
+            $self->set_current_args ( $current_args );
+
+            my $result = eval { CONDITIONS_STRING_GOES_HERE };
+            my $error  = $EVAL_ERROR;
+
+            #  clear basedata to avoid ref cycles
+            $current_args->{basedata} = undef;
+
+            croak $error if $error;
+
+            return $result;
         }
-    }
-
-    #  Should only generate the shorthands when they are actually needed.
-
-    my $coord_id1 = $args{coord_id1};
-    my $coord_id2 = $args{coord_id2};
-
-    \my @coord = ($args{coord_array1} // []);
-
-    #  shorthands - most cases will be 2D
-    my ( $x, $y, $z ) = @coord[0,1,2];
-
-    my @nbrcoord = $args{coord_array2} ? @{ $args{coord_array2} } : ();
-
-    #  shorthands - most cases will be 2D
-    my ( $nbr_x, $nbr_y, $nbr_z ) = @nbrcoord[0,1,2];
-
-    #  These are used by the sp_* subs
-    my $current_args = {
-        basedata   => $basedata,
-        dists      => \%dists,
-        coord_array    => \@coord,
-        nbrcoord_array => \@nbrcoord,
-        coord_id1 => $coord_id1,
-        coord_id2 => $coord_id2,
-    };
-
-    $self->set_current_args ( $current_args );
-
-    my $result = eval { CONDITIONS_STRING_GOES_HERE };
-    my $error  = $EVAL_ERROR;
-
-    #  clear basedata to avoid ref cycles
-    $current_args->{basedata} = undef;
-
-    croak $error if $error;
-
-    return $result;
-}
-END_OF_CONDITIONS_CODE
-      ;
+        END_OF_CONDITIONS_CODE
+    ;
 
     my $conditions = $self->get_conditions_parsed;
     if (!$self->get_param('NO_LOG')) {

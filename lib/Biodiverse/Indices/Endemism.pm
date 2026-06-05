@@ -512,27 +512,24 @@ sub _calc_endemism_hier_part {
 sub get_formula_end_hpart {
     my $self = shift;
     
-    my $main_formula = <<'END_FORMULA'
-\begin{array}{rcl}
-WE_i               & = & \sum_{t_i \in T_i}\frac{r_t_i}{R_t_i} \\ 
-&& \\
-CWE_i              & = & \frac{WE}{n_i}                        \\
-&& \\ 
-WEP_{t_i}          & = & \frac{\frac{r_t_i}{R_t_i}}{n_i}       \\
-&& \\ 
-E(WEP_{t_i})       & = & \frac{1}{n_i}                         \\
-&& \\ 
-E(WEP_{t_{i-j}})   & = & \sum_{t_i \in T_{i-j}} E(WEP_{t_i})   \\
-&& \\
-OME(WEP_{t_{i-j}}) & = & WEP_{t_{i-j}} - E(WEP_{t_{i-j}})      \\
-\end{array}
-END_FORMULA
-  ;
+    my $main_formula = <<~'END_FORMULA'
+        \begin{array}{rcl}
+        WE_i               & = & \sum_{t_i \in T_i}\frac{r_t_i}{R_t_i} \\
+        && \\
+        CWE_i              & = & \frac{WE}{n_i}                        \\
+        && \\
+        WEP_{t_i}          & = & \frac{\frac{r_t_i}{R_t_i}}{n_i}       \\
+        && \\
+        E(WEP_{t_i})       & = & \frac{1}{n_i}                         \\
+        && \\
+        E(WEP_{t_{i-j}})   & = & \sum_{t_i \in T_{i-j}} E(WEP_{t_i})   \\
+        && \\
+        OME(WEP_{t_{i-j}}) & = & WEP_{t_{i-j}} - E(WEP_{t_{i-j}})      \\
+        \end{array}
+        END_FORMULA
+    ;
     $main_formula =~ s/\n/ /g;
-    #$main_formula =~ s/\s+/ /g;
     $main_formula =~ s/\s+$//g;
-    #$main_formula = 'equation\ is\ in\ progress';
-    #$main_formula = q{};  #  place holder
 
     my @formula = (
       $main_formula,

@@ -284,18 +284,18 @@ sub _build_deletion_panel {
     );
     
     
-    my $helper_text = <<'END_HELPER_TEXT'
-<i>Select properties to delete from all elements,
-or elements that are to have all their properties deleted.
+    my $helper_text = <<~'END_HELPER_TEXT'
+        <i>Select properties to delete from all elements,
+        or elements that are to have all their properties deleted.
 
-Items with checkboxes ticked are scheduled for deletion.
+        Items with checkboxes ticked are scheduled for deletion.
 
-There is currently no option to delete single
-properties from individual elements.
+        There is currently no option to delete single
+        properties from individual elements.
 
-(note: labels and groups are types of element).</i>
-END_HELPER_TEXT
-;
+        (note: labels and groups are types of element).</i>
+        END_HELPER_TEXT
+    ;
     $helper_text =~ s/(?:\r?\n)(?![\r\n])/ /gs;
     my $helper_label = Gtk3::Label->new();
     $helper_label->set_width_chars (90);
@@ -370,14 +370,14 @@ sub on_clicked_apply {
               : $bd->get_groups_ref;
             $ref->delete_cached_values;
         }
-        my $fmt = <<"END_FMT"
-Deleted:
-all properties from %d labels,
-%d properties from all labels,
-all properties from %d groups,
-%d properties from all groups.
-END_FMT
-  ;
+        my $fmt = <<~"END_FMT"
+            Deleted:
+            all properties from %d labels,
+            %d properties from all labels,
+            all properties from %d groups,
+            %d properties from all groups.
+            END_FMT
+        ;
         $msg = sprintf $fmt,
             ($bs_type_had_deletions{label}{elements_tree} // 0),
             ($bs_type_had_deletions{label}{properties_tree} // 0),

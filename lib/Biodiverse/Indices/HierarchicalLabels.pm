@@ -45,21 +45,21 @@ sub get_metadata_calc_hierarchical_label_ratios {
         }
     }
 
-    my $desc = <<"END_H_DESC"
-Analyse the diversity of labels using their hierarchical levels.
-The A, B and C scores are the same as in the Label Counts analysis (calc_label_counts)
-but calculated for each hierarchical level, e.g. for three axes one could have
-A0 as the Family level, A1 for the Family:Genus level,
-and A2 for the Family:Genus:Species level.
-The number of list elements generated depends on how many axes are used in the labels.
-Axes are order from zero as the highest level in the hierarchy,
-so index 0 is the top level of the hierarchy.
+    my $desc = <<~"END_H_DESC"
+        Analyse the diversity of labels using their hierarchical levels.
+        The A, B and C scores are the same as in the Label Counts analysis (calc_label_counts)
+        but calculated for each hierarchical level, e.g. for three axes one could have
+        A0 as the Family level, A1 for the Family:Genus level,
+        and A2 for the Family:Genus:Species level.
+        The number of list elements generated depends on how many axes are used in the labels.
+        Axes are order from zero as the highest level in the hierarchy,
+        so index 0 is the top level of the hierarchy.
 
-Note that this calculation produces lists since version 4.99_002
-so one can no longer use the SUMRAT indices for clustering.
-This can be re-enabled if there is a need.
-END_H_DESC
-;
+        Note that this calculation produces lists since version 4.99_002
+        so one can no longer use the SUMRAT indices for clustering.
+        This can be re-enabled if there is a need.
+        END_H_DESC
+    ;
     
     my $ref = 'Jones and Laffan (2008) Trans Philol Soc '
             . 'https://doi.org/10.1111/j.1467-968X.2008.00209.x';

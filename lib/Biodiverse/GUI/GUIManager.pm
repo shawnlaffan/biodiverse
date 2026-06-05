@@ -346,16 +346,16 @@ sub set_overlay_components {
 # Initialisation
 ##########################################################
 
-my $dev_version_warning = <<"END_OF_DEV_WARNING"
-This is a development version.
+my $dev_version_warning = <<~"END_OF_DEV_WARNING"
+    This is a development version.
 
-Features are subject to change and it is not guaranteed
-to be backwards compatible with previous versions.
+    Features are subject to change and it is not guaranteed
+    to be backwards compatible with previous versions.
 
-To turn off this warning set an environment
-variable called BD_NO_GUI_DEV_WARN to a true value.
-END_OF_DEV_WARNING
-  ;
+    To turn off this warning set an environment
+    variable called BD_NO_GUI_DEV_WARN to a true value.
+    END_OF_DEV_WARNING
+;
 
 sub init {
     my $self = shift;

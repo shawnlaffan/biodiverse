@@ -1780,6 +1780,77 @@ sub get_range_table {
     return wantarray ? @results : \@results;
 }
 
+sub get_node_range_hash {
+    my ($self, %args) = @_;
+
+    my $no_internals = $args{no_internals};    #  uses internals by default
+    my $return_lists = $args{return_lists};
+
+    #  gets the ranges from the basedata
+    my $bd = $args{basedata_ref} || $self->get_param('BASEDATA_REF');
+
+    croak "No available BaseData object, cannot generate range table\n"
+        if not defined $bd;
+
+    my $max_poss_group_count = $bd->get_group_count;
+
+    my $nodes = $self->get_node_hash;
+    my $n     = keys %$nodes;
+
+    my $progress = $n > 1000
+        ? Biodiverse::Progress->new( text => 'Calculating node ranges' )
+        : undef;
+
+    my %range_hash;
+
+    #  sort by depth so we start from the terminals
+    #  and avoid recursion in get_node_range
+    use Sort::Key qw /rnkeysort/;
+    my $i = 0;
+    foreach my $node_ref (rnkeysort {$_->get_depth} values %$nodes) {
+        $i++;
+        my $node_name = $node_ref->get_name;
+
+        \my @children = $node_ref->get_children // [];
+
+        my %groups;
+        if ( !@children ) {
+            if ($bd->exists_label_aa($node_name)) {
+                my $gp_list = $bd->get_groups_with_label_as_hash_aa($node_name);
+                @groups{keys %$gp_list} = ();
+            }
+        }
+        else {
+          CHILD:
+            foreach my $child (@children) {
+                my $gp_list = $range_hash{$child->get_name};
+                @groups{keys %$gp_list} = ();
+                last CHILD if $max_poss_group_count == keys %groups;
+            }
+        }
+
+        defined $progress and $progress->update(
+                "Calculating node ranges ($i of $n)",
+                $i / $n,
+            );
+
+        $range_hash{$node_name} = \%groups;
+    }
+
+    #  get rid of the internals if needed
+    if ($no_internals) {
+        delete @range_hash{map {$_->get_name} grep {$_->is_internal_node} values %$nodes};
+    }
+
+    #  convert to scalars - speedily
+    if (!$return_lists) {
+        $_ = keys %$_
+            foreach values %range_hash;
+    }
+
+    return wantarray ? %range_hash : \%range_hash;
+}
+
 sub find_list_indices_across_nodes {
     my $self = shift;
     my %args = @_;

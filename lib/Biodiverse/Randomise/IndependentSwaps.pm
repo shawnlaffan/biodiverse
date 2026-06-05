@@ -378,8 +378,6 @@ sub get_metadata_rand_independent_swaps {
 
 sub rand_independent_swaps {
     my ($self, %args) = @_;
-    
-    my $start_time = [gettimeofday];
 
     my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
 
@@ -403,12 +401,6 @@ sub rand_independent_swaps {
 
     my $progress_bar = Biodiverse::Progress->new(no_gui_progress => $args{no_gui_progress});
 
-    my $progress_text =<<"END_PROGRESS_TEXT"
-$name
-Independent swaps randomisation
-END_PROGRESS_TEXT
-;
-
     my %empty_groups;
     @empty_groups{$bd->get_empty_groups} = undef;
     my %empty_labels;
@@ -428,12 +420,13 @@ END_PROGRESS_TEXT
       = map {$_ => $bd->get_richness_aa ($_)} 
         @sorted_groups;
 
-    my (%gp_hash, %has_max_range, %lb_gp_moved);
+    my (%gp_hash, %has_max_range, %lb_gp_moved, %orig_lb_gp_hash);
     my $non_zero_mx_cells = 0;  #  sum of richness and range scores
     foreach my $label (@sorted_labels) {
         my $group_hash = $bd->get_groups_with_label_as_hash_aa($label);
         $non_zero_mx_cells += scalar keys %$group_hash;
         $gp_hash{$label} = {%$group_hash};
+        $orig_lb_gp_hash{$label} = {%$group_hash};
         if ($bd->get_range (element => $label) == @sorted_groups) {
             #  cannot be swapped around
             $has_max_range{$label}++;
@@ -505,9 +498,9 @@ END_PROGRESS_TEXT
 
         #  track before moving
         if ($stop_on_all_swapped) {
-            foreach my $pair ([$label1, $group1], [$label2, $group2]) {
-                my ($this_lb, $this_gp) = @$pair;
-                if ($gp_hash{$this_lb}{$this_gp} && !$lb_gp_moved{$this_lb}{$this_gp}) {
+            use experimental qw /for_list/;
+            foreach my ($this_lb, $this_gp) ($label1, $group1, $label2, $group2) {
+                if (exists $orig_lb_gp_hash{$this_lb}{$this_gp} && !$lb_gp_moved{$this_lb}{$this_gp}) {
                     $moved_pairs++;
                     $lb_gp_moved{$this_lb}{$this_gp} = 1;
                 }

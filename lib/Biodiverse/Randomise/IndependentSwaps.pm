@@ -96,8 +96,6 @@ sub get_metadata_rand_independent_swaps_modified {
 
 sub rand_independent_swaps_modified {
     my ($self, %args) = @_;
-    
-    my $start_time = [gettimeofday];
 
     my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
     my $lb = $bd->get_labels_ref;
@@ -121,12 +119,6 @@ sub rand_independent_swaps_modified {
     #  the proportion of the successful trials."
 
     my $progress_bar = Biodiverse::Progress->new(no_gui_progress => $args{no_gui_progress});
-
-    my $progress_text =<<"END_PROGRESS_TEXT"
-$name
-Independent swaps randomisation
-END_PROGRESS_TEXT
-;
 
     my %empty_groups;
     @empty_groups{$bd->get_empty_groups} = undef;
@@ -152,15 +144,13 @@ END_PROGRESS_TEXT
         @sorted_groups;
 
     my (%gp_hash, %gp_list, %lb_list,
-        %gp_shadow_list, %lb_shadow_list,
+        %gp_shadow_list,
         %gp_shadow_sampler,
         %has_max_range,  #  should filter these
         %lb_gp_moved,
     );
-    my $gp_shadow_list_cache
-      = $self->get_cached_value_dor_set_default_aa (GP_SHADOW_LIST_CACHE => {});
-    my $gp_shadow_sampler_cache
-      = $self->get_cached_value_dor_set_default_aa (GP_SHADOW_SAMPLER_CACHE => {});
+    my $gp_shadow_list_cache    = $self->get_cached_href ('GP_SHADOW_LIST_CACHE');
+    my $gp_shadow_sampler_cache = $self->get_cached_href ('GP_SHADOW_SAMPLER_CACHE');
     my $non_zero_mx_cells = 0;  #  sum of richness and range scores
     my $done_count = 0;
     foreach my $label (@sorted_labels) {
@@ -175,8 +165,7 @@ END_PROGRESS_TEXT
         $gp_list{$label} = List::Unique::DeterministicOrder->new (
             data => [sort keys %$group_hash],
         );
-        my $gp_shadow_data
-          = $self->get_cached_value_dor_set_default_aa (GP_SHADOW_DATA => {});
+        my $gp_shadow_data = $self->get_cached_href ('GP_SHADOW_DATA');
         $gp_shadow_data->{$label}
           //= do {
             my $shadow_hash

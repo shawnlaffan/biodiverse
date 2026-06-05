@@ -19,6 +19,7 @@ use Path::Tiny qw /path/;
 use Text::Wrapper;
 use List::MoreUtils qw /first_index/;
 use POSIX qw/fmod/;
+use Sort::Key qw /rnkeysort/;
 
 require Biodiverse::Config;
 
@@ -1889,12 +1890,14 @@ sub do_trim_tree_to_basedata {
     }
 
     if ( $args{do_range_weighting} ) {
-        foreach my $node ( $new_tree->get_node_refs ) {
-            my $range = $node->get_node_range( basedata_ref => $bd );
-            $node->set_length( length => $node->get_length / $range );
-        }
         if ($trim_to_lca) {
             $new_tree->trim_to_last_common_ancestor;
+        }
+        use experimental qw /for_list refaliasing/;
+        \my %range_hash = $new_tree->get_node_range_hash (basedata_ref => $bd);
+        foreach my ($node_name, $range) ( %range_hash ) {
+            my $node = $new_tree->get_node_ref_aa ($node_name);
+            $node->set_length_aa( $range ? $node->get_length / $range : 0 );
         }
     }
 

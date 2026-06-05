@@ -209,7 +209,8 @@ sub new {
     }
 
     my %widgets_and_signals = (
-        menuitem_labels_background_colour  => {activate => \&on_set_map_background_colour}
+        menuitem_labels_background_colour    => {activate => \&on_set_map_background_colour},
+        menuitem_labels_set_legend_font_size => {activate => \&on_set_legend_font_size},
     );
 
     foreach my ($widget_name, $args) (%widgets_and_signals) {

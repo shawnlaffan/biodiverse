@@ -378,6 +378,15 @@ Colours are scaled using percentiles defined in the colour stretch menu. </prope
                           </object>
                         </child>
                         <child>
+                          <object class="GtkMenuItem" id="menuitem_spatial_set_legend_font_size">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Set the legend text font size</property>
+                            <property name="label" translatable="yes">Set legend font size</property>
+                            <property name="use-underline">True</property>
+                          </object>
+                        </child>
+                        <child>
                           <object class="GtkMenuItem" id="menuitem_spatial_nbr_highlighting">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>

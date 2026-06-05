@@ -305,6 +305,7 @@ sub new {
         menuitem_cluster_excluded_cell_colour => {activate => \&on_set_excluded_cell_colour},
         menuitem_cluster_undef_cell_colour    => {activate => \&on_set_undef_cell_colour},
         menuitem_cluster_background_colour    => {activate => \&on_set_map_background_colour},
+        menuitem_cluster_set_legend_font_size => {activate => \&on_set_legend_font_size},
     );
 
     for my $n (0..6) {

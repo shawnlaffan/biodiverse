@@ -293,6 +293,7 @@ sub new {
         menuitem_spatial_undef_cell_colour    => {activate => \&on_set_undef_cell_colour},
         menuitem_spatial_cell_show_outline    => {toggled  => \&on_set_cell_show_outline},
         menuitem_spatial_show_legend          => {toggled  => \&on_show_hide_legend},
+        menuitem_spatial_set_legend_font_size => {activate => \&on_set_legend_font_size},
         menuitem_spatial_background_colour    => {activate => \&on_set_map_background_colour},
 
         button_spatial_options => {clicked => \&run_options_dialogue},

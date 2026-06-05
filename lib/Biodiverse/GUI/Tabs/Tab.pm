@@ -556,6 +556,56 @@ sub on_show_hide_legend {
 
 }
 
+sub on_set_legend_font_size {
+    my ($self, $menu_item) = @_;
+
+    my @legends = map {eval {$self->{$_}->get_legend} || ()} $self->get_canvas_list;
+
+    return if !@legends;
+
+    my $legend = $legends[0];
+
+    my $current_size = $legend->get_font_size;
+    my $dlg = Gtk3::Dialog->new_with_buttons (
+        'Set legend font size',
+        undef,
+        'destroy-with-parent',
+        'gtk-ok' => 'ok',
+        'gtk-cancel' => 'cancel',
+    );
+
+    my $main_box = $dlg->get_content_area;
+
+    my $adjustment = Gtk3::Adjustment->new( $current_size, 1, 200, 1, 10, 0 );
+    my $spinner    = Gtk3::SpinButton->new( $adjustment, 1, 0 );
+
+    my $label = Gtk3::Label->new('Font size');
+    my $hbox = Gtk3::Box->new('GTK_ORIENTATION_HORIZONTAL', 10);
+    $hbox->pack_start ($label, 1, 1, 0);
+    $hbox->pack_start ($spinner, 1, 1, 0);
+
+    my $chk_default = Gtk3::CheckButton->new_with_label('Set this as the default');
+
+    $main_box->pack_start ($hbox, 1, 1, 0);
+    $main_box->pack_start ($chk_default, 1, 1, 0);
+
+
+    $dlg->show_all;
+
+    if ($dlg->run eq 'ok') {
+        my $val = $spinner->get_value;
+        foreach my $leg (@legends) {
+            $leg->set_font_size($val);
+        }
+        $self->queue_draw;
+        if ($chk_default->get_active) {
+            $legend->set_default_font_size ($val);
+        }
+    }
+
+    $dlg->destroy;
+}
+
 sub on_grid_colour_flip_changed {
     my ($self, $checkbox) = @_;
 

@@ -371,6 +371,15 @@ Colours are currently taken from the outer ring.</property>
                           </object>
                         </child>
                         <child>
+                          <object class="GtkMenuItem" id="menuitem_cluster_set_legend_font_size">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Set the legend text font size</property>
+                            <property name="label" translatable="yes">Set legend font size</property>
+                            <property name="use-underline">True</property>
+                          </object>
+                        </child>
+                        <child>
                           <object class="GtkSeparatorMenuItem" id="menuitem_cluster_display_sep2">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>

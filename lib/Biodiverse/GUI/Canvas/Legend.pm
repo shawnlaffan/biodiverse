@@ -55,20 +55,43 @@ sub new {
     my $legend_mode  = $args{legend_mode}  // 'Hue';
 
     my $self = {
-        drawable     => $canvas,
-        legend_mode  => $legend_mode,
-        width_px     => LEGEND_WIDTH,
-        hue          => $args{hue} // 0,
-        parent       => $args{parent},
-        show         => $args{show} // $args{show_legend} // 1,
+        drawable    => $canvas,
+        legend_mode => $legend_mode,
+        width_px    => LEGEND_WIDTH,
+        hue         => $args{hue} // 0,
+        parent      => $args{parent},
+        show        => $args{show} // $args{show_legend} // 1,
     };
     #  we need to know about the parent to get things like the transform matrix
     weaken $self->{parent};
 
     bless $self, $class;
 
+    $self->{font_size} = $self->get_default_font_size;
+
     return $self;
 };
+
+{
+    state $size = 15;
+    sub get_default_font_size {
+        $size;
+    }
+    sub set_default_font_size {
+        my ($self, $val) = @_;
+        $size = $val;
+    }
+}
+
+sub get_font_size {
+    my $self = shift;
+    return $self->{font_size} //= $self->get_default_font_size;
+}
+
+sub set_font_size {
+    my ($self, $size) = @_;
+    return $self->{font_size} = $size;
+}
 
 sub drawable {
     my ($self) = @_;
@@ -162,8 +185,9 @@ sub draw {
         }
     }
     if (@$label_array) {
+        my $font_size = $self->get_font_size;
         $cx->select_font_face("Sans", "normal", "normal");
-        $cx->set_font_size(12);
+        $cx->set_font_size($font_size);
         my $x_gap_extents = $cx->text_extents ('n');  #  an en-space
         my $x_gap = $x_gap_extents->{width};
         # my $y_spacing = $row_height;  #  this only works for one label per row

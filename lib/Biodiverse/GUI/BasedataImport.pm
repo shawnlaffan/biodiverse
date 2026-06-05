@@ -54,21 +54,21 @@ my %file_filters;
 
 my $default_cell_size = 100000;
 
-my $lat_lon_widget_tooltip_text = <<'END_LL_TOOLTIP_TEXT'
-Set to 'is_lat' if column contains latitude values,
-is_lon' if longitude values. Leave as blank if neither.
-END_LL_TOOLTIP_TEXT
-  ;
+my $lat_lon_widget_tooltip_text = <<~'END_LL_TOOLTIP_TEXT'
+    Set to 'is_lat' if column contains latitude values,
+    is_lon' if longitude values. Leave as blank if neither.
+    END_LL_TOOLTIP_TEXT
+;
 
-my $max_row_spinner_tooltip_text = <<'END_MAX_ROW_TOOLTIP_TEXT'
-Too many columns will slow down the GUI.
-Set this to a small number to make it
-manageable when the input file has a large
-number of columns and the options can be set
-using the first few columns,
-e.g. a large matrix format file
-END_MAX_ROW_TOOLTIP_TEXT
-  ;
+my $max_row_spinner_tooltip_text = <<~'END_MAX_ROW_TOOLTIP_TEXT'
+    Too many columns will slow down the GUI.
+    Set this to a small number to make it
+    manageable when the input file has a large
+    number of columns and the options can be set
+    using the first few columns,
+    e.g. a large matrix format file
+    END_MAX_ROW_TOOLTIP_TEXT
+;
 
 ##################################################
 # High-level procedure

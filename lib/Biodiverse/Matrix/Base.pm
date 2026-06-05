@@ -991,29 +991,29 @@ sub get_metadata_export_delimited_text {
 
 sub get_tooltip_sparse_normal {
 
-    my $tool_tip =<<"END_MX_TOOLTIP"
-Normal format is a normal rectangular row by column matrix like:
-\t,col1,col2
-row1,value,value
-row2,value,value
+    my $tool_tip =<<~"END_MX_TOOLTIP"
+        Normal format is a normal rectangular row by column matrix like:
+        \t,col1,col2
+        row1,value,value
+        row2,value,value
 
-Sparse format is a list like:
-\trow1,col1,value
-\trow1,col2,value
-\trow2,col2,value
+        Sparse format is a list like:
+        \trow1,col1,value
+        \trow1,col2,value
+        \trow2,col2,value
 
-GDM (Generalized Dissimilarity Modelling) format is
-a sparse matrix but with the row and column
-elements split into their component axes.  
-\tx1,y1,x2,y2,value
-\trow1_x1,row1_y1,row2_x2,row2_y2,value
-\trow2_x1,row2_y1,row3_x2,row3_y2,value
+        GDM (Generalized Dissimilarity Modelling) format is
+        a sparse matrix but with the row and column
+        elements split into their component axes.
+        \tx1,y1,x2,y2,value
+        \trow1_x1,row1_y1,row2_x2,row2_y2,value
+        \trow2_x1,row2_y1,row3_x2,row3_y2,value
 
-Note that GDM supports only two axes (x and y) so only the
-first two axes are exported.  
+        Note that GDM supports only two axes (x and y) so only the
+        first two axes are exported.
 
-END_MX_TOOLTIP
-;
+        END_MX_TOOLTIP
+    ;
 
     return $tool_tip;
 }

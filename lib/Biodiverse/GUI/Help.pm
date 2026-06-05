@@ -81,16 +81,16 @@ sub open_browser_and_show_url {
         my $check_open = open_url ($link);
     }
 
-    my $text =<<"END_LINK_TEXT"
-Your browser should have opened and displayed the URL below.
-If it has not then please copy and paste the URL into your web browser.
+    my $text =<<~"END_LINK_TEXT"
+        Your browser should have opened and displayed the URL below.
+        If it has not then please copy and paste the URL into your web browser.
 
-<span foreground="blue">
-$link
-</span>
+        <span foreground="blue">
+        $link
+        </span>
 
-END_LINK_TEXT
-;
+        END_LINK_TEXT
+    ;
 
     
     my $dlg = Gtk3::Dialog->new(

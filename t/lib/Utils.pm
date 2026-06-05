@@ -34,12 +34,12 @@ sub is_array_between {
             my $expected_top = $expected_array_ref->[$idx] + $high_tolerance;
             unless (_is_between($got_array_ref->[$idx], $expected_bottom, $expected_top)) {
                 $success = 0;
-                diag(<<"EOF");
-Value $idx is out of range:
-Got: [$got_array_ref->[$idx]]
-Expected: [$expected_bottom, $expected_top, $expected_array_ref->[$idx]]
-EOF
-
+                diag(<<~"EOF");
+                    Value $idx is out of range:
+                    Got: [$got_array_ref->[$idx]]
+                    Expected: [$expected_bottom, $expected_top, $expected_array_ref->[$idx]]
+                    EOF
+                ;
                 last;
             }
         }
@@ -85,11 +85,12 @@ sub compare_hash_by_ranges
             )
             {
                 $success = 0;
-                diag(<<"EOF");
-Key/Val pair No. $idx is out of range or wrong:
-Got: [$got_key, $got_val]
-Expected: [$expected_bottom, $expected_top, $expected_val]
-EOF
+                diag(<<~"EOF");
+                    Key/Val pair No. $idx is out of range or wrong:
+                    Got: [$got_key, $got_val]
+                    Expected: [$expected_bottom, $expected_top, $expected_val]
+                    EOF
+                ;
 
                 last COMPARE_KEYS;
             }

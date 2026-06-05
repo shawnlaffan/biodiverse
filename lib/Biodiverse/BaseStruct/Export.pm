@@ -400,16 +400,16 @@ sub get_nodata_export_metadata {
 sub get_rgb_geotiff_export_metadata {
     my $self = shift;
 
-    my $tooltip = <<'TOOLTIP'
-Generate RGBA format TIFF files
-of each index that has been
-displayed in the GUI.
-This allows reproduction of
-colour stretches using GIS software.
-Indices that have not been
-displayed are not exported.
-TOOLTIP
-  ;
+    my $tooltip = <<~'TOOLTIP'
+        Generate RGBA format TIFF files
+        of each index that has been
+        displayed in the GUI.
+        This allows reproduction of
+        colour stretches using GIS software.
+        Indices that have not been
+        displayed are not exported.
+        TOOLTIP
+    ;
 
     my $metadata = [ 
         {
@@ -583,22 +583,22 @@ sub export_divagis {
     return;
 }
 
-my $shape_export_comment_text = <<'END_OF_SHAPE_COMMENT'
-Note: If you export a list then each shape (point or polygon) 
-will be repeated for each list item.
+my $shape_export_comment_text = <<~'END_OF_SHAPE_COMMENT'
+    Note: If you export a list then each shape (point or polygon)
+    will be repeated for each list item.
 
-Choose the __no_list__ option to not do this,
-in which case to attach any lists you will need to run a second 
-export to the delimited text format and then join them.  
-This is needed because shapefile field names can only be
-11 characters long and cannot contain non-alphanumeric characters.
+    Choose the __no_list__ option to not do this,
+    in which case to attach any lists you will need to run a second
+    export to the delimited text format and then join them.
+    This is needed because shapefile field names can only be
+    11 characters long and cannot contain non-alphanumeric characters.
 
-Note also that shapefiles do not have an undefined value 
-so any undefined values will be converted to zeroes.
+    Note also that shapefiles do not have an undefined value
+    so any undefined values will be converted to zeroes.
 
-Export of array lists to shapefiles is not supported. 
-END_OF_SHAPE_COMMENT
-  ;
+    Export of array lists to shapefiles is not supported.
+    END_OF_SHAPE_COMMENT
+;
 
 sub get_metadata_export_shapefile {
     my $self = shift;
@@ -1697,34 +1697,34 @@ sub write_table_divagis {
             index => $header->[$i],
         );
 
-        my $diva_hdr = <<"DIVA_HDR"
-[General]
-Version= 1.0
-Creator= Biodiverse $VERSION
-Title=$header->[$i]
-Created= $create_time
+        my $diva_hdr = <<~"DIVA_HDR"
+            [General]
+            Version= 1.0
+            Creator= Biodiverse $VERSION
+            Title=$header->[$i]
+            Created= $create_time
 
-[GeoReference]
-Projection=unknown
-Columns=$ncols
-Rows=$nrows
-MinX=$minx
-MaxX=$maxx
-MinY=$miny
-MaxY=$maxy
-ResolutionX= $res[0]
-ResolutionY= $res[1]
+            [GeoReference]
+            Projection=unknown
+            Columns=$ncols
+            Rows=$nrows
+            MinX=$minx
+            MaxX=$maxx
+            MinY=$miny
+            MaxY=$maxy
+            ResolutionX= $res[0]
+            ResolutionY= $res[1]
 
-[Data]
-DataType=FLT4S
-MinValue=$stats->{MIN}
-MaxValue=$stats->{MAX}
-NoDataValue=$no_data
-Transparent=1
+            [Data]
+            DataType=FLT4S
+            MinValue=$stats->{MIN}
+            MaxValue=$stats->{MAX}
+            NoDataValue=$no_data
+            Transparent=1
 
 
-DIVA_HDR
-  ;
+            DIVA_HDR
+        ;
         print {$fh_hdr} $diva_hdr;
         $fh_hdr->close;
     }
@@ -2097,38 +2097,38 @@ sub write_table_ers {
     );
 
 
-    my $header_start =<<"END_OF_ERS_HEADER_START"
-DatasetHeader Begin
-\tVersion         = "5.5"
-\tName		= "$name$suffix"
-\tLastUpdated     = $gm_time
-\tDataSetType     = ERStorage
-\tDataType        = Raster
-\tByteOrder       = $LSB_or_MSB
-\tCoordinateSpace Begin
-\t\tDatum           = "Unknown"
-\t\tProjection      = "Unknown"
-\t\tCoordinateType  = EN
-\t\tRotation        = 0:0:0.0
-\tCoordinateSpace End
-\tRasterInfo Begin
-\t\tCellType        = IEEE4BYTEREAL
-\t\tNullCellValue = $no_data
-\t\tCellInfo Begin
-\t\t\tXdimension      = $res[0]
-\t\t\tYdimension      = $res[1]
-\t\tCellInfo End
-\t\tNrOfLines       = $nrows
-\t\tNrOfCellsPerLine        = $ncols
-\t\tRegistrationCoord Begin
-\t\t\tEastings        = $reg_coords[0]
-\t\t\tNorthings       = $reg_coords[1]
-\t\tRegistrationCoord End
-\t\tRegistrationCellX  = 0
-\t\tRegistrationCellY  = 0
-\t\tNrOfBands       = $n_bands
-END_OF_ERS_HEADER_START
-;
+    my $header_start =<<~"END_OF_ERS_HEADER_START"
+        DatasetHeader Begin
+        \tVersion         = "5.5"
+        \tName		= "$name$suffix"
+        \tLastUpdated     = $gm_time
+        \tDataSetType     = ERStorage
+        \tDataType        = Raster
+        \tByteOrder       = $LSB_or_MSB
+        \tCoordinateSpace Begin
+        \t\tDatum           = "Unknown"
+        \t\tProjection      = "Unknown"
+        \t\tCoordinateType  = EN
+        \t\tRotation        = 0:0:0.0
+        \tCoordinateSpace End
+        \tRasterInfo Begin
+        \t\tCellType        = IEEE4BYTEREAL
+        \t\tNullCellValue = $no_data
+        \t\tCellInfo Begin
+        \t\t\tXdimension      = $res[0]
+        \t\t\tYdimension      = $res[1]
+        \t\tCellInfo End
+        \t\tNrOfLines       = $nrows
+        \t\tNrOfCellsPerLine        = $ncols
+        \t\tRegistrationCoord Begin
+        \t\t\tEastings        = $reg_coords[0]
+        \t\t\tNorthings       = $reg_coords[1]
+        \t\tRegistrationCoord End
+        \t\tRegistrationCellX  = 0
+        \t\tRegistrationCellY  = 0
+        \t\tNrOfBands       = $n_bands
+        END_OF_ERS_HEADER_START
+    ;
 
     my @header = $header_start;
 

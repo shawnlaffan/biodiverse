@@ -153,14 +153,14 @@ BEGIN {
     foreach my $module (@reqd) {
         if (not eval "require $module") {
             #say $@ if $@;
-            my $feedback = <<"END_FEEDBACK"
-Cannot locate the $module package.
-You probably need to install it using
-  cpanm $module
-at the command prompt.
-See https://metacpan.org/pod/$module for more details about what it does.
-END_FEEDBACK
-  ;
+            my $feedback = <<~"END_FEEDBACK"
+                Cannot locate the $module package.
+                You probably need to install it using
+                  cpanm $module
+                at the command prompt.
+                See https://metacpan.org/pod/$module for more details about what it does.
+                END_FEEDBACK
+            ;
             die $feedback;
         }
     }

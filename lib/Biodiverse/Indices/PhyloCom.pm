@@ -27,13 +27,13 @@ my $webb_et_al_ref = 'Webb et al. (2008) https://doi.org/10.1093/bioinformatics/
 my $mpd_variance_ref = 'Warwick & Clarke (2001) https://dx.doi.org/10.3354/meps216265';
 my $tsir_et_al_ref = 'Tsirogiannis et al. (2012) https://doi.org/10.1007/978-3-642-33122-0_3';
 
-my $nri_nti_expl_text = <<'END_NRI_NTI_EXPL_TEXT'
-NRI and NTI for the set of labels
-on the tree in the sample. This
-version is -1* the Phylocom implementation,
-so values >0 have longer branches than expected.
-END_NRI_NTI_EXPL_TEXT
-  ;
+my $nri_nti_expl_text = <<~'END_NRI_NTI_EXPL_TEXT'
+    NRI and NTI for the set of labels
+    on the tree in the sample. This
+    version is -1* the Phylocom implementation,
+    so values >0 have longer branches than expected.
+    END_NRI_NTI_EXPL_TEXT
+;
 
 my $nri_formula = ['NRI = \frac{MPD_{obs} - mean(MPD_{rand})}{sd(MPD_{rand})}'];
 my $nti_formula = ['NTI = \frac{MNTD_{obs} - mean(MNTD_{rand})}{sd(MNTD_{rand})}'];
@@ -968,18 +968,18 @@ sub calc_nri_nti3 {
 }
 
 sub get_description_calc_nri_nti_expected_values {
-    my $desc = <<'END_DESCR'
-Expected values used in the NRI and NTI calculations. 
-Derived using a null model without resampling where 
-each label has an equal probability of being selected
-(a null model of even distrbution).
-The expected mean and SD are the same for each unique number
-of labels across all neighbour sets.  This means if you have
-three neighbour sets, each with three labels, then the expected
-values will be identical for each, even if the labels are
-completely different.
-END_DESCR
-  ;
+    my $desc = <<~'END_DESCR'
+        Expected values used in the NRI and NTI calculations.
+        Derived using a null model without resampling where
+        each label has an equal probability of being selected
+        (a null model of even distrbution).
+        The expected mean and SD are the same for each unique number
+        of labels across all neighbour sets.  This means if you have
+        three neighbour sets, each with three labels, then the expected
+        values will be identical for each, even if the labels are
+        completely different.
+        END_DESCR
+    ;
 
     return $desc;
 }

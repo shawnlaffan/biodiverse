@@ -725,15 +725,15 @@ sub find_list_indices_across_elements {
     return wantarray ? %index_hash : \%index_hash;
 }
 
-my $INVALID_CALCS_ERROR_MESSAGE = <<'END_INVALID_CALCS_ERR_MSG'
-[SPATIAL] No valid analyses, dropping out
-Possible reasons:
-There are insufficient neighbour conditions for the chosen calculations
-(you specified one but turnover calculations, for example, require two).
-Phylogenetic calculations were selected but there is no tree.
-Numeric label calculations were selected but your labels are not numeric.
-END_INVALID_CALCS_ERR_MSG
-  ;
+my $INVALID_CALCS_ERROR_MESSAGE = <<~'END_INVALID_CALCS_ERR_MSG'
+    [SPATIAL] No valid analyses, dropping out
+    Possible reasons:
+    There are insufficient neighbour conditions for the chosen calculations
+    (you specified one but turnover calculations, for example, require two).
+    Phylogenetic calculations were selected but there is no tree.
+    Numeric label calculations were selected but your labels are not numeric.
+    END_INVALID_CALCS_ERR_MSG
+;
 
 
 #

@@ -326,22 +326,22 @@ sub export_matrices {
 }
 
 
-my $shape_export_comment_text = <<'END_OF_SHAPE_COMMENT'
-Note: If you export a list then each shape (point or polygon) 
-will be repeated for each list item.
+my $shape_export_comment_text = <<~'END_OF_SHAPE_COMMENT'
+    Note: If you export a list then each shape (point or polygon)
+    will be repeated for each list item.
 
-Choose the __no_list__ option to not do this,
-in which case to attach any lists you will need to run a second 
-export to the delimited text format and then join them.  
-This is needed because shapefile field names can only be
-11 characters long and cannot contain non-alphanumeric characters.
+    Choose the __no_list__ option to not do this,
+    in which case to attach any lists you will need to run a second
+    export to the delimited text format and then join them.
+    This is needed because shapefile field names can only be
+    11 characters long and cannot contain non-alphanumeric characters.
 
-Note also that shapefiles do not have an undefined value 
-so any undefined values will be converted to zeroes.
+    Note also that shapefiles do not have an undefined value
+    so any undefined values will be converted to zeroes.
 
-Export of array lists to shapefiles is not supported. 
-END_OF_SHAPE_COMMENT
-  ;
+    Export of array lists to shapefiles is not supported.
+    END_OF_SHAPE_COMMENT
+;
 
 sub get_metadata_export_shapefile {
     my $self = shift;
@@ -552,13 +552,13 @@ sub export_shapefile {
 sub get_metadata_export_shapefile_grouped {
     my $self = shift;
 
-    my $comment_text = <<'END_COMMENT_TEXT'
-Note that list values can be attached to the shapefile 
-in a GIS, spreadsheet or data analysis system using 
-a database join after also exporting grouped 
-values to text ("Table grouped" option).
-END_COMMENT_TEXT
-  ;
+    my $comment_text = <<~'END_COMMENT_TEXT'
+        Note that list values can be attached to the shapefile
+        in a GIS, spreadsheet or data analysis system using
+        a database join after also exporting grouped
+        values to text ("Table grouped" option).
+        END_COMMENT_TEXT
+    ;
 
     my $metadata = $self->get_metadata_export_shapefile;
     $metadata->{format} = 'Shapefile grouped';

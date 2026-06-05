@@ -778,52 +778,52 @@ sub init_branch_colouring_menu {
 }
 
 sub _get_branch_colouring_label_tooltip {
-    state $text = <<'EOT'
-The current list and source used to colour the tree branches.
-This can be changed using the 'Branch colouring' menu to the
-immediate left of this label.
-EOT
+    state $text = <<~'EOT'
+        The current list and source used to colour the tree branches.
+        This can be changed using the 'Branch colouring' menu to the
+        immediate left of this label.
+        EOT
     ;
     return $text;
 }
 
 sub _get_branch_colouring_menu_tooltip {
-    state $text = <<'EOT'
-Select the list to visualise as colours on the tree
-when hovering over the grid.
+    state $text = <<~'EOT'
+        Select the list to visualise as colours on the tree
+        when hovering over the grid.
 
-The first (default) option shows the paths connecting
-the labels in the neighbour sets used for the analysis.
-When there is one such set all branches are coloured blue.
-When there are two such sets blue denotes branches only
-in the first set, red denotes those only in the second set,
-and black denotes those in both. From these one can see
-the turnover of branches between the groups (cells) in
-each neighbour set.
+        The first (default) option shows the paths connecting
+        the labels in the neighbour sets used for the analysis.
+        When there is one such set all branches are coloured blue.
+        When there are two such sets blue denotes branches only
+        in the first set, red denotes those only in the second set,
+        and black denotes those in both. From these one can see
+        the turnover of branches between the groups (cells) in
+        each neighbour set.
 
-The 'Branches in hovered cell only' option will only
-highlight paths found in the group (cell) being hovered over,
-regardless of how many groups are in the neighbour sets.
+        The 'Branches in hovered cell only' option will only
+        highlight paths found in the group (cell) being hovered over,
+        regardless of how many groups are in the neighbour sets.
 
-The next set of menu options are list indices in the spatial
-output that belongs to this tab.  The remainder are lists
-across other spatial outputs in the project, organised by their
-basedata objects.  These are in the same order as in the
-Outputs tab.  Basedatas and outputs with no list indices are
-not shown.
+        The next set of menu options are list indices in the spatial
+        output that belongs to this tab.  The remainder are lists
+        across other spatial outputs in the project, organised by their
+        basedata objects.  These are in the same order as in the
+        Outputs tab.  Basedatas and outputs with no list indices are
+        not shown.
 
-If a branch is not in the list then it is highlighted
-using a default colour (usually black).  If the selected
-output has no labels that are also on the tree then no
-highlighting is done (all branches remain black).
+        If a branch is not in the list then it is highlighted
+        using a default colour (usually black).  If the selected
+        output has no labels that are also on the tree then no
+        highlighting is done (all branches remain black).
 
-Right clicking on a group (cell) fixes the highlighting
-in place, stopping changes to the branch colouring as
-the mouse is hovered over other groups.  This allows
-the tree to be exported with the current colouring.
+        Right clicking on a group (cell) fixes the highlighting
+        in place, stopping changes to the branch colouring as
+        the mouse is hovered over other groups.  This allows
+        the tree to be exported with the current colouring.
 
-EOT
-  ;
+        EOT
+    ;
     return $text;
 }
 

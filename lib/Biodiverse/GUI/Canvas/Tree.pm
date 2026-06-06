@@ -9,7 +9,7 @@ use experimental qw /refaliasing declared_refs for_list/;
 use Glib qw/TRUE FALSE/;
 use Gtk3;
 use Scalar::Util qw /refaddr blessed/;
-use List::Util qw /min max pairs uniq sum/;
+use List::Util qw /min max pairs uniq sum reduce/;
 use List::MoreUtils qw /minmax firstidx/;
 use Ref::Util qw /is_coderef is_blessed_ref is_arrayref is_ref/;
 use POSIX qw /floor/;
@@ -339,7 +339,7 @@ sub _on_motion {
         @results = $self->{data}{root};
     }
     else {
-        \@results = $self->get_index->query_point_nearest_y($x, $y);
+        \@results = $self->get_branch_at_xy($x, $y);
     }
     if (@results) {
         if (my $f = $self->{hover_func}) {
@@ -442,6 +442,18 @@ sub get_str_index {
     return $index;
 }
 
+sub get_branch_at_xy {
+    my ($self, $x, $y) = @_;
+
+    my $lw = $self->get_last_hz_line_width;
+    my \@branches = $self->get_str_index->query_partly_within_rect($x - $lw, $y - $lw, $x + $lw, $y + $lw);
+    if (@branches > 1) {
+        @branches = reduce {abs ($y - $a->{y}) < abs ($y - $b->{y}) ? $a : $b } @branches;
+    }
+
+    return wantarray ? @branches : \@branches;
+}
+
 sub _on_button_release {
     my ($self, $x, $y) = @_;
 
@@ -477,7 +489,7 @@ sub _select_while_not_selecting {
             @branches = ($self->{data}{root});
         }
         else {
-            @branches = $self->get_index->query_point_nearest_y($x, $y);
+            @branches = $self->get_branch_at_xy ($x, $y);
         }
         my $node_ref = @branches ? $branches[0]->{node_ref} : undef;
         $f->($node_ref);
@@ -507,7 +519,7 @@ sub _on_ctl_click {
         @branches = ($self->{data}{root});
     }
     else {
-        @branches = $self->get_index->query_point_nearest_y($x, $y);
+        @branches = $self->get_branch_at_xy($x, $y);
     }
 
     if ($f && @branches) {
@@ -654,7 +666,12 @@ sub get_horizontal_line_width {
         $line_width *= $default;
     }
 
-    return max ($default, $line_width);
+    return $self->{last_hz_line_width} = max ($default, $line_width);
+}
+
+sub get_last_hz_line_width {
+    my $self = shift;
+    return $self->{last_hz_line_width} // 0;
 }
 
 #  ensure the vertical lines are the same as the horizontal ones

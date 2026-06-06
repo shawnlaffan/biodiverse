@@ -170,6 +170,7 @@ sub set_current_tree {
 
     my $longest_path = 0;
     my $widest_path  = 0;  #  handle negative branch lengths as these can go past the root
+    my $has_neg_branch = 0;
     my %branch_hash;
     foreach my $node (@tips) {
         my $name = $node->get_name;
@@ -181,6 +182,7 @@ sub set_current_tree {
             length   => $len,
             parent   => $node->get_parent_name,
         };
+        $has_neg_branch ||= $len < 0;
         my $path = $bref->{path_to_root} = [$len];
         my $width = $len;
         my $parent = $node;
@@ -197,6 +199,7 @@ sub set_current_tree {
             $width = $len if $len > $width;
             push @$path, $this_len;
             $bref->{ntips}++;
+            $has_neg_branch ||= $this_len < 0;
         }
         $longest_path = $len if $len > $longest_path;
         #  "width" allows for negative branch lengths which can send the root towards the centre
@@ -208,12 +211,13 @@ sub set_current_tree {
     my $root = $branch_hash{$root_tree_node->get_name};
 
     my %properties = (
-        root         => $root,
-        by_node      => \%branch_hash,
-        tips         => \@tips,
-        ntips        => scalar(@tips),
-        longest_path => $longest_path,
-        widest_path  => $widest_path,
+        root           => $root,
+        by_node        => \%branch_hash,
+        tips           => \@tips,
+        ntips          => scalar(@tips),
+        longest_path   => $longest_path,
+        widest_path    => $widest_path,
+        has_neg_branch => $has_neg_branch,
     );
 
     $self->{data} = \%properties;
@@ -256,7 +260,25 @@ sub get_branch_count {
 
 sub get_branches_intersecting_slider {
     my $self = shift;
-    return $self->get_index->intersects_slider(@_);
+
+    my $intersection = $self->get_str_index->query_partly_within_rect(@_);
+    my %bres_hash = map {$_->{name} => $_} @$intersection;
+    my @int = grep {!exists ($bres_hash{$_->{parent} // die "no parent for $_->{name}"})} values %bres_hash;
+    #  need to check negs and exclude if any ancestor is in the selection
+    if ($self->{data}{has_neg_branch}) {
+        my @int2;
+        BRANCH:
+        foreach my $branch (@int) {
+            if ($branch->{length} < 0) {
+                \my @path = $branch->{node_ref}->get_path_name_array_to_root_node_aa;
+                next BRANCH if @path > 1 && List::Util::any {$bres_hash{$_}{node_ref}} @path[1 .. $#path];
+            }
+            push @int2, $branch
+        }
+        return wantarray ? @int2 : \@int;
+    }
+
+    return wantarray ? @int : \@int;
 }
 
 sub _on_motion {
@@ -384,6 +406,38 @@ sub get_index {
 
     $index = $self->{data}{box_index} = Biodiverse::GUI::Canvas::Tree::Index->new;
     $index->populate_from_tree($self);
+
+    return $index;
+}
+
+sub get_str_index {
+    my $self = shift;
+    use Tree::STR;
+
+    my $index = $self->{data}{str_tree_index};
+
+    #  we don't have the x-coords until the first time we are drawn
+    return $index if $index && $self->{plot_coords_generated};
+
+    local $| = 1;
+
+    my $branch_hash = $self->{data}{by_node};
+
+    say sprintf 'STR tree index: Inserting %d branches', scalar keys %$branch_hash;
+
+    my @bboxen;
+    foreach my $branch (values %$branch_hash) {
+
+        my ($x_l, $x_r) = minmax (@$branch{qw /x_l x_r/});  #  handle neg lens
+        # $x_l = 0 if $x_l < 0;  #  dirty and underhanded - should round off
+
+        my $y = $branch->{y};
+        push @bboxen, [$x_l, $y, $x_r, $y, $branch];
+    }
+
+    my $rtree = Tree::STR->new(\@bboxen);
+
+    $self->{data}{str_tree_index} = $rtree;
 
     return $index;
 }
@@ -852,6 +906,7 @@ sub init_plot_coords {
 
     #  trigger index generation
     my $box_index = $self->get_index;
+    my $str = $self->get_str_index;
 
     if (my $scree_plot = $self->get_scree_plot) {
         #  force an update

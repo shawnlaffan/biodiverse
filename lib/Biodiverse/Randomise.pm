@@ -3524,6 +3524,26 @@ sub get_prng_state_data {
     return $state_data;
 }
 
+sub get_metadata_as_json {
+    my $self = shift;
+    my $functions = $self->get_randomisation_functions;
+    my %metadata;
+    foreach my $f (keys %$functions) {
+        $metadata{$f} = $self->get_metadata (sub => $f);
+    }
+    use JSON::MaybeXS;
+    my $json = JSON->new->pretty(1)->canonical(1)->convert_blessed(1);
+
+    my $struct   = {
+        _meta => {
+            title   => 'Biodiverse randomisation functions',
+            version => $VERSION,
+        },
+        functions => \%metadata,
+    };
+
+    return $json->encode ($struct);
+}
 
 
 

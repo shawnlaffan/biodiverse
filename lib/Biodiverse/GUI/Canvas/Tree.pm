@@ -922,7 +922,7 @@ sub init_plot_coords {
     $self->{plot_coords_generated} = 1;
 
     #  trigger index generation
-    my $box_index = $self->get_index;
+    # my $box_index = $self->get_index;
     my $str = $self->get_str_index;
 
     if (my $scree_plot = $self->get_scree_plot) {

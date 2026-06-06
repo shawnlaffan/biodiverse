@@ -544,7 +544,7 @@ sub draw_slider {
         $loc[1] = $draw_size->{y};
 
         $cx->select_font_face("Sans", "normal", "bold");
-        $cx->set_font_size( 12 );
+        $cx->set_font_size( Biodiverse::GUI::Canvas::Legend->get_default_font_size );
         my $margin = 2;
         my @text_extents = map {$cx->text_extents($_)} @text;
         my $width   = max map {$_->{width}} @text_extents;

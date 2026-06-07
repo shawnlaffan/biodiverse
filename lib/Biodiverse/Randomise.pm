@@ -1390,14 +1390,18 @@ sub get_metadata_rand_nochange {
     my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
     my $common_metadata = $self->get_common_rand_metadata;
 
-    my %metadata = (
-        description => 'No change - just a cloned data set',
-        parameters  => [
+    my $params = $self->_dedup_metedata_params_array(
+        [
             @$subset_parameters,
             $group_props_parameters,
             $tree_shuffle_parameters,
             @$common_metadata,
-        ],
+        ]
+    );
+
+    my %metadata = (
+        description => 'No change - just a cloned data set',
+        parameters  => $params,
     );
 
     return $self->metadata_class->new(\%metadata);
@@ -1426,15 +1430,18 @@ sub get_metadata_rand_csr_by_group {
     my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
     my $common_metadata = $self->get_common_rand_metadata;
 
-
-    my %metadata = (
-        description => 'Complete spatial randomisation by group (currently ignores labels without a group)',
-        parameters  => [
+    my $params = $self->_dedup_metedata_params_array (
+        [
             @$subset_parameters,
             $group_props_parameters,
             $tree_shuffle_parameters,
             @$common_metadata,
-        ],
+        ]
+    );
+
+    my %metadata = (
+        description => 'Complete spatial randomisation by group (currently ignores labels without a group)',
+        parameters  => $params,
     ); 
 
     return $self->metadata_class->new(\%metadata);
@@ -3522,6 +3529,13 @@ sub get_prng_state_data {
     }
 
     return $state_data;
+}
+
+sub _dedup_metedata_params_array {
+    my ($self, $params) = @_;
+    my %seen;
+    my @p = grep {!$seen{$_->{name}}++} @$params;
+    return wantarray ? @p : \@p;
 }
 
 sub get_metadata_as_json {

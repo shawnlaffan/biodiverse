@@ -1720,6 +1720,7 @@ sub get_metadata_rand_random_walk {
     my %metadata = (
         parameters  => \@parameters,
         description => $desc,
+        category    => 'structured',
     );
 
     return $self->metadata_class->new(\%metadata);
@@ -1756,6 +1757,7 @@ sub get_metadata_rand_diffusion {
     my %metadata = (
         parameters  => \@parameters,
         description => $desc,
+        category    => 'structured',
     );
 
     return $self->metadata_class->new(\%metadata);
@@ -1808,6 +1810,7 @@ sub get_metadata_rand_spatially_structured {
     my %metadata = (
         parameters  => \@parameters,
         description => $desc,
+        category    => 'structured',
     );
 
     return $self->metadata_class->new(\%metadata);
@@ -1836,6 +1839,7 @@ sub get_metadata_rand_structured {
     my %metadata = (
         parameters  => \@parameters,
         description => $desc,
+        category    => 'structured',
     );
 
     return $self->metadata_class->new(\%metadata);

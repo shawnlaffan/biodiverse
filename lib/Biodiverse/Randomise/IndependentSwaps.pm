@@ -81,13 +81,18 @@ sub get_metadata_rand_independent_swaps_modified {
         bless $_, $parameter_rand_metadata_class;
     }
 
+    my $desc = <<~'EOD'
+        Randomly swap labels across groups using an
+        implementation of the independent swaps
+        algorithm (Gotelli 2000; Miklos & Podani, 2004)
+        modified to reduce mis-hits.
+        EOD
+    ;
 
     my %metadata = (
         parameters  => \@parameters,
-        description => "Randomly swap labels across groups using an implementation "
-                     . "of the independent swaps algorithm "
-                     . "(Gotelli 2000; Miklos & Podani, 2004) "
-                     . "modified to reduce mis-hits\n",
+        description => $desc,
+        category    => 'swapper',
     );
 
     return $self->metadata_class->new(\%metadata);
@@ -364,12 +369,17 @@ sub get_metadata_rand_independent_swaps {
         bless $_, $parameter_rand_metadata_class;
     }
 
+    my $desc = <<~'EOD'
+        Randomly swap labels across groups using an
+        implementation of the independent swaps algorithm
+        (Gotelli 2000; Miklos & Podani, 2004).
+        EOD
+    ;
 
     my %metadata = (
         parameters  => \@parameters,
-        description => "Randomly swap labels across groups using an "
-                     . "implementation of the independent swaps algorithm "
-                     . "(Gotelli 2000; Miklos & Podani, 2004)\n",
+        description => $desc,
+        category    => 'swapper',
     );
 
     return $self->metadata_class->new(\%metadata);

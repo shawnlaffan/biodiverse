@@ -1227,7 +1227,7 @@ sub get_common_rand_structured_metadata {
         basedata will be its original richness plus this value.
 
         This is applied after the multiplier parameter so you have:
-            target_richness = orig_richness * multiplier + addition.
+            `target_richness = orig_richness * multiplier + addition`.
         END_TOOLTIP_ADDN
     ;
 
@@ -1341,9 +1341,9 @@ sub get_random_walk_backtracking_metadata {
     my $bk_text = <<~'EOB'
         The spatially structured models will go back to a previously
         assigned group when no neighbours of the current group can be assigned to.
-        "from_end" goes back in reverse order of assignment, 
-        "from_start" goes back to the start of the sequence and works
-        forward, while "random" selects randomly from the previously assigned groups.
+        `from_end` goes back in reverse order of assignment,
+        `from_start` goes back to the start of the sequence and works
+        forward, while `random` selects randomly from the previously assigned groups.
         Has no effect on the proximity allocation model.
         EOB
     ;
@@ -1713,7 +1713,7 @@ sub get_metadata_rand_random_walk {
         some tolerance.
 
         Actually just a special case of the rand_spatially_structured
-        model that always uses the "random" spatial_allocation_order option.
+        model that always uses the `random_walk` spatial_allocation_order option.
         EOD
         ;
 
@@ -1749,7 +1749,7 @@ sub get_metadata_rand_diffusion {
         some tolerance.
 
         Actually just a special case of the rand_spatially_structured
-        model that always uses the "diffusion" spatial_allocation_order
+        model that always uses the `diffusion` spatial_allocation_order
         option.
         EOD
         ;

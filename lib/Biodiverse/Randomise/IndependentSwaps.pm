@@ -92,7 +92,7 @@ sub get_metadata_rand_independent_swaps_modified {
     my %metadata = (
         parameters  => \@parameters,
         description => $desc,
-        category    => 'swapper',
+        category    => 'swap',
     );
 
     return $self->metadata_class->new(\%metadata);
@@ -379,7 +379,7 @@ sub get_metadata_rand_independent_swaps {
     my %metadata = (
         parameters  => \@parameters,
         description => $desc,
-        category    => 'swapper',
+        category    => 'swap',
     );
 
     return $self->metadata_class->new(\%metadata);

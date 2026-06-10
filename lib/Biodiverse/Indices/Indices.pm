@@ -12,7 +12,7 @@ use English ( -no_match_vars );
 use Readonly;
 use experimental qw /refaliasing/;
 
-our $VERSION = '5.0';
+our $VERSION = '5.99_001';
 
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';

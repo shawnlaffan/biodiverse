@@ -13,7 +13,7 @@ use Sort::Key qw /nkeysort/;
 
 use experimental qw/refaliasing for_list/;
 
-our $VERSION = '5.0';
+our $VERSION = '5.99_001';
 
 use Biodiverse::Matrix::LowMem;
 my $mx_class_for_trees = 'Biodiverse::Matrix::LowMem';

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use 5.022;
 
-our $VERSION = '5.0';
+our $VERSION = '5.99_001';
 
 use Carp qw /croak/;
 

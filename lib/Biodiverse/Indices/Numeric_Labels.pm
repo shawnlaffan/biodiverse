@@ -10,7 +10,7 @@ use List::Util qw /sum min max/;
 
 use Carp;
 
-our $VERSION = '5.0';
+our $VERSION = '5.99_001';
 
 use Statistics::Descriptive::PDL::SampleWeighted 0.15;
 my $stats_class_weighted = 'Statistics::Descriptive::PDL::SampleWeighted';

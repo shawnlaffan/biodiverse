@@ -23,7 +23,7 @@ use experimental qw /for_list/;
 
 use English qw { -no_match_vars };
 
-our $VERSION = '5.0';
+our $VERSION = '5.99_001';
 
 use Glib;
 use Gtk3;

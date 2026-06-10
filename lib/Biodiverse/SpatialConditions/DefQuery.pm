@@ -9,7 +9,7 @@ use Carp;
 
 use parent qw /Biodiverse::SpatialConditions/;
 
-our $VERSION = '5.0';
+our $VERSION = '5.99_001';
 
 sub get_type {return 'definition query'};
 

@@ -7,7 +7,7 @@ use warnings;
 
 use Carp;
 
-our $VERSION = '5.0';
+our $VERSION = '5.99_001';
 
 #use Statistics::Descriptive;
 #my $stats_class = 'Statistics::Descriptive::Full';

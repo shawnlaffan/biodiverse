@@ -6,7 +6,7 @@ use Carp qw /croak/;
 
 use experimental /for_list declared_refs refaliasing isa/;
 
-our $VERSION = '5.0';
+our $VERSION = '5.99_001';
 
 use constant GDAL_GEOM => 'Geo::GDAL::FFI::Geometry';
 

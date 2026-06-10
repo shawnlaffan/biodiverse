@@ -4,7 +4,7 @@ use warnings;
 
 use Carp;
 
-our $VERSION = '5.0';
+our $VERSION = '5.99_001';
 
 use Ref::Util qw { :all };
 

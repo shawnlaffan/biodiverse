@@ -17,7 +17,7 @@ use Path::Tiny qw/path/;
 
 use English ( -no_match_vars );
 
-our $VERSION = '5.0';
+our $VERSION = '5.99_001';
 
 #use Exporter;
 #use Devel::Symdump;

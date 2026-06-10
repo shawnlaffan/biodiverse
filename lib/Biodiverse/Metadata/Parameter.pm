@@ -50,4 +50,10 @@ sub get_default_param_value {
     return $choices->[$val];
 }
 
+sub TO_JSON {
+    my ($self) = @_;
+    my $ref = {%$self};  # a crude unbless
+    $ref;
+}
+
 1;

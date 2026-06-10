@@ -95,12 +95,17 @@ sub get_metadata_rand_curveball {
         bless $_, $parameter_rand_metadata_class;
     }
 
+    my $desc = <<~'EOD'
+        Randomly swap labels across groups using an
+        implementation of the curveball algorithm
+        (Strona et al. 2014).
+        EOD
+    ;
 
     my %metadata = (
         parameters  => \@parameters,
-        description => "Randomly swap labels across groups using an implementation "
-            . "of the curveball algorithm "
-            . "(Strona et al. 2014)\n",
+        description => $desc,
+        category    => 'swap',
     );
 
     return $self->metadata_class->new(\%metadata);

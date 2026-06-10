@@ -1227,7 +1227,7 @@ sub get_common_rand_structured_metadata {
         basedata will be its original richness plus this value.
 
         This is applied after the multiplier parameter so you have:
-            target_richness = orig_richness * multiplier + addition.
+            `target_richness = orig_richness * multiplier + addition`.
         END_TOOLTIP_ADDN
     ;
 
@@ -1263,8 +1263,13 @@ sub get_common_rand_structured_metadata {
     
     my $tooltip_alloc = <<~'EOT'
         Allows one to see the order in which labels were assigned to groups.
-        Negative values were swapped out after allocation,
-        zero values were assigned via the swapping process used to reach the richness targets.
+        Groups with negative values were later swapped out after allocation.
+        Zero values were assigned to a group via the swapping process used
+        to reach the richness targets.
+        Those ending in .01 were used as a seed location in a spatially
+        structured model, e.g. 10.01 is the tenth allocated occurrence
+        and was a seed location for that label.  -10.01 was a seed location
+        that was later swapped out.
 
         Has no effect if a subset spatial condition is used (see issue #588 for details).
         EOT
@@ -1336,9 +1341,9 @@ sub get_random_walk_backtracking_metadata {
     my $bk_text = <<~'EOB'
         The spatially structured models will go back to a previously
         assigned group when no neighbours of the current group can be assigned to.
-        "from_end" goes back in reverse order of assignment, 
-        "from_start" goes back to the start of the sequence and works
-        forward, while "random" selects randomly from the previously assigned groups.
+        `from_end` goes back in reverse order of assignment,
+        `from_start` goes back to the start of the sequence and works
+        forward, while `random` selects randomly from the previously assigned groups.
         Has no effect on the proximity allocation model.
         EOB
     ;
@@ -1390,14 +1395,27 @@ sub get_metadata_rand_nochange {
     my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
     my $common_metadata = $self->get_common_rand_metadata;
 
-    my %metadata = (
-        description => 'No change - just a cloned data set',
-        parameters  => [
+    my $params = $self->_dedup_metedata_params_array(
+        [
             @$subset_parameters,
             $group_props_parameters,
             $tree_shuffle_parameters,
             @$common_metadata,
-        ],
+        ]
+    );
+
+    my $desc = <<~'EOD'
+        A model of no change. All it does is clone the basedata.
+        This is most useful when applying the tree or element
+        property randomisations as then the spatial data are
+        held constant while the tree labels or property values
+        are randomised.
+        EOD
+    ;
+
+    my %metadata = (
+        description => $desc,
+        parameters  => $params,
     );
 
     return $self->metadata_class->new(\%metadata);
@@ -1426,16 +1444,28 @@ sub get_metadata_rand_csr_by_group {
     my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
     my $common_metadata = $self->get_common_rand_metadata;
 
-
-    my %metadata = (
-        description => 'Complete spatial randomisation by group (currently ignores labels without a group)',
-        parameters  => [
+    my $params = $self->_dedup_metedata_params_array (
+        [
             @$subset_parameters,
             $group_props_parameters,
             $tree_shuffle_parameters,
             @$common_metadata,
-        ],
-    ); 
+        ]
+    );
+
+    my $desc = <<~'EOD'
+        Complete spatial randomisation by group.
+        Randomly swaps entire assemblages between groups,
+        so does not maintain richness patterns.
+        Currently ignores labels without a group.
+        EOD
+    ;
+
+    my %metadata = (
+        description => $desc,
+        parameters  => $params,
+        category    => 'swap',
+    );
 
     return $self->metadata_class->new(\%metadata);
 }
@@ -1677,14 +1707,21 @@ sub get_metadata_rand_random_walk {
     push @parameters, $self->get_random_walk_backtracking_metadata;
     push @parameters, $self->get_spatial_allocation_reseed_metadata;
 
+    my $desc = <<~'EOD'
+        Randomly allocate labels to groups, using a
+        random walk model from a seed location
+        but keep the richness of each group the same within
+        some tolerance.
+
+        Actually just a special case of the rand_spatially_structured
+        model that always uses the `random_walk` spatial_allocation_order option.
+        EOD
+        ;
+
     my %metadata = (
         parameters  => \@parameters,
-        description => "Randomly allocate labels to groups, using a "
-                     . "random walk model from a seed location\n"
-                     . 'but keep the richness of each group the same within '
-                     . "some tolerance.\n"
-                     . "Actually just a special case of the rand_spatially_structured "
-                     . "model that always uses the random_walk allocation method.",
+        description => $desc,
+        category    => 'fill',
     );
 
     return $self->metadata_class->new(\%metadata);
@@ -1706,14 +1743,22 @@ sub get_metadata_rand_diffusion {
     push @parameters, $self->get_spatial_allocation_sp_condition_metadata;
     push @parameters, $self->get_spatial_allocation_reseed_metadata;
 
+    my $desc = <<~'EOD'
+        Randomly allocate labels to groups, using a
+        diffusion model from a seed location
+        but keep the richness of each group the same within
+        some tolerance.
+
+        Actually just a special case of the rand_spatially_structured
+        model that always uses the `diffusion` spatial_allocation_order
+        option.
+        EOD
+        ;
+
     my %metadata = (
         parameters  => \@parameters,
-        description => "Randomly allocate labels to groups, using a "
-                     . "diffusion model from a seed location\n"
-                     . 'but keep the richness of each group the same within '
-                     . "some tolerance.\n"
-                     . "Actually just a special case of the rand_spatially_structured "
-                     . "model that always uses the diffusion allocation method.",
+        description => $desc,
+        category    => 'fill',
     );
 
     return $self->metadata_class->new(\%metadata);
@@ -1752,12 +1797,21 @@ sub get_metadata_rand_spatially_structured {
 
     push @parameters, ($spatial_allocation_order, $backtracking, $seed_condition, $reseed);
 
+    my $desc = <<~'EOD'
+        Randomly allocate labels to groups, selecting
+        new locations as a function of one or more spatial
+        conditions but keep the richness of each group
+        the same within some tolerance.
+        The rand_structured, rand_diffusion and
+        rand_random_walk are special cases of this general
+        model.
+        EOD
+    ;
+
     my %metadata = (
         parameters  => \@parameters,
-        description => "Randomly allocate labels to groups, selecting "
-                     . "new locations as a function of one or more spatial conditions\n"
-                     . 'but keep the richness of each group the same within '
-                     . 'some tolerance.',
+        description => $desc,
+        category    => 'fill',
     );
 
     return $self->metadata_class->new(\%metadata);
@@ -1775,11 +1829,18 @@ sub get_metadata_rand_structured {
 
     my @parameters = $self->get_common_rand_structured_metadata;
 
+    my $desc = <<~'EOD'
+        Randomly allocate labels to groups but keep the
+        richness the same or within a linear offset.
+        This is a special case of the rand_spatially_structured
+        model.
+        EOD
+    ;
+
     my %metadata = (
         parameters  => \@parameters,
-        description => "Randomly allocate labels to groups,\n"
-                     . 'but keep the richness the same or within '
-                     . 'some multiplier factor.',
+        description => $desc,
+        category    => 'fill',
     );
 
     return $self->metadata_class->new(\%metadata);
@@ -3524,6 +3585,33 @@ sub get_prng_state_data {
     return $state_data;
 }
 
+sub _dedup_metedata_params_array {
+    my ($self, $params) = @_;
+    my %seen;
+    my @p = grep {!$seen{$_->{name}}++} @$params;
+    return wantarray ? @p : \@p;
+}
+
+sub get_metadata_as_json {
+    my $self = shift;
+    my $functions = $self->get_randomisation_functions;
+    my %metadata;
+    foreach my $f (keys %$functions) {
+        $metadata{$f} = $self->get_metadata (sub => $f);
+    }
+    use JSON::MaybeXS;
+    my $json = JSON->new->pretty(1)->canonical(1)->convert_blessed(1);
+
+    my $struct   = {
+        _meta => {
+            title   => 'Biodiverse randomisation functions',
+            version => $VERSION,
+        },
+        functions => \%metadata,
+    };
+
+    return $json->encode ($struct);
+}
 
 
 

@@ -20,5 +20,10 @@ sub _get_method_default_hash {
 
 __PACKAGE__->_make_access_methods (\%methods_and_defaults);
 
+sub TO_JSON {
+    my ($self) = @_;
+    my $ref = {%$self};  # a crude unbless
+    $ref;
+}
 
 1;

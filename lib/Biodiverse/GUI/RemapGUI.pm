@@ -128,12 +128,15 @@ sub pre_remap_dlg {
     $controller_combo->show_all;
 
     $remapee_combo->set_tooltip_text ('Choose a data source to be remapped.');
-    $controller_combo->set_tooltip_text (
-        "Choose a data source to remap to.\n"
-        . "The user defined from file option requires both source and "
-        . "target names to be specified in the selected file.  \n"
-        . "The auto from file option requires only a list of target element names."
-    );
+    my $tooltip =<<~'EOT'
+        Choose a data source to remap to.
+        The user defined from file option requires both source
+        and target names to be specified in the selected file.
+        The auto from file option requires only a list of target element names.
+        EOT
+    ;
+
+    $controller_combo->set_tooltip_text ($tooltip);
     my $remapee_label = Gtk3::Label->new('Data source that will be remapped:');
     my $controller_label = Gtk3::Label->new('Label source:');
     
@@ -198,12 +201,13 @@ sub pre_remap_dlg {
         my $remapee = $remapee_sources[$remapee_combo->get_active];
         if ($remapee->isa('Biodiverse::BaseData')
             && $remapee->get_output_ref_count) {
-            $warning_text
-              = "Warning: Cannot remap a basedata with outputs.\n"
-              . "You can use the 'Duplicate without outputs'\n"
-              . "menu option to create a 'clean' version.";
+            $warning_text =<<~'EOW'
+              Warning: Basedata contains outputs.
+              A new copy will be created.
+              EOW
+            ;
             $warning_label->set_markup (
-                $span_leader . $warning_text . $span_ender
+                "${span_leader}${warning_text}${span_ender}"
             );
         }
     };

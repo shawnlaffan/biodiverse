@@ -957,7 +957,7 @@ sub _highlight_label_range_hulls {
     my $cache = $bd->get_cached_value_dor_set_default_href("LABEL_RANGE_' uc($type) . '_HULL_VERTICES");
 
     foreach my $label (keys %$terminal_elements) {
-        next LABEL if !exists $label_hash->{$label};
+        next if !exists $label_hash->{$label};
         my $data
             = $cache->{$label}
             //= do {
@@ -1077,7 +1077,7 @@ sub highlight_label_range_circumcircles {
     $self->{grid}->clear_range_circumcircles;
 
     foreach my $label (keys %$terminal_elements) {
-        next LABEL if !exists $label_hash->{$label};
+        next if !exists $label_hash->{$label};
         my $data = $bd->get_label_range_circumcircle(label => $label);
         $self->{grid}->set_overlay(
             type        => 'polyline',
@@ -1111,7 +1111,7 @@ sub highlight_label_range_circumcircle_union {
         my $terminal_elements = $node->get_terminal_elements;
         #  could climb up the tree if this takes too long
         foreach my $label (keys %$terminal_elements) {
-            next LABEL if !exists $label_hash->{$label};
+            next if !exists $label_hash->{$label};
             my $circle = $bd->get_label_range_circumcircle(label => $label);
             my $wkt = sprintf "POINT (%s %s)", @{$circle->centre};
             #  default of 30 seems to work and is suggested in the GDAL docs

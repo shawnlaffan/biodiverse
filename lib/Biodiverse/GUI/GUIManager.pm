@@ -984,14 +984,6 @@ sub do_remap {
     my $remap_type = $pre_remap_dlg_results->{remap_type};
     my $remapee    = $pre_remap_dlg_results->{remapee};
 
-    # check if the remapee is a basedata with outputs
-    my $type = (blessed $remapee) // '';
-
-    croak "Cannot remap elements of a Basedata with outputs.\n"
-          . "You can use the 'Duplicate without outputs' menu "
-          . "option to create a new version.\n"
-        if ($type eq 'Biodiverse::BaseData' && $remapee->get_output_ref_count);
-
     my $want_to_perform_remap = 0;
     my $generated_remap = Biodiverse::Remap->new;
 
@@ -1039,7 +1031,7 @@ sub do_remap {
     return if !$want_to_perform_remap;
 
     # regardless of how we got the remap, apply it in the same way
-    my $cloned_ref = $remapee->clone();
+    my $cloned_ref = $remapee->clone (no_outputs => 1);
 
     $generated_remap->apply_to_data_source( data_source => $cloned_ref );
 
@@ -1056,13 +1048,11 @@ sub do_remap {
 
     # the function names are frustratingly add_base_data and
     # do_rename_basedata so we have to fix that here.
-    if ($function_name eq 'basedata') {
-        $add_to_project_function = "add_base_data";
-    }
-    else {
-        $add_to_project_function = "add_" . $function_name;
-    }
-    my $rename_function         = "do_rename_". $function_name;
+    $add_to_project_function = $function_name eq 'basedata'
+        ? "add_base_data"
+        : "add_${function_name}";
+
+    my $rename_function = "do_rename_". $function_name;
 
     $self->get_project->$add_to_project_function( $cloned_ref );
     $self->$rename_function();

@@ -60,7 +60,11 @@ sub clone {
 
     my ($cloneref, $e);
 
-    if ((scalar keys %args) == 0) {
+    if (my $data = delete $args{data}) {
+        # Should also use Sereal here
+        $cloneref = Clone::clone ($data);
+    }
+    else  {
         #$cloneref = dclone($self);
         #$cloneref = Clone::clone ($self);
         #  Use Sereal because we are hitting CLone size limits
@@ -75,11 +79,6 @@ sub clone {
             $decoder->decode ($encoder->encode($self), $cloneref);
         };
         $e = $EVAL_ERROR;
-    }
-    else {
-        #$cloneref = dclone ($args{data});
-        # Should also use Sereal here
-        $cloneref = Clone::clone ($args{data});
     }
 
     croak $e if $e;

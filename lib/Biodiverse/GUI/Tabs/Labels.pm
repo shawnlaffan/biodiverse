@@ -408,12 +408,7 @@ sub get_standard_tree_menu_items {
     return map {$self->get_tree_menu_item($_)}
         qw /
             highlight_groups_on_map
-            highlight_groups_on_map_convex_hull
-            highlight_groups_on_map_convex_hull_union
-            highlight_groups_on_map_concave_hull
-            highlight_groups_on_map_concave_hull_union
-            highlight_groups_on_map_circumcircle
-            highlight_groups_on_map_circumcircle_union
+            highlight_groups_on_map_as_polygons
             highlight_paths_on_tree
             separator
             plot_branches_by
@@ -939,6 +934,72 @@ for my $type (qw /convex_hull concave_hull circumcircle/) {
             };
     }
 }
+
+sub run_highlight_label_range_polygons_dlg {
+    my ($self) = @_;
+
+    my $dlg = Gtk3::Dialog->new_with_buttons (
+        'Range polygons',
+        undef,
+        'destroy-with-parent',
+        'gtk-ok' => 'ok',
+        'gtk-cancel' => 'cancel',
+    );
+
+    my $box = $dlg->get_content_area;
+
+    my $header = Gtk3::Label->new('Highlight groups on map using range:');
+
+    $box->pack_start ($header, 0, 0, 0);
+
+    my @widgets;
+    my $infix = 'highlight_label_range';
+
+    my %tooltip_hull_name = (
+        convex_hull  => 'concave (alpha) hull',
+        concave_hull => 'convex hull',
+        circumcircle => 'circumcircle',
+    );
+
+    for my $type (qw /convex_hull concave_hull circumcircle/) {
+        for my $suffix ("${type}s", "${type}_union") {
+
+            my $widget = Gtk3::CheckButton->new_with_label($suffix =~ s/_/ /gr);
+
+            my $union_text = $suffix =~ /union/ ? 'the union of the' : 'a';
+            my $tooltip =<<~"EOT"
+                When hovering the mouse over a tree branch,
+                plot ${union_text} $tooltip_hull_name{$type} of the
+                range of each subtending label.
+                EOT
+            ;
+            $tooltip =~ s/\n/ /g;  #  let Gtk handle the wrapping
+
+            $widget->set_tooltip_text ($tooltip);
+
+            my $get_method = "get_${infix}_${suffix}";
+            $widget->set_active ($self->$get_method);
+
+            my $set_method = "set_${infix}_${suffix}";
+
+            push @widgets, [$widget, $set_method];
+
+            $box->pack_start ($widget, 0, 0, 0);
+        }
+    }
+
+    $dlg->show_all;
+
+    if ($dlg->run eq 'ok') {
+        foreach my $pair (@widgets) {
+            my ($widget, $method) = @$pair;
+            $self->$method($widget->get_active);
+        }
+    }
+
+    $dlg->destroy;
+}
+
 
 sub _highlight_label_range_hulls {
     my ($self, $node, $is_concave, %rest) = @_;

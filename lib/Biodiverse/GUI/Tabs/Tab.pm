@@ -1234,20 +1234,20 @@ sub _add_items_to_menu {
 sub get_tree_menu_item {
     my ($self, $wanted) = @_;
 
-    state $tooltip_select_by = <<EOT
-Should the grouping be done by length or depth?
+    state $tooltip_select_by =<<~'EOT'
+        Should the grouping be done by length or depth?
 
-This allows decoupling of node selection from the tree
-display. For example, trees with many reversals are more
-easily visualised when plotted by depth, but selections
-should normally use the branch lengths.  The same
-applies to range weighted trees where many branch
-lengths are very short.
+        This allows decoupling of node selection from the tree
+        display. For example, trees with many reversals are more
+        easily visualised when plotted by depth, but selections
+        should normally use the branch lengths.  The same
+        applies to range weighted trees where many branch
+        lengths are very short.
 
-This setting has no effect on the slider bar.
-It always groups using the current plot method,
-selecting whichever branches it crosses.
-EOT
+        This setting has no effect on the slider bar.
+        It always groups using the current plot method,
+        selecting whichever branches it crosses.
+        EOT
     ;
 
     state $items = {
@@ -1380,6 +1380,18 @@ EOT
             active   => sub {
                 my ($self) = @_;
                 $self->get_highlight_label_range_convex_hulls;
+            },
+        },
+        highlight_groups_on_map_as_polygons => {
+            type     => 'Gtk3::MenuItem',
+            label    => 'Highlight groups on map with range polygons',
+            tooltip  => 'When hovering the mouse over a tree branch, '
+                . 'plot a polygon of the range of each subtending label. '
+                . 'This can be a convex/concave hull or circumcircle.',
+            event    => 'activate',
+            callback => sub {
+                my ($self, $widget) = @_;
+                $self->run_highlight_label_range_polygons_dlg;
             },
         },
         highlight_groups_on_map_convex_hull_union => {

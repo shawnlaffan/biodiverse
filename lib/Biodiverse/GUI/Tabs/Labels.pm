@@ -913,11 +913,13 @@ for my $type (qw /convex_hull concave_hull circumcircle/) {
     my $pkg = __PACKAGE__;
     for my $suffix ("${type}s", "${type}_union") {
         my $hash_key = "${infix}_${suffix}";
+        my $clear_meth = "clear_range_${suffix}";
         *{"${pkg}::set_${infix}_${suffix}"} =
             do {
                 sub {
                     my ($self, $value) = @_;
                     $self->{$hash_key} = !!$value;
+                    $self->{grid}->$clear_meth if !$value;
                     return;
                 };
             };
@@ -932,6 +934,7 @@ for my $type (qw /convex_hull concave_hull circumcircle/) {
                 sub {
                     my ($self) = @_;
                     $self->{$hash_key} = !$self->{$hash_key};
+                    $self->{grid}->$clear_meth if !$self->{$hash_key};
                 };
             };
     }

@@ -1018,15 +1018,11 @@ sub _highlight_label_range_hull_union {
     my $method = "get_highlight_label_range_${type}_hull_union";
     return if !$self->$method;
 
-    my $terminal_elements = $node->get_terminal_elements;
-
-    my $bd = $self->get_base_ref;
-    my $label_hash = $bd->get_labels_ref->get_element_hash;
-
     #  clear existing
     $method = "clear_range_${type}_hull_union";
     $self->{grid}->$method;
 
+    my $bd = $self->get_base_ref;
     my $cache = $bd->get_cached_value_dor_set_default_href("LABEL_RANGE_' uc($type) . '_HULL_VERTICES");
 
     #  Cache on list of terminal names to avoid issues with trees
@@ -1036,6 +1032,8 @@ sub _highlight_label_range_hull_union {
     my $hull_union = $cache->{$cache_key};
     my $hull_method = "get_label_range_${type}_hull";
     if (!defined $hull_union) {
+        my $terminal_elements = $node->get_terminal_elements;
+        my $label_hash = $bd->get_labels_ref->get_element_hash;
         #  could climb up the tree if this takes too long
         foreach my $label (keys %$terminal_elements) {
             next if !exists $label_hash->{$label};
@@ -1097,14 +1095,10 @@ sub highlight_label_range_circumcircle_union {
 
     return if !$self->get_highlight_label_range_circumcircle_union;
 
-    my $terminal_elements = $node->get_terminal_elements;
-
-    my $bd = $self->get_base_ref;
-    my $label_hash = $bd->get_labels_ref->get_element_hash;
-
     #  clear existing
     $self->{grid}->clear_range_circumcircle_union;
 
+    my $bd = $self->get_base_ref;
     my $cache = $bd->get_cached_value_dor_set_default_href('LABEL_RANGE_CIRCUMCIRCLE_UNION_VERTICES');
 
     #  Cache on list of terminal names to avoid issues with trees
@@ -1113,6 +1107,8 @@ sub highlight_label_range_circumcircle_union {
 
     my $union = $cache->{$cache_key};
     if (!defined $union) {
+        my $label_hash = $bd->get_labels_ref->get_element_hash;
+        my $terminal_elements = $node->get_terminal_elements;
         #  could climb up the tree if this takes too long
         foreach my $label (keys %$terminal_elements) {
             next LABEL if !exists $label_hash->{$label};

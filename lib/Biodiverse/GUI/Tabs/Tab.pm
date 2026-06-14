@@ -1140,8 +1140,8 @@ sub update_map_menu {
     my $menu_items = $args{menu_items} || $self->get_map_menu_items;
 
     #  clunk
-    my $menu = $self->{map_menu};
-        # //= $self->get_xmlpage_object('menubarLabelsOptions');
+    my $menu = $self->{map_menu}
+        //= $self->get_xmlpage_object('menu_map_options');
 
     if (!$menu) {
         my $sep = Gtk3::SeparatorMenuItem->new;
@@ -1156,14 +1156,17 @@ sub update_map_menu {
         $menu->set_sensitive(0);
     }
     else {
-        my $submenu = Gtk3::Menu->new;
+        my $submenu = $menu->get_submenu;
+        if (!$submenu) {
+            $submenu = Gtk3::Menu->new;
+            $menu->set_submenu($submenu);
+        }
 
         $self->_add_items_to_menu (
             menu  => $submenu,
             items => $menu_items,
         );
 
-        $menu->set_submenu($submenu);
         $menu->set_sensitive(1);
     }
 
@@ -1300,6 +1303,9 @@ sub get_map_menu_item {
                 my ($self, $widget) = @_;
                 $self->run_highlight_label_range_polygons_dlg ('assemblage');
             },
+        },
+        separator => {
+            type  => 'Gtk3::SeparatorMenuItem',
         },
     };
 

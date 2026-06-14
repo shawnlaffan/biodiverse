@@ -389,12 +389,8 @@ sub get_current_tree {
 sub get_map_menu_items {
     my $self = shift;
 
+    #  no header item as we append to an existing menu
     my @menu_items = (
-        {
-            type     => 'Gtk3::MenuItem',
-            label    => 'Map options:',
-            tooltip  => "Options to work with the displayed map ",
-        },
         $self->get_standard_map_menu_items,
     );
 
@@ -406,6 +402,7 @@ sub get_standard_map_menu_items {
 
     return map {$self->get_map_menu_item($_)}
         qw /
+            separator
             highlight_assemblage_ranges_on_map_as_polygons
         /;
 }
@@ -1757,6 +1754,22 @@ sub some_labels_are_in_matrix {
 # Grid events
 ##################################################
 
+sub _run_polygon_highlight_methods {
+    my ($self, $group) = @_;
+    state @highlight_methods = (qw/
+        highlight_label_range_convex_hulls
+        highlight_label_range_concave_hulls
+        highlight_label_range_convex_hull_union
+        highlight_label_range_concave_hull_union
+        highlight_label_range_circumcircles
+        highlight_label_range_circumcircle_union
+    /);
+    for my $meth (@highlight_methods) {
+        $self->$meth($group);
+    }
+    return;
+}
+
 sub on_grid_hover {
     my ($self, $group) = @_;
 
@@ -1767,12 +1780,7 @@ sub on_grid_hover {
     my $text = $pfx . (defined $group ? "Group: $group" : '<b>Groups</b>');
     $self->get_xmlpage_object('label_VL_grid')->set_markup($text);
 
-    $self->highlight_label_range_convex_hulls($group);
-    $self->highlight_label_range_concave_hulls($group);
-    $self->highlight_label_range_convex_hull_union($group);
-    $self->highlight_label_range_concave_hull_union($group);
-    $self->highlight_label_range_circumcircles($group);
-    $self->highlight_label_range_circumcircle_union($group);
+    $self->_run_polygon_highlight_methods($group);
 
     my $tree = $self->{project}->get_selected_phylogeny;
     return if ! defined $tree;

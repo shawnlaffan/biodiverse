@@ -342,6 +342,7 @@ sub new {
     $self->choose_tool('Select');
 
     $self->{menubar} = $self->get_xmlpage_object('menubar_spatial');
+    $self->update_map_menu;
     $self->update_export_menu;
     $self->update_tree_menu;
 
@@ -1596,6 +1597,8 @@ sub on_grid_hover {
     return if $self->{initialising_grid};
 
     return if !$self->do_canvas_hover_flag;
+
+    $self->_run_polygon_highlight_methods($element);
 
     my $output_ref = $self->{output_ref};
     my $text = $self->get_grid_text_pfx;

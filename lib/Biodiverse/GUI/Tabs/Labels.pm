@@ -223,9 +223,10 @@ sub new {
     }
 
 
-        $self->{use_highlight_path} = 1;
+    $self->{use_highlight_path} = 1;
 
     $self->{menubar} = $self->get_xmlpage_object('menubarLabelsOptions');
+    $self->update_map_menu (output_ref => $self->get_base_ref->get_groups_ref);
     $self->update_selection_menu;
     $self->update_export_menu;
     $self->update_tree_menu (output_ref => $self->get_base_ref->get_groups_ref);
@@ -383,6 +384,30 @@ sub init_dendrogram {
 sub get_current_tree {
     my $self = shift;
     return $self->{project}->get_selected_phylogeny;
+}
+
+sub get_map_menu_items {
+    my $self = shift;
+
+    my @menu_items = (
+        {
+            type     => 'Gtk3::MenuItem',
+            label    => 'Map options:',
+            tooltip  => "Options to work with the displayed map ",
+        },
+        $self->get_standard_map_menu_items,
+    );
+
+    return wantarray ? @menu_items : \@menu_items;
+}
+
+sub get_standard_map_menu_items {
+    my $self = shift;
+
+    return map {$self->get_map_menu_item($_)}
+        qw /
+            highlight_assemblage_ranges_on_map_as_polygons
+        /;
 }
 
 sub get_tree_menu_items {
@@ -902,41 +927,40 @@ sub on_highlight_groups_on_map_changed {
 
 
 #  generate the get, set and toggle methods for the range polygon overlays
-for my $type (qw /convex_hull concave_hull circumcircle/) {
-    no strict 'refs';
-    my $infix = 'highlight_label_range';
-    my $pkg = __PACKAGE__;
-    for my $suffix ("${type}s", "${type}_union") {
-        my $hash_key = "${infix}_${suffix}";
-        my $clear_meth = "clear_range_${suffix}";
-        *{"${pkg}::set_${infix}_${suffix}"} =
-            do {
+for my $type (qw/node assemblage/) {
+    for my $poly_type (qw/convex_hull concave_hull circumcircle/) {
+        no strict 'refs';
+        my $infix = "highlight_${type}_range";
+        my $pkg = __PACKAGE__;
+        for my $suffix ("${poly_type}s", "${poly_type}_union") {
+            my $hash_key = "${infix}_${suffix}";
+            my $clear_meth = "clear_range_${suffix}";
+            *{"${pkg}::set_${infix}_${suffix}"} =
                 sub {
                     my ($self, $value) = @_;
                     $self->{$hash_key} = !!$value;
                     $self->{grid}->$clear_meth if !$value;
                     return;
                 };
-            };
-        *{"${pkg}::get_${infix}_${suffix}"} =
-            do {
+            *{"${pkg}::get_${infix}_${suffix}"} =
                 sub {
                     $_[0]->{$hash_key};
                 };
-            };
-        *{"${pkg}::toggle_${infix}_${suffix}"} =
-            do {
+            *{"${pkg}::toggle_${infix}_${suffix}"} =
                 sub {
                     my ($self) = @_;
                     $self->{$hash_key} = !$self->{$hash_key};
                     $self->{grid}->$clear_meth if !$self->{$hash_key};
                 };
-            };
+        }
     }
 }
 
 sub run_highlight_label_range_polygons_dlg {
-    my ($self) = @_;
+    my ($self, $range_type) = @_;
+
+    #  the original use case is the default
+    $range_type //= 'node';
 
     my $dlg = Gtk3::Dialog->new_with_buttons (
         'Range polygons',
@@ -948,12 +972,12 @@ sub run_highlight_label_range_polygons_dlg {
 
     my $box = $dlg->get_content_area;
 
-    my $header = Gtk3::Label->new('Highlight groups on map using range:');
+    my $header = Gtk3::Label->new("Highlight ${range_type} ranges on map using:");
 
     $box->pack_start ($header, 0, 0, 0);
 
     my @widgets;
-    my $infix = 'highlight_label_range';
+    my $infix = "highlight_${range_type}_range";
 
     my %tooltip_hull_name = (
         convex_hull  => 'concave (alpha) hull',
@@ -1002,30 +1026,31 @@ sub run_highlight_label_range_polygons_dlg {
 
 
 sub _highlight_label_range_hulls {
-    my ($self, $node, $is_concave, %rest) = @_;
+    my ($self, $element, $is_concave, %rest) = @_;
 
-    my $type = $is_concave ? 'concave' : 'convex';
+    my $hull_type = $is_concave ? 'concave' : 'convex';
+    my $range_type = $rest{range_type} // 'node';
 
-    my $method = "get_highlight_label_range_${type}_hulls";
+    my $method = "get_highlight_${range_type}_range_${hull_type}_hulls";
     return if !$self->$method;
 
-    my $terminal_elements = $node->get_terminal_elements;
+    my $terminal_elements = $element->get_terminal_elements;
 
     my $bd = $self->get_base_ref;
     my $label_hash = $bd->get_labels_ref->get_element_hash;
 
     #  clear existing
-    $method = "clear_range_${type}_hulls";
+    $method = "clear_range_${hull_type}_hulls";
     $self->{grid}->$method;
 
-    my $cache = $bd->get_cached_value_dor_set_default_href("LABEL_RANGE_' uc($type) . '_HULL_VERTICES");
+    my $cache = $bd->get_cached_value_dor_set_default_href("LABEL_RANGE_' uc($hull_type) . '_HULL_VERTICES");
 
     foreach my $label (keys %$terminal_elements) {
         next if !exists $label_hash->{$label};
         my $data
             = $cache->{$label}
             //= do {
-                my $meth = "get_label_range_${type}_hull";
+                my $meth = "get_label_range_${hull_type}_hull";
                 my $geom = $bd->$meth(label => $label, %rest);
                 #  a bit nasty but the plotting currently works most generally with an array of objects
                 my $gtype = $geom->GetType;
@@ -1040,7 +1065,7 @@ sub _highlight_label_range_hulls {
             };
         $self->{grid}->set_overlay(
             type        => 'polyline',
-            cb_target   => "range_${type}_hulls",
+            cb_target   => "range_${hull_type}_hulls",
             plot_on_top => 1,
             data        => $data,
             colour      => COLOUR_BLACK,
@@ -1050,53 +1075,54 @@ sub _highlight_label_range_hulls {
 }
 
 sub highlight_label_range_convex_hulls {
-    my ($self, $node) = @_;
+    my ($self, $element) = @_;
 
-    return $self->_highlight_label_range_hulls($node);
+    return $self->_highlight_label_range_hulls($element);
 }
 
 sub highlight_label_range_concave_hulls {
-    my ($self, $node, @rest) = @_;
+    my ($self, $element, @rest) = @_;
 
-    return $self->_highlight_label_range_hulls($node, 1, @rest);
+    return $self->_highlight_label_range_hulls($element, 1, @rest);
 }
 
 sub highlight_label_range_convex_hull_union {
-    my ($self, $node) = @_;
+    my ($self, $element) = @_;
 
-    return $self->_highlight_label_range_hull_union($node);
+    return $self->_highlight_label_range_hull_union($element);
 }
 
 sub highlight_label_range_concave_hull_union {
-    my ($self, $node, @rest) = @_;
+    my ($self, $element, @rest) = @_;
 
-    return $self->_highlight_label_range_hull_union($node, 1, @rest);
+    return $self->_highlight_label_range_hull_union($element, 1, @rest);
 }
 
 
 sub _highlight_label_range_hull_union {
-    my ($self, $node, $is_concave, %rest) = @_;
+    my ($self, $element, $is_concave, %rest) = @_;
 
-    my $type = $is_concave ? 'concave' : 'convex';
+    my $hull_type = $is_concave ? 'concave' : 'convex';
+    my $range_type = $rest{range_type} // 'node';
 
-    my $method = "get_highlight_label_range_${type}_hull_union";
+    my $method = "get_highlight_${range_type}_range_${hull_type}_hull_union";
     return if !$self->$method;
 
     #  clear existing
-    $method = "clear_range_${type}_hull_union";
+    $method = "clear_range_${hull_type}_hull_union";
     $self->{grid}->$method;
 
     my $bd = $self->get_base_ref;
-    my $cache = $bd->get_cached_value_dor_set_default_href("LABEL_RANGE_' uc($type) . '_HULL_VERTICES");
+    my $cache = $bd->get_cached_value_dor_set_default_href("LABEL_RANGE_' uc($hull_type) . '_HULL_VERTICES");
 
     #  Cache on list of terminal names to avoid issues with trees
     #  that have similarly named nodes with different terminals.
-    my $cache_key = $node->is_terminal_node ? $node->get_name : $node->get_terminal_element_names_sha256;
+    my $cache_key = $element->is_terminal_node ? $element->get_name : $element->get_terminal_element_names_sha256;
 
     my $hull_union = $cache->{$cache_key};
-    my $hull_method = "get_label_range_${type}_hull";
+    my $hull_method = "get_label_range_${hull_type}_hull";
     if (!defined $hull_union) {
-        my $terminal_elements = $node->get_terminal_elements;
+        my $terminal_elements = $element->get_terminal_elements;
         my $label_hash = $bd->get_labels_ref->get_element_hash;
         #  could climb up the tree if this takes too long
         foreach my $label (keys %$terminal_elements) {
@@ -1111,14 +1137,14 @@ sub _highlight_label_range_hull_union {
         my $geom = Biodiverse::GUI::Overlays::Geometry->new(
             extent   => [ @{$hull_union->GetEnvelope}[0, 2, 1, 3] ], #  x1,y1,x2,y2
             geometry => ($is_multi ? $g : [ $g ]),
-            id       => $node->get_name,
+            id       => $element->get_name,
         );
         $cache->{$cache_key} = $hull_union = [$geom];
     }
 
     $self->{grid}->set_overlay(
         type        => 'polyline',
-        cb_target   => "range_${type}_hull_union",
+        cb_target   => "range_${hull_type}_hull_union",
         plot_on_top => 1,
         data        => $hull_union,
         colour      => COLOUR_BLACK,
@@ -1128,11 +1154,14 @@ sub _highlight_label_range_hull_union {
 }
 
 sub highlight_label_range_circumcircles {
-    my ($self, $node) = @_;
+    my ($self, $element, %rest) = @_;
 
-    return if !$self->get_highlight_label_range_circumcircles;
+    my $range_type = $rest{range_type} // 'node';
 
-    my $terminal_elements = $node->get_terminal_elements;
+    my $method = "get_highlight_${range_type}_range_circumcircles";
+    return if !$self->$method;
+
+    my $terminal_elements = $element->get_terminal_elements;
 
     my $bd = $self->get_base_ref;
     my $label_hash = $bd->get_labels_ref->get_element_hash;
@@ -1155,9 +1184,12 @@ sub highlight_label_range_circumcircles {
 }
 
 sub highlight_label_range_circumcircle_union {
-    my ($self, $node) = @_;
+    my ($self, $element, %rest) = @_;
 
-    return if !$self->get_highlight_label_range_circumcircle_union;
+    my $range_type = $rest{range_type} // 'node';
+
+    my $method = "get_highlight_${range_type}_range_circumcircle_union";
+    return if !$self->$method;
 
     #  clear existing
     $self->{grid}->clear_range_circumcircle_union;
@@ -1167,12 +1199,12 @@ sub highlight_label_range_circumcircle_union {
 
     #  Cache on list of terminal names to avoid issues with trees
     #  that have similarly named nodes with different terminals.
-    my $cache_key = $node->is_terminal_node ? $node->get_name : $node->get_terminal_element_names_sha256;
+    my $cache_key = $element->is_terminal_node ? $element->get_name : $element->get_terminal_element_names_sha256;
 
     my $union = $cache->{$cache_key};
     if (!defined $union) {
         my $label_hash = $bd->get_labels_ref->get_element_hash;
-        my $terminal_elements = $node->get_terminal_elements;
+        my $terminal_elements = $element->get_terminal_elements;
         #  could climb up the tree if this takes too long
         foreach my $label (keys %$terminal_elements) {
             next if !exists $label_hash->{$label};
@@ -1189,7 +1221,7 @@ sub highlight_label_range_circumcircle_union {
         my $geom = Biodiverse::GUI::Overlays::Geometry->new(
             extent   => [ @{$union->GetEnvelope}[0, 2, 1, 3] ], #  x1,y1,x2,y2
             geometry => ($is_multi ? $g : [ $g ]),
-            id       => $node->get_name,
+            id       => $element->get_name,
         );
         $cache->{$cache_key} = $union = [$geom];
     }

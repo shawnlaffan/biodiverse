@@ -1130,6 +1130,46 @@ sub update_display_list_combos {
     return;
 }
 
+sub update_map_menu {
+    my ($self, %args) = @_;
+
+    my $menubar = $self->{menubar};
+    my $output_ref = $args{output_ref} || $self->{output_ref};
+    return if !$output_ref;
+
+    my $menu_items = $args{menu_items} || $self->get_map_menu_items;
+
+    #  clunk
+    my $menu = $self->{map_menu};
+        # //= $self->get_xmlpage_object('menubarLabelsOptions');
+
+    if (!$menu) {
+        my $sep = Gtk3::SeparatorMenuItem->new;
+        $menubar->append($sep);
+        $menu = Gtk3::MenuItem->new_with_label('Maplaplap');
+        $menubar->append($menu);
+        $self->{map_menu} = $menu;
+    }
+
+    if (($output_ref->get_param('COMPLETED') // 1) != 1) {
+        #  completed == 2 for clusters analyses with matrices only
+        $menu->set_sensitive(0);
+    }
+    else {
+        my $submenu = Gtk3::Menu->new;
+
+        $self->_add_items_to_menu (
+            menu  => $submenu,
+            items => $menu_items,
+        );
+
+        $menu->set_submenu($submenu);
+        $menu->set_sensitive(1);
+    }
+
+    $menubar->show_all();
+}
+
 sub update_tree_menu {
     my ($self, %args) = @_;
 
@@ -1229,6 +1269,45 @@ sub _add_items_to_menu {
         }
     }
 
+}
+
+sub get_map_menu_item {
+    my ($self, $wanted) = @_;
+
+    state $items = {
+        highlight_assemblage_ranges_on_map => {
+            type     => 'Gtk3::CheckMenuItem',
+            label    => 'Highlight assemblage range on map',
+            tooltip  => 'When hovering the mouse over a group, '
+                . 'highlight the groups on the map containing '
+                . 'one or more of the labels in its assemblage.',
+            event    => 'toggled',
+            callback => sub {
+                my $self = shift;
+                #  yet to be done
+                # $self->on_highlight_assemblage_groups_on_map_changed;
+            },
+            active   => 0,
+        },
+        highlight_assemblage_ranges_on_map_as_polygons => {
+            type     => 'Gtk3::MenuItem',
+            label    => 'Highlight assemblage ranges on map with polygons',
+            tooltip  => 'When hovering the mouse over a group, '
+                . 'plot a polygon of the range of each label in the assemblage. '
+                . 'This can be a convex/concave hull or circumcircle.',
+            event    => 'activate',
+            callback => sub {
+                my ($self, $widget) = @_;
+                $self->run_highlight_label_range_polygons_dlg ('assemblage');
+            },
+        },
+    };
+
+    my $item = $items->{$wanted};
+    croak "Cannot find menu item item $wanted"
+        if !$item;
+
+    return $item;
 }
 
 sub get_tree_menu_item {
@@ -1507,7 +1586,7 @@ sub get_tree_menu_item {
     };
 
     my $item = $items->{$wanted};
-    croak "Cannot find tree menu item item $wanted"
+    croak "Cannot find menu item item $wanted"
       if !$item;
 
     return $item;

@@ -985,19 +985,29 @@ sub run_highlight_label_range_polygons_dlg {
         circumcircle => 'circumcircle',
     );
 
+    my $template_node =<<~'EOT'
+        When hovering the mouse over a tree branch,
+        plot %s %s of the range of each subtending label.
+        EOT
+    ;
+
+    my $template_assemblage = <<~'EOT'
+        When hovering the mouse over a group, plot %s %s of the
+        range of each label in the assemblage.
+        EOT
+    ;
+
+    my $tooltip_template = $range_type eq 'node' ? $template_node : $template_assemblage;
+    $tooltip_template =~ s/\n/ /g;  #  let Gtk handle the wrapping
+
+
     for my $type (qw /convex_hull concave_hull circumcircle/) {
         for my $suffix ("${type}s", "${type}_union") {
 
             my $widget = Gtk3::CheckButton->new_with_label($suffix =~ s/_/ /gr);
 
             my $union_text = $suffix =~ /union/ ? 'the union of the' : 'a';
-            my $tooltip =<<~"EOT"
-                When hovering the mouse over a tree branch,
-                plot ${union_text} $tooltip_hull_name{$type} of the
-                range of each subtending label.
-                EOT
-            ;
-            $tooltip =~ s/\n/ /g;  #  let Gtk handle the wrapping
+            my $tooltip = sprintf ($tooltip_template, $union_text, $tooltip_hull_name{$type});
 
             $widget->set_tooltip_text ($tooltip);
 

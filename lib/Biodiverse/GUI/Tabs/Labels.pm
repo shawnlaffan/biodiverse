@@ -11,8 +11,8 @@ use experimental qw/refaliasing declared_refs for_list/;
 use Sort::Key::Natural qw /natsort mkkey_natural/;
 
 use List::MoreUtils qw /firstidx any minmax/;
-use List::Util qw /max/;
-use Scalar::Util qw /weaken looks_like_number/;
+use List::Util qw /max all/;
+use Scalar::Util qw /weaken looks_like_number blessed/;
 use Ref::Util qw /is_ref is_arrayref is_hashref/;
 use POSIX qw /floor ceil/;
 use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
@@ -1029,15 +1029,22 @@ sub _highlight_label_range_hulls {
     my ($self, $element, $is_concave, %rest) = @_;
 
     my $hull_type = $is_concave ? 'concave' : 'convex';
-    my $range_type = $rest{range_type} // 'node';
+
+    my $is_tree_node = blessed $element && $element->isa('Biodiverse::TreeNode');
+    my $range_type = $is_tree_node
+        ? 'node'
+        : 'assemblage';
 
     my $method = "get_highlight_${range_type}_range_${hull_type}_hulls";
     return if !$self->$method;
 
-    my $terminal_elements = $element->get_terminal_elements;
-
     my $bd = $self->get_base_ref;
     my $label_hash = $bd->get_labels_ref->get_element_hash;
+
+    my $terminal_elements
+        = $is_tree_node
+        ? $element->get_terminal_elements
+        : $bd->get_labels_in_group_as_hash_aa ($element);
 
     #  clear existing
     $method = "clear_range_${hull_type}_hulls";
@@ -1075,9 +1082,9 @@ sub _highlight_label_range_hulls {
 }
 
 sub highlight_label_range_convex_hulls {
-    my ($self, $element) = @_;
+    my ($self, $element, @rest) = @_;
 
-    return $self->_highlight_label_range_hulls($element);
+    return $self->_highlight_label_range_hulls($element, @rest);
 }
 
 sub highlight_label_range_concave_hulls {
@@ -1087,9 +1094,9 @@ sub highlight_label_range_concave_hulls {
 }
 
 sub highlight_label_range_convex_hull_union {
-    my ($self, $element) = @_;
+    my ($self, $element, @rest) = @_;
 
-    return $self->_highlight_label_range_hull_union($element);
+    return $self->_highlight_label_range_hull_union($element, @rest);
 }
 
 sub highlight_label_range_concave_hull_union {
@@ -1103,7 +1110,11 @@ sub _highlight_label_range_hull_union {
     my ($self, $element, $is_concave, %rest) = @_;
 
     my $hull_type = $is_concave ? 'concave' : 'convex';
-    my $range_type = $rest{range_type} // 'node';
+
+    my $is_tree_node = blessed $element && $element->isa('Biodiverse::TreeNode');
+    my $range_type = $is_tree_node
+        ? 'node'
+        : 'assemblage';
 
     my $method = "get_highlight_${range_type}_range_${hull_type}_hull_union";
     return if !$self->$method;
@@ -1117,14 +1128,19 @@ sub _highlight_label_range_hull_union {
 
     #  Cache on list of terminal names to avoid issues with trees
     #  that have similarly named nodes with different terminals.
-    my $cache_key = $element->is_terminal_node ? $element->get_name : $element->get_terminal_element_names_sha256;
+    my $cache_key = $is_tree_node
+        ? $element->is_terminal_node ? $element->get_name : $element->get_terminal_element_names_sha256
+        : "__GROUP__$element";
 
     my $hull_union = $cache->{$cache_key};
     my $hull_method = "get_label_range_${hull_type}_hull";
     if (!defined $hull_union) {
-        my $terminal_elements = $element->get_terminal_elements;
+        my $terminal_elements
+            = $is_tree_node
+                ? $element->get_terminal_elements
+                : $bd->get_labels_in_group_as_hash_aa($element);
         my $label_hash = $bd->get_labels_ref->get_element_hash;
-        #  could climb up the tree if this takes too long
+
         foreach my $label (keys %$terminal_elements) {
             next if !exists $label_hash->{$label};
             my $hull = $bd->$hull_method(label => $label);
@@ -1137,10 +1153,12 @@ sub _highlight_label_range_hull_union {
         my $geom = Biodiverse::GUI::Overlays::Geometry->new(
             extent   => [ @{$hull_union->GetEnvelope}[0, 2, 1, 3] ], #  x1,y1,x2,y2
             geometry => ($is_multi ? $g : [ $g ]),
-            id       => $element->get_name,
+            id       => $is_tree_node ? $element->get_name : $element,
         );
         $cache->{$cache_key} = $hull_union = [$geom];
     }
+
+    return if all {$_ == 0} $hull_union->[0]->get_extent;
 
     $self->{grid}->set_overlay(
         type        => 'polyline',
@@ -1156,15 +1174,21 @@ sub _highlight_label_range_hull_union {
 sub highlight_label_range_circumcircles {
     my ($self, $element, %rest) = @_;
 
-    my $range_type = $rest{range_type} // 'node';
+    my $is_tree_node = blessed $element && $element->isa('Biodiverse::TreeNode');
+    my $range_type = $is_tree_node
+        ? 'node'
+        : 'assemblage';
 
     my $method = "get_highlight_${range_type}_range_circumcircles";
     return if !$self->$method;
 
-    my $terminal_elements = $element->get_terminal_elements;
-
     my $bd = $self->get_base_ref;
     my $label_hash = $bd->get_labels_ref->get_element_hash;
+
+    my $terminal_elements
+        = $is_tree_node
+        ? $element->get_terminal_elements
+        : $bd->get_labels_in_group_as_hash_aa($element);
 
     #  clear existing
     $self->{grid}->clear_range_circumcircles;
@@ -1186,7 +1210,10 @@ sub highlight_label_range_circumcircles {
 sub highlight_label_range_circumcircle_union {
     my ($self, $element, %rest) = @_;
 
-    my $range_type = $rest{range_type} // 'node';
+    my $is_tree_node = blessed $element && $element->isa('Biodiverse::TreeNode');
+    my $range_type = $is_tree_node
+        ? 'node'
+        : 'assemblage';
 
     my $method = "get_highlight_${range_type}_range_circumcircle_union";
     return if !$self->$method;
@@ -1199,12 +1226,19 @@ sub highlight_label_range_circumcircle_union {
 
     #  Cache on list of terminal names to avoid issues with trees
     #  that have similarly named nodes with different terminals.
-    my $cache_key = $element->is_terminal_node ? $element->get_name : $element->get_terminal_element_names_sha256;
+    my $cache_key = $is_tree_node
+        ? $element->is_terminal_node
+            ? $element->get_name
+            : $element->get_terminal_element_names_sha256
+        : "__GROUP__$element";
 
     my $union = $cache->{$cache_key};
     if (!defined $union) {
         my $label_hash = $bd->get_labels_ref->get_element_hash;
-        my $terminal_elements = $element->get_terminal_elements;
+        my $terminal_elements
+            = $is_tree_node
+            ? $element->get_terminal_elements
+            : $bd->get_labels_in_group_as_hash_aa($element);
         #  could climb up the tree if this takes too long
         foreach my $label (keys %$terminal_elements) {
             next if !exists $label_hash->{$label};
@@ -1221,10 +1255,12 @@ sub highlight_label_range_circumcircle_union {
         my $geom = Biodiverse::GUI::Overlays::Geometry->new(
             extent   => [ @{$union->GetEnvelope}[0, 2, 1, 3] ], #  x1,y1,x2,y2
             geometry => ($is_multi ? $g : [ $g ]),
-            id       => $element->get_name,
+            id       => $is_tree_node ? $element->get_name : $element,
         );
         $cache->{$cache_key} = $union = [$geom];
     }
+
+    return if all {$_ == 0} $union->[0]->get_extent;
 
     $self->{grid}->set_overlay(
         type        => 'polyline',
@@ -1696,6 +1732,13 @@ sub on_grid_hover {
 
     my $text = $pfx . (defined $group ? "Group: $group" : '<b>Groups</b>');
     $self->get_xmlpage_object('label_VL_grid')->set_markup($text);
+
+    $self->highlight_label_range_convex_hulls($group);
+    $self->highlight_label_range_concave_hulls($group);
+    $self->highlight_label_range_convex_hull_union($group);
+    $self->highlight_label_range_concave_hull_union($group);
+    $self->highlight_label_range_circumcircles($group);
+    $self->highlight_label_range_circumcircle_union($group);
 
     my $tree = $self->{project}->get_selected_phylogeny;
     return if ! defined $tree;

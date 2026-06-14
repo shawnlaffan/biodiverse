@@ -1012,6 +1012,30 @@ sub run_highlight_label_range_polygons_dlg {
         }
     }
 
+    my $btn_sel_all = Gtk3::Button->new_with_label('Select all');
+    $btn_sel_all->set_tooltip_text('Are you sure?  This will make the plot very messy.');
+    $btn_sel_all->signal_connect (
+        clicked => sub {
+            foreach my $pair (@widgets) {
+                my ($widget, $method) = @$pair;
+                $widget->set_active(1);
+            }
+        }
+    );
+    $box->pack_start ($btn_sel_all, 0, 0, 0);
+
+    my $btn_sel_none = Gtk3::Button->new_with_label('Select none');
+    $btn_sel_none->signal_connect (
+        clicked => sub {
+            foreach my $pair (@widgets) {
+                my ($widget, $method) = @$pair;
+                $widget->set_active(0);
+            }
+        }
+    );
+    $box->pack_start ($btn_sel_none, 0, 0, 0);
+
+
     $dlg->show_all;
 
     if ($dlg->run eq 'ok') {

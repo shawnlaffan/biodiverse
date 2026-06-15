@@ -1130,6 +1130,49 @@ sub update_display_list_combos {
     return;
 }
 
+sub update_map_menu {
+    my ($self, %args) = @_;
+
+    my $menubar = $self->{menubar};
+    my $output_ref = $args{output_ref} || $self->{output_ref};
+    return if !$output_ref;
+
+    my $menu_items = $args{menu_items} || $self->get_map_menu_items;
+
+    #  clunk
+    my $menu = $self->{map_menu}
+        //= $self->get_xmlpage_object('menu_map_options');
+
+    if (!$menu) {
+        my $sep = Gtk3::SeparatorMenuItem->new;
+        $menubar->append($sep);
+        $menu = Gtk3::MenuItem->new_with_label('Maplaplap');
+        $menubar->append($menu);
+        $self->{map_menu} = $menu;
+    }
+
+    if (($output_ref->get_param('COMPLETED') // 1) != 1) {
+        #  completed == 2 for clusters analyses with matrices only
+        $menu->set_sensitive(0);
+    }
+    else {
+        my $submenu = $menu->get_submenu;
+        if (!$submenu) {
+            $submenu = Gtk3::Menu->new;
+            $menu->set_submenu($submenu);
+        }
+
+        $self->_add_items_to_menu (
+            menu  => $submenu,
+            items => $menu_items,
+        );
+
+        $menu->set_sensitive(1);
+    }
+
+    $menubar->show_all();
+}
+
 sub update_tree_menu {
     my ($self, %args) = @_;
 
@@ -1231,23 +1274,65 @@ sub _add_items_to_menu {
 
 }
 
+sub get_map_menu_item {
+    my ($self, $wanted) = @_;
+
+    state $items = {
+        highlight_assemblage_ranges_on_map => {
+            type     => 'Gtk3::CheckMenuItem',
+            label    => 'Highlight assemblage range on map',
+            tooltip  => 'When hovering the mouse over a group, '
+                . 'highlight the groups on the map containing '
+                . 'one or more of the labels in its assemblage.',
+            event    => 'toggled',
+            callback => sub {
+                my $self = shift;
+                #  yet to be done
+                # $self->on_highlight_assemblage_groups_on_map_changed;
+            },
+            active   => 0,
+        },
+        highlight_assemblage_ranges_on_map_as_polygons => {
+            type     => 'Gtk3::MenuItem',
+            label    => 'Highlight assemblage ranges on map with polygons',
+            tooltip  => 'When hovering the mouse over a group, '
+                . 'plot a polygon of the range of each label in the assemblage. '
+                . 'This can be a convex/concave hull or circumcircle.',
+            event    => 'activate',
+            callback => sub {
+                my ($self, $widget) = @_;
+                $self->run_highlight_label_range_polygons_dlg ('assemblage');
+            },
+        },
+        separator => {
+            type  => 'Gtk3::SeparatorMenuItem',
+        },
+    };
+
+    my $item = $items->{$wanted};
+    croak "Cannot find menu item item $wanted"
+        if !$item;
+
+    return $item;
+}
+
 sub get_tree_menu_item {
     my ($self, $wanted) = @_;
 
-    state $tooltip_select_by = <<EOT
-Should the grouping be done by length or depth?
+    state $tooltip_select_by =<<~'EOT'
+        Should the grouping be done by length or depth?
 
-This allows decoupling of node selection from the tree
-display. For example, trees with many reversals are more
-easily visualised when plotted by depth, but selections
-should normally use the branch lengths.  The same
-applies to range weighted trees where many branch
-lengths are very short.
+        This allows decoupling of node selection from the tree
+        display. For example, trees with many reversals are more
+        easily visualised when plotted by depth, but selections
+        should normally use the branch lengths.  The same
+        applies to range weighted trees where many branch
+        lengths are very short.
 
-This setting has no effect on the slider bar.
-It always groups using the current plot method,
-selecting whichever branches it crosses.
-EOT
+        This setting has no effect on the slider bar.
+        It always groups using the current plot method,
+        selecting whichever branches it crosses.
+        EOT
     ;
 
     state $items = {
@@ -1367,94 +1452,16 @@ EOT
             },
             active   => 1,
         },
-        highlight_groups_on_map_convex_hull => {
-            type     => 'Gtk3::CheckMenuItem',
-            label    => 'Highlight groups on map with range convex hulls',
+        highlight_groups_on_map_as_polygons => {
+            type     => 'Gtk3::MenuItem',
+            label    => 'Highlight groups on map with range polygons',
             tooltip  => 'When hovering the mouse over a tree branch, '
-                . 'plot a convex hull of the range of each subtending label.',
-            event    => 'toggled',
+                . 'plot a polygon of the range of each subtending label. '
+                . 'This can be a convex/concave hull or circumcircle.',
+            event    => 'activate',
             callback => sub {
                 my ($self, $widget) = @_;
-                $self->set_highlight_label_range_convex_hulls($widget->get_active);
-            },
-            active   => sub {
-                my ($self) = @_;
-                $self->get_highlight_label_range_convex_hulls;
-            },
-        },
-        highlight_groups_on_map_convex_hull_union => {
-            type     => 'Gtk3::CheckMenuItem',
-            label    => 'Highlight groups on map with range convex hull union',
-            tooltip  => 'When hovering the mouse over a tree branch, '
-                . 'plot the union of the convex hulls of the range of each subtending label.',
-            event    => 'toggled',
-            callback => sub {
-                my ($self, $widget) = @_;
-                $self->set_highlight_label_range_convex_hull_union($widget->get_active);
-            },
-            active   => sub {
-                my ($self) = @_;
-                $self->get_highlight_label_range_convex_hull_union;
-            },
-        },
-        highlight_groups_on_map_concave_hull => {
-            type     => 'Gtk3::CheckMenuItem',
-            label    => 'Highlight groups on map with range concave hulls',
-            tooltip  => 'When hovering the mouse over a tree branch, '
-                . 'plot a concave (alpha) hull of the range of each subtending label.',
-            event    => 'toggled',
-            callback => sub {
-                my ($self, $widget) = @_;
-                $self->set_highlight_label_range_concave_hulls($widget->get_active);
-            },
-            active   => sub {
-                my ($self) = @_;
-                $self->get_highlight_label_range_concave_hulls;
-            },
-        },
-        highlight_groups_on_map_concave_hull_union => {
-            type     => 'Gtk3::CheckMenuItem',
-            label    => 'Highlight groups on map with range concave hull union',
-            tooltip  => 'When hovering the mouse over a tree branch, '
-                . 'plot the union of the concave hulls of the range of each subtending label.',
-            event    => 'toggled',
-            callback => sub {
-                my ($self, $widget) = @_;
-                $self->set_highlight_label_range_concave_hull_union($widget->get_active);
-            },
-            active   => sub {
-                my ($self) = @_;
-                $self->get_highlight_label_range_concave_hull_union;
-            },
-        },
-        highlight_groups_on_map_circumcircle => {
-            type     => 'Gtk3::CheckMenuItem',
-            label    => 'Highlight groups on map with range circumcircles',
-            tooltip  => 'When hovering the mouse over a tree branch, '
-                . 'plot a circumcircle containing the range of each subtending label.',
-            event    => 'toggled',
-            callback => sub {
-                my ($self, $widget) = @_;
-                $self->set_highlight_label_range_circumcircles($widget->get_active);
-            },
-            active   => sub {
-                my ($self) = @_;
-                $self->get_highlight_label_range_circumcircles;
-            },
-        },
-        highlight_groups_on_map_circumcircle_union => {
-            type     => 'Gtk3::CheckMenuItem',
-            label    => 'Highlight groups on map with the union of the range circumcircles',
-            tooltip  => 'When hovering the mouse over a tree branch, '
-                . 'plot the union of the circumcircles containing the range of each subtending label.',
-            event    => 'toggled',
-            callback => sub {
-                my ($self, $widget) = @_;
-                $self->set_highlight_label_range_circumcircle_union($widget->get_active);
-            },
-            active   => sub {
-                my ($self) = @_;
-                $self->get_highlight_label_range_circumcircle_union;
+                $self->run_highlight_label_range_polygons_dlg;
             },
         },
         highlight_paths_on_tree => {
@@ -1495,7 +1502,7 @@ EOT
     };
 
     my $item = $items->{$wanted};
-    croak "Cannot find tree menu item item $wanted"
+    croak "Cannot find menu item item $wanted"
       if !$item;
 
     return $item;

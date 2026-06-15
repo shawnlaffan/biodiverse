@@ -225,6 +225,7 @@ sub new {
     say '[SpatialMatrix tab] - Loaded tab';
 
     $self->{menubar} = $self->get_xmlpage_object('menubar_spatial');
+    $self->update_map_menu;
     $self->update_export_menu;
     $self->update_tree_menu;
 
@@ -395,6 +396,8 @@ sub on_grid_hover {
 
     if (defined $element) {
         #no warnings 'uninitialized';  #  sometimes the selected_list or analysis is undefined
+
+        $self->_run_polygon_highlight_methods($element);
 
         my $val = $matrix_ref->get_defined_value_aa ($element, $self->{selected_element});
 

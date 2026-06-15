@@ -178,7 +178,7 @@
                 <property name="can-focus">False</property>
                 <property name="pack-direction">ttb</property>
                 <child>
-                  <object class="GtkMenuItem" id="menuitem_spatial_display">
+                  <object class="GtkMenuItem" id="menu_map_options">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="label" translatable="yes">Map</property>

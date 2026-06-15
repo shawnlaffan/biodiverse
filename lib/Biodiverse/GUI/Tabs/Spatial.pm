@@ -342,6 +342,7 @@ sub new {
     $self->choose_tool('Select');
 
     $self->{menubar} = $self->get_xmlpage_object('menubar_spatial');
+    $self->update_map_menu;
     $self->update_export_menu;
     $self->update_tree_menu;
 
@@ -638,11 +639,13 @@ sub init_branch_colouring_menu {
         $menubar->destroy if $menubar;
     }
 
-    my $label = Gtk3::Label->new('Branch colouring: ');
+    my $base_tooltip_text = $self->_get_branch_colouring_label_tooltip;
+
+    my $label = Gtk3::Label->new('Branch colouring:');
 
     $menubar = Gtk3::MenuBar->new;
     my $menu = Gtk3::Menu->new;
-    my $menuitem = Gtk3::MenuItem->new_with_label('Branch colouring: ');
+    my $menuitem = Gtk3::MenuItem->new_with_label("Branch colouring >>");
     $menuitem->set_submenu ($menu);
     $menubar->append($menuitem);
     my $menu_action = sub {
@@ -655,7 +658,13 @@ sub init_branch_colouring_menu {
         }
         $self->{current_branch_colouring_source} = [$output_ref, $listname];
         my $output_name = $output_ref->get_name;
-        $label->set_markup ("$listname <i>(source: $output_name)</i>");
+        $label->set_markup ($listname);
+        $label->set_tooltip_text (
+            sprintf "%s\nCurrent list source: %s/%s",
+                $base_tooltip_text,
+                $output_ref->get_basedata_ref->get_name,
+                $output_name
+        );
     };
 
     #  need to keep in synch with $self->{no_dendro_legend_for}
@@ -668,18 +677,17 @@ sub init_branch_colouring_menu {
 
     foreach my $text ($default_text, '<i>Branches in hovered cell only</i>') {
         my $text_sans_markup = $text =~ s/<.?i>//gr;
-        my $menu_item_label = Gtk3::Label->new($text);
         my $menu_item
             = Gtk3::RadioMenuItem->new_with_label($sel_group, $text_sans_markup);
         push @$sel_group, $menu_item;
         $menu_item->set_use_underline(0);
-        # $menu_item->set_label($menu_item_label);
         $menu->append($menu_item);
         $menu_item->signal_connect_swapped(
             activate => sub {
                 $self->{dendrogram}->get_legend->hide;
                 $self->{current_branch_colouring_source} = $text_sans_markup;
                 $label->set_markup($text);
+                $label->set_tooltip_text ($base_tooltip_text);
             },
         );
     }
@@ -696,7 +704,6 @@ sub init_branch_colouring_menu {
     foreach my $list_name (natsort @$list_names) {
         next if $list_name =~ /$re_skip_list/;
 
-        # my $menu_item = Gtk3::RadioMenuItem->new($sel_group, $list_name);
         my $menu_item = Gtk3::RadioMenuItem->new_with_label ($sel_group, $list_name);
         push @$sel_group, $menu_item;  #  first one is default
         $menu_item->set_use_underline(0);
@@ -711,7 +718,6 @@ sub init_branch_colouring_menu {
 
     #  now add the lists from other spatial outputs in the project,
     #  organised by their parent basedatas
-    my $own_bd = $output_ref->get_basedata_ref;
     my @project_basedatas
         = @{$self->{project}->get_base_data_list};
     foreach my $bd (@project_basedatas) {
@@ -741,7 +747,6 @@ sub init_branch_colouring_menu {
             $sp_submenu_item->set_use_underline(0);
             $sp_submenu_item->set_submenu($sp_submenu);
             foreach my $list_name (@list_names) {
-                # my $menu_item = Gtk3::RadioMenuItem->new($sel_group, $list_name);
                 my $menu_item = Gtk3::RadioMenuItem->new_with_label($sel_group, $list_name);
                 push @$sel_group, $menu_item;
                 $menu_item->set_use_underline(0);
@@ -1596,6 +1601,8 @@ sub on_grid_hover {
     return if $self->{initialising_grid};
 
     return if !$self->do_canvas_hover_flag;
+
+    $self->_run_polygon_highlight_methods($element);
 
     my $output_ref = $self->{output_ref};
     my $text = $self->get_grid_text_pfx;

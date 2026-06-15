@@ -959,6 +959,8 @@ sub run_highlight_label_range_polygons_dlg {
     #  the original use case is the default
     $range_type //= 'node';
 
+    my $alt_range_type = $range_type eq 'node' ? 'assemblage' : 'node';
+
     my $dlg = Gtk3::Dialog->new_with_buttons (
         'Range polygons',
         undef,
@@ -1029,7 +1031,6 @@ sub run_highlight_label_range_polygons_dlg {
             }
         }
     );
-    $box->pack_start ($btn_sel_all, 0, 0, 0);
 
     my $btn_sel_none = Gtk3::Button->new_with_label('Select none');
     $btn_sel_none->signal_connect (
@@ -1040,15 +1041,50 @@ sub run_highlight_label_range_polygons_dlg {
             }
         }
     );
-    $box->pack_start ($btn_sel_none, 0, 0, 0);
+
+    my $hbox = Gtk3::Box->new('GTK_ORIENTATION_HORIZONTAL', 10);
+    $hbox->set_homogeneous(1);
+    $hbox->pack_start ($btn_sel_all, 0, 0, 0);
+    $hbox->pack_start ($btn_sel_none, 0, 0, 0);
+
+    $box->pack_start ($hbox, 0, 0, 0);
+
+    $box->pack_start (Gtk3::Separator->new ('GTK_ORIENTATION_HORIZONTAL'), 0, 0, 0);
+    my $options_label = Gtk3::Label->new ('Options:');
+    $options_label->set_xalign(0);
+    $box->pack_start ($options_label, 0, 0, 0);
+
+    my $alt_canvas  = $alt_range_type eq 'node' ? 'tree' : 'map';
+    my $chk_set_alt = Gtk3::CheckButton->new_with_label("Set $alt_canvas highlighting as same");
+    $chk_set_alt->set_tooltip_text ("Set the $alt_canvas highlighting to be the same");
+    $box->pack_start ($chk_set_alt, 0, 0, 0);
+
+    my $btn_match_alt = Gtk3::Button->new_with_label("Match $alt_canvas highlighting");
+    $btn_match_alt->set_tooltip_text ("Plot the same polygons as the $alt_canvas pane");
+    $btn_match_alt->signal_connect (
+        clicked => sub {
+            foreach my $pair (@widgets) {
+                my ($widget, $method) = @$pair;
+                my $alt_method = $method =~ s/$range_type/$alt_range_type/r;
+                $alt_method =~ s/^set/get/;
+                $widget->set_active($self->$alt_method);
+            }
+        }
+    );
+    $box->pack_start ($btn_match_alt, 0, 0, 0);
 
 
     $dlg->show_all;
 
     if ($dlg->run eq 'ok') {
+        my $set_alt = $chk_set_alt->get_active;
         foreach my $pair (@widgets) {
             my ($widget, $method) = @$pair;
             $self->$method($widget->get_active);
+            if ($set_alt) {
+                my $alt_method = $method =~ s/$range_type/$alt_range_type/r;
+                $self->$alt_method($widget->get_active);
+            }
         }
     }
 

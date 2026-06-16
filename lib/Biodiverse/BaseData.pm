@@ -265,10 +265,10 @@ sub rename {
     # my $name = $self->get_param('NAME');
     # print "[BASEDATA] Renaming $name to $new_name\n";
 
-    $self->set_param( NAME => $new_name );
+    $self->set_name_aa ( $new_name );
 
     foreach my $obj ($self->get_groups_ref, $self->get_labels_ref) {
-        $obj->rename (new_name => $new_name);
+        $obj->set_name_aa ($new_name);
     }
 
     return;

@@ -311,6 +311,16 @@ sub get_name {
     return $self->get_param ('NAME');
 }
 
+sub set_name_aa {
+    my ($self, $name) = @_;
+    $self->set_param (NAME => $name);
+}
+
+sub set_name {
+    my ($self, %args) = @_;
+    $self->set_name_aa ($args{new_name} // $args{name});
+}
+
 #  allows for back-compat
 sub get_cell_origins {
     my $self = shift;

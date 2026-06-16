@@ -98,13 +98,10 @@ sub metadata_class {
 }
 
 sub rename {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
-    my $name = $args{new_name};
-    if (not defined $name) {
-        croak "[Basestruct] Argument 'new_name' not defined\n";
-    }
+    my $name = $args{new_name}
+        // croak "[Basestruct] Argument 'new_name' not defined\n";
 
     $self->set_param (NAME => $name);
 

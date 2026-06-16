@@ -255,18 +255,21 @@ sub set_label_hash_key_count {
 }
 
 sub rename {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
-    $args{name} //= $args{new_name};
+    my $new_name = $args{name} // $args{new_name};
 
     croak "[BASEDATA] rename: argument name not supplied\n"
-      if not defined $args{name};
+      if not defined $new_name;
 
-    my $name = $self->get_param('NAME');
-    print "[BASEDATA] Renaming $name to $args{name}\n";
+    # my $name = $self->get_param('NAME');
+    # print "[BASEDATA] Renaming $name to $new_name\n";
 
-    $self->set_param( NAME => $args{name} );
+    $self->set_param( NAME => $new_name );
+
+    foreach my $obj ($self->get_groups_ref, $self->get_labels_ref) {
+        $obj->rename (new_name => $new_name);
+    }
 
     return;
 }

@@ -193,6 +193,28 @@ sub test_sample_count {
 }
 
 
+sub test_rename {
+    my $bd = get_basedata_object (
+        CELL_SIZES => [1,1],
+        x_max => 2,
+        y_max => 2,
+    );
+
+    my $new_name = 'a new name';
+    $bd->rename (new_name => $new_name);
+
+    is $bd->get_name,
+        $new_name,
+        "renamed main basedata to $new_name";
+    is $bd->get_groups_ref->get_name,
+        $new_name,
+        "renamed basedata groups object to $new_name";
+    is $bd->get_labels_ref->get_name,
+        $new_name,
+        "renamed basedata labels object to $new_name";
+
+}
+
 sub test_rename_outputs {
     my $bd = get_basedata_object (
         CELL_SIZES => [1,1],

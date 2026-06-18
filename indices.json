@@ -1,7 +1,7 @@
 {
    "_meta" : {
       "title" : "Biodiverse calculations and indices",
-      "version" : "5.0"
+      "version" : "5.99_001"
    },
    "calculations" : {
       "calc_abc_counts" : {
@@ -1220,7 +1220,7 @@
          "uses_nbr_lists" : 1
       },
       "calc_gpprop_hashes" : {
-         "description" : "    Hashes of the groups and their property values\n    used in the group properties calculations.\n    Hash keys are the property values,\n    hash values are the property value frequencies.\n    Returns one list for each property, so if your data\n    have properties named 'GPROP1' and 'GPROP2' then\n    it will return two lists named 'GPPROP_STATS_GPROP1_HASH'\n    and 'GPPROP_STATS_GPROP2_HASH', respectively.\n",
+         "description" : "Hashes of the groups and their property values\nused in the group properties calculations.\nHash keys are the property values,\nhash values are the property value frequencies.\nReturns one list for each property, so if your data\nhave properties named 'GPROP1' and 'GPROP2' then\nit will return two lists named 'GPPROP_STATS_GPROP1_HASH'\nand 'GPPROP_STATS_GPROP2_HASH', respectively.\n",
          "indices" : {},
          "name" : "Group property hashes",
          "pre_calc" : [
@@ -1230,7 +1230,7 @@
          "uses_nbr_lists" : 1
       },
       "calc_gpprop_lists" : {
-         "description" : "    Lists of the groups and their property values\n    used in the group properties calculations.\n    Returns one list for each property, so if your data\n    have properties named 'GPROP1' and 'GPROP2' then\n    it will return two lists named 'GPPROP_STATS_GPROP1_DATA'\n    and 'GPPROP_STATS_GPROP2_DATA', respectively.\n",
+         "description" : "Lists of the groups and their property values\nused in the group properties calculations.\nReturns one list for each property, so if your data\nhave properties named 'GPROP1' and 'GPROP2' then\nit will return two lists named 'GPPROP_STATS_GPROP1_DATA'\nand 'GPPROP_STATS_GPROP2_DATA', respectively.\n",
          "indices" : {},
          "name" : "Group property data",
          "pre_calc" : [
@@ -2501,7 +2501,7 @@
          "uses_nbr_lists" : 1
       },
       "calc_nri_nti_expected_values" : {
-         "description" : "Expected values used in the NRI and NTI calculations. \nDerived using a null model without resampling where \neach label has an equal probability of being selected\n(a null model of even distrbution).\nThe expected mean and SD are the same for each unique number\nof labels across all neighbour sets.  This means if you have\nthree neighbour sets, each with three labels, then the expected\nvalues will be identical for each, even if the labels are\ncompletely different.\n",
+         "description" : "Expected values used in the NRI and NTI calculations.\nDerived using a null model without resampling where\neach label has an equal probability of being selected\n(a null model of even distrbution).\nThe expected mean and SD are the same for each unique number\nof labels across all neighbour sets.  This means if you have\nthree neighbour sets, each with three labels, then the expected\nvalues will be identical for each, even if the labels are\ncompletely different.\n",
          "distribution" : "nonnegative",
          "indices" : {
             "PHYLO_NRI_NTI_SAMPLE_N" : {
@@ -3566,13 +3566,27 @@
       },
       "calc_pe_single" : {
          "description" : "PE scores, but not weighted by local ranges.\nThis is the strict interpretation of the formula given in\nRosauer et al. (2009), although the approach has always been\nimplemented as the fraction of each branch's geographic range\nthat is found in the sample window (see formula for PE_WE).\n",
+         "formula" : [
+            "PE\\_SINGLE = \\sum_{\\lambda \\in \\Lambda } L_{\\lambda}\\frac{1}{R_\\lambda}",
+            " where ",
+            "\\Lambda",
+            " is the set of branches found across neighbour sets 1 and 2, ",
+            "L_\\lambda",
+            " is the length of branch ",
+            "\\lambda",
+            ", ",
+            "R_\\lambda",
+            " is the global range of branch ",
+            "\\lambda",
+            " (the number of groups across the entire data set containing it)."
+         ],
          "indices" : {
             "PE_WE_SINGLE" : {
                "bounds" : [
                   0,
                   "Inf"
                ],
-               "description" : "Phylogenetic endemism unweighted by the number of neighbours.\nCounts each label only once, regardless of how many groups in the neighbourhood it is found in.\nUseful if your data have sampling biases. Better with small sample windows.",
+               "description" : "Phylogenetic endemism unweighted by the number of neighbours.\nCounts each label only once, regardless of how many groups in the neighbourhood it is found in.\nUseful if your data have sampling biases. Better with small sample windows.\n",
                "distribution" : "nonnegative",
                "lumper" : 1
             },
@@ -3581,7 +3595,7 @@
                   0,
                   1
                ],
-               "description" : "Phylogenetic endemism unweighted by the number of neighbours as a proportion of the total tree length.\nCounts each label only once, regardless of how many groups in the neighbourhood it is found.\nUseful if your data have sampling biases.",
+               "description" : "Phylogenetic endemism unweighted by the number of neighbours, as a proportion of the total tree length.\nCounts each label only once, regardless of how many groups in the neighbourhood it is found.\nUseful if your data have sampling biases. Better with small sample windows.\n",
                "distribution" : "unit_interval",
                "lumper" : 1
             }

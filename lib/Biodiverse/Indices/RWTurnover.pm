@@ -138,6 +138,7 @@ sub get_metadata_calc_phylo_rw_turnover {
             },
             PHYLO_RW_TURNOVER_A => {
                 description => 'Range weighted turnover, shared component',
+                lumper      => 1,
             },
             PHYLO_RW_TURNOVER_B => {
                 description => 'Range weighted turnover, component found only in nbr set 1',

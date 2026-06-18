@@ -1291,6 +1291,27 @@ sub get_valid_region_grower_indices {
     return wantarray ? %indices : \%indices;
 }
 
+sub get_valid_tie_breaker_indices {
+    my ($self, %args) = @_;
+
+    my $list = $args{calculations} || $self->get_calculations_as_flat_hash;
+
+    my %indices;
+    foreach my $calc ( keys %$list ) {
+        my $meta = $self->get_metadata( sub => $calc );
+        INDEX:
+        foreach my $index ( keys %{ $meta->get_indices } ) {
+            next INDEX
+                if $meta->get_index_is_list($index)
+                || $meta->get_index_is_categorical($index);
+
+            $indices{$index} = $meta->get_index_description($index);
+        }
+    }
+
+    return wantarray ? %indices : \%indices;
+}
+
 sub get_categorical_indices {
     my $self = shift;
     my %args = @_;

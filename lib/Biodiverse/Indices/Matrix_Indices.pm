@@ -38,16 +38,16 @@ sub get_metadata_calc_matrix_stats {
             MX_MEAN      => {description => 'Mean'},
             MX_SD        => {description => 'Standard deviation'},
             MX_N         => {
-                description    => 'Number of samples (matrix elements, not labels)',
+                description  => 'Number of samples (matrix elements, not labels)',
                 distribution => 'nonnegative',
             },
             MX_MEDIAN    => {description => 'Median'},
             MX_RANGE     => {
-                description    => 'Range (max-min)',
+                description  => 'Range (max-min)',
                 distribution => 'nonnegative',
             },
             MX_MINVALUE  => {description => 'Minimum value'},
-            MX_MAXVALUE  => {description => 'Maximum value'},
+            MX_MAXVALUE  => {description => 'Maximum value', lumper => 1},
             MX_SKEW      => {description => 'Skewness'},
             MX_KURT      => {description => 'Kurtosis'},
             MX_PCT95     => {description => '95th percentile value'},
@@ -140,13 +140,18 @@ sub calc_matrix_stats {
 
 sub get_metadata_calc_compare_dissim_matrix_values {
     my $self = shift;
-    
+
+    my $desc = <<~'EOD'
+        Compare the set of labels in one neighbour set with those in another
+        using their matrix values. Labels not in the matrix are ignored.
+        (This calculation assumes a matrix of dissimilarities
+        and uses 0 as identical, so take care).
+        EOD
+    ;
+
     my %metadata = (
         name            => 'Compare dissimilarity matrix values',
-        description     => q{Compare the set of labels in one neighbour set with those in another }
-                           . q{using their matrix values. Labels not in the matrix are ignored. }
-                           . q{This calculation assumes a matrix of dissimilarities }
-                           . q{and uses 0 as identical, so take care).},
+        description     => $desc,
         type            => 'Matrix',
         pre_calc        => '_calc_abc_any',
         required_args   => ['matrix_ref'],
@@ -154,7 +159,7 @@ sub get_metadata_calc_compare_dissim_matrix_values {
         indices => {
             MXD_MEAN       => {
                 description => 'Mean dissimilarity of labels in set 1 to those in set 2.',
-                cluster     => 1,
+                cluster     => 0,
             },
             MXD_VARIANCE   => {
                 description => 'Variance of the dissimilarity values, set 1 vs set 2.',

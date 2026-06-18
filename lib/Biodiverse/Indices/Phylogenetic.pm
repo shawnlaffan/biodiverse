@@ -49,6 +49,7 @@ sub get_metadata_calc_pd {
                 cluster       => undef,
                 description   => 'Phylogenetic diversity',
                 reference     => 'Faith (1992) Biol. Cons. https://doi.org/10.1016/0006-3207(92)91201-3',
+                lumper        => 1,
                 formula       => [
                     '= \sum_{c \in C} L_c',
                     ' where ',
@@ -69,6 +70,7 @@ sub get_metadata_calc_pd {
             PD_P            => {
                 cluster     => undef,
                 description => 'Phylogenetic diversity as a proportion of total tree length',
+                lumper      => 1,
                 formula     => [
                     '= \frac { PD }{ \sum_{c \in C} L_c }',
                     ' where terms are the same as for PD, but ',
@@ -125,6 +127,7 @@ sub get_metadata_calc_pd_local {
         indices         => {
             PD_LOCAL  => {
                 description   => 'Phylogenetic diversity calculated to last shared ancestor',
+                lumper        => 1,
                 formula       => [
                     '= \sum_{c \in C} L_c',
                     ' where ',
@@ -144,6 +147,7 @@ sub get_metadata_calc_pd_local {
             },
             PD_LOCAL_P => {
                 description => 'Phylogenetic diversity as a proportion of total tree length',
+                lumper      => 1,
                 formula     => [
                     '= \frac { PD }{ \sum_{c \in C} L_c }',
                     ' where terms are the same as for PD, but ',
@@ -748,12 +752,14 @@ sub get_metadata_calc_pe {
         formula         => $formula,
         indices         => {
             PE_WE           => {
-                description => 'Phylogenetic endemism'
+                description => 'Phylogenetic endemism',
+                lumper      => 1,
             },
             PE_WE_P         => {
-                description => 'Phylogenetic weighted endemism as a proportion of the total tree length',
-                formula     => [ 'PE\_WE / L', ' where L is the sum of all branch lengths in the trimmed tree' ],
+                description  => 'Phylogenetic weighted endemism as a proportion of the total tree length',
+                formula      => [ 'PE\_WE / L', ' where L is the sum of all branch lengths in the trimmed tree' ],
                 distribution => 'unit_interval',
+                lumper       => 1,
             },
         },
         pre_conditions  => ['tree_branches_are_nonnegative'],
@@ -826,7 +832,7 @@ sub get_metadata_calc_pe_central {
         both neighbour sets 1 and 2.  Identical to PE if only
         one neighbour set is specified.
         END_PEC_DESC
-    ;
+  ;
 
     my $formula = [
         'PEC = \sum_{\lambda \in \Lambda } L_{\lambda}\frac{r_\lambda}{R_\lambda}',
@@ -852,10 +858,12 @@ sub get_metadata_calc_pe_central {
             PEC_WE           => {
                 description  => 'Phylogenetic endemism, central variant',
                 distribution => 'nonnegative',
+                lumper       => 1,
             },
             PEC_WE_P         => {
                 description  => 'Phylogenetic weighted endemism as a proportion of the total tree length, central variant',
                 distribution => 'unit_interval',
+                lumper       => 1,
             },
         },
     );
@@ -895,7 +903,7 @@ sub get_metadata_calc_pe_central_lists {
         Uses labels from neighbour set one but local ranges from across
         both neighbour sets.
         END_PEC_DESC
-    ;
+  ;
 
     my %metadata = (
         description     => $desc,
@@ -1425,7 +1433,7 @@ sub get_metadata_calc_pe_single {
         implemented as the fraction of each branch's geographic range
         that is found in the sample window (see formula for PE_WE).
         EOD
-    ;
+  ;
 
     my $desc_pe_we_single = <<~'EOT'
         Phylogenetic endemism unweighted by the number of neighbours.
@@ -1454,10 +1462,12 @@ sub get_metadata_calc_pe_single {
             PE_WE_SINGLE    => {
                 description  => $desc_pe_we_single,
                 distribution => 'nonnegative',
+                lumper       => 1,
             },
             PE_WE_SINGLE_P  => {
                 description => $desc_pe_we_single_p,
                 distribution => 'unit_interval',
+                lumper       => 1,
             },
         },
     );
@@ -1506,14 +1516,16 @@ sub get_metadata_calc_pd_endemism {
         indices         => {
             PD_ENDEMISM => {
                 description => 'Phylogenetic Diversity Endemism',
+                lumper      => 1,
             },
             PD_ENDEMISM_WTS => {
                 description => 'Phylogenetic Diversity Endemism weights per node found only in the neighbour set',
                 type        => 'list',
             },
             PD_ENDEMISM_P => {
-                description => 'Phylogenetic Diversity Endemism, as a proportion of the whole tree',
+                description  => 'Phylogenetic Diversity Endemism, as a proportion of the whole tree',
                 distribution => 'unit_interval',
+                lumper       => 1,
             },
             #PD_ENDEMISM_R => {  #  should put in its own calc as it needs an extra dependency
             #    description => 'Phylogenetic Diversity Endemism, as a proportion of the local PD',
@@ -1589,8 +1601,9 @@ sub get_metadata_calc_count_labels_on_tree {
         name            => 'Count labels on tree',
         indices         => {
             PHYLO_LABELS_ON_TREE_COUNT => {
-                description => 'The number of labels that are found on the tree, across both neighbour sets',
+                description  => 'The number of labels that are found on the tree, across both neighbour sets',
                 distribution => 'nonnegative',
+                lumper       => 1,
             },
         },
         type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
@@ -1659,11 +1672,12 @@ sub get_metadata_calc_labels_not_on_tree {
                 type        => 'list',
             },  #  should poss also do nbr sets 1 and 2
             PHYLO_LABELS_NOT_ON_TREE_N => {
-                description => 'Number of labels not on the tree',
+                description  => 'Number of labels not on the tree',
                 distribution => 'nonnegative',
+                lumper       => 1,
             },
             PHYLO_LABELS_NOT_ON_TREE_P => {
-                description => 'Proportion of labels not on the tree',
+                description  => 'Proportion of labels not on the tree',
                 distribution => 'unit_interval',
             },
         },
@@ -2888,8 +2902,9 @@ sub get_metadata_calc_phylo_aed_t {
         distribution    => 'nonnegative',  # default
         indices         => {
             PHYLO_AED_T => {
-                description  => $descr,
-                reference    => 'Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x',
+                description => $descr,
+                reference   => 'Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x',
+                lumper      => 1,
             },
         },
     );
@@ -3199,6 +3214,7 @@ sub get_metadata_calc_phylo_abundance {
                 cluster       => undef,
                 description   => 'Phylogenetic abundance',
                 reference     => '',
+                lumper        => 1,
                 formula       => [
                     '= \sum_{c \in C} A \times L_c',
                     ' where ',

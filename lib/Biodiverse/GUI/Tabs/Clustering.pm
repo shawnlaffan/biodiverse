@@ -455,9 +455,7 @@ sub setup_tie_breaker_widgets {
     $tie_breakers //= [];  #  param is not always set
 
     my $indices_object = Biodiverse::Indices->new (BASEDATA_REF => $bd);
-    my %valid_indices = $indices_object->get_valid_region_grower_indices;
-    my %tmp = $indices_object->get_valid_cluster_indices;
-    @valid_indices{keys %tmp} = values %tmp;
+    my %valid_indices = $indices_object->get_valid_tie_breaker_indices;
 
     my $cb_tooltip_text
       = 'Turn the tie breakers off if you want the old clustering system.  '

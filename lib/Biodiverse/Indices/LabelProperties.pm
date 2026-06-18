@@ -128,8 +128,15 @@ sub _get_lbprop_stats_hash_keynames {
 sub get_metadata_calc_lbprop_lists {
     my $self = shift;
 
-    my $desc = 'Lists of the labels and their property values '
-             . 'within the neighbour sets';
+    my $desc = <<~'EOD'
+        Lists of the labels and their property values
+        within the neighbour sets.
+        Returns one list for each property, so if your data
+        have properties named 'PROP1' and 'PROP2' then
+        it will return two lists named 'LBPROP_LIST_PROP1'
+        and 'LBPROP_LIST_PROP2', respectively.
+    EOD
+    ;
 
     my %indices;
     my %prop_hash_names = $self->_get_lbprop_stats_hash_keynames;
@@ -185,8 +192,15 @@ sub calc_lbprop_lists {
 sub get_metadata_calc_lbprop_data {
     my $self = shift;
 
-    my $desc = 'Lists of the labels and their property values '
-             . 'used in the label properties calculations';
+    my $desc =<<~'EOD'
+        Lists of the labels and their property values
+        used in the label properties calculations.
+        Returns one list for each property, so if your data
+        have properties named 'PROP1' and 'PROP2' then
+        it will return two lists named 'LBPROP_STATS_PROP1_DATA'
+        and 'LBPROP_STATS_PROP1_DATA', respectively.
+        EOD
+    ;
 
     my %indices;
     my %prop_hash_names = $self->_get_lbprop_stats_hash_keynames;
@@ -235,10 +249,17 @@ sub calc_lbprop_data {
 sub get_metadata_calc_lbprop_hashes {
     my $self = shift;
 
-    my $desc = 'Hashes of the labels and their property values '
-             . 'used in the label properties calculations. '
-             . 'Hash keys are the property values, '
-             . 'hash values are the property value frequencies.';
+    my $desc =<<~'EOD'
+        Hashes of the labels and their property values
+        used in the label properties calculations.
+        Hash keys are the property values,
+        hash values are the property value frequencies.
+        Returns one hash for each property, so if your data
+        have properties named 'PROP1' and 'PROP2' then
+        it will return two lists named 'LBPROP_STATS_PROP1_HASH'
+        and 'LBPROP_STATS_PROP2_HASH', respectively.
+        EOD
+    ;
 
     my %indices;
     my %prop_hash_names = $self->_get_lbprop_stats_hash_keynames;

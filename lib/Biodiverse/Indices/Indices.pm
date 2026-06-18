@@ -67,6 +67,7 @@ sub get_metadata_calc_richness {
         indices         => {
             RICHNESS_ALL    => {
                 description => 'for both sets of neighbours',
+                lumper      => 1,
             },
             RICHNESS_SET1   => {
                 description     => 'for neighbour set 1',
@@ -272,7 +273,7 @@ sub get_metadata_calc_kulczynski2 {
         name            => 'Kulczynski 2',
         description     => "Kulczynski 2 dissimilarity between two sets of labels.\n",
         formula         => [
-            '= 1 - 0.5 * (\frac{A}{A + B} + \frac{A}{A + C})',
+            '= 1 - 0.5 \times (\frac{A}{A + B} + \frac{A}{A + C})',
             $self->get_formula_explanation_ABC,
         ],
         indices         => {
@@ -1097,12 +1098,12 @@ sub get_metadata_calc_local_range_stats {
         indices         => {
             ABC2_MEAN_ALL      => {
                 description     => 'Mean label range in both element sets',
-                lumper          => 1,
+                lumper          => 0,
             },
             ABC2_SD_ALL        => {
                 description     => 'Standard deviation of label ranges in both element sets',
                 uses_nbr_lists  => 2,
-                lumper          => 1,
+                lumper          => 0,
             },
             ABC2_MEAN_SET1     => {
                 description     => 'Mean label range in neighbour set 1',
@@ -1231,12 +1232,12 @@ sub get_metadata_calc_local_sample_count_stats {
             ABC3_MEAN_ALL      => {
                 description     => 'Mean of label sample counts across both element sets.',
                 uses_nbr_lists  => 2,
-                lumper      => 1,
+                lumper      => 0,
             },
             ABC3_SD_ALL        => {
                 description     => 'Standard deviation of label sample counts in both element sets.',
                 uses_nbr_lists  => 2,
-                lumper      => 1,
+                lumper      => 0,
             },
             ABC3_MEAN_SET1     => {
                 description     => 'Mean of label sample counts in neighbour set1.',
@@ -1385,11 +1386,11 @@ sub get_metadata_calc_abc_counts {
             },
             ABC_B   => {
                 description => 'Count of labels unique to neighbour set 1',
-                lumper      => 1,
+                lumper      => 0,
             },
             ABC_C   => {
                 description => 'Count of labels unique to neighbour set 2',
-                lumper      => 1,
+                lumper      => 0,
             },
             ABC_ABC => {
                 description => 'Total label count across both neighbour sets (same as RICHNESS_ALL)',
@@ -1527,7 +1528,7 @@ sub get_metadata_calc_nonempty_elements_used {
             EL_COUNT_NONEMPTY_ALL  => {
                 description    => 'Count of non-empty elements in both neighbour sets',
                 uses_nbr_lists => 1,
-                lumper      => 1,
+                lumper      => 0,
             },
         },
     );

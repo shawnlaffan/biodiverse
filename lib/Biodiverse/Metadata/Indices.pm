@@ -190,7 +190,7 @@ sub get_index_is_lumper {
     no autovivification;
     
     my $indices = $self->get_indices;
-    return $indices->{$index}{lumper} // 1;
+    return $indices->{$index}{lumper};
 }
 
 sub get_index_is_list {

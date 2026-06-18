@@ -141,12 +141,12 @@ sub get_metadata_calc_gpprop_lists {
     my $self = shift;
 
     my $desc = <<~'EOD'
-            Lists of the groups and their property values
-            used in the group properties calculations.
-            Returns one list for each property, so if your data
-            have properties named 'GPROP1' and 'GPROP2' then
-            it will return two lists named 'GPPROP_STATS_GPROP1_DATA'
-            and 'GPPROP_STATS_GPROP2_DATA', respectively.
+        Lists of the groups and their property values
+        used in the group properties calculations.
+        Returns one list for each property, so if your data
+        have properties named 'GPROP1' and 'GPROP2' then
+        it will return two lists named 'GPPROP_STATS_GPROP1_DATA'
+        and 'GPPROP_STATS_GPROP2_DATA', respectively.
         EOD
     ;
 
@@ -193,14 +193,14 @@ sub get_metadata_calc_gpprop_hashes {
     my $self = shift;
 
     my $desc = <<~'EOD'
-            Hashes of the groups and their property values
-            used in the group properties calculations.
-            Hash keys are the property values,
-            hash values are the property value frequencies.
-            Returns one list for each property, so if your data
-            have properties named 'GPROP1' and 'GPROP2' then
-            it will return two lists named 'GPPROP_STATS_GPROP1_HASH'
-            and 'GPPROP_STATS_GPROP2_HASH', respectively.
+        Hashes of the groups and their property values
+        used in the group properties calculations.
+        Hash keys are the property values,
+        hash values are the property value frequencies.
+        Returns one list for each property, so if your data
+        have properties named 'GPROP1' and 'GPROP2' then
+        it will return two lists named 'GPPROP_STATS_GPROP1_HASH'
+        and 'GPPROP_STATS_GPROP2_HASH', respectively.
         EOD
     ;
 

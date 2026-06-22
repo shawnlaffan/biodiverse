@@ -1655,7 +1655,7 @@ sub get_most_similar_pair_using_tie_breaker {
             my @el_lists;
             foreach my $j (0, 1) {
                 my $node = $pair->[$j];
-                my $node_ref = $self->get_node_ref (node => $node);
+                my $node_ref = $self->get_node_ref_aa ($node);
                 my $el_list;
                 if ($node_ref->is_internal_node) {
                     my $terminals = $node_ref->get_terminal_elements;
@@ -2179,7 +2179,7 @@ sub cluster {
 
     %root_nodes = $self->get_root_nodes;
     my $root_node_name = [keys %root_nodes]->[0];
-    my $root_node = $self->get_node_ref (node => $root_node_name);
+    my $root_node = $self->get_node_ref_aa ($root_node_name);
 
     $root_node->set_length(length => 0);
     $root_node->set_value (
@@ -2405,8 +2405,8 @@ sub get_values_for_linkage {
     }
     else {
         warn "two node linkage case\n";
-        my $node_ref_1 = $self->get_node_ref (node => $node1);
-        my $node_ref_2 = $self->get_node_ref (node => $node2);
+        my $node_ref_1 = $self->get_node_ref_aa ($node1);
+        my $node_ref_2 = $self->get_node_ref_aa ($node2);
         $tmp1 = $node_ref_1->get_length_below;
         $tmp2 = $node_ref_2->get_length_below;
     }
@@ -2425,9 +2425,9 @@ sub link_recalculate {
     my $node2 = $args{node2};
     my $check_node = $args{compare_node};
 
-    my $node1_ref = $self->get_node_ref (node => $node1);
-    my $node2_ref = $self->get_node_ref (node => $node2);
-    my $check_node_ref = $self->get_node_ref (node => $check_node);
+    my $node1_ref = $self->get_node_ref_aa ($node1);
+    my $node2_ref = $self->get_node_ref_aa ($node2);
+    my $check_node_ref = $self->get_node_ref_aa ($check_node);
 
     my $index
         = $args{index}
@@ -2565,15 +2565,9 @@ sub run_linkage {
 
         #  skip if we don't have both pairs check_node with node1 and with node2
         next CHECK_NODE if !(
-            $matrix_with_elements->element_pair_exists (
-                element1 => $check_node,
-                element2 => $node1,
-            )
+            $matrix_with_elements->element_pair_exists_aa ($check_node, $node1)
             &&
-            $matrix_with_elements->element_pair_exists (
-                element1 => $check_node,
-                element2 => $node2,
-            )
+            $matrix_with_elements->element_pair_exists_aa ($check_node, $node2)
         );  
 
         if ($progress) {
@@ -2605,15 +2599,9 @@ sub run_linkage {
 
             next MX_ITER
               if ! (
-                    $mx->element_pair_exists (
-                        element1 => $node1,
-                        element2 => $check_node,
-                    )
+                    $mx->element_pair_exists_aa ($node1, $check_node)
                     &&
-                    $mx->element_pair_exists (
-                        element1 => $node2,
-                        element2 => $check_node,
-                    )
+                    $mx->element_pair_exists_aa ($node2, $check_node)
                 );
 
             $mx->add_element (

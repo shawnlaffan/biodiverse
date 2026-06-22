@@ -2512,7 +2512,8 @@ sub link_recalculate {
                 }
                 if (defined $node2_ref) {
                     $node2_ref->set_cached_value (
-                        $node2_1_cache_name => $abc->{label_hash1});
+                        $node2_1_cache_name => $abc->{label_hash1}
+                    );
                 }
             }
         }

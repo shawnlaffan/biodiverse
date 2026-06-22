@@ -2451,12 +2451,9 @@ sub link_recalculate {
     my $node2_1_cache_name = 'LABEL_HASH_' . $node2 . '__' . $node1;
 
     #  get the element or label lists as needed
-    if ($node1_ref) {
-        $label_hash1 = $node1_ref->get_cached_value ($node1_2_cache_name) ;
-    }
-    elsif ($node2_ref) {
-        $label_hash1 = $node2_ref->get_cached_value ($node1_2_cache_name);
-    }
+    $label_hash1 = $node1_ref->get_cached_value (
+        $node1_ref ? $node1_2_cache_name : $node2_1_cache_name
+    );
 
     #  if no cached value then merge the lists of terminal elements
     if (not $label_hash1) {

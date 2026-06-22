@@ -379,6 +379,7 @@ sub set_base_struct {
 
     my @res = $self->calculate_cell_sizes($source); #  handles zero and text
 
+    $res[1] //= $res[0];
     my ($cell_x, $cell_y) = @res[0, 1]; #  just grab first two for now - update the caching if we ever change
     $cell_y ||= $cell_x;                #  default to a square if not defined or zero
 
@@ -395,7 +396,7 @@ sub set_base_struct {
         #  sorted list for consistency when there are >2 axes
         foreach my $element ($source->get_element_list_sorted) {
             my ($x, $y) = $source->get_element_name_coord(element => $element);
-            $y //= $res[1];
+            $y //= $cell_y;
 
             my $key = "$x:$y";
             next if exists $data{$key};
@@ -405,7 +406,7 @@ sub set_base_struct {
 
             $data{$key}{coord} = $coord;
             $data{$key}{bounds} = $bounds;
-            $data{$key}{rect} = [ @$bounds[0, 1], $res[0], $res[1] ];
+            $data{$key}{rect} = [ @$bounds[0, 1], $cell_x, $cell_y ];
             $data{$key}{centroid} = [ @$coord ];
             $data{$key}{element} = $element;
         }

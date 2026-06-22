@@ -603,6 +603,11 @@ sub transpose {
     my @cell_sizes = $self->get_labels_ref->get_cell_sizes || (-1);
     $new->set_param( CELL_SIZES => [@cell_sizes] );    #  make sure it's a copy
 
+    $new->delete_cached_values;
+    foreach my $output_meth (qw /get_groups_ref get_labels_ref/) {
+        $new->$output_meth->delete_cached_values;
+    }
+
     return $new;
 }
 

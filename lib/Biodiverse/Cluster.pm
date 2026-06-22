@@ -621,8 +621,10 @@ sub process_spatial_conditions_and_def_query {
             $condition = $condition->get_conditions_unparsed;
         }
 
-        $condition =~ s/^\s*//;  #  strip leading and trailing whitespace
-        $condition =~ s/\s*$//;
+        if (defined $condition) {
+            $condition =~ s/^\s*//; #  strip leading and trailing whitespace
+            $condition =~ s/\s*$//;
+        }
 
         last CHECK if length $condition;
 

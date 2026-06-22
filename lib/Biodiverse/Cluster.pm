@@ -711,7 +711,7 @@ sub get_indices_object_for_matrix_and_clustering {
     if (defined $index_bounds->[0]) {
         $self->set_param(MIN_POSS_INDEX_VALUE => $index_bounds->[0]);
     }
-    # cache unless told otherwise
+    # cache unless told otherwise - should only apply to the recalc linkage now
     my $cache_abc = $self->get_param ('CACHE_ABC') // 1;
     if (defined $args{no_cache_abc} and length $args{no_cache_abc}) {
         $cache_abc = not $args{no_cache_abc};
@@ -778,7 +778,6 @@ sub build_matrices {
 
     my $index          = $self->get_param ('CLUSTER_INDEX');
     my $index_function = $self->get_param ('CLUSTER_INDEX_SUB');
-    my $cache_abc      = $self->get_param ('CACHE_ABC');
 
     my $name = $args{name} || $self->get_param ('NAME') || "CLUSTERMATRIX_$index";
 
@@ -949,7 +948,6 @@ sub build_matrices {
                 element_list       => [keys %$nbr_hash],
                 index_function     => $index_function,
                 index              => $index,
-                cache_abc          => $cache_abc,
                 file_handle        => $file_handles->[$m],
                 spatial_object     => $sp,
                 indices_object     => $indices_object,
@@ -1018,15 +1016,10 @@ sub build_matrix_elements {
         $element_list2 = [keys %$element_list2];
     }
 
-    my $cache = $args{element_label_cache} || $self->get_param ('MATRIX_ELEMENT_LABEL_CACHE');
     my $matrices = $args{matrices};  #  two items, second is shadow matrix
 
-    my $index_function   = $args{index_function}
-                           || $self->get_param ('CLUSTER_INDEX_SUB');
     my $index            = $args{index}
                            || $self->get_param ('CLUSTER_INDEX');
-    my $cache_abc        = $args{cache_abc}
-                           || $self->get_param ('CACHE_ABC');
     my $indices_object   = $args{indices_object}
                            || $self->get_param ('INDICES_OBJECT');
 
@@ -1039,7 +1032,6 @@ sub build_matrix_elements {
 
     my $sp = $args{spatial_object};
     my $pass_def_query = $sp->get_pass_def_query;
-    #my $pass_def_query = {};
 
     my %already_calculated;
 
@@ -1075,15 +1067,13 @@ sub build_matrix_elements {
     foreach my $element2 (sort @$element_list2) {
         $n++;
 
-        {
-            next ELEMENT2 if $already_calculated{$element2};
-            next ELEMENT2 if $element1 eq $element2;
+        next ELEMENT2
+            if $already_calculated{$element2}
+                or $element1 eq $element2;
 
-            if ($pass_def_query) {  #  poss redundant check now
-                next ELEMENT2
-                  if not exists $pass_def_query->{$element2};
-            }
-        }
+        #  poss redundant check now
+        next ELEMENT2
+          if $pass_def_query and not exists $pass_def_query->{$element2};
 
         if ($progress) {
             $progress->update ("processing column $n of $to_do", $n / $to_do);
@@ -1125,52 +1115,12 @@ sub build_matrix_elements {
             }
         }
 
-        #  use elements if no cached labels
-        #  set to undef if we have a cached label_hash
-        my ($el1_ref, $el2_ref, $label_hash1, $label_hash2);
-        if (0 && $cache_abc) {
-            $el1_ref = defined $cache->{$element1} ? undef : [$element1];
-            $el2_ref = defined $cache->{$element2} ? undef : [$element2];
-
-            #  use cached labels if they exist (gets undef otherwise)
-            $label_hash1 = exists $cache->{$element1} ? $cache->{$element1} : undef;
-            $label_hash2 = exists $cache->{$element2} ? $cache->{$element2} : undef;
-        }
-        else {
-            $el1_ref = [$element1];
-            $el2_ref = [$element2];            
-        }
-
         my %elements = (
-            element_list1   => $el1_ref,
-            element_list2   => $el2_ref,
-            label_hash1     => $label_hash1,
-            label_hash2     => $label_hash2,
+            element_list1   => [$element1],
+            element_list2   => [$element2],
         );
 
         my $values = $indices_object->run_calculations(%args, %elements);
-
-        #  caching - a bit dodgy
-        #  what if we have calc_abc and calc_abc3 as deps?
-        #  turn it off for now (compiler will optimise it away)
-        if (0 && $cache_abc) {
-            my $abc = {};
-            my $as_results_from = $indices_object->get_param('AS_RESULTS_FROM');
-            foreach my $calc_abc_type (qw /calc_abc3 calc_abc2 calc_abc/) {
-                if (exists $as_results_from->{$calc_abc_type}) {
-                    $abc = $as_results_from->{$calc_abc_type};
-                    last;
-                }
-            }
-
-            #  use cache unless told not to
-            if (defined $abc->{label_hash1} and ! defined $cache->{$element1}) {
-                $cache->{$element1} = $abc->{label_hash1};
-            }
-            if (defined $abc->{label_hash2} and ! defined $cache->{$element2}) {
-                $cache->{$element2} = $abc->{label_hash2}
-            }
-        }
 
         next ELEMENT2 if ! defined $values->{$index};  #  don't add it if it is undefined
 
@@ -2478,14 +2428,6 @@ sub link_recalculate {
     my $node1_ref = $self->get_node_ref (node => $node1);
     my $node2_ref = $self->get_node_ref (node => $node2);
     my $check_node_ref = $self->get_node_ref (node => $check_node);
-
-    my $sim_matrix = $args{matrix}
-                    || $self->get_shadow_matrix
-                    || $self->get_matrix_ref(iter => 0);
-
-    my $index_function
-        = $args{index_function}
-        || $self->get_param ('CLUSTER_INDEX_SUB');
 
     my $index
         = $args{index}

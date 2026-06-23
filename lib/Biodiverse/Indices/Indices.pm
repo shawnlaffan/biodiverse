@@ -283,7 +283,7 @@ sub get_metadata_calc_kulczynski2 {
             },
         },
         type            => 'Taxonomic Dissimilarity and Comparison',
-        pre_calc        => [qw /_calc_abc_any/],
+        pre_calc        => [qw /_calc_abc_scalars/],
         uses_nbr_lists  => 2,
     );
 
@@ -362,7 +362,7 @@ sub get_metadata_calc_jaccard {
         description     => 'Jaccard dissimilarity between the labels in neighbour sets 1 and 2.',
         type            => 'Taxonomic Dissimilarity and Comparison',
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
-        pre_calc        => [qw /_calc_abc_any/],
+        pre_calc        => [qw /_calc_abc_scalars/],
         formula         => [
             '= 1 - \frac{A}{A + B + C}',
             $self->get_formula_explanation_ABC,
@@ -461,7 +461,7 @@ sub get_metadata_calc_nestedness_resultant {
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
         reference       => 'Baselga (2010) Glob Ecol Biogeog.  '
                            . 'https://doi.org/10.1111/j.1466-8238.2009.00490.x',
-        pre_calc        => ['_calc_abc_any'],
+        pre_calc        => ['_calc_abc_scalars'],
         formula         => [
             '=\frac{ \left | B - C \right | }{ 2A + B + C } '
             . '\times \frac { A }{ A + min (B, C) }'
@@ -715,7 +715,7 @@ sub get_metadata_calc_beta_diversity {
         },
         type            => 'Taxonomic Dissimilarity and Comparison',
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
-        pre_calc        => ['_calc_abc_any'],
+        pre_calc        => ['_calc_abc_scalars'],
     );
 
     return $metadata_class->new(\%metadata);
@@ -746,7 +746,7 @@ sub get_metadata_calc_s2 {
         name            => 'S2',
         type            => 'Taxonomic Dissimilarity and Comparison',
         description     => "S2 dissimilarity between two sets of labels\n",
-        pre_calc        => ['_calc_abc_any'],
+        pre_calc        => ['_calc_abc_scalars'],
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
         reference   => 'Lennon et al. (2001) J Animal Ecol.  '
                         . 'https://doi.org/10.1046/j.0021-8790.2001.00563.x',

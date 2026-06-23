@@ -180,7 +180,7 @@ sub calc_redundancy {  #  calculate the sample redundancy for a set of elements
         : \%results;
 }
 
-
+#  not used now but left in the event it is useful one day
 sub get_metadata_is_dissimilarity_valid {
     my $self = shift;
     
@@ -200,8 +200,7 @@ sub get_metadata_is_dissimilarity_valid {
 }
 
 sub is_dissimilarity_valid {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
     my %result = (
         DISSIMILARITY_IS_VALID => ($args{A} || ($args{B} && $args{C})),
@@ -284,7 +283,7 @@ sub get_metadata_calc_kulczynski2 {
             },
         },
         type            => 'Taxonomic Dissimilarity and Comparison',
-        pre_calc        => [qw /_calc_abc_any is_dissimilarity_valid/],
+        pre_calc        => [qw /_calc_abc_any/],
         uses_nbr_lists  => 2,
     );
 
@@ -292,16 +291,16 @@ sub get_metadata_calc_kulczynski2 {
 }
 
 sub calc_kulczynski2 {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
-    my $value;
-    if ($args{DISSIMILARITY_IS_VALID}) {
-        my ($aa, $bb, $cc) = @args{'A', 'B', 'C'};
-        $value = eval {
+    #  valid if shared labels, or both sets have contents
+    #  i.e. no empties
+    my ($aa, $bb, $cc) = @args{'A', 'B', 'C'};
+    my $value = ($aa || ($bb && $cc))
+        ? eval {
             1 - 0.5 * ($aa / ($aa + $bb) + $aa / ($aa + $cc));
-        };
-    }
+        }
+        : undef;
 
     my %result = (KULCZYNSKI2 => $value);
 
@@ -330,7 +329,7 @@ sub get_metadata_calc_sorenson {
             }
         },
         type            => 'Taxonomic Dissimilarity and Comparison',
-        pre_calc        => [qw /_calc_abc_any is_dissimilarity_valid/],
+        pre_calc        => [qw /_calc_abc_any/],
         uses_nbr_lists  => 2,
     );
 
@@ -340,12 +339,14 @@ sub get_metadata_calc_sorenson {
 # calculate the Sorenson dissimilarity index between two lists (1 - Czechanowski)
 #  = 2a/(2a+b+c) where a is shared presence between groups, b&c are in one group only
 sub calc_sorenson {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
-    my $value = $args{DISSIMILARITY_IS_VALID}
-                ? eval {1 - ((2 * $args{A}) / ($args{A} + $args{ABC}))}
-                : undef;
+    #  valid if shared labels, or both sets have contents
+    #  i.e. no empties
+    my $value
+        = ($args{A} || ($args{B} && $args{C}))
+        ? eval {1 - ((2 * $args{A}) / ($args{A} + $args{ABC}))}
+        : undef;
 
     my %result = (SORENSON => $value);
 
@@ -361,7 +362,7 @@ sub get_metadata_calc_jaccard {
         description     => 'Jaccard dissimilarity between the labels in neighbour sets 1 and 2.',
         type            => 'Taxonomic Dissimilarity and Comparison',
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
-        pre_calc        => [qw /_calc_abc_any is_dissimilarity_valid/],
+        pre_calc        => [qw /_calc_abc_any/],
         formula         => [
             '= 1 - \frac{A}{A + B + C}',
             $self->get_formula_explanation_ABC,
@@ -383,12 +384,14 @@ sub get_metadata_calc_jaccard {
 #  J = a/(a+b+c) where a is shared presence between groups, b&c are in one group only
 #  this is almost identical to calc_sorenson    
 sub calc_jaccard {    
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
-    my $value = $args{DISSIMILARITY_IS_VALID}
-                ? eval {1 - ($args{A} / $args{ABC})}
-                : undef;
+    #  valid if shared labels, or both sets have contents
+    #  i.e. no empties
+    my $value
+        = ($args{A} || ($args{B} && $args{C}))
+        ? eval {1 - ($args{A} / $args{ABC})}
+        : undef;
 
     my %result = (JACCARD => $value);
 

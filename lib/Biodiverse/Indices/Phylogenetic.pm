@@ -2658,7 +2658,7 @@ sub calc_phylo_abc {
                 tree_ref => $tree,
                 el_list  => \@elements,
             );
-        $cache->{$elements[0]} = $nodes_in_path[$i]
+        $cache->{$elements[0]} //= $nodes_in_path[$i]
             if @elements == 1;
     }
 

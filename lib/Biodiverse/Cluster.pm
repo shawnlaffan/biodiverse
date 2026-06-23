@@ -1080,7 +1080,11 @@ sub build_matrix_elements {
     );
     my $direct_call     = $direct_calls{$index};
     my $use_direct_call = defined $direct_call;
-    \my %h1 = $use_direct_call ? $bd->get_labels_in_group_as_hash_aa($element1) : {};
+
+    \my %label_cache = $self->get_cached_href('LABELS_IN_GROUPS_AS_HASH');
+    \my %h1 = $use_direct_call
+        ? ($label_cache{$element1} //= $bd->get_labels_in_group_as_hash_aa($element1))
+        : {};
 
     my $n = 0;
   ELEMENT2:
@@ -1138,7 +1142,7 @@ sub build_matrix_elements {
         my $index_val;
         if ($use_direct_call) {
             use Hash::Util::Set qw /keys_intersection/;
-            \my %h2 = $bd->get_labels_in_group_as_hash_aa($element2);
+            \my %h2 = $label_cache{$element2} //= $bd->get_labels_in_group_as_hash_aa($element2);
             my $aa  = keys_intersection (%h1, %h2);
             my $bb  = scalar (keys %h1) - $aa;
             my $cc  = scalar (keys %h2) - $aa;

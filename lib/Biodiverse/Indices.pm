@@ -1583,36 +1583,29 @@ sub run_dependencies {
     my $is_pre_calc_global = $type eq 'pre_calc_global';
 
     foreach my $calc (@$calc_list) {
-        my $calc_results;
-
-        #  if already cached then just grab it - should never happen now?
-        if ( exists $as_results_from{$calc} ) {
-            $calc_results = $as_results_from{$calc};
-        }
-        else {
-            my %dep_results;
-            if (my $deps = $dep_list->{$calc} ) {
-              LOCAL_DEP:
-                foreach my $dep_res (map {$as_results_from{$_}} @$deps) {
-                    next LOCAL_DEP if !$dep_res;
-                    @dep_results{ keys %$dep_res } = values %$dep_res;
-                }
-            }
-            if (my $deps = $dep_list_global->{$calc}) {
-              GLOBAL_DEP:
-                foreach my $dep_res (map {$as_results_from_global{$_}} @$deps) {
-                    next GLOBAL_DEP if !$dep_res;
-                    @dep_results{ keys %$dep_res } = values %$dep_res;
-                }
-            }
-
-            $calc_results = eval { $self->$calc( %args, %dep_results, ); };
-            croak $EVAL_ERROR if $EVAL_ERROR;
-            $as_results_from{$calc} = $calc_results;
-            if ( $is_pre_calc_global ) {
-                $as_results_from_global{$calc} = $calc_results;
+        my %dep_results;
+        if (my $deps = $dep_list->{$calc} ) {
+          LOCAL_DEP:
+            foreach my $dep_res (map {$as_results_from{$_}} @$deps) {
+                next LOCAL_DEP if !$dep_res;
+                @dep_results{ keys %$dep_res } = values %$dep_res;
             }
         }
+        if (my $deps = $dep_list_global->{$calc}) {
+          GLOBAL_DEP:
+            foreach my $dep_res (map {$as_results_from_global{$_}} @$deps) {
+                next GLOBAL_DEP if !$dep_res;
+                @dep_results{ keys %$dep_res } = values %$dep_res;
+            }
+        }
+
+        my $calc_results = eval { $self->$calc( %args, %dep_results ); };
+        croak $EVAL_ERROR if $EVAL_ERROR;
+        $as_results_from{$calc} = $calc_results;
+        if ( $is_pre_calc_global ) {
+            $as_results_from_global{$calc} = $calc_results;
+        }
+
         $results{$calc} = $calc_results;
     }
 

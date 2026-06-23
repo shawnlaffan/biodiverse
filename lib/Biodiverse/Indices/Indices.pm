@@ -329,7 +329,7 @@ sub get_metadata_calc_sorenson {
             }
         },
         type            => 'Taxonomic Dissimilarity and Comparison',
-        pre_calc        => [qw /_calc_abc_any/],
+        pre_calc        => [qw /_calc_abc_scalars/],
         uses_nbr_lists  => 2,
     );
 
@@ -1693,7 +1693,7 @@ sub get_metadata__calc_abc_any {
     my %metadata = (
         name            => '_calc_abc_any',
         description     => 'Special sub for when we only need the keys, '
-                         . 'not the values, so can use any of /calc_abc[23]?/',
+            . 'not the values, so can use any of /calc_abc[23]?/',
         type            => 'not_for_gui',
         indices         => {},
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
@@ -1714,6 +1714,67 @@ sub _calc_abc_any {
         // $self->calc_abc(@_);
 
     return wantarray ? %$results : $results;
+}
+
+sub get_metadata__calc_abc_scalars {
+
+    my %metadata = (
+        name            => '_calc_abc_scalars',
+        description     => 'Special sub for when we only need the scalar values from /calc_abc[23]?/',
+        type            => 'not_for_gui',
+        indices         => {},
+        uses_nbr_lists  => 1,  #  how many sets of lists it must have
+        required_args   => [$RE_ABC_REQUIRED_ARGS],  #experimental - https://github.com/shawnlaffan/biodiverse/issues/336
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub _calc_abc_scalars {
+    my ($self, %args) = @_;
+
+    state $empty_array = [];
+
+    #  A very large condition...
+    #  Check el2 before el1 as it is common for el2 to be empty, i.e. no second nbr set
+    my $use_pairwise_direct =
+        @{$args{element_list2} // $empty_array} == 1
+            && @{$args{element_list1} // $empty_array} == 1
+            && $self->get_pairwise_mode
+            && !defined (
+                  $args{label_hash1}
+                // $args{label_hash2}
+                // $args{label_list1}
+                // $args{label_list2}
+            );
+
+    #  Direct calculation when we have two elements as inputs, e.g. when building matrices.
+    if ($use_pairwise_direct) {
+        use Hash::Util::Set qw /keys_intersection/;
+        my $bd  = $self->get_basedata_ref;
+        \my %h1 = $bd->get_labels_in_group_as_hash_aa($args{element_list1}[0]);
+        \my %h2 = $bd->get_labels_in_group_as_hash_aa($args{element_list2}[0]);
+        my $aa = keys_intersection (%h1, %h2);
+        my $bb = scalar (keys %h1) - $aa;
+        my $cc = scalar (keys %h2) - $aa;
+        my %res = (
+            A   => $aa,
+            B   => $bb,
+            C   => $cc,
+            ABC => $aa + $bb + $cc,
+        );
+        return wantarray ? %res : \%res;
+    }
+
+    my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
+
+    my $results = $cache_hash->{calc_abc}
+        // $cache_hash->{calc_abc2}
+        // $cache_hash->{calc_abc3}
+        // $self->calc_abc(%args);
+    my %scalars = %{$results}{qw /A B C ABC/};
+
+    return wantarray ? %scalars : \%scalars;
 }
 
 sub get_metadata_calc_abc {

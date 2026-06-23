@@ -1706,10 +1706,10 @@ sub run_postcalc_globals {
 sub set_pairwise_mode {
     my ( $self, $mode ) = @_;
 
-    $self->{pairwise_mode} = $mode;
-
     croak "Cannot have both pairwise and hierarchical modes on at the same time"
         if $mode && $self->get_hierarchical_mode;
+
+    $self->{pairwise_mode} = $mode;
 
     return $mode;
 }

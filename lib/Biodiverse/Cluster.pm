@@ -1176,13 +1176,9 @@ sub build_matrix_elements {
             say {$ofh} $text;
         }
         else {
-            foreach my $mx (@$matrices) {
-                $mx->add_element (
-                    element1 => $element1,
-                    element2 => $element2,
-                    value    => $index_val,
-                );
-            }
+            #  postfix loop to minimise scope overheads in hot path
+            $_->add_element_aa ($element1, $element2, $index_val)
+                foreach @$matrices;
         }
 
         $valid_count ++;

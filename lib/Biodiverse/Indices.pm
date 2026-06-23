@@ -1570,13 +1570,13 @@ sub run_dependencies {
     #  make a copy
     my %as_results_from_global = %{$self->get_param('AS_RESULTS_FROM_GLOBAL') || {}};
 
-    state $cache_name_local_results = 'AS_RESULTS_FROM_LOCAL';
-
     #  Now we run the calculations at this level.
     #  We also keep track of what has been run
     #  to avoid repetition through multiple dependencies.
     my %results;
     my %as_results_from;
+
+    state $cache_name_local_results = 'AS_RESULTS_FROM_LOCAL';
     #  make sure this is new each iteration
     $self->set_param ($cache_name_local_results => \%as_results_from);
 

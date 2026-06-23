@@ -1028,7 +1028,7 @@ sub build_matrix_elements {
     my $ofh = delete $args{file_handle};
     my $output_gdm_format = $args{output_gdm_format};
 
-    my $bd = $self->get_param ('BASEDATA_REF');
+    my $bd = $self->get_basedata_ref;
 
     my $sp = $args{spatial_object};
     my $pass_def_query = $sp->get_pass_def_query;
@@ -1061,6 +1061,26 @@ sub build_matrix_elements {
         $progress = Biodiverse::Progress->new (text => 'Processing row', gui_only => 1);
     }
     my $n_matrices = scalar @$matrices;
+
+    #  These are calculations that don't need the dependency infrastructure and its overheads
+    #  and which are commonly used in clustering.
+    state %direct_calls = (
+        SORENSON => sub {
+            my ($aa, $bb, $cc) = @_;
+            return 1 - (2 * $aa) / (2 * $aa + $bb + $cc);
+        },
+        JACCARD  => sub {
+            my ($aa, $bb, $cc) = @_;
+            return 1 - $aa / ($aa + $bb + $cc);
+        },
+        S2       => sub {
+            my ($aa, $bb, $cc) = @_;
+            return 1 - $aa / ($aa + min ($bb, $cc));
+        }
+    );
+    my $direct_call     = $direct_calls{$index};
+    my $use_direct_call = defined $direct_call;
+    \my %h1 = $use_direct_call ? $bd->get_labels_in_group_as_hash_aa($element1) : {};
 
     my $n = 0;
   ELEMENT2:
@@ -1115,14 +1135,26 @@ sub build_matrix_elements {
             }
         }
 
-        my %elements = (
-            element_list1   => [$element1],
-            element_list2   => [$element2],
-        );
+        my $index_val;
+        if ($use_direct_call) {
+            use Hash::Util::Set qw /keys_intersection/;
+            \my %h2 = $bd->get_labels_in_group_as_hash_aa($element2);
+            my $aa  = keys_intersection (%h1, %h2);
+            my $bb  = scalar (keys %h1) - $aa;
+            my $cc  = scalar (keys %h2) - $aa;
+            $index_val = $direct_call->($aa, $bb, $cc)
+                if ($aa || ($bb && $cc));
+        }
+        else {
+            my %elements = (
+                element_list1   => [$element1],
+                element_list2   => [$element2],
+            );
+            my $values = $indices_object->run_calculations(%args, %elements);
+            $index_val = $values->{$index};
+        }
 
-        my $values = $indices_object->run_calculations(%args, %elements);
-
-        next ELEMENT2 if ! defined $values->{$index};  #  don't add it if it is undefined
+        next ELEMENT2 if ! defined $index_val;  #  don't add it if it is undefined
 
         # write results to file handles if supplied, otherwise store them
         if (defined $ofh) {
@@ -1130,9 +1162,9 @@ sub build_matrix_elements {
                 ? [
                    @{[$bd->get_group_element_as_array(element => $element1)]}[0,1],  #  need to generalise these
                    @{[$bd->get_group_element_as_array(element => $element2)]}[0,1],
-                   $values->{$index},
+                   $index_val,
                    ]
-                : [$element1, $element2, $values->{$index}];
+                : [$element1, $element2, $index_val];
             my $text = $self->list2csv(
                 list       => $res_list,
                 csv_object => $csv_out,
@@ -1144,7 +1176,7 @@ sub build_matrix_elements {
                 $mx->add_element (
                     element1 => $element1,
                     element2 => $element2,
-                    value    => $values->{$index}
+                    value    => $index_val,
                 );
             }
         }

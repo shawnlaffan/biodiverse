@@ -180,7 +180,7 @@ sub calc_redundancy {  #  calculate the sample redundancy for a set of elements
         : \%results;
 }
 
-
+#  not used now but left in the event it is useful one day
 sub get_metadata_is_dissimilarity_valid {
     my $self = shift;
     
@@ -200,8 +200,7 @@ sub get_metadata_is_dissimilarity_valid {
 }
 
 sub is_dissimilarity_valid {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
     my %result = (
         DISSIMILARITY_IS_VALID => ($args{A} || ($args{B} && $args{C})),
@@ -284,7 +283,7 @@ sub get_metadata_calc_kulczynski2 {
             },
         },
         type            => 'Taxonomic Dissimilarity and Comparison',
-        pre_calc        => [qw /_calc_abc_any is_dissimilarity_valid/],
+        pre_calc        => [qw /_calc_abc_scalars/],
         uses_nbr_lists  => 2,
     );
 
@@ -292,16 +291,16 @@ sub get_metadata_calc_kulczynski2 {
 }
 
 sub calc_kulczynski2 {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
-    my $value;
-    if ($args{DISSIMILARITY_IS_VALID}) {
-        my ($aa, $bb, $cc) = @args{'A', 'B', 'C'};
-        $value = eval {
+    #  valid if shared labels, or both sets have contents
+    #  i.e. no empties
+    my ($aa, $bb, $cc) = @args{'A', 'B', 'C'};
+    my $value = ($aa || ($bb && $cc))
+        ? eval {
             1 - 0.5 * ($aa / ($aa + $bb) + $aa / ($aa + $cc));
-        };
-    }
+        }
+        : undef;
 
     my %result = (KULCZYNSKI2 => $value);
 
@@ -330,7 +329,7 @@ sub get_metadata_calc_sorenson {
             }
         },
         type            => 'Taxonomic Dissimilarity and Comparison',
-        pre_calc        => [qw /_calc_abc_any is_dissimilarity_valid/],
+        pre_calc        => [qw /_calc_abc_scalars/],
         uses_nbr_lists  => 2,
     );
 
@@ -340,12 +339,14 @@ sub get_metadata_calc_sorenson {
 # calculate the Sorenson dissimilarity index between two lists (1 - Czechanowski)
 #  = 2a/(2a+b+c) where a is shared presence between groups, b&c are in one group only
 sub calc_sorenson {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
-    my $value = $args{DISSIMILARITY_IS_VALID}
-                ? eval {1 - ((2 * $args{A}) / ($args{A} + $args{ABC}))}
-                : undef;
+    #  valid if shared labels, or both sets have contents
+    #  i.e. no empties
+    my $value
+        = ($args{A} || ($args{B} && $args{C}))
+        ? eval {1 - ((2 * $args{A}) / ($args{A} + $args{ABC}))}
+        : undef;
 
     my %result = (SORENSON => $value);
 
@@ -361,7 +362,7 @@ sub get_metadata_calc_jaccard {
         description     => 'Jaccard dissimilarity between the labels in neighbour sets 1 and 2.',
         type            => 'Taxonomic Dissimilarity and Comparison',
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
-        pre_calc        => [qw /_calc_abc_any is_dissimilarity_valid/],
+        pre_calc        => [qw /_calc_abc_scalars/],
         formula         => [
             '= 1 - \frac{A}{A + B + C}',
             $self->get_formula_explanation_ABC,
@@ -383,12 +384,14 @@ sub get_metadata_calc_jaccard {
 #  J = a/(a+b+c) where a is shared presence between groups, b&c are in one group only
 #  this is almost identical to calc_sorenson    
 sub calc_jaccard {    
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
-    my $value = $args{DISSIMILARITY_IS_VALID}
-                ? eval {1 - ($args{A} / $args{ABC})}
-                : undef;
+    #  valid if shared labels, or both sets have contents
+    #  i.e. no empties
+    my $value
+        = ($args{A} || ($args{B} && $args{C}))
+        ? eval {1 - ($args{A} / $args{ABC})}
+        : undef;
 
     my %result = (JACCARD => $value);
 
@@ -458,7 +461,7 @@ sub get_metadata_calc_nestedness_resultant {
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
         reference       => 'Baselga (2010) Glob Ecol Biogeog.  '
                            . 'https://doi.org/10.1111/j.1466-8238.2009.00490.x',
-        pre_calc        => ['_calc_abc_any'],
+        pre_calc        => ['_calc_abc_scalars'],
         formula         => [
             '=\frac{ \left | B - C \right | }{ 2A + B + C } '
             . '\times \frac { A }{ A + min (B, C) }'
@@ -712,7 +715,7 @@ sub get_metadata_calc_beta_diversity {
         },
         type            => 'Taxonomic Dissimilarity and Comparison',
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
-        pre_calc        => ['_calc_abc_any'],
+        pre_calc        => ['_calc_abc_scalars'],
     );
 
     return $metadata_class->new(\%metadata);
@@ -743,7 +746,7 @@ sub get_metadata_calc_s2 {
         name            => 'S2',
         type            => 'Taxonomic Dissimilarity and Comparison',
         description     => "S2 dissimilarity between two sets of labels\n",
-        pre_calc        => ['_calc_abc_any'],
+        pre_calc        => ['_calc_abc_scalars'],
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
         reference   => 'Lennon et al. (2001) J Animal Ecol.  '
                         . 'https://doi.org/10.1046/j.0021-8790.2001.00563.x',
@@ -1690,7 +1693,7 @@ sub get_metadata__calc_abc_any {
     my %metadata = (
         name            => '_calc_abc_any',
         description     => 'Special sub for when we only need the keys, '
-                         . 'not the values, so can use any of /calc_abc[23]?/',
+            . 'not the values, so can use any of /calc_abc[23]?/',
         type            => 'not_for_gui',
         indices         => {},
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
@@ -1713,6 +1716,67 @@ sub _calc_abc_any {
     return wantarray ? %$results : $results;
 }
 
+sub get_metadata__calc_abc_scalars {
+
+    my %metadata = (
+        name            => '_calc_abc_scalars',
+        description     => 'Special sub for when we only need the scalar values from /calc_abc[23]?/',
+        type            => 'not_for_gui',
+        indices         => {},
+        uses_nbr_lists  => 1,  #  how many sets of lists it must have
+        required_args   => [$RE_ABC_REQUIRED_ARGS],  #experimental - https://github.com/shawnlaffan/biodiverse/issues/336
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub _calc_abc_scalars {
+    my ($self, %args) = @_;
+
+    state $empty_array = [];
+
+    #  A very large condition...
+    #  Check el2 before el1 as it is common for el2 to be empty, i.e. no second nbr set
+    my $use_pairwise_direct =
+        @{$args{element_list2} // $empty_array} == 1
+            && @{$args{element_list1} // $empty_array} == 1
+            && $self->get_pairwise_mode
+            && !defined (
+                  $args{label_hash1}
+                // $args{label_hash2}
+                // $args{label_list1}
+                // $args{label_list2}
+            );
+
+    #  Direct calculation when we have two elements as inputs, e.g. when building matrices.
+    if ($use_pairwise_direct) {
+        use Hash::Util::Set qw /keys_intersection/;
+        my $bd  = $self->get_basedata_ref;
+        \my %h1 = $bd->get_labels_in_group_as_hash_aa($args{element_list1}[0]);
+        \my %h2 = $bd->get_labels_in_group_as_hash_aa($args{element_list2}[0]);
+        my $aa = keys_intersection (%h1, %h2);
+        my $bb = scalar (keys %h1) - $aa;
+        my $cc = scalar (keys %h2) - $aa;
+        my %res = (
+            A   => $aa,
+            B   => $bb,
+            C   => $cc,
+            ABC => $aa + $bb + $cc,
+        );
+        return wantarray ? %res : \%res;
+    }
+
+    my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
+
+    my $results = $cache_hash->{calc_abc}
+        // $cache_hash->{calc_abc2}
+        // $cache_hash->{calc_abc3}
+        // $self->calc_abc(%args);
+    my %scalars = %{$results}{qw /A B C ABC/};
+
+    return wantarray ? %scalars : \%scalars;
+}
+
 sub get_metadata_calc_abc {
 
     my %metadata = (
@@ -1731,10 +1795,8 @@ sub calc_abc {  #  wrapper for _calc_abc - use the other wrappers for actual GUI
     my ($self, %args) = @_;
 
     my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
-    my $cached
-        = $cache_hash->{calc_abc2} || $cache_hash->{calc_abc3};
 
-    if ($cached) {
+    if (my $cached = $cache_hash->{calc_abc2} || $cache_hash->{calc_abc3}) {
         #  create a shallow copy and then override the label hashes
         my %results = %$cached;
         foreach my $key (qw/label_hash1 label_hash2 label_hash_all/) {

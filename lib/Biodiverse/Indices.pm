@@ -1555,7 +1555,7 @@ sub run_dependencies {
     my $self = shift;
     my %args = @_;
 
-    my $type = $args{type};
+    my $type = delete $args{type};
 
     my $validated_calcs = $self->get_param('VALID_CALCULATIONS');
     my $calc_list       = $validated_calcs->{calc_lists_by_type}{$type};
@@ -1567,59 +1567,52 @@ sub run_dependencies {
     my $dep_list_global =
       $validated_calcs->{calc_deps_by_type}{pre_calc_global};
 
-    my $tmp = $self->get_param('AS_RESULTS_FROM_GLOBAL') || {};
-    my %as_results_from_global = %$tmp;    #  make a copy
-
-    state $cache_name_local_results = 'AS_RESULTS_FROM_LOCAL';
+    #  make a copy
+    my %as_results_from_global = %{$self->get_param('AS_RESULTS_FROM_GLOBAL') || {}};
 
     #  Now we run the calculations at this level.
     #  We also keep track of what has been run
     #  to avoid repetition through multiple dependencies.
     my %results;
     my %as_results_from;
+
+    state $cache_name_local_results = 'AS_RESULTS_FROM_LOCAL';
     #  make sure this is new each iteration
     $self->set_param ($cache_name_local_results => \%as_results_from);
 
+    my $is_pre_calc_global = $type eq 'pre_calc_global';
+
     foreach my $calc (@$calc_list) {
-        my $calc_results;
-
-        #  if already cached then just grab it - should never happen now?
-        if ( exists $as_results_from{$calc} ) {
-            $calc_results = $as_results_from{$calc};
-        }
-        else {
-            my %dep_results;
-            if (my $deps = $dep_list->{$calc} ) {
-              LOCAL_DEP:
-                foreach my $dep (@$deps) {
-                    my $dep_res = $as_results_from{$dep}
-                        || next LOCAL_DEP;
-                    @dep_results{ keys %$dep_res } = values %$dep_res;
-                }
-            }
-            if (my $deps = $dep_list_global->{$calc}) {
-              GLOBAL_DEP:
-                foreach my $dep (@$deps) {
-                    my $dep_res = $as_results_from_global{$dep}
-                        || next GLOBAL_DEP;
-                    @dep_results{ keys %$dep_res } = values %$dep_res;
-                }
-            }
-
-            $calc_results = eval { $self->$calc( %args, %dep_results, ); };
-            croak $EVAL_ERROR if $EVAL_ERROR;
-            $as_results_from{$calc} = $calc_results;
-            if ( $type eq 'pre_calc_global' ) {
-                $as_results_from_global{$calc} = $calc_results;
+        my %dep_results;
+        if (my $deps = $dep_list->{$calc} ) {
+          LOCAL_DEP:
+            foreach my $dep_res (map {$as_results_from{$_}} @$deps) {
+                next LOCAL_DEP if !$dep_res;
+                @dep_results{ keys %$dep_res } = values %$dep_res;
             }
         }
+        if (my $deps = $dep_list_global->{$calc}) {
+          GLOBAL_DEP:
+            foreach my $dep_res (map {$as_results_from_global{$_}} @$deps) {
+                next GLOBAL_DEP if !$dep_res;
+                @dep_results{ keys %$dep_res } = values %$dep_res;
+            }
+        }
+
+        my $calc_results = eval { $self->$calc( %args, %dep_results ); };
+        croak $EVAL_ERROR if $EVAL_ERROR;
+        $as_results_from{$calc} = $calc_results;
+        if ( $is_pre_calc_global ) {
+            $as_results_from_global{$calc} = $calc_results;
+        }
+
         $results{$calc} = $calc_results;
     }
 
     #  We refresh each call above, but this ensures last one is cleaned up.
     $self->delete_param ($cache_name_local_results);
 
-    if ( $type eq 'pre_calc_global' ) {
+    if ( $is_pre_calc_global ) {
         $self->set_param( AS_RESULTS_FROM_GLOBAL => \%as_results_from_global );
     }
 
@@ -1643,8 +1636,7 @@ sub run_calculations {
         my $calc_results = $pre_calc_local_results->{$calc};
 
         #  remove those that are invalid
-        my $indices_to_clear = $calcs_to_run{$calc}{indices_to_clear};
-        if ($indices_to_clear) {
+        if (my $indices_to_clear = $calcs_to_run{$calc}{indices_to_clear}) {
             delete @{$calc_results}{ keys %$indices_to_clear };
         }
 
@@ -1706,10 +1698,10 @@ sub run_postcalc_globals {
 sub set_pairwise_mode {
     my ( $self, $mode ) = @_;
 
-    $self->{pairwise_mode} = $mode;
-
     croak "Cannot have both pairwise and hierarchical modes on at the same time"
         if $mode && $self->get_hierarchical_mode;
+
+    $self->{pairwise_mode} = $mode;
 
     return $mode;
 }

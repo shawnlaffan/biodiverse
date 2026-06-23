@@ -711,7 +711,7 @@ sub get_indices_object_for_matrix_and_clustering {
     if (defined $index_bounds->[0]) {
         $self->set_param(MIN_POSS_INDEX_VALUE => $index_bounds->[0]);
     }
-    # cache unless told otherwise
+    # cache unless told otherwise - should only apply to the recalc linkage now
     my $cache_abc = $self->get_param ('CACHE_ABC') // 1;
     if (defined $args{no_cache_abc} and length $args{no_cache_abc}) {
         $cache_abc = not $args{no_cache_abc};
@@ -778,7 +778,6 @@ sub build_matrices {
 
     my $index          = $self->get_param ('CLUSTER_INDEX');
     my $index_function = $self->get_param ('CLUSTER_INDEX_SUB');
-    my $cache_abc      = $self->get_param ('CACHE_ABC');
 
     my $name = $args{name} || $self->get_param ('NAME') || "CLUSTERMATRIX_$index";
 
@@ -949,7 +948,6 @@ sub build_matrices {
                 element_list       => [keys %$nbr_hash],
                 index_function     => $index_function,
                 index              => $index,
-                cache_abc          => $cache_abc,
                 file_handle        => $file_handles->[$m],
                 spatial_object     => $sp,
                 indices_object     => $indices_object,
@@ -1018,15 +1016,10 @@ sub build_matrix_elements {
         $element_list2 = [keys %$element_list2];
     }
 
-    my $cache = $args{element_label_cache} || $self->get_param ('MATRIX_ELEMENT_LABEL_CACHE');
     my $matrices = $args{matrices};  #  two items, second is shadow matrix
 
-    my $index_function   = $args{index_function}
-                           || $self->get_param ('CLUSTER_INDEX_SUB');
     my $index            = $args{index}
                            || $self->get_param ('CLUSTER_INDEX');
-    my $cache_abc        = $args{cache_abc}
-                           || $self->get_param ('CACHE_ABC');
     my $indices_object   = $args{indices_object}
                            || $self->get_param ('INDICES_OBJECT');
 
@@ -1035,11 +1028,10 @@ sub build_matrix_elements {
     my $ofh = delete $args{file_handle};
     my $output_gdm_format = $args{output_gdm_format};
 
-    my $bd = $self->get_param ('BASEDATA_REF');
+    my $bd = $self->get_basedata_ref;
 
     my $sp = $args{spatial_object};
     my $pass_def_query = $sp->get_pass_def_query;
-    #my $pass_def_query = {};
 
     my %already_calculated;
 
@@ -1070,20 +1062,42 @@ sub build_matrix_elements {
     }
     my $n_matrices = scalar @$matrices;
 
+    #  These are calculations that don't need the dependency infrastructure and its overheads
+    #  and which are commonly used in clustering.
+    state %direct_calls = (
+        SORENSON => sub {
+            my ($aa, $bb, $cc) = @_;
+            return 1 - (2 * $aa) / (2 * $aa + $bb + $cc);
+        },
+        JACCARD  => sub {
+            my ($aa, $bb, $cc) = @_;
+            return 1 - $aa / ($aa + $bb + $cc);
+        },
+        S2       => sub {
+            my ($aa, $bb, $cc) = @_;
+            return 1 - $aa / ($aa + min ($bb, $cc));
+        }
+    );
+    my $direct_call     = $direct_calls{$index};
+    my $use_direct_call = defined $direct_call;
+
+    \my %label_cache = $self->get_cached_href('LABELS_IN_GROUPS_AS_HASH');
+    \my %h1 = $use_direct_call
+        ? ($label_cache{$element1} //= $bd->get_labels_in_group_as_hash_aa($element1))
+        : {};
+
     my $n = 0;
   ELEMENT2:
     foreach my $element2 (sort @$element_list2) {
         $n++;
 
-        {
-            next ELEMENT2 if $already_calculated{$element2};
-            next ELEMENT2 if $element1 eq $element2;
+        next ELEMENT2
+            if $already_calculated{$element2}
+                or $element1 eq $element2;
 
-            if ($pass_def_query) {  #  poss redundant check now
-                next ELEMENT2
-                  if not exists $pass_def_query->{$element2};
-            }
-        }
+        #  poss redundant check now
+        next ELEMENT2
+          if $pass_def_query and not exists $pass_def_query->{$element2};
 
         if ($progress) {
             $progress->update ("processing column $n of $to_do", $n / $to_do);
@@ -1125,54 +1139,26 @@ sub build_matrix_elements {
             }
         }
 
-        #  use elements if no cached labels
-        #  set to undef if we have a cached label_hash
-        my ($el1_ref, $el2_ref, $label_hash1, $label_hash2);
-        if (0 && $cache_abc) {
-            $el1_ref = defined $cache->{$element1} ? undef : [$element1];
-            $el2_ref = defined $cache->{$element2} ? undef : [$element2];
-
-            #  use cached labels if they exist (gets undef otherwise)
-            $label_hash1 = exists $cache->{$element1} ? $cache->{$element1} : undef;
-            $label_hash2 = exists $cache->{$element2} ? $cache->{$element2} : undef;
+        my $index_val;
+        if ($use_direct_call) {
+            use Hash::Util::Set qw /keys_intersection/;
+            \my %h2 = $label_cache{$element2} //= $bd->get_labels_in_group_as_hash_aa($element2);
+            my $aa  = keys_intersection (%h1, %h2);
+            my $bb  = scalar (keys %h1) - $aa;
+            my $cc  = scalar (keys %h2) - $aa;
+            $index_val = $direct_call->($aa, $bb, $cc)
+                if ($aa || ($bb && $cc));
         }
         else {
-            $el1_ref = [$element1];
-            $el2_ref = [$element2];            
+            my %elements = (
+                element_list1   => [$element1],
+                element_list2   => [$element2],
+            );
+            my $values = $indices_object->run_calculations(%args, %elements);
+            $index_val = $values->{$index};
         }
 
-        my %elements = (
-            element_list1   => $el1_ref,
-            element_list2   => $el2_ref,
-            label_hash1     => $label_hash1,
-            label_hash2     => $label_hash2,
-        );
-
-        my $values = $indices_object->run_calculations(%args, %elements);
-
-        #  caching - a bit dodgy
-        #  what if we have calc_abc and calc_abc3 as deps?
-        #  turn it off for now (compiler will optimise it away)
-        if (0 && $cache_abc) {
-            my $abc = {};
-            my $as_results_from = $indices_object->get_param('AS_RESULTS_FROM');
-            foreach my $calc_abc_type (qw /calc_abc3 calc_abc2 calc_abc/) {
-                if (exists $as_results_from->{$calc_abc_type}) {
-                    $abc = $as_results_from->{$calc_abc_type};
-                    last;
-                }
-            }
-
-            #  use cache unless told not to
-            if (defined $abc->{label_hash1} and ! defined $cache->{$element1}) {
-                $cache->{$element1} = $abc->{label_hash1};
-            }
-            if (defined $abc->{label_hash2} and ! defined $cache->{$element2}) {
-                $cache->{$element2} = $abc->{label_hash2}
-            }
-        }
-
-        next ELEMENT2 if ! defined $values->{$index};  #  don't add it if it is undefined
+        next ELEMENT2 if ! defined $index_val;  #  don't add it if it is undefined
 
         # write results to file handles if supplied, otherwise store them
         if (defined $ofh) {
@@ -1180,9 +1166,9 @@ sub build_matrix_elements {
                 ? [
                    @{[$bd->get_group_element_as_array(element => $element1)]}[0,1],  #  need to generalise these
                    @{[$bd->get_group_element_as_array(element => $element2)]}[0,1],
-                   $values->{$index},
+                   $index_val,
                    ]
-                : [$element1, $element2, $values->{$index}];
+                : [$element1, $element2, $index_val];
             my $text = $self->list2csv(
                 list       => $res_list,
                 csv_object => $csv_out,
@@ -1190,13 +1176,9 @@ sub build_matrix_elements {
             say {$ofh} $text;
         }
         else {
-            foreach my $mx (@$matrices) {
-                $mx->add_element (
-                    element1 => $element1,
-                    element2 => $element2,
-                    value    => $values->{$index}
-                );
-            }
+            #  postfix loop to minimise scope overheads in hot path
+            $_->add_element_aa ($element1, $element2, $index_val)
+                foreach @$matrices;
         }
 
         $valid_count ++;
@@ -1705,7 +1687,7 @@ sub get_most_similar_pair_using_tie_breaker {
             my @el_lists;
             foreach my $j (0, 1) {
                 my $node = $pair->[$j];
-                my $node_ref = $self->get_node_ref (node => $node);
+                my $node_ref = $self->get_node_ref_aa ($node);
                 my $el_list;
                 if ($node_ref->is_internal_node) {
                     my $terminals = $node_ref->get_terminal_elements;
@@ -2229,7 +2211,7 @@ sub cluster {
 
     %root_nodes = $self->get_root_nodes;
     my $root_node_name = [keys %root_nodes]->[0];
-    my $root_node = $self->get_node_ref (node => $root_node_name);
+    my $root_node = $self->get_node_ref_aa ($root_node_name);
 
     $root_node->set_length(length => 0);
     $root_node->set_value (
@@ -2455,8 +2437,8 @@ sub get_values_for_linkage {
     }
     else {
         warn "two node linkage case\n";
-        my $node_ref_1 = $self->get_node_ref (node => $node1);
-        my $node_ref_2 = $self->get_node_ref (node => $node2);
+        my $node_ref_1 = $self->get_node_ref_aa ($node1);
+        my $node_ref_2 = $self->get_node_ref_aa ($node2);
         $tmp1 = $node_ref_1->get_length_below;
         $tmp2 = $node_ref_2->get_length_below;
     }
@@ -2475,17 +2457,9 @@ sub link_recalculate {
     my $node2 = $args{node2};
     my $check_node = $args{compare_node};
 
-    my $node1_ref = $self->get_node_ref (node => $node1);
-    my $node2_ref = $self->get_node_ref (node => $node2);
-    my $check_node_ref = $self->get_node_ref (node => $check_node);
-
-    my $sim_matrix = $args{matrix}
-                    || $self->get_shadow_matrix
-                    || $self->get_matrix_ref(iter => 0);
-
-    my $index_function
-        = $args{index_function}
-        || $self->get_param ('CLUSTER_INDEX_SUB');
+    my $node1_ref = $self->get_node_ref_aa ($node1);
+    my $node2_ref = $self->get_node_ref_aa ($node2);
+    my $check_node_ref = $self->get_node_ref_aa ($check_node);
 
     my $index
         = $args{index}
@@ -2509,12 +2483,9 @@ sub link_recalculate {
     my $node2_1_cache_name = 'LABEL_HASH_' . $node2 . '__' . $node1;
 
     #  get the element or label lists as needed
-    if ($node1_ref) {
-        $label_hash1 = $node1_ref->get_cached_value ($node1_2_cache_name) ;
-    }
-    elsif ($node2_ref) {
-        $label_hash1 = $node2_ref->get_cached_value ($node1_2_cache_name);
-    }
+    $label_hash1 = $node1_ref->get_cached_value (
+        $node1_ref ? $node1_2_cache_name : $node2_1_cache_name
+    );
 
     #  if no cached value then merge the lists of terminal elements
     if (not $label_hash1) {
@@ -2573,7 +2544,8 @@ sub link_recalculate {
                 }
                 if (defined $node2_ref) {
                     $node2_ref->set_cached_value (
-                        $node2_1_cache_name => $abc->{label_hash1});
+                        $node2_1_cache_name => $abc->{label_hash1}
+                    );
                 }
             }
         }
@@ -2626,15 +2598,9 @@ sub run_linkage {
 
         #  skip if we don't have both pairs check_node with node1 and with node2
         next CHECK_NODE if !(
-            $matrix_with_elements->element_pair_exists (
-                element1 => $check_node,
-                element2 => $node1,
-            )
+            $matrix_with_elements->element_pair_exists_aa ($check_node, $node1)
             &&
-            $matrix_with_elements->element_pair_exists (
-                element1 => $check_node,
-                element2 => $node2,
-            )
+            $matrix_with_elements->element_pair_exists_aa ($check_node, $node2)
         );  
 
         if ($progress) {
@@ -2666,15 +2632,9 @@ sub run_linkage {
 
             next MX_ITER
               if ! (
-                    $mx->element_pair_exists (
-                        element1 => $node1,
-                        element2 => $check_node,
-                    )
+                    $mx->element_pair_exists_aa ($node1, $check_node)
                     &&
-                    $mx->element_pair_exists (
-                        element1 => $node2,
-                        element2 => $check_node,
-                    )
+                    $mx->element_pair_exists_aa ($node2, $check_node)
                 );
 
             $mx->add_element (

@@ -614,24 +614,24 @@ sub get_path_lengths_to_root_node {
     #  massive trees where we only need a subset.
     my $path_cache_master
       = $self->get_cached_value_dor_set_default_href ('PATH_LENGTH_CACHE_PER_TERMINAL');
-    my $path_cache = $path_cache_master->{$tree_ref} //= {};
+    \my %path_cache = $path_cache_master->{$tree_ref} //= {};
 
     # get a hash of node refs
-    my $all_nodes = $tree_ref->get_node_hash;
+    \my %all_nodes = $tree_ref->get_node_hash;
 
     #  now loop through the labels and get the path to the root node
-    my $path_hash = {};
+    \my %path_hash = {};
     my @collected_paths;  #  used if we have Bd::Utils 1.07 or greater
-    foreach my $label (grep exists $all_nodes->{$_}, keys %$label_list) {
+    foreach my $label (grep exists $all_nodes{$_}, keys %$label_list) {
         #  Could assign to $current_node here, but profiling indicates it
         #  takes meaningful chunks of time for large data sets
-        my $current_node = $all_nodes->{$label};
-        my $sub_path = $cache && $path_cache->{$current_node};
+        my $current_node = $all_nodes{$label};
+        my $sub_path = $cache && $path_cache{$current_node};
 
         if (!$sub_path) {
             $sub_path = $current_node->get_path_name_array_to_root_node_aa (!$cache);
             if ($cache) {
-                $path_cache->{$current_node} = $sub_path;
+                $path_cache{$current_node} = $sub_path;
             }
         }
 
@@ -643,20 +643,20 @@ sub get_path_lengths_to_root_node {
         }
         elsif (HAVE_BD_UTILS) {
             Biodiverse::Utils::add_hash_keys_until_exists (
-                $path_hash,
+                \%path_hash,
                 $sub_path,
             );
         }
         else {
             #  The last-if approach is faster than a straight slice,
             #  but we should (might) be able to get even more speedup with XS code.  
-            if (!scalar keys %$path_hash) {
-                @$path_hash{@$sub_path} = ();
+            if (!scalar keys %path_hash) {
+                @path_hash{@$sub_path} = ();
             }
             else {
                 foreach my $node_name (@$sub_path) {
-                    last if exists $path_hash->{$node_name};
-                    $path_hash->{$node_name} = undef;
+                    last if exists $path_hash{$node_name};
+                    $path_hash{$node_name} = undef;
                 }
             }
         }
@@ -671,29 +671,28 @@ sub get_path_lengths_to_root_node {
         if (@collected_paths) {
             #  direct assign the first (could do first few, or the longest but that needs another scan)
             my $first = shift @collected_paths;
-            @$path_hash{@$first} = @$len_hash{@$first};
+            @path_hash{@$first} = @$len_hash{@$first};
             if (@collected_paths) {
                 #  get keys and vals in one call
                 Biodiverse::Utils::XS::add_hash_keys_and_vals_until_exists_AoA(
-                    $path_hash, \@collected_paths, $len_hash,
+                    \%path_hash, \@collected_paths, $len_hash,
                 );
             }
         }
     }
     elsif (HAVE_BD_UTILS) {
-        Biodiverse::Utils::copy_values_from ($path_hash, $len_hash);
+        Biodiverse::Utils::copy_values_from (\%path_hash, $len_hash);
     }
     else {
-        @$path_hash{keys %$path_hash} = @$len_hash{keys %$path_hash};
+        @path_hash{keys %path_hash} = @$len_hash{keys %path_hash};
     }
 
     if ($use_path_cache) {
         my $cache_h = $args{path_length_cache};
-        #my @el_list = @$el_list;  #  can only have one item
-        $cache_h->{$el_list->[0]} = $path_hash;
+        $cache_h->{$el_list->[0]} = \%path_hash;
     }
 
-    return wantarray ? %$path_hash : $path_hash;
+    return wantarray ? %path_hash : \%path_hash;
 }
 
 sub _get_path_lengths_to_root_node_hierarchical {

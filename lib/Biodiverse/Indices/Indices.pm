@@ -1734,10 +1734,8 @@ sub calc_abc {  #  wrapper for _calc_abc - use the other wrappers for actual GUI
     my ($self, %args) = @_;
 
     my $cache_hash = $self->get_param('AS_RESULTS_FROM_LOCAL');
-    my $cached
-        = $cache_hash->{calc_abc2} || $cache_hash->{calc_abc3};
 
-    if ($cached) {
+    if (my $cached = $cache_hash->{calc_abc2} || $cache_hash->{calc_abc3}) {
         #  create a shallow copy and then override the label hashes
         my %results = %$cached;
         foreach my $key (qw/label_hash1 label_hash2 label_hash_all/) {

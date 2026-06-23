@@ -464,6 +464,32 @@ sub add_element {
     return;
 }
 
+sub add_element_aa {
+    my ($self, $element1, $element2, $val) = @_;
+
+    croak "Element1 not specified in call to add_element_aa\n"
+        if !defined $element1;
+
+    croak "Element2 not specified in call to add_element_aa\n"
+        if !defined $element2;
+
+    if (! defined $val && ! $self->get_param('ALLOW_UNDEF')) {
+        warn "[Matrix] add_element Warning: Value not defined and ALLOW_UNDEF not set, "
+            . "not adding row $element1 col $element2.\n";
+        return;
+    }
+
+    my $index_val = $self->get_value_index_key_aa( $val );
+
+    $self->{BYELEMENT}{$element1}{$element2} = $val;
+    $self->{BYVALUE}{$index_val}{$element1}{$element2}++;
+    #  cache the component elements to save searching through the other lists later
+    $self->{ELEMENTS}{$element1}++;
+    $self->{ELEMENTS}{$element2}++;    #  also keeps a count of the elements
+
+    return;
+}
+
 #  should be called delete_element_pair, but need to find where it's used first
 sub delete_element {
     my $self = shift;

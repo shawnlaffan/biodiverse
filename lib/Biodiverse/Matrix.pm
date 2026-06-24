@@ -402,11 +402,16 @@ sub get_summary_stats {
     return wantarray ? %$cached : $cached
       if $cached;
 
+    my $n_elements = $self->get_element_count;
+    my $progress = $n_elements > 500 ? Biodiverse::Progress->new(gui_only => 1) : undef;
+
     my %data;
     \my %top_level = $self->{BYELEMENT};
+    my $i = 0;
     foreach my $href (values %top_level) {
         #  round to save time and space - approximate vals should be OK for this
         $data{0 + sprintf "%-6g", $_}++ for values %$href;
+        $progress && $progress->update ("Collating matrix stats data", ++$i / $n_elements);
     }
     my %r;
     my $stats

@@ -600,7 +600,10 @@ sub transpose {
 
     #  set the correct cell sizes.
     #  The default is just in case, and may cause trouble later on
-    my @cell_sizes = $self->get_labels_ref->get_cell_sizes || (-1);
+    my @cell_sizes = $self->get_labels_ref->get_cell_sizes;
+    if (!@cell_sizes) {
+        @cell_sizes = (-1);
+    }
     $new->set_param( CELL_SIZES => [@cell_sizes] );    #  make sure it's a copy
 
     $new->delete_cached_values;

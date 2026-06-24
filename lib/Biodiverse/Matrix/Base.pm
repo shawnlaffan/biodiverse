@@ -653,12 +653,10 @@ sub to_table_sparse {
     E1:
     foreach my $element1 (@elements) {
         $i++;
-        my $j = 0;
 
-        my $progress = $i / $to_do;
         $progress_bar->update (
             $progress_pfx . "(row $i / $to_do)",
-            $progress,
+            $i / $to_do,
         );
 
         if ($fh) {
@@ -669,12 +667,12 @@ sub to_table_sparse {
             }
         }
 
+        my @elements2
+            = $ll_only ? @elements[0..$i-1]
+            : $ur_only ? @elements[$i+1..$#elements]
+            : @elements;
         E2:
-        foreach my $element2 (@elements) {
-            $j++;
-
-            next E1 if $ll_only and $j > $i;
-            next E2 if $ur_only and $j < $i;
+        foreach my $element2 (@elements2) {
 
             my $exists = $self->element_pair_exists_aa ($element1, $element2);
 
@@ -745,10 +743,9 @@ sub to_table_gdm {
             = $el_arrays{$element1}
             //= [$self->csv2list (string => $element1, csv_object => $el_csv_obj)];
         
-        my $progress = $i / $to_do;
         $progress_bar->update (
             $progress_pfx . "(row $i / $to_do)",
-            $progress,
+            $i / $to_do,
         );
         
         if ($fh) {
@@ -757,20 +754,17 @@ sub to_table_gdm {
                     or croak "CSV write issues, "
                     . $out_csv_obj->error_input;
             }
-
         }
 
-        my $j = 0;
-        E2:
-        foreach my $element2 (@elements) {
-            $j++;
-            next E1 if $ll_only and $j > $i;
-            next E2 if $ur_only and $j < $i;
+        my @elements2
+            = $ll_only ? @elements[0..$i-1]
+            : $ur_only ? @elements[$i+1..$#elements]
+            : @elements;
 
-            my $exists = $self->element_pair_exists (
-                element1 => $element1,
-                element2 => $element2,
-            );
+        E2:
+        foreach my $element2 (@elements2) {
+
+            my $exists = $self->element_pair_exists_aa ($element1, $element2);
 
             #  if we are symmetric then list it regardless, otherwise only if we have this exact pair-order
             if (($symmetric and $exists) or $exists == 1) {

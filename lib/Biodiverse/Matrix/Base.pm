@@ -592,10 +592,7 @@ sub to_table_normal {
             next E2 if $ur_only and $j < $i;
 
             if (!$symmetric) {
-                my $exists = $self->element_pair_exists (
-                    element1 => $element1,
-                    element2 => $element2,
-                );
+                my $exists = $self->element_pair_exists_aa ($element1, $element2);
                 if ($exists == 1) {
                     push @row, $self->get_value (
                         element1    => $element1,

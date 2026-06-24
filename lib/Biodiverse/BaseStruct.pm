@@ -467,13 +467,14 @@ sub get_unique_element_axis_values {
 #  get a coordinate for the element
 #  allows us to handle text axes for display
 sub get_element_name_coord {
-    my $self = shift;
-    my %args = @_;
-    defined $args{element} || croak "element not specified\n";
+    my ($self, %args) = @_;
+
+    croak "element not specified\n" if !defined $args{element};
+
     my $element = $args{element};
 
     my $values = eval {
-        $self->get_array_list_values (element => $element, list => '_ELEMENT_COORD');
+        $self->get_array_list_values_aa ($element, '_ELEMENT_COORD');
     };
     if (Biodiverse::BaseStruct::ListDoesNotExist->caught) {  #  doesn't exist, so generate it 
         $self->generate_element_coords;
@@ -524,8 +525,8 @@ sub generate_element_coords {
 }
 
 sub get_text_axis_as_coord {
-    my $self = shift;
-    my %args = @_;
+    my ($self,  %args) = @_;
+
     my $axis = $args{axis};
     my $text = $args{text};
     croak 'Argument "text" is undefined' if !defined $text;
@@ -533,9 +534,9 @@ sub get_text_axis_as_coord {
     #  store the axes as an array of hashes with value being the coord
     my $lists = $self->get_param ('AXIS_LIST_ORDER') || [];
 
-    if (! $args{recalculate} and defined $lists->[$axis]) {  #  we've already done it, so return what we have
-        return $lists->[$axis]{$text};
-    }
+    #  If we've already done it then return what we have
+    return $lists->[$axis]{$text}
+        if !$args{recalculate} and defined $lists->[$axis];
 
     my %this_axis;
     #  go through and get a list of all the axis text

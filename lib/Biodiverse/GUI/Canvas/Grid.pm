@@ -110,13 +110,14 @@ sub _on_motion {
             $self->reset_cursor;
         }
         if (my $g = $self->{end_hover_func}) {
-            $g->($key);
+            $g->();  #  no valid element so no args here
             $self->queue_draw;
         }
     }
     elsif ($last_key ne $key && $f) {
         #  these callbacks add to the highlights so any draw is done then
-        $f->($key);
+        my $elt = $self->{data}{$key}{element};
+        $f->($elt);
         $self->{last_motion_key} = $key;
 
         if ($self->in_select_mode) {
@@ -144,7 +145,8 @@ sub _on_ctl_click {
 
     #  only redraw if needed
     if ($f && exists $self->{data}{$key}) {
-        $f->($key);
+        my $elt = $self->{data}{$key}{element};
+        $f->($elt);
     }
 
     return FALSE;
@@ -377,6 +379,7 @@ sub set_base_struct {
     state $cache_name = 'GUI_2D_PLOT_DATA';
     my $cached_data = $bd->get_cached_value_dor_set_default_href ($cache_name);
 
+    my @cell_sizes = $source->get_cell_sizes;
     my @res = $self->calculate_cell_sizes($source); #  handles zero and text
 
     $res[1] //= $res[0];
@@ -387,6 +390,36 @@ sub set_base_struct {
         # say 'Cache hit';
         $self->{data}  = $cached_data->{data};
         $self->{rtree} = $cached_data->{rtree};
+    }
+    elsif (@cell_sizes == 1 && $cell_sizes[0] < 0) {
+        #  single axis of text - plot as a 2D block
+        my $cell2x = $cell_x / 2;
+        my $cell2y = $cell2x;
+        my %data;
+        \my @element_list = $source->get_element_list_sorted;
+        my $n_elements = @element_list;
+        my $ncols = floor sqrt $n_elements;
+        #  sorted list for consistency when there are >2 axes
+        foreach my $element (@element_list) {
+            my ($idx) = $source->get_element_name_coord(element => $element);
+            #  left to right, top to bottom
+            my $x = $idx % $ncols;
+            my $y = $n_elements - floor ($idx / $ncols);
+
+            my $key = "$x:$y";
+            next if exists $data{$key};
+
+            my $coord = [ $x, $y ];
+            my $bounds = [ $x - $cell2x, $y - $cell2y, $x + $cell2x, $y + $cell2y ];
+
+            $data{$key}{coord} = $coord;
+            $data{$key}{bounds} = $bounds;
+            $data{$key}{rect} = [ @$bounds[0, 1], $cell_x, $cell_y ];
+            $data{$key}{centroid} = [ @$coord ];
+            $data{$key}{element} = $element;
+        }
+
+        $cached_data->{data} = $self->{data} = \%data;
     }
     else {
         my $cell2x = $cell_x / 2;
@@ -411,17 +444,7 @@ sub set_base_struct {
             $data{$key}{element} = $element;
         }
 
-        #  Now build an rtree - random order is faster, hence it is outside the initial allocation
-        #  (An STR Tree would be faster to build)
-        #  Actually, we do not really need it for grids.
-        #  We can look at an STR tree for non-gridded data.
-        # my $rtree = $self->{rtree} = Tree::R->new;
-        # foreach my $key (keys %data) {
-        #     $rtree->insert($data{$key}{element}, @{$data{$key}{bounds}});
-        # }
-
         $cached_data->{data} = $self->{data} = \%data;
-        # $cached_data->{rtree} = $self->{rtree};
     }
 
     #  the rest could also be cached but does not take long
@@ -440,8 +463,6 @@ sub set_base_struct {
     $self->{cellsizes} = [ $cell_x, $cell_y ];
     $self->{ncells_x} = ($max_x - $min_x) / $cell_x;
     $self->{ncells_y} = ($max_y - $min_y) / $cell_y;
-
-    # say 'Bounding box: ' . join q{ }, $min_x, $min_y // '', $max_x, $max_y // '';
 
     # Store info needed by load_shapefile
     $self->{dataset_info} = [ $min_x, $min_y, $max_x, $max_y, $cell_x, $cell_y ];

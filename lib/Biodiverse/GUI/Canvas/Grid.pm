@@ -110,13 +110,14 @@ sub _on_motion {
             $self->reset_cursor;
         }
         if (my $g = $self->{end_hover_func}) {
-            $g->($key);
+            $g->();  #  no valid element so no args here
             $self->queue_draw;
         }
     }
     elsif ($last_key ne $key && $f) {
         #  these callbacks add to the highlights so any draw is done then
-        $f->($key);
+        my $elt = $self->{data}{$key}{element};
+        $f->($elt);
         $self->{last_motion_key} = $key;
 
         if ($self->in_select_mode) {
@@ -144,7 +145,8 @@ sub _on_ctl_click {
 
     #  only redraw if needed
     if ($f && exists $self->{data}{$key}) {
-        $f->($key);
+        my $elt = $self->{data}{$key}{element};
+        $f->($elt);
     }
 
     return FALSE;

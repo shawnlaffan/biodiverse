@@ -140,6 +140,8 @@ sub Run {
         $writefile = 'yes';
     }
 
+    $dlg->destroy;
+
     if ($writefile eq 'yes') {
         eval {
             $object->export(
@@ -153,7 +155,6 @@ sub Run {
         }
     }
 
-    $dlg->destroy;
 
     return;
 }

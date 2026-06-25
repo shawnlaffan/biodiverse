@@ -17,6 +17,7 @@ use Carp;
 
 use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max sum/;
+use Time::HiRes qw/time/;
 
 use Ref::Util qw { :all };
 use Biodiverse::Progress;
@@ -399,18 +400,20 @@ sub get_summary_stats {
     state $cachename = 'SUMMARY_STATS';
     my $cached = $self->get_cached_value ($cachename);
 
-    # return wantarray ? %$cached : $cached
-    #   if $cached;
+    return wantarray ? %$cached : $cached
+      if $cached;
 
     my $n_elements = $self->get_element_count;
     my $el_progress_thresh = 500;
     my $progress = $n_elements > $el_progress_thresh ? Biodiverse::Progress->new(gui_only => 1) : undef;
 
-    \my %top_level = $self->{BYELEMENT};
     my $progr_i = 0;
     my (@v_ndarrays, @w_ndarrays);
-    my $n = 0;
+    my $n_mx_elements = 0;
+    my $n_precred_vals = 0;
     my $prec_mult = 1e6;
+
+    \my %top_level = $self->{BYELEMENT};
     foreach my $href (values %top_level) {
         $progress && $progress->update ("Collating matrix stats data", ++$progr_i / $n_elements);
         #  round to save time and space - approximate vals should be OK for this
@@ -421,11 +424,12 @@ sub get_summary_stats {
         my @rle = $ndarray->inplace->qsort->rle;
         push @w_ndarrays, $rle[0];
         push @v_ndarrays, $rle[1];
-        $n += keys %$href;
+        $n_mx_elements  += keys %$href;
+        $n_precred_vals += $rle[0]->nelem;
     }
 
-    my $p_v = PDL->zeroes ($n);
-    my $p_w = PDL->zeroes ($n);
+    my $p_v = PDL->zeroes ($n_precred_vals);
+    my $p_w = PDL->zeroes ($n_precred_vals);
     my $ii = 0;
     my $nd_i = 0;
     foreach my $ndarray (@v_ndarrays) {
@@ -450,9 +454,34 @@ sub get_summary_stats {
         SD   => $stats->standard_deviation,
     );
 
-    #  this is the slow part for big data sets
     $progress && $progress->update("Calculating percentiles", 0.66);
-    @r{qw /PCT025 PCT05 PCT95 PCT975/} = $stats->percentiles(2.5, 5, 95, 97.5);
+    if ($p_v->nelem < 5000) {
+        @r{qw/PCT025 PCT05 PCT95 PCT975/} = $stats->percentiles(2.5, 5, 95, 97.5);
+    }
+    else {
+        say sprintf ("[Matrix] Number of precision adjusted values is %d (of %d)", $p_v->nelem, $n_mx_elements);
+        say "[Matrix] Using a binned approximation to calculate percentiles, nbins is $prec_mult";
+        #  use a histogram approximation for large data sets
+        my $hist_nsteps = $prec_mult;
+        my $hist_step = ($r{MAX} - $r{MIN}) / $hist_nsteps;
+
+        my $hist = $p_v->whistogram($p_w, $hist_step, $r{MIN}, $hist_nsteps);
+        my $cumsum = $hist->cumusumover;
+        my $nn = $cumsum->at(-1);
+        #  cannot just use sprintf
+        my %pct_map = (
+            '2.5'  => 'PCT025',
+            '5'    => 'PCT05',
+            '95'   => 'PCT95',
+            '97.5' => 'PCT975',
+        );
+        foreach my $pct (2.5, 5, 95, 97.5) {
+            my $target = $nn * $pct / 100;
+            my $idx = PDL::vsearch_insert_leftmost($target, $cumsum)->sclr;
+            $idx ++ if $pct > 0.5;
+            $r{$pct_map{$pct}} = List::Util::min ($r{MAX}, $r{MIN} + $idx * $hist_step);
+        }
+    }
 
     use constant PRECISION => 10**13;
     foreach my $key (keys %r) {

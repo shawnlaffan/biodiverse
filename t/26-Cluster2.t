@@ -210,7 +210,8 @@ sub test_rw_turnover_mx {
     my $stats = $mx->get_summary_stats;
     #  avoid fp precision issues in the comparison
     foreach my $k (keys %$stats) {
-        $stats->{$k} = $mx->round_to_precision_aa ($stats->{$k}, 10**10);
+        $stats->{$k}  = $mx->round_to_precision_aa ($stats->{$k}, 10**5);
+        $expected{$k} = $mx->round_to_precision_aa ($expected{$k}, 10**5);
     }
     is ($stats, \%expected, 'got expected stats for rw_turnover mx');
 }

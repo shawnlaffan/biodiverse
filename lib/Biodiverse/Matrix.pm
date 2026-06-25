@@ -461,7 +461,8 @@ sub get_summary_stats {
     else {
         say sprintf ("[Matrix] Number of precision adjusted values is %d (of %d)", $p_v->nelem, $n_mx_elements);
         say "[Matrix] Using a binned approximation to calculate percentiles, nbins is $prec_mult";
-        #  use a histogram approximation for large data sets
+        #  Use a histogram approximation for large data sets.
+        #  A future implementation might handle skewed distributions by using variable bin sizes.
         my $hist_nsteps = 10 ** ($prec_mult - 1);
         my $hist_step = ($r{MAX} - $r{MIN}) / $hist_nsteps;
 

@@ -399,32 +399,59 @@ sub get_summary_stats {
     state $cachename = 'SUMMARY_STATS';
     my $cached = $self->get_cached_value ($cachename);
 
-    return wantarray ? %$cached : $cached
-      if $cached;
+    # return wantarray ? %$cached : $cached
+    #   if $cached;
 
     my $n_elements = $self->get_element_count;
-    my $progress = $n_elements > 500 ? Biodiverse::Progress->new(gui_only => 1) : undef;
+    my $el_progress_thresh = 500;
+    my $progress = $n_elements > $el_progress_thresh ? Biodiverse::Progress->new(gui_only => 1) : undef;
 
-    my %data;
     \my %top_level = $self->{BYELEMENT};
-    my $i = 0;
+    my $progr_i = 0;
+    my (@v_ndarrays, @w_ndarrays);
+    my $n = 0;
+    my $prec_mult = 1e6;
     foreach my $href (values %top_level) {
+        $progress && $progress->update ("Collating matrix stats data", ++$progr_i / $n_elements);
         #  round to save time and space - approximate vals should be OK for this
-        $data{0 + sprintf "%-6g", $_}++ for values %$href;
-        $progress && $progress->update ("Collating matrix stats data", ++$i / $n_elements);
+        my $ndarray = PDL->new(PDL::double(), [values %$href]);
+        $ndarray *= $prec_mult;
+        $ndarray->inplace->floor;
+        $ndarray /= $prec_mult;
+        my @rle = $ndarray->inplace->qsort->rle;
+        push @w_ndarrays, $rle[0];
+        push @v_ndarrays, $rle[1];
+        $n += keys %$href;
     }
+
+    my $p_v = PDL->zeroes ($n);
+    my $p_w = PDL->zeroes ($n);
+    my $ii = 0;
+    my $nd_i = 0;
+    foreach my $ndarray (@v_ndarrays) {
+        my $nmax = $ii + $ndarray->nelem - 1;
+        $p_v->slice("$ii:$nmax") .= $ndarray;
+        $p_w->slice("$ii:$nmax") .= $w_ndarrays[$nd_i];
+        $ii = $nmax + 1;
+        $nd_i++;
+    }
+
     my %r;
-    my $stats
-      = Statistics::Descriptive::PDL::SampleWeighted->new ;
-    #  avoid the stats object checking all values for type
-    #  will be fixed in later versions of the stats package
-    $stats->add_data ([keys %data], [values %data]);
+    my $stats = Statistics::Descriptive::PDL::SampleWeighted->new;
+    #  use internal methods until Statistics::Descriptive::PDL::SampleWeighted allows PDLs to be passed
+    $stats->_set_weights_piddle($p_w);
+    $stats->_set_piddle($p_v);
+
+    $progress && $progress->update("Calculating min, max, mean and SD", 0.33);
     %r = (
         MAX  => $stats->max,
         MIN  => $stats->min,
         MEAN => $stats->mean,
         SD   => $stats->standard_deviation,
     );
+
+    #  this is the slow part for big data sets
+    $progress && $progress->update("Calculating percentiles", 0.66);
     @r{qw /PCT025 PCT05 PCT95 PCT975/} = $stats->percentiles(2.5, 5, 95, 97.5);
 
     use constant PRECISION => 10**13;
@@ -433,6 +460,25 @@ sub get_summary_stats {
     }
 
     $self->set_cached_value($cachename => \%r);
+
+    #  ndarray cleanup can take user-visible time
+    if ($progress) {
+        $progress->update ("Cleaning up temporary stats objects", 0);
+        my $nn = 2.05 * @w_ndarrays;
+        my $jj;
+        while (@v_ndarrays) {
+            shift @v_ndarrays;
+            $progress->update (undef, ++$jj / $nn);
+        }
+        while (@w_ndarrays) {
+            shift @w_ndarrays;
+            $progress->update (undef, ++$jj / $nn);
+        }
+        $progress->update("Cleaning up the big one", 0.95);
+        $stats = undef;
+    }
+
+    $progress = undef;
 
     return wantarray ? %r : \%r;
 }

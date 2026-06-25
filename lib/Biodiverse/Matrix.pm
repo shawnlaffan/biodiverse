@@ -411,16 +411,16 @@ sub get_summary_stats {
     my (@v_ndarrays, @w_ndarrays);
     my $n_mx_elements = 0;
     my $n_precred_vals = 0;
-    my $prec_mult = 1e6;
+    my $prec_mult = 7;
 
     \my %top_level = $self->{BYELEMENT};
     foreach my $href (values %top_level) {
         $progress && $progress->update ("Collating matrix stats data", ++$progr_i / $n_elements);
-        #  round to save time and space - approximate vals should be OK for this
+        #  Round to save time and space - approximate vals should be OK for this.
+        #  Rounding mimics the sprintf %g formatting code.
         my $ndarray = PDL->new(PDL::double(), [values %$href]);
-        $ndarray *= $prec_mult;
-        $ndarray->inplace->floor;
-        $ndarray /= $prec_mult;
+        my $m = 10 ** ($prec_mult - $ndarray->log10->floor);
+        $ndarray = ($ndarray * $m)->floor->divide($m)->badmask(0);
         my @rle = $ndarray->inplace->qsort->rle;
         push @w_ndarrays, $rle[0];
         push @v_ndarrays, $rle[1];
@@ -462,7 +462,7 @@ sub get_summary_stats {
         say sprintf ("[Matrix] Number of precision adjusted values is %d (of %d)", $p_v->nelem, $n_mx_elements);
         say "[Matrix] Using a binned approximation to calculate percentiles, nbins is $prec_mult";
         #  use a histogram approximation for large data sets
-        my $hist_nsteps = $prec_mult;
+        my $hist_nsteps = 10 ** ($prec_mult - 1);
         my $hist_step = ($r{MAX} - $r{MIN}) / $hist_nsteps;
 
         my $hist = $p_v->whistogram($p_w, $hist_step, $r{MIN}, $hist_nsteps);

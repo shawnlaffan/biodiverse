@@ -135,29 +135,30 @@ sub update {
               and time - $self->{last_update_time}
                     < $self->{progress_update_interval};
 
-    $self->{last_update_time} = time;
+    #  Only refresh the display every so often, otherwise many progress dialogues
+    #  trigger many display updates.
+    #  This might need to be an instance var if we go parallel.
+    return if (time - $LAST_UPDATE_TIME) < $self->{progress_update_interval};
 
-    $text //= join "\n", scalar caller(), scalar caller(1), scalar caller(2), scalar caller(3);
+    #  show all on first pass
+    Biodiverse::GUI::GUIManager->instance->show_progress
+        if !defined $self->{last_update_time};
+
+    # $text //= join "\n", scalar caller(), scalar caller(1), scalar caller(2), scalar caller(3);
+
+    $self->{last_update_time} = time;
 
     # update dialog
     $self->{label_widget}->set_markup("<b>$text</b>")
-      if $self->{label_widget};
+        if defined $text && $self->{label_widget};
 
     $self->{pulse} = 0;
 
     $bar->set_fraction($progress);
 
-    Biodiverse::GUI::GUIManager->instance->show_progress;
+    Gtk3::main_iteration while Gtk3::events_pending;
 
-    #  Only refresh the display every so often, otherwise many progress dialogues
-    #  trigger many display updates.
-    #  This might need to be an instance var if we go parallel.
-    if ((time - $LAST_UPDATE_TIME) > $self->{progress_update_interval}) {
-
-        Gtk3::main_iteration while Gtk3::events_pending;
-
-        $LAST_UPDATE_TIME = time;
-    }
+    $LAST_UPDATE_TIME = time;
 
     return;
 }
@@ -185,7 +186,7 @@ sub pulsate {
 
     # update dialog
     my $label_widget = $self->{label_widget};
-    if ($label_widget) {
+    if (defined $text && $label_widget) {
         $label_widget->set_markup("<b>$text</b>");
     }
 

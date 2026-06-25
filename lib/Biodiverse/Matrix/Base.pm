@@ -8,6 +8,7 @@ use English qw / -no_match_vars/;
 
 use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max sum/;
+use experimental qw /refaliasing declared_refs/;
 
 our $VERSION = '5.99_001';
 
@@ -591,10 +592,7 @@ sub to_table_normal {
             next E2 if $ur_only and $j < $i;
 
             if (!$symmetric) {
-                my $exists = $self->element_pair_exists (
-                    element1 => $element1,
-                    element2 => $element2,
-                );
+                my $exists = $self->element_pair_exists_aa ($element1, $element2);
                 if ($exists == 1) {
                     push @row, $self->get_value (
                         element1    => $element1,
@@ -639,7 +637,7 @@ sub to_table_sparse {
     
     my $progress_bar = Biodiverse::Progress->new();
     my $to_do        = scalar @elements;
-    my $progress_pfx = "Converting matrix to GDM format table\n";
+    my $progress_pfx = "Converting matrix to sparse format table\n";
 
     my $ll_only   = $args{lower_left};
     my $ur_only   = $args{upper_right};
@@ -652,52 +650,42 @@ sub to_table_sparse {
     E1:
     foreach my $element1 (@elements) {
         $i++;
-        my $j = 0;
 
-        my $progress = $i / $to_do;
         $progress_bar->update (
             $progress_pfx . "(row $i / $to_do)",
-            $progress,
+            $i / $to_do,
         );
 
         if ($fh) {
-            while (@data) {
-                my $line = shift @data;
-                my $string = $self->list2csv(list => $line, csv_object => $out_csv_obj);
-                say {$fh} $string;
+            while (my $line = shift @data) {
+                $out_csv_obj->say ($fh, $line)
+                    or croak "CSV write issues, "
+                        . $out_csv_obj->error_input;
             }
         }
 
+        my @elements2
+            = $ll_only ? @elements[0..$i-1]
+            : $ur_only ? @elements[$i+1..$#elements]
+            : @elements;
         E2:
-        foreach my $element2 (@elements) {
-            $j++;
+        foreach my $element2 (@elements2) {
 
-            next E1 if $ll_only  and $j > $i;
-            next E2 if $ur_only and $j < $i;
-
-            my $exists = $self->element_pair_exists (
-                element1 => $element1,
-                element2 => $element2,
-            );
+            my $exists = $self->element_pair_exists_aa ($element1, $element2);
 
             #  if we are symmetric then list it regardless, otherwise only if we have this exact pair-order
             if ($exists == 1 || ($symmetric && $exists)) {
-                my $value = $self->get_value (
-                    element1    => $element1,
-                    element2    => $element2,
-                    pair_exists => $exists,
-                );
-                my $list = [$element1, $element2, $value];
-                push @data, $list;
+                my $value = $self->get_defined_value_aa ($element1, $element2);
+                push @data, [$element1, $element2, $value];
             }
         }
     }
     
     if ($fh) {
-        while (@data) {
-            my $line = shift @data;
-            my $string = $self->list2csv(list => $line, csv_object => $out_csv_obj);
-            say {$fh} $string;
+        while (my $line = shift @data) {
+            $out_csv_obj->say ($fh, $line)
+                or croak "CSV write issues, "
+                . $out_csv_obj->error_input;
         }
     }
 
@@ -706,7 +694,7 @@ sub to_table_sparse {
 
 sub to_table_gdm {
     my $self = shift;
-    
+
     my %args = (
         symmetric => 1,
         @_,
@@ -742,47 +730,47 @@ sub to_table_gdm {
     my $progress_pfx = "Converting matrix to GDM format table\n";
     
     my $i = 0;
-    
+
+    my %el_arrays;
+
     E1:
     foreach my $element1 (@elements) {
         $i++;
-        my @element1 = $self->csv2list (string => $element1, csv_object => $el_csv_obj);
+        \my @element1
+            = $el_arrays{$element1}
+            //= [$self->csv2list (string => $element1, csv_object => $el_csv_obj)];
         
-        my $progress = $i / $to_do;
         $progress_bar->update (
             $progress_pfx . "(row $i / $to_do)",
-            $progress,
+            $i / $to_do,
         );
         
         if ($fh) {
-            while (@data) {
-                my $line = shift @data;
-                my $string = $self->list2csv(list => $line, csv_object => $out_csv_obj);
-                say {$fh} $string;
+            while (my $line = shift @data) {
+                $out_csv_obj->say ($fh, $line)
+                    or croak "CSV write issues, "
+                    . $out_csv_obj->error_input;
             }
         }
 
-        my $j = 0;
-        E2:
-        foreach my $element2 (@elements) {
-            $j++;
-            next E1 if $ll_only and $j > $i;
-            next E2 if $ur_only and $j < $i;
+        my @elements2
+            = $ll_only ? @elements[0..$i-1]
+            : $ur_only ? @elements[$i+1..$#elements]
+            : @elements;
 
-            my $exists = $self->element_pair_exists (
-                element1 => $element1,
-                element2 => $element2,
-            );
+        E2:
+        foreach my $element2 (@elements2) {
+
+            my $exists = $self->element_pair_exists_aa ($element1, $element2);
 
             #  if we are symmetric then list it regardless, otherwise only if we have this exact pair-order
             if (($symmetric and $exists) or $exists == 1) {
-                my $value = $self->get_value (
-                    element1    => $element1,
-                    element2    => $element2,
-                    pair_exists => $exists,
-                );
+                my $value = $self->get_defined_value_aa ($element1, $element2, $exists);
 
-                my @element2 = $self->csv2list (string => $element2, csv_object => $el_csv_obj);
+                \my @element2
+                    = $el_arrays{$element2}
+                    //= [$self->csv2list (string => $element2, csv_object => $el_csv_obj)];
+
                 my $list = [@element1[0,1], @element2[0,1], $value];
                 push @data, $list;
             }
@@ -790,10 +778,10 @@ sub to_table_gdm {
     }
 
     if ($fh) {
-        while (@data) {
-            my $line = shift @data;
-            my $string = $self->list2csv(list => $line, csv_object => $out_csv_obj);
-            say {$fh} $string;
+        while (my $line = shift @data) {
+            $out_csv_obj->say ($fh, $line)
+                or croak "CSV write issues, "
+                . $out_csv_obj->error_input;
         }
     }
 

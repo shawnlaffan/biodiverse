@@ -752,10 +752,8 @@ sub group_nodes_below {
     }
     else {
         $upper_value = $self->get_length_below;
-        $lower_value = $self->get_length_below - $self->get_length;
-        if ($upper_value < $lower_value) {
-            ($lower_value, $upper_value) = ($upper_value, $lower_value);
-        }
+        $lower_value = $upper_value - $self->get_length;
+        ($lower_value, $upper_value) = minmax ($upper_value, $lower_value);
     }
 
     #  check if we have all we need
@@ -808,9 +806,7 @@ sub group_nodes_below {
                             $child->set_cached_value ($cache_key_lb => $lower_bound);
 
                             #  swap them if they are inverted (eg for depth)
-                            if ($upper_bound < $lower_bound) {
-                                ($lower_bound, $upper_bound) = ($upper_bound, $lower_bound);
-                            }
+                            ($lower_bound, $upper_bound) = minmax ($upper_bound, $lower_bound);
                         }
                     }
 

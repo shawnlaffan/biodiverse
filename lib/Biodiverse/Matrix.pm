@@ -434,8 +434,10 @@ sub get_summary_stats {
     my $nd_i = 0;
     foreach my $ndarray (@v_ndarrays) {
         my $nmax = $ii + $ndarray->nelem - 1;
-        $p_v->slice("$ii:$nmax") .= $ndarray;
-        $p_w->slice("$ii:$nmax") .= $w_ndarrays[$nd_i];
+        my $slice = $p_v->slice("$ii:$nmax");  #  debugger throws error if slice assign is all on one line
+        $slice .= $ndarray;
+        $slice = $p_w->slice("$ii:$nmax");
+        $slice .= $w_ndarrays[$nd_i];
         $ii = $nmax + 1;
         $nd_i++;
     }

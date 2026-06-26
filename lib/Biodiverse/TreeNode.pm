@@ -764,8 +764,8 @@ sub group_nodes_below {
 
     $search_hash{$lower_value}{$upper_value}{$self->get_name} = $self;
 
-    state $cache_key_ub = 'UPPER_BOUND_LENGTH';
-    state $cache_key_lb = 'LOWER_BOUND_LENGTH';
+    state $cache_key_ub_len = 'UPPER_BOUND_LENGTH';
+    state $cache_key_lb_len = 'LOWER_BOUND_LENGTH';
 
   NODE_SEARCH:
     while (scalar keys %final_hash < $groups_needed) {
@@ -784,9 +784,9 @@ sub group_nodes_below {
                         $lower_bound = $upper_bound + 1;
                     }
                     else {
-                        $upper_bound = $child->get_cached_value ($cache_key_ub);
+                        $upper_bound = $child->get_cached_value ($cache_key_ub_len);
                         if (defined $upper_bound) {
-                            $lower_bound = 0 + $child->get_cached_value ($cache_key_lb);
+                            $lower_bound = 0 + $child->get_cached_value ($cache_key_lb_len);
                         }
                         else {
                             my $length       = $child->get_length;
@@ -802,8 +802,8 @@ sub group_nodes_below {
                                 $upper_bound = $length_below;
                                 $lower_bound = $length_below - $length;
                             }
-                            $child->set_cached_value ($cache_key_ub => $upper_bound);
-                            $child->set_cached_value ($cache_key_lb => $lower_bound);
+                            $child->set_cached_value ($cache_key_ub_len => $upper_bound);
+                            $child->set_cached_value ($cache_key_lb_len => $lower_bound);
 
                             #  swap them if they are inverted (eg for depth)
                             ($lower_bound, $upper_bound) = minmax ($upper_bound, $lower_bound);

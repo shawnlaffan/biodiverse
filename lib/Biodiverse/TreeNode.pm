@@ -14,7 +14,7 @@ use Carp;
 use Scalar::Util qw /weaken isweak blessed/;
 #use Data::Dumper qw/Dumper/;
 use List::Util 1.39 qw /min max pairgrep sum any/;
-use List::MoreUtils qw /uniq/;
+use List::MoreUtils qw /uniq minmax/;
 use Readonly;
 
 use Biodiverse::BaseStruct;
@@ -729,7 +729,8 @@ sub group_nodes_below {
       : ($args{target_value} // $args{target_distance});
 
     my $cache_key  = 'group_nodes_below by ' . ($use_depth ? 'depth ' : 'length ');
-    my $cache_hash = $self->get_cached_value_dor_set_default_aa ($cache_key, {});
+    my $cache_hash = $self->get_cached_href ($cache_key);
+    $cache_hash = $cache_hash->{'by_' . ($args{num_clusters} ? 'n_clusters' : 'target_val')};
     my $cache_val = $target_value // $groups_needed;
     if (my $cached_result = $cache_hash->{$cache_val}) {
         return wantarray ? %$cached_result : $cached_result;
@@ -772,11 +773,11 @@ sub group_nodes_below {
     while (scalar keys %final_hash < $groups_needed) {
         @current_nodes = values %{$search_hash{$lower_value}{$upper_value}};
         foreach my $current_node (@current_nodes) {
-          CNODE:
+          CHILD:
             foreach my $child ($current_node->get_children) {
                 my ($upper_bound, $lower_bound);
                 my $child_name = $child->get_name;
-                
+
                 if (!$child->is_terminal_node) {
                     #  only consider length if it has children
                     #  and that length is from its children

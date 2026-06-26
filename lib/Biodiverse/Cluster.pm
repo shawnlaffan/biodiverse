@@ -1781,8 +1781,7 @@ sub setup_tie_breaker {
         #next if $breaker eq 'none';
         next if !defined $breaker;
         croak "$breaker is not a valid tie breaker\n"
-            if   !$indices_object->is_cluster_index (index => $breaker)
-              && !$indices_object->is_region_grower_index (index => $breaker);
+            if !$indices_object->is_tie_breaker_index (index => $breaker);
         my $calc = $indices_object->get_index_source (index => $breaker);
         croak "no calc sub for $breaker\n" if !defined $calc;
         push @calc_subs, $calc;

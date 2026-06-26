@@ -457,10 +457,13 @@ sub setup_tie_breaker_widgets {
     my $indices_object = Biodiverse::Indices->new (BASEDATA_REF => $bd);
     my %valid_indices = $indices_object->get_valid_tie_breaker_indices;
 
-    my $cb_tooltip_text
-      = 'Turn the tie breakers off if you want the old clustering system.  '
-      . 'It will return different results for different analyses, '
-      . 'but is faster and uses less memory.';
+    my $cb_tooltip_text =<<~'EOT'
+        Turn the tie breakers off if you want the (very) old clustering system.
+        It will return different results for different analyses
+        but is faster and uses less memory.
+        EOT
+    ;
+    $cb_tooltip_text =~ s/\n/ /g;
     my $checkbox = Gtk3::CheckButton->new_with_label("Use tie\nbreakers");
     $checkbox->set_active(1);
     $checkbox->set_tooltip_text($cb_tooltip_text);

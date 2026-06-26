@@ -457,10 +457,13 @@ sub setup_tie_breaker_widgets {
     my $indices_object = Biodiverse::Indices->new (BASEDATA_REF => $bd);
     my %valid_indices = $indices_object->get_valid_tie_breaker_indices;
 
-    my $cb_tooltip_text
-      = 'Turn the tie breakers off if you want the old clustering system.  '
-      . 'It will return different results for different analyses, '
-      . 'but is faster and uses less memory.';
+    my $cb_tooltip_text =<<~'EOT'
+        Turn the tie breakers off if you want the (very) old clustering system.
+        It will return different results for different analyses
+        but is faster and uses less memory.
+        EOT
+    ;
+    $cb_tooltip_text =~ s/\n/ /g;
     my $checkbox = Gtk3::CheckButton->new_with_label("Use tie\nbreakers");
     $checkbox->set_active(1);
     $checkbox->set_tooltip_text($cb_tooltip_text);
@@ -473,26 +476,30 @@ sub setup_tie_breaker_widgets {
         my $j = 2 * $i;
         my $k = $j + 1;
         my $label = Gtk3::Label->new("  $id: ");
-        my $index_combo = Gtk3::ComboBoxText->new ();
-        $index_combo->set_hexpand (0);
-        $index_combo->set_wrap_width (5);
+        my $index_combo = Gtk3::ComboBox->new ();
+        my $list_store = Gtk3::ListStore->new ('Glib::Int', 'Glib::String');
 
-        #  seems to have no effect
-        # my $renderer = ($index_combo->get_cells)[0];
-        # $renderer->set (width_chars => 5);
-        # $renderer->set (ellipsize => 'PANGO_ELLIPSIZE_MIDDLE');
-        # $renderer->set (ellipsize => 'PANGO_ELLIPSIZE_END');
+        $index_combo->set_model(undef);
 
         my $l = 0;
         my $use_iter;
         foreach my $index (qw /none random/, natsort keys %valid_indices) {
-            $index_combo->append_text ($index);
+            my $iter = $list_store->append;
+            $list_store->set($iter, 0, $l, 1, $index);
+            # $list_store->append ($l, $index);
             if (defined $tie_breakers->[$j] && $tie_breakers->[$j] eq $index) {
                 $use_iter = $l;
             }
             $l ++;
         }
 
+        my $renderer = Gtk3::CellRendererText->new;
+        $index_combo->pack_start($renderer, 1);
+        $index_combo->add_attribute($renderer, 'text', 1);
+
+        $index_combo->set_model($list_store);
+        $index_combo->set_hexpand (0);
+        $index_combo->set_wrap_width (5);
         $index_combo->set_active($use_iter // 1);  #  random by default
 
         my $combo_minmax = Gtk3::ComboBoxText->new;
@@ -1090,7 +1097,16 @@ sub get_tie_breakers {
     my $widgets = $self->{tie_breaker_widgets};
     my @choices;
     foreach my $widget (@$widgets) {
-        push @choices, $widget->get_active_text;
+        my $choice;
+        if ($widget->isa('Gtk3::ComboBoxText')) {
+            $choice = $widget->get_active_text;
+        }
+        else {
+            my $model = $widget->get_model;
+            my $iter  = $widget->get_active_iter;
+            $choice   = $model->get($iter, 1);
+        }
+        push @choices, $choice;
     }
 
     return wantarray ? @choices : \@choices;

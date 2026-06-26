@@ -1227,6 +1227,17 @@ sub get_required_args_including_dependencies {
     return wantarray ? %params : \%params;
 }
 
+sub is_tie_breaker_index {
+    my $self  = shift;
+    my %args  = @_;
+    my $index = $args{index}
+     // croak "index argument missing\n";
+
+    my %valid = $self->get_valid_tie_breaker_indices();
+
+    return exists $valid{$index};
+}
+
 sub is_region_grower_index {
     my $self  = shift;
     my %args  = @_;

@@ -224,6 +224,7 @@ my %data_funcs = (
     on_tree_rescale_branch_lengths        => 'do_tree_rescale_branch_lengths',
     on_tree_ladderise                     => 'do_tree_ladderise',
     on_matrix_export                      => 'do_export_matrix',
+    on_matrix_delete_cached_values        => 'do_matrix_delete_cached_values',
     on_phylogeny_export                   => 'do_export_phylogeny',
     on_phylogeny_delete_cached_values     => 'do_phylogeny_delete_cached_values',
 );

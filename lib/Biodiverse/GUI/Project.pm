@@ -1405,6 +1405,7 @@ sub set_matrix_buttons {
         menu_matrix_describe
         menu_matrix_export
         menu_trim_matrix_to_basedata
+        menu_matrix_delete_cached_values
         convert_matrix_to_phylogeny
         /
       )

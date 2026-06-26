@@ -367,6 +367,15 @@ Skips any matrices already in the project.</property>
           </object>
         </child>
         <child>
+          <object class="GtkAction" id="menu_matrix_delete_cached_values">
+            <property name="name">menu_matrix_delete_cached_values</property>
+            <property name="tooltip" translatable="yes">Clear caches</property>
+            <property name="label" translatable="yes">Clear cache</property>
+              <property name="tooltip" translatable="yes">Clear any cached values, for example summary statistics</property>
+            <signal handler="on_matrix_delete_cached_values" name="activate"/>
+          </object>
+        </child>
+        <child>
           <object class="GtkAction" id="menu_matrix_import">
             <property name="name">menu_matrix_import</property>
             <property name="tooltip" translatable="yes">Import a matrix from a supported format</property>
@@ -508,7 +517,7 @@ Assumes a dissimilarity matrix, so take care.</property>
           <object class="GtkAction" id="menu_phylogeny_delete_cached_values">
             <property name="name">menu_phylogeny_delete_cached_values</property>
             <property name="tooltip" translatable="yes">Clear any values cached on the tree.  Can reduce memory usage for large trees.</property>
-            <property name="label" translatable="yes">Clear cached values</property>
+            <property name="label" translatable="yes">Clear caches</property>
             <signal handler="on_phylogeny_delete_cached_values" name="activate"/>
           </object>
         </child>
@@ -796,6 +805,7 @@ This cannot be undone.  </property>
           <menuitem action="menu_matrix_describe"/>
           <menuitem action="menu_matrix_rename"/>
           <menuitem action="menu_matrix_auto_remap"/>
+          <menuitem action="menu_matrix_delete_cached_values"/>
           <separator/>
           <menuitem action="convert_matrix_to_phylogeny"/>
           <menuitem action="menu_trim_matrix_to_basedata"/>

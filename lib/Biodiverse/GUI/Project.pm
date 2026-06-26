@@ -1394,8 +1394,7 @@ sub set_matrix_buttons {
     my ( $self, $sensitive ) = @_;
 
     my $instance = Biodiverse::GUI::GUIManager->instance;
-    foreach (
-        qw /
+    foreach (qw /
         btnMatrixDelete
         btnMatrixSave
         menu_matrix_delete
@@ -1407,8 +1406,7 @@ sub set_matrix_buttons {
         menu_trim_matrix_to_basedata
         menu_matrix_delete_cached_values
         convert_matrix_to_phylogeny
-        /
-      )
+    /)
     {
         $instance->get_object($_)->set_sensitive($sensitive);
     }

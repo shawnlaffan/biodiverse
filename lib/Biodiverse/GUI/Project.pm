@@ -1336,6 +1336,7 @@ sub manage_empty_basedatas {
           menu_attach_basedata_properties
           menu_attach_basedata_group_properties_from_rasters
           menu_delete_element_properties
+          menu_basedata_clear_caches
           menu_basedata_reorder_axes
           menu_basedata_drop_axes
           menu_binarise_basedata_elements

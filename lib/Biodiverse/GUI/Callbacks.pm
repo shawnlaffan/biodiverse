@@ -199,6 +199,7 @@ my %data_funcs = (
     on_basedata_attach_label_abundances_as_properties => 'do_basedata_attach_label_abundances_as_properties',
     on_basedata_attach_ranges_as_properties           => 'do_basedata_attach_label_ranges_as_properties',
     on_delete_element_properties          => 'do_delete_element_properties',
+    on_basedata_clear_caches              => 'do_basedata_clear_caches',
     on_merge_basedatas                    => 'do_merge_basedatas',
     on_matrix_save                        => 'do_save_matrix',
     on_phylogeny_save                     => 'do_save_phylogeny',

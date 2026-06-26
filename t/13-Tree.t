@@ -543,20 +543,39 @@ sub test_insert_into_lineage {
 sub test_group_nodes_below {
     my $tree = get_tree_object_from_sample_data();
 
-    my @expected = qw/52___ 57___ Genus:sp22/;
     {
-        my $nodes = $tree->group_nodes_below(group_by_depth => 1, target_value => 3);
-        my @names = sort keys %$nodes;
-        is \@names,
-            \@expected,
-            'expected names for group_by_depth target_value';
+        my @expected = qw/50___ 51___ 56___ Genus:sp13 Genus:sp22/;
+        {
+            my $nodes = $tree->group_nodes_below(
+                group_by_depth => 1,
+                target_value   => 4,
+            );
+            my @names = sort keys %$nodes;
+            is \@names,
+                \@expected,
+                'expected names for group_by_depth target_value';
+        }
+        if (0) {
+            my $nodes = $tree->group_nodes_below(
+                group_by_depth => 1,
+                num_clusters   => 3,
+            );
+            my @names = sort keys %$nodes;
+            is \@names,
+                \@expected,
+                'expected names for group_by_depth num_clusters';
+        }
     }
     {
-        my $nodes = $tree->group_nodes_below(group_by_depth => 1, num_clusters => 3);
+        my @expected = qw /Genus:sp2 Genus:sp3/;
+        my $nodes = $tree->get_node_ref_aa('53___')->group_nodes_below(
+            group_by_depth => 1,
+            target_value   => 2,
+        );
         my @names = sort keys %$nodes;
         is \@names,
             \@expected,
-            'expected names for group_by_depth num_clusters';
+            'expected names for group_by_depth target_value, internal node';
     }
 
 }

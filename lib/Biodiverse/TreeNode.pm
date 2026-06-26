@@ -709,7 +709,7 @@ sub splice_into_lineage {
 }
 
 sub group_nodes_below_by_depth {
-    my ($self, %args) = shift;
+    my ($self, %args) = @_;
 
     my $use_depth = $args{group_by_depth}; #  alternative is by length
     #  a second method by which it may be passed - usually from the GUI
@@ -738,8 +738,7 @@ sub group_nodes_below_by_depth {
         my @children = $self;
         CHILD:
         while (my $child = shift @children) {
-            my $depth = $child->get_depth;
-            if ($depth == $target_value) {
+            if ($child->is_terminal_node or $child->get_depth == $target_value) {
                 $found{$child->get_name} = $child;
                 next CHILD;
             }
@@ -764,16 +763,17 @@ sub group_nodes_below {
     #  a second method by which it may be passed - usually from the GUI
     $use_depth ||= ($args{type} // '') eq 'depth';
 
+    my $got = $self->group_nodes_below_by_depth (%args)
+        if $use_depth;
+    return wantarray ? %$got : $got if $got;
+
     #  override target value if $args{num_clusters} passed
     my $target_value
       = $args{num_clusters}
       ? undef
       : ($args{target_value} // $args{target_distance});
 
-    my $groups_needed
-        = defined $target_value
-        ? undef
-        : $args{num_clusters} || $self->get_child_count_below;
+    my $groups_needed = $args{num_clusters} || $self->get_child_count_below;
 
     my $cache_key  = 'group_nodes_below by ' . ($use_depth ? 'depth ' : 'length ');
     my $cache_hash = $self->get_cached_href ($cache_key);

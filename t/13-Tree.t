@@ -540,7 +540,9 @@ sub test_insert_into_lineage {
     return;
 }
 
-
+# sub test_group_nodes_below {
+#     my $tree = get_site_data_as_tree();
+# }
 
 sub test_trim_tree_to_lca {
     my $tree = Biodiverse::Tree->new;
@@ -1487,7 +1489,15 @@ sub get_cluster_mini_data_newick {
 }
 
 sub get_site_data_as_tree {
-    my $comp_nwk = get_site_data_newick_tree(@_);
+    my $label = shift // 'link_average';
+
+    my %cached;
+
+    return $cached{$label}->clone
+        if $cached{$label};
+
+    my $comp_nwk = get_site_data_newick_string($label);
+
 
     my $read_nex = Biodiverse::ReadNexus->new();
     my $success = eval {$read_nex->import_data (data => $comp_nwk)};
@@ -1496,10 +1506,12 @@ sub get_site_data_as_tree {
     my $tree_arr = $read_nex->get_tree_array;
     my $comparison_tree = $tree_arr->[0];
 
+    $cached{$label} = $comparison_tree->clone;
+
     return $comparison_tree;
 }
 
-sub get_site_data_newick_tree {
+sub get_site_data_newick_string {
     my $label = shift // 'link_average';
     my $data = get_data_section('SITE_DATA_NEWICK_TREE');
     $data =~ s/\n+\z//m;  #  clear all trailing newlines

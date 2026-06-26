@@ -494,6 +494,19 @@ sub do_delete_element_properties {
     my $to_delete_hash = $delete_el_props_gui->run( basedata => $bd );
 }
 
+sub do_basedata_clear_caches {
+    my $self = shift;
+    my $bd   = $self->{project}->get_selected_base_data;
+
+    return if !$bd;
+
+    $bd->clear_all_caches;
+
+    $self->set_dirty;
+
+    return;
+}
+
 sub do_delete_basedata {
     my $self = shift;
 

@@ -199,6 +199,7 @@ my %data_funcs = (
     on_basedata_attach_label_abundances_as_properties => 'do_basedata_attach_label_abundances_as_properties',
     on_basedata_attach_ranges_as_properties           => 'do_basedata_attach_label_ranges_as_properties',
     on_delete_element_properties          => 'do_delete_element_properties',
+    on_basedata_clear_caches              => 'do_basedata_clear_caches',
     on_merge_basedatas                    => 'do_merge_basedatas',
     on_matrix_save                        => 'do_save_matrix',
     on_phylogeny_save                     => 'do_save_phylogeny',
@@ -223,6 +224,7 @@ my %data_funcs = (
     on_tree_rescale_branch_lengths        => 'do_tree_rescale_branch_lengths',
     on_tree_ladderise                     => 'do_tree_ladderise',
     on_matrix_export                      => 'do_export_matrix',
+    on_matrix_delete_cached_values        => 'do_matrix_delete_cached_values',
     on_phylogeny_export                   => 'do_export_phylogeny',
     on_phylogeny_delete_cached_values     => 'do_phylogeny_delete_cached_values',
 );

@@ -181,6 +181,23 @@ sub get_file_suffix_yaml {
     return 'bdy';
 }
 
+sub clear_all_caches {
+    my $self = shift;
+
+    $self->delete_cached_values;
+    $self->get_labels_ref->delete_cached_values;
+    $self->get_groups_ref->delete_cached_values;
+
+    #  takes care of tree nodes
+    $self->delete_cluster_output_cached_values;
+
+    foreach my $ref ($self->get_output_refs) {
+        $ref->delete_cached_values;
+    }
+
+    return;
+}
+
 #  unique ID based on groups, labels, counts and properties
 sub get_sha256 {
     my $self = shift;

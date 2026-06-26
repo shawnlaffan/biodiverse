@@ -1336,6 +1336,7 @@ sub manage_empty_basedatas {
           menu_attach_basedata_properties
           menu_attach_basedata_group_properties_from_rasters
           menu_delete_element_properties
+          menu_basedata_clear_caches
           menu_basedata_reorder_axes
           menu_basedata_drop_axes
           menu_binarise_basedata_elements
@@ -1393,8 +1394,7 @@ sub set_matrix_buttons {
     my ( $self, $sensitive ) = @_;
 
     my $instance = Biodiverse::GUI::GUIManager->instance;
-    foreach (
-        qw /
+    foreach (qw /
         btnMatrixDelete
         btnMatrixSave
         menu_matrix_delete
@@ -1404,9 +1404,9 @@ sub set_matrix_buttons {
         menu_matrix_describe
         menu_matrix_export
         menu_trim_matrix_to_basedata
+        menu_matrix_delete_cached_values
         convert_matrix_to_phylogeny
-        /
-      )
+    /)
     {
         $instance->get_object($_)->set_sensitive($sensitive);
     }

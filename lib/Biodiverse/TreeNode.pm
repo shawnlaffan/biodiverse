@@ -708,15 +708,57 @@ sub splice_into_lineage {
     return $new_parent;
 }
 
+sub group_nodes_below_by_depth {
+    my ($self, %args) = shift;
+
+    my $use_depth = $args{group_by_depth}; #  alternative is by length
+    #  a second method by which it may be passed - usually from the GUI
+    $use_depth ||= ($args{type} // '') eq 'depth';
+
+    my $groups_needed = $args{num_clusters} || $self->get_child_count_below;
+
+    #  override target value if $args{num_clusters} passed
+    my $target_value
+        = $args{num_clusters}
+        ? undef
+        : ($args{target_value} // $args{target_distance});
+
+    my $cache_key  = 'group_nodes_below_by_depth';
+    my $cache_hash = $self->get_cached_href ($cache_key);
+    $cache_hash = $cache_hash->{'by_' . ($args{num_clusters} ? 'n_clusters' : 'target_val')};
+    my $cache_val = $target_value // $groups_needed;
+    if (my $cached_result = $cache_hash->{$cache_val}) {
+        return wantarray ? %$cached_result : $cached_result;
+    }
+
+    my %found;
+
+    if ($target_value) {
+        $target_value += $self->get_depth - 1;
+        my @children = $self;
+        CHILD:
+        while (my $child = shift @children) {
+            my $depth = $child->get_depth;
+            if ($depth == $target_value) {
+                $found{$child->get_name} = $child;
+                next CHILD;
+            }
+            my $children = $child->get_children;
+            push @children, @$children;
+        }
+    }
+
+    weaken $_ for values %found;
+
+    return wantarray ? %found : \%found;
+}
+
 
 #  Get a hash of the nodes below this one based on length.
 #  Algorithm is messy but accounts for reversals in the tree.
 sub group_nodes_below {
-    my $self = shift;
-    my %args = @_;
-    my $groups_needed = $args{num_clusters} || $self->get_child_count_below;
-    my %search_hash;
-    my %final_hash;
+    my ($self, %args) = @_;
+
 
     my $use_depth = $args{group_by_depth};  #  alternative is by length
     #  a second method by which it may be passed - usually from the GUI
@@ -728,6 +770,11 @@ sub group_nodes_below {
       ? undef
       : ($args{target_value} // $args{target_distance});
 
+    my $groups_needed
+        = defined $target_value
+        ? undef
+        : $args{num_clusters} || $self->get_child_count_below;
+
     my $cache_key  = 'group_nodes_below by ' . ($use_depth ? 'depth ' : 'length ');
     my $cache_hash = $self->get_cached_href ($cache_key);
     $cache_hash = $cache_hash->{'by_' . ($args{num_clusters} ? 'n_clusters' : 'target_val')};
@@ -735,7 +782,10 @@ sub group_nodes_below {
     if (my $cached_result = $cache_hash->{$cache_val}) {
         return wantarray ? %$cached_result : $cached_result;
     }
-    
+
+    my %search_hash;
+    my %final_hash;
+
     $final_hash{$self->get_name} = $self;
 
     if ($self->is_terminal_node) {

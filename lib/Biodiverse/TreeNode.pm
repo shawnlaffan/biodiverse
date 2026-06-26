@@ -715,25 +715,33 @@ sub group_nodes_below_by_depth {
     #  a second method by which it may be passed - usually from the GUI
     $use_depth ||= ($args{type} // '') eq 'depth';
 
-    my $groups_needed = $args{num_clusters} || $self->get_child_count_below;
+    my $num_clusters = $args{num_clusters};
 
     #  override target value if $args{num_clusters} passed
     my $target_value
-        = $args{num_clusters}
+        = $num_clusters
         ? undef
         : ($args{target_value} // $args{target_distance});
+
+    if (!($target_value || $num_clusters)) {
+        my %found = ($self->get_name => $self);
+        return wantarray ? %found : \%found;
+    }
+
+    croak "Cannot group by negative depth or number of clusters ($target_value)"
+        if ($target_value // $num_clusters) < 0;
 
     my $cache_key  = 'group_nodes_below_by_depth';
     my $cache_hash = $self->get_cached_href ($cache_key);
     $cache_hash = $cache_hash->{'by_' . ($args{num_clusters} ? 'n_clusters' : 'target_val')};
-    my $cache_val = $target_value // $groups_needed;
-    if (my $cached_result = $cache_hash->{$cache_val}) {
+    my $cache_val_key = $target_value // $num_clusters;
+    if (my $cached_result = $cache_hash->{$cache_val_key}) {
         return wantarray ? %$cached_result : $cached_result;
     }
 
     my %found;
 
-    if ($target_value) {
+    if (defined $target_value) {
         $target_value += $self->get_depth - 1;
         my @children = $self;
         CHILD:
@@ -746,8 +754,33 @@ sub group_nodes_below_by_depth {
             push @children, @$children;
         }
     }
+    else {
+        my @children = $self;
+      CHILD_LOOP:
+        while (@children) {
+            #  stop loop if we have found all we need
+            if ((scalar keys %found) + @children > $num_clusters) {
+                @found{map {$_->get_name} @children} = @children;
+                last CHILD_LOOP;
+            }
+
+            my @get_kids;
+            foreach my $child (@children) {
+                if ($child->is_terminal_node) {
+                    $found{$child->get_name} = $child;
+                }
+                else {
+                    push @get_kids, $child;
+                }
+            }
+            #  keep searching internals
+            @children = map {$_->get_children} @get_kids;
+        }
+    }
 
     weaken $_ for values %found;
+
+    $cache_hash->{$cache_val_key} = \%found;
 
     return wantarray ? %found : \%found;
 }

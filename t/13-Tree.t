@@ -555,7 +555,7 @@ sub test_group_nodes_below {
                 \@expected,
                 'expected names for group_by_depth target_value';
         }
-        if (0) {
+        if (1) {
             my $nodes = $tree->group_nodes_below(
                 group_by_depth => 1,
                 num_clusters   => 3,
@@ -577,7 +577,28 @@ sub test_group_nodes_below {
             \@expected,
             'expected names for group_by_depth target_value, internal node';
     }
-
+    {
+        my @expected = qw /59___/;
+        my $nodes = $tree->group_nodes_below(
+            group_by_depth => 1,
+            target_value   => 0,
+        );
+        my @names = sort keys %$nodes;
+        is \@names,
+            \@expected,
+            'expected names for group_by_depth target_value, internal node';
+    }
+    {
+        ok (
+            dies {
+                my $nodes = $tree->group_nodes_below(
+                    group_by_depth => 1,
+                    target_value   => -1,
+                );
+            },
+        ),
+        'group_nodes_below dies with negative target val';
+    }
 }
 
 sub test_trim_tree_to_lca {

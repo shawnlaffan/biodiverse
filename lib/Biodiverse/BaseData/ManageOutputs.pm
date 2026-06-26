@@ -391,7 +391,7 @@ sub get_cluster_outputs {
 #  allow more specific deletions by passing on the args
 sub delete_cluster_output_cached_values {
     my $self = shift;
-    print "[BASEDATA] Deleting cached values in cluster trees\n";
+    # print "[BASEDATA] Deleting cached values in cluster trees\n";
     foreach my $cluster ( $self->get_cluster_output_refs ) {
         $cluster->delete_all_cached_values(@_);
     }

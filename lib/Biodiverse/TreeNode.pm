@@ -711,10 +711,6 @@ sub splice_into_lineage {
 sub group_nodes_below_by_depth {
     my ($self, %args) = @_;
 
-    my $use_depth = $args{group_by_depth}; #  alternative is by length
-    #  a second method by which it may be passed - usually from the GUI
-    $use_depth ||= ($args{type} // '') eq 'depth';
-
     my $num_clusters = $args{num_clusters};
 
     #  override target value if $args{num_clusters} passed
@@ -756,7 +752,7 @@ sub group_nodes_below_by_depth {
     }
     else {
         my @children = $self;
-      CHILD_LOOP:
+        CHILD_LOOP:
         while (@children) {
             #  stop loop if we have found all we need
             if ((scalar keys %found) + @children > $num_clusters) {
@@ -828,16 +824,9 @@ sub group_nodes_below {
     
     my @current_nodes;
 
-    my ($upper_value, $lower_value);
-    if ($use_depth) {
-        $upper_value = $self->get_depth;
-        $lower_value = $self->get_depth + 1;
-    }
-    else {
-        $upper_value = $self->get_length_below;
-        $lower_value = $upper_value - $self->get_length;
-        ($lower_value, $upper_value) = minmax ($upper_value, $lower_value);
-    }
+    my $upper_value = $self->get_length_below;
+    my $lower_value = $upper_value - $self->get_length;
+    ($lower_value, $upper_value) = minmax ($upper_value, $lower_value);
 
     #  check if we have all we need
     return wantarray ? %final_hash : \%final_hash
@@ -862,50 +851,36 @@ sub group_nodes_below {
                 if (!$child->is_terminal_node) {
                     #  only consider length if it has children
                     #  and that length is from its children
-                    if ($use_depth) {
-                        $upper_bound = $child->get_depth;
-                        $lower_bound = $upper_bound + 1;
+                    $upper_bound = $child->get_cached_value ($cache_key_ub_len);
+                    if (defined $upper_bound) {
+                        $lower_bound = 0 + $child->get_cached_value ($cache_key_lb_len);
                     }
                     else {
-                        $upper_bound = $child->get_cached_value ($cache_key_ub_len);
-                        if (defined $upper_bound) {
-                            $lower_bound = 0 + $child->get_cached_value ($cache_key_lb_len);
+                        my $length       = $child->get_length;
+                        my $length_below = $child->get_length_below;
+                        if ($length < 0) {  # reversal
+                            my $parent = $child->get_parent;
+                            #  parent_pos is wherever its children begin
+                            my $parent_pos = $parent->get_length_below - $parent->get_length;
+                            $upper_bound = min ($parent_pos, $length_below);
+                            $lower_bound = min ($parent_pos, $length_below - $length);
                         }
                         else {
-                            my $length       = $child->get_length;
-                            my $length_below = $child->get_length_below;
-                            if ($length < 0) {  # reversal
-                                my $parent = $child->get_parent;
-                                #  parent_pos is wherever its children begin
-                                my $parent_pos = $parent->get_length_below - $parent->get_length;
-                                $upper_bound = min ($parent_pos, $length_below);
-                                $lower_bound = min ($parent_pos, $length_below - $length);
-                            }
-                            else {
-                                $upper_bound = $length_below;
-                                $lower_bound = $length_below - $length;
-                            }
-                            $child->set_cached_value ($cache_key_ub_len => $upper_bound);
-                            $child->set_cached_value ($cache_key_lb_len => $lower_bound);
-
-                            #  swap them if they are inverted (eg for depth)
-                            ($lower_bound, $upper_bound) = minmax ($upper_bound, $lower_bound);
+                            $upper_bound = $length_below;
+                            $lower_bound = $length_below - $length;
                         }
+                        $child->set_cached_value ($cache_key_ub_len => $upper_bound);
+                        $child->set_cached_value ($cache_key_lb_len => $lower_bound);
+
+                        #  swap them if they are inverted (eg for depth)
+                        ($lower_bound, $upper_bound) = minmax ($upper_bound, $lower_bound);
                     }
 
-                    #  surely this can be simplified?
-                    my $include_in_search = 1;  #  flag to include this child in further searching
-                    #  don't add to search hash unless we need to keep looking
-                    if (defined $target_value) {
-                        if ($use_depth && $target_value <= $lower_bound && $target_value >= $upper_bound) {
-                            $include_in_search = 0;
-                        }
-                        elsif ($target_value > $lower_bound && $target_value <= $upper_bound) {
-                            $include_in_search = 0;
-                        }
-                    }
-                    if ($include_in_search) {
-                        #  add to the values hash if it bounds the target value or it is not specified
+                    #  add to the values hash if it bounds the target value or it is not specified
+                    if (!(defined $target_value
+                        && $target_value > $lower_bound
+                        && $target_value <= $upper_bound
+                        )) {
                         $search_hash{$lower_bound}{$upper_bound}{$child_name} = $child;
                     }
                 }
@@ -920,7 +895,8 @@ sub group_nodes_below {
             delete $search_hash{$lower_value}
               if not scalar keys %{$search_hash{$lower_value}};
         }
-        last if not scalar keys %search_hash;  #  drop out - they must all be terminal nodes
+        #  drop out - they must all be terminal nodes
+        last if not scalar keys %search_hash;
 
         $lower_value = max (keys %search_hash);
         $upper_value = max (keys %{$search_hash{$lower_value}});

@@ -540,7 +540,66 @@ sub test_insert_into_lineage {
     return;
 }
 
+sub test_group_nodes_below {
+    my $tree = get_tree_object_from_sample_data();
 
+    {
+        my @expected = qw/50___ 51___ 56___ Genus:sp13 Genus:sp22/;
+        {
+            my $nodes = $tree->group_nodes_below(
+                group_by_depth => 1,
+                target_value   => 4,
+            );
+            my @names = sort keys %$nodes;
+            is \@names,
+                \@expected,
+                'expected names for group_by_depth target_value';
+        }
+        if (1) {
+            my $nodes = $tree->group_nodes_below(
+                group_by_depth => 1,
+                num_clusters   => 3,
+            );
+            my @names = sort keys %$nodes;
+            is \@names,
+                \@expected,
+                'expected names for group_by_depth num_clusters';
+        }
+    }
+    {
+        my @expected = qw /Genus:sp2 Genus:sp3/;
+        my $nodes = $tree->get_node_ref_aa('53___')->group_nodes_below(
+            group_by_depth => 1,
+            target_value   => 2,
+        );
+        my @names = sort keys %$nodes;
+        is \@names,
+            \@expected,
+            'expected names for group_by_depth target_value, internal node';
+    }
+    {
+        my @expected = qw /59___/;
+        my $nodes = $tree->group_nodes_below(
+            group_by_depth => 1,
+            target_value   => 0,
+        );
+        my @names = sort keys %$nodes;
+        is \@names,
+            \@expected,
+            'expected names for group_by_depth target_value, internal node';
+    }
+    {
+        ok (
+            dies {
+                my $nodes = $tree->group_nodes_below(
+                    group_by_depth => 1,
+                    target_value   => -1,
+                );
+            },
+        ),
+        'group_nodes_below dies with negative target val';
+    }
+}
 
 sub test_trim_tree_to_lca {
     my $tree = Biodiverse::Tree->new;
@@ -1487,7 +1546,15 @@ sub get_cluster_mini_data_newick {
 }
 
 sub get_site_data_as_tree {
-    my $comp_nwk = get_site_data_newick_tree(@_);
+    my $label = shift // 'link_average';
+
+    my %cached;
+
+    return $cached{$label}->clone
+        if $cached{$label};
+
+    my $comp_nwk = get_site_data_newick_string($label);
+
 
     my $read_nex = Biodiverse::ReadNexus->new();
     my $success = eval {$read_nex->import_data (data => $comp_nwk)};
@@ -1496,10 +1563,12 @@ sub get_site_data_as_tree {
     my $tree_arr = $read_nex->get_tree_array;
     my $comparison_tree = $tree_arr->[0];
 
+    $cached{$label} = $comparison_tree->clone;
+
     return $comparison_tree;
 }
 
-sub get_site_data_newick_tree {
+sub get_site_data_newick_string {
     my $label = shift // 'link_average';
     my $data = get_data_section('SITE_DATA_NEWICK_TREE');
     $data =~ s/\n+\z//m;  #  clear all trailing newlines

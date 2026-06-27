@@ -493,7 +493,7 @@ sub _select_while_not_selecting {
         }
         my $node_ref = @branches ? $branches[0]->{node_ref} : undef;
         $f->($node_ref);
-        $self->queue_draw;
+        $self->get_parent_tab->queue_draw;
     }
 
     return FALSE;

@@ -2,7 +2,7 @@ package Biodiverse::Common::IO;
 use 5.036;
 use warnings;
 
-our $VERSION = '5.99_001';
+our $VERSION = '5.99_002';
 
 use Carp qw /croak/;
 

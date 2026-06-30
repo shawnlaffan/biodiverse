@@ -8,7 +8,7 @@ use Ref::Util qw /is_arrayref/;
 
 use Browser::Start qw( open_url );    #  needed for the about dialogue
 
-our $VERSION = '5.99_001';
+our $VERSION = '5.99_002';
 
 use constant FALSE => 0;
 use constant TRUE  => 1;

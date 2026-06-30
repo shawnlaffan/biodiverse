@@ -13,7 +13,7 @@ use List::MoreUtils qw /firstidx/;
 
 use experimental qw /declared_refs refaliasing/;
 
-our $VERSION = '5.99_001';
+our $VERSION = '5.99_002';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;

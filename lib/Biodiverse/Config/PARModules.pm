@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.016;
 
-our $VERSION = '5.99_001';
+our $VERSION = '5.99_002';
 
 
 use Carp;

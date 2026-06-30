@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.036;
 
-our $VERSION = '5.99_001';
+our $VERSION = '5.99_002';
 
 #  A cache object for volatile things like Geo::GDAL::FFI objects that do not survive serialisation
 #  All it does is ensure the serialised object has no cache.

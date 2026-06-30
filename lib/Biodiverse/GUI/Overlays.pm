@@ -256,7 +256,9 @@ sub overlay_table_insert_row {
     $table->attach ($type_label, ++$col, $row, 1, 1);
     push @$widget_array, $type_label;
 
-    my $rgba = $entry->{rgba} // $components->{colour_button}->get_rgba;
+    my $rgba = $entry->{rgba}
+        // ($components->{colour_button} and $components->{colour_button}->get_rgba)
+        // $default_colour;
     if (!is_blessed_ref $rgba) {
         $rgba = Gtk3::Gdk::RGBA::parse ($rgba);
     }

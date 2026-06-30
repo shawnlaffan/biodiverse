@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use 5.036;
 
-our $VERSION = '5.99_001';
+our $VERSION = '5.99_002';
 
 #  Keying by sha allows more general re-use by other code,
 #  e.g. derived eq length trees have the same topology.

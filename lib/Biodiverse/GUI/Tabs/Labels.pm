@@ -961,6 +961,34 @@ for my $type (qw/node assemblage/) {
 sub run_highlight_label_range_polygons_dlg {
     my ($self, $range_type) = @_;
 
+    if (!$self->range_polygons_are_valid) {
+        my $dlg = Gtk3::Dialog->new_with_buttons (
+            'Range polygons',
+            undef,
+            'destroy-with-parent',
+            'gtk-ok' => 'ok',
+            # 'gtk-cancel' => 'cancel',
+        );
+        my $box = $dlg->get_content_area;
+
+        my $bd = $self->get_base_ref;
+        my @cell_sizes = $bd->get_cell_sizes;
+
+        my $label = @cell_sizes == 1
+            ? 'Cannot plot range polygons for a basedata with a single group axis'
+            : 'Cannot plot range polygons for a basedata with text group axes';
+
+        my $header = Gtk3::Label->new($label);
+
+        $box->pack_start ($header, 0, 0, 0);
+
+        $dlg->show_all;
+        $dlg->run;
+        $dlg->destroy;
+        return;
+    }
+
+
     #  the original use case is the default
     $range_type //= 'node';
 
@@ -1096,9 +1124,30 @@ sub run_highlight_label_range_polygons_dlg {
     $dlg->destroy;
 }
 
+sub range_polygons_are_valid {
+    my $self = shift;
+
+    my $cached = $self->get_cached_value ('range_polygons_are_valid');
+
+    return $cached if defined $cached;
+
+    my $cell_sizes = $self->get_base_ref->get_cell_sizes;
+    #  need to update if we plot different axes
+    $cached = @$cell_sizes > 1
+        && $cell_sizes->[0] >= 0
+        && $cell_sizes->[1] >= 0;
+
+    $cached ||= 0;
+    $self->set_cached_value (range_polygons_are_valid => $cached);
+
+    return $cached;
+}
+
 
 sub _highlight_label_range_hulls {
     my ($self, $element, $is_concave, %rest) = @_;
+
+    return if !$self->range_polygons_are_valid;
 
     my $hull_type = $is_concave ? 'concave' : 'convex';
 
@@ -1181,6 +1230,8 @@ sub highlight_label_range_concave_hull_union {
 sub _highlight_label_range_hull_union {
     my ($self, $element, $is_concave, %rest) = @_;
 
+    return if !$self->range_polygons_are_valid;
+
     my $hull_type = $is_concave ? 'concave' : 'convex';
 
     my $is_tree_node = blessed $element && $element->isa('Biodiverse::TreeNode');
@@ -1246,6 +1297,8 @@ sub _highlight_label_range_hull_union {
 sub highlight_label_range_circumcircles {
     my ($self, $element, %rest) = @_;
 
+    return if !$self->range_polygons_are_valid;
+
     my $is_tree_node = blessed $element && $element->isa('Biodiverse::TreeNode');
     my $range_type = $is_tree_node
         ? 'node'
@@ -1281,6 +1334,8 @@ sub highlight_label_range_circumcircles {
 
 sub highlight_label_range_circumcircle_union {
     my ($self, $element, %rest) = @_;
+
+    return if !$self->range_polygons_are_valid;
 
     my $is_tree_node = blessed $element && $element->isa('Biodiverse::TreeNode');
     my $range_type = $is_tree_node
@@ -1964,12 +2019,7 @@ sub on_end_phylogeny_hover {
 
     return if !$self->do_canvas_hover_flag;
 
-    $grid->clear_range_convex_hulls;
-    $grid->clear_range_concave_hulls;
-    $grid->clear_range_circumcircles;
-    $grid->clear_range_convex_hull_union;
-    $grid->clear_range_concave_hull_union;
-    $grid->clear_range_circumcircle_union;
+    $grid->_clear_range_polygons;
     $grid->mark_with_circles;
 }
 
@@ -1983,12 +2033,7 @@ sub on_phylogeny_highlight {
     return if !$self->do_canvas_hover_flag;
 
     $self->highlight_label_range_marks($node);
-    $self->highlight_label_range_convex_hulls($node);
-    $self->highlight_label_range_concave_hulls($node);
-    $self->highlight_label_range_convex_hull_union($node);
-    $self->highlight_label_range_concave_hull_union($node);
-    $self->highlight_label_range_circumcircles($node);
-    $self->highlight_label_range_circumcircle_union($node);
+    $self->_run_polygon_highlight_methods ($node);
 
     if (my $widget = $self->get_xmlpage_object('label_VL_tree')) {
         $widget->set_markup('Node: ' . $node->get_name);

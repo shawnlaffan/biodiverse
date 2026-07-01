@@ -961,6 +961,34 @@ for my $type (qw/node assemblage/) {
 sub run_highlight_label_range_polygons_dlg {
     my ($self, $range_type) = @_;
 
+    if (!$self->range_polygons_are_valid) {
+        my $dlg = Gtk3::Dialog->new_with_buttons (
+            'Range polygons',
+            undef,
+            'destroy-with-parent',
+            'gtk-ok' => 'ok',
+            # 'gtk-cancel' => 'cancel',
+        );
+        my $box = $dlg->get_content_area;
+
+        my $bd = $self->get_base_ref;
+        my @cell_sizes = $bd->get_cell_sizes;
+
+        my $label = @cell_sizes == 1
+            ? 'Cannot plot range polygons for a basedata with a single group axis'
+            : 'Cannot plot range polygons for a basedata with text group axes';
+
+        my $header = Gtk3::Label->new($label);
+
+        $box->pack_start ($header, 0, 0, 0);
+
+        $dlg->show_all;
+        $dlg->run;
+        $dlg->destroy;
+        return;
+    }
+
+
     #  the original use case is the default
     $range_type //= 'node';
 

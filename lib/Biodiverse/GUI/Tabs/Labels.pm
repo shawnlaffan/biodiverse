@@ -714,6 +714,11 @@ sub remove_selected_labels_from_list {
     $treeview1->set_model ($model1);
     $treeview2->set_model ($model2);
 
+    #  Clear the selection cache so we avoid Gtk errors
+    #  in set_selected_list_cols when it is triggered
+    #  as the iters no longer exist.
+    $self->{selected_labels} = undef;
+
     #  need to update the matrix if it is displayed
     $self->on_selected_matrix_changed (redraw => 1);
 

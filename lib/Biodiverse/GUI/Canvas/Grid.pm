@@ -390,6 +390,10 @@ sub set_base_struct {
         # say 'Cache hit';
         $self->{data}  = $cached_data->{data};
         $self->{rtree} = $cached_data->{rtree};
+        #  create if needed as was not cached before V6
+        $self->{data_by_element_name}
+            = $cached_data->{data_by_element_name}
+            //= {map {$_->{element} => $_} values %{$self->{data}}};
     }
     elsif (@cell_sizes == 1 && $cell_sizes[0] < 0) {
         #  single axis of text - plot as a 2D block
@@ -452,6 +456,13 @@ sub set_base_struct {
 
         $cached_data->{data} = $self->{data} = \%data;
     }
+
+    my %data_by_element_name
+        = map {$_->{element} => $_}
+        values %{$self->{data}};
+    $cached_data->{data_by_element_name}
+        = $self->{data_by_element_name}
+        = \%data_by_element_name;
 
     #  the rest could also be cached but does not take long
 
@@ -652,7 +663,11 @@ sub plot_highlights {
     if (my $elements = $self->{highlights}{circles}) {
         no autovivification;
         $cx->set_line_width($line_width);
-        foreach my \@c (grep {defined} map {$self->{data}{$_}{centroid}} @$elements) {
+        foreach my \@c (
+            grep {defined}
+                map {$self->{data_by_element_name}{$_}{centroid}}
+                    @$elements
+        ) {
             $cx->arc(@c, $cellsize_div4, 0, PI2);
             $cx->close_path;
         };
@@ -661,7 +676,11 @@ sub plot_highlights {
     if (my $elements = $self->{highlights}{dashes}) {
         no autovivification;
         $cx->set_line_width($line_width);
-        foreach my \@c (grep {defined} map {$self->{data}{$_}{centroid}} @$elements) {
+        foreach my \@c (
+            grep {defined}
+                map {$self->{data_by_element_name}{$_}{centroid}}
+                    @$elements
+        ) {
             $cx->move_to($c[0] - $cellsize_div3, $c[1]);
             $cx->line_to($c[0] + $cellsize_div3, $c[1]);
         }

@@ -714,6 +714,11 @@ sub remove_selected_labels_from_list {
     $treeview1->set_model ($model1);
     $treeview2->set_model ($model2);
 
+    #  Clear the selection cache so we avoid Gtk errors
+    #  in set_selected_list_cols when it is triggered
+    #  as the iters no longer exist.
+    $self->{selected_labels} = undef;
+
     #  need to update the matrix if it is displayed
     $self->on_selected_matrix_changed (redraw => 1);
 
@@ -728,7 +733,7 @@ sub get_selected_labels {
     # Get the current selection
     my $selection = $self->get_xmlpage_object("listLabels$list_num")->get_selection();
     my ($p, $model) = $selection->get_selected_rows();
-    my @paths = $p ? @$p : [];
+    my @paths = $p ? @$p : ();
     #my @selected = map { ($_->get_indices)[0] } @paths;
     my $sorted_model = $selection->get_tree_view()->get_model();
     my $global_model = $self->{labels_model};

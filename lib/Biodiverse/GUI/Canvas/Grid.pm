@@ -399,10 +399,16 @@ sub set_base_struct {
         \my @element_list = $source->get_element_list_sorted;
         my $n_elements = @element_list;
         my $ncols = floor sqrt $n_elements;
-        #  sorted list for consistency when there are >2 axes
+
+        my %indexed = map {$_ => $source->get_element_name_coord(element => $_)}
+            @element_list;
+        my $min_idx = min values %indexed;
+        $min_idx ||= 1;  #  ensure we count from zero
         foreach my $element (@element_list) {
-            my ($idx) = $source->get_element_name_coord(element => $element);
             #  left to right, top to bottom
+            #  Compensate for coords being numbered as "z" lowest, "a" highest
+            #  and starting from 1.
+            my $idx = $n_elements - $indexed{$element} - $min_idx;
             my $x = $idx % $ncols;
             my $y = $n_elements - floor ($idx / $ncols);
 

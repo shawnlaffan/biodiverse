@@ -692,58 +692,26 @@ sub plot_highlights {
     return FALSE;
 }
 
-sub clear_range_convex_hulls {
-    my $self = shift;
-    $self->set_overlay(
-        cb_target   => 'range_convex_hulls',
-        plot_on_top => 1,
-        data        => undef,
-    );
-}
-
-sub clear_range_concave_hulls {
-    my $self = shift;
-    $self->set_overlay(
-        cb_target   => 'range_concave_hulls',
-        plot_on_top => 1,
-        data        => undef,
-    );
-}
-
-sub clear_range_convex_hull_union {
-    my $self = shift;
-    $self->set_overlay(
-        cb_target   => 'range_convex_hull_union',
-        plot_on_top => 1,
-        data        => undef,
-    );
-}
-
-sub clear_range_concave_hull_union {
-    my $self = shift;
-    $self->set_overlay(
-        cb_target   => 'range_concave_hull_union',
-        plot_on_top => 1,
-        data        => undef,
-    );
-}
-
-sub clear_range_circumcircles {
-    my $self = shift;
-    $self->set_overlay(
-        cb_target   => 'range_circumcircles',
-        plot_on_top => 1,
-        data        => undef,
-    );
-}
-
-sub clear_range_circumcircle_union {
-    my $self = shift;
-    $self->set_overlay(
-        cb_target   => 'range_circumcircle_union',
-        plot_on_top => 1,
-        data        => undef,
-    );
+{
+    #  generate the range polygon clear methods
+    my @types = qw/
+        range_convex_hulls  range_convex_hull_union
+        range_concave_hulls range_concave_hull_union
+        range_circumcircles range_circumcircle_union
+    /;
+    foreach my $type (@types) {
+        no strict 'refs';
+        my $method = "clear_${type}";
+        *{ __PACKAGE__ . "::" . $method }
+            = sub {
+                my $self = shift;
+                $self->set_overlay(
+                    cb_target   => $type,
+                    # plot_on_top => 1,
+                    data        => undef,
+                );
+            };
+    }
 }
 
 sub set_overlay {

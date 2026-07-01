@@ -699,19 +699,28 @@ sub plot_highlights {
         range_concave_hulls range_concave_hull_union
         range_circumcircles range_circumcircle_union
     /;
+    no strict 'refs';
     foreach my $type (@types) {
-        no strict 'refs';
         my $method = "clear_${type}";
         *{ __PACKAGE__ . "::" . $method }
             = sub {
                 my $self = shift;
                 $self->set_overlay(
                     cb_target   => $type,
-                    # plot_on_top => 1,
                     data        => undef,
                 );
             };
     }
+    *{ __PACKAGE__ . "::" . '_clear_range_polygons' }
+        = sub {
+            my $self = shift;
+            foreach my $type (@types) {
+                $self->set_overlay(
+                    cb_target => $type,
+                    data      => undef,
+                );
+            }
+    };
 }
 
 sub set_overlay {

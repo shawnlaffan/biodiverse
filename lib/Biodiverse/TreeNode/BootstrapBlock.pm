@@ -12,7 +12,7 @@ use JSON::PP ();
 use JSON::MaybeXS;
 use Ref::Util qw /is_arrayref is_hashref/;
 
-use parent qw /Biodiverse::Common/;
+use parent qw /Biodiverse::Common::Caching/;
 
 our $VERSION = '5.99_002';
 

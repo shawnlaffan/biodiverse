@@ -59,6 +59,11 @@ sub test_basic_operations {
             $hash{$key},
             "$key maps to $hash{$key}"
         );
+        is (
+            $bootstrap_block->get_value_aa ($key),
+            $hash{$key},
+            "$key maps to $hash{$key} (array args method)"
+        );
     }
 }
 

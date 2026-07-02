@@ -1847,8 +1847,24 @@ sub get_node_range_hash {
 
     if (!$return_lists) {
         my $range_hash = $args{node_range_hash};
-        if ($range_hash) {
+        my $tree_prop  = $args{node_ranges_from_tree_property};
 
+        if (defined $tree_prop) {
+            #  override any table that was passed
+            $range_hash = {};
+            foreach my $node_ref ($tree->get_node_refs) {
+                my $bb = $node_ref->get_bootstrap_block;
+                my $range = $bb->get_value_aa($tree_prop);
+                croak sprintf (
+                    "Node %s does not contain a value for %s, cannot define node range",
+                    $node_ref->get_name,
+                    $tree_prop
+                ) if !defined $range;
+                $range_hash->{$node_ref->get_name} = $range;
+            }
+        }
+
+        if ($range_hash) {
             #  all tree branches must be on the range hash
             my $node_names = $tree->get_node_names;
             croak "Nodes missing from node_range_hash passed as a user arg"

@@ -902,4 +902,31 @@ sub test_node_range_hash {
 
     is $range_hash3, undef, 'range hash content not cached when passed as an argument';
 
+    my $range_key = 'NODE_RANGE';
+    my $tree_with_ranges = $tree->clone;
+    foreach my $node_ref ($tree_with_ranges->get_node_refs) {
+        my $node_name = $node_ref->get_name;
+        my $bb = $node_ref->get_bootstrap_block;
+        $bb->set_value_aa (NODE_RANGE => $range_hash1->{$node_name});
+    }
+
+    my $sp4 = $bd1->add_spatial_output(name => 'sp_tree_ranges');
+    $success = eval {
+        $sp4->run_analysis (
+            %sp_args,
+            tree_ref => $tree_with_ranges,
+            node_ranges_from_tree_property => $range_key,
+        );
+    };
+    ok ($success, 'spatial analysis passed use_ranges_from_tree_property arg runs without error');
+
+    my (%got, %exp);
+    foreach my $el ($sp4->get_element_list) {
+        my $list1 = $sp1->get_list_ref_aa($el, 'SPATIAL_RESULTS');
+        my $list2 = $sp4->get_list_ref_aa($el, 'SPATIAL_RESULTS');
+        next if !(keys (%$list1) && keys (%$list2));
+        $exp{$el} = $list1;
+        $got{$el} = $list2;
+    }
+    is \%got, \%exp, 'same results when range passed as table and as a tree property';
 }

@@ -1845,8 +1845,10 @@ sub get_node_range_hash {
 
     my $return_lists = $args{return_lists};
 
-    if (my $range_hash = $args{node_range_hash}) {
-        if (!$return_lists) {
+    if (!$return_lists) {
+        my $range_hash = $args{node_range_hash};
+        if ($range_hash) {
+
             #  all tree branches must be on the range hash
             my $node_names = $tree->get_node_names;
             croak "Nodes missing from node_range_hash passed as a user arg"

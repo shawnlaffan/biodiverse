@@ -1483,7 +1483,7 @@ sub on_run {
 
     my $options = $self->get_options;
 
-    #my $defq = $self->{definition_query1}->get_validated_conditions;
+    my $extra_calc_options = $self->get_extra_calc_options (calcs => \@to_run);
 
     my %args = (
         calculations       => \@to_run,
@@ -1495,6 +1495,7 @@ sub on_run {
             $self->{spatial2}->get_validated_conditions,
         ],
         %$options,
+        %$extra_calc_options,
     );
 
     # Perform the analysis

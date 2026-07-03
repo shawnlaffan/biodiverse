@@ -1523,4 +1523,146 @@ sub get_phylogeny_hover_text {
 }
 
 
+
+
+sub get_extra_calc_options {
+    my ($self, %args) = @_;
+
+    my $calcs = $args{calcs};
+
+    return wantarray ? (): {}
+        if !$calcs;
+
+    my %results;
+
+    my $gui = Biodiverse::GUI::GUIManager->instance;
+    my $project = $gui->get_project;
+
+    #  filter out trees with no bootstrap block
+    #  should check for prop lists also
+    my sub tree_has_prop_data {
+        my $tree = shift;
+        my $booter = $tree->get_bootstrap_block;
+        my $data = $booter->get_data;
+        return keys %$data;
+    }
+
+    my sub update_prop_combo {
+        my ($tree_combo, $args) = @_;
+        my ($prop_combo, $props_hash) = @$args;
+
+        my $iter = $tree_combo->get_active_iter;
+        my $tree = $tree_combo->get_model->get($iter, 1);
+
+        #  Refresh the combo contents.
+        #  Could keep a liststore for each tree and
+        #  set that but this will do for now.
+        $prop_combo->remove_all;
+        my $keys = $props_hash->{$tree};
+        foreach my $key (@$keys) {
+            $prop_combo->append_text ($key);
+        }
+        #  Maybe one day we will remember per-tree selections.
+        $prop_combo->set_active (0);
+    }
+
+    my $trees = $project->get_phylogeny_list;
+    my @trees = grep {tree_has_prop_data($_)} @$trees;
+
+    #  bodgy - need to generalise
+    if (@trees && grep { $_ eq 'calc_pe' } @$calcs) {
+
+        my $dlg = Gtk3::Dialog->new_with_buttons (
+            'Tree node ranges',
+            undef,
+            'destroy-with-parent',
+            'gtk-ok' => 'ok',
+            'gtk-cancel' => 'cancel',
+        );
+
+        my $project_tree = $project->get_selected_phylogeny;
+
+        my $tree_combo = Gtk3::ComboBox->new;
+        my $prop_combo = Gtk3::ComboBoxText->new;
+
+        my $renderer_text = Gtk3::CellRendererText->new();
+        $tree_combo->pack_start($renderer_text, 1);
+        $tree_combo->add_attribute($renderer_text, "text", 0);
+
+        my $model = Gtk3::ListStore->new('Glib::String', 'Glib::Scalar');
+
+        my $default_iter  = 0;
+        my %props_by_tree = (none => []);
+
+        use experimental qw /for_list/;
+        foreach my ($name, $tree) (none=> 'none', 'project' => $project_tree) {
+            next if blessed $tree && !tree_has_prop_data($tree);
+            my $iter = $model->append();
+            $model->set( $iter, 0 => $name, 1 => $tree );
+        }
+
+        foreach my $tree (@trees) {
+            next if !tree_has_prop_data($tree);
+            my $name = $tree->get_name;
+            my $iter = $model->append();
+            $model->set( $iter, 0 => $name, 1 => $tree );
+            my $props = $tree->get_bootstrap_block->get_data;
+            $props_by_tree{$tree} = [sort keys %$props];
+        }
+
+        $tree_combo->set_model ($model);
+        $tree_combo->set_active($default_iter);
+
+        $prop_combo->append_text('');
+
+        $tree_combo->signal_connect(changed => \&update_prop_combo, [$prop_combo, \%props_by_tree]);
+
+        my $check_button = Gtk3::CheckButton->new_with_label("Get branch ranges from tree");
+
+        my $tree_box = Gtk3::Box->new('horizontal', 0);
+        $tree_box->pack_start (Gtk3::Label->new('Tree to use'), 0, 0, 0);
+        $tree_box->pack_start ($tree_combo, 0, 0, 0);
+
+        my $prop_box = Gtk3::Box->new('horizontal', 0);
+        $prop_box->pack_start (Gtk3::Label->new('Prop to use'), 0, 0, 0);
+        $prop_box->pack_start ($prop_combo, 0, 0, 0);
+
+        $check_button->signal_connect (toggled => sub {
+            my $active = shift->get_active;
+            $tree_box->set_visible($active);
+            $prop_box->set_visible($active);
+        });
+        $check_button->show;
+
+        my $box = $dlg->get_content_area;
+        $box->pack_start ($check_button, 0, 0, 0);
+        $box->pack_start ($tree_box, 0, 0, 0);
+        $box->pack_start ($prop_box, 0, 0, 0);
+        $box->show_all;
+
+        #  toggle button to trigger callbacks
+        $check_button->set_active(1);
+        $check_button->set_active(0);
+
+
+        my $response = $dlg->run;
+        if ($response eq 'ok' && $check_button->get_active) {
+            my $iter = $tree_combo->get_active_iter;
+            my $selected_tree = $model->get($iter, 1);
+            if (blessed $selected_tree) {
+                $results{use_ranges_from_tree_property} = $prop_combo->get_active_text;
+                $results{use_ranges_from_tree} = $selected_tree ne $project_tree ? $selected_tree : undef;
+            }
+        }
+        # elsif ($response eq 'cancel') {
+        #     croak 'User cancelled operation';
+        # }
+
+        $dlg->destroy;
+    }
+
+    return wantarray ? %results : \%results;
+}
+
+
 1;

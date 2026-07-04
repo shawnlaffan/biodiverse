@@ -1542,6 +1542,7 @@ sub get_extra_calc_options {
     #  should check for prop lists also
     my sub tree_has_prop_data {
         my $tree = shift;
+        return () if !$tree;
         my $booter = $tree->get_bootstrap_block;
         my $data = $booter->get_data;
         return keys %$data;
@@ -1570,7 +1571,7 @@ sub get_extra_calc_options {
     my @trees = grep {tree_has_prop_data($_)} @$trees;
 
     #  bodgy - need to generalise
-    if (@trees && grep { $_ eq 'calc_pe' } @$calcs) {
+    if (@trees && grep { $_ eq 'get_node_range_hash' } @$calcs) {
 
         my $dlg = Gtk3::Dialog->new_with_buttons (
             'Tree node ranges',
@@ -1579,8 +1580,6 @@ sub get_extra_calc_options {
             'gtk-ok' => 'ok',
             'gtk-cancel' => 'cancel',
         );
-
-        my $project_tree = $project->get_selected_phylogeny;
 
         my $tree_combo = Gtk3::ComboBox->new;
         my $prop_combo = Gtk3::ComboBoxText->new;
@@ -1594,13 +1593,9 @@ sub get_extra_calc_options {
         my $default_iter  = 0;
         my %props_by_tree = (none => []);
 
-        use experimental qw /for_list/;
-        foreach my ($name, $tree) (none=> 'none', 'project' => $project_tree) {
-            next if blessed $tree && !tree_has_prop_data($tree);
-            my $iter = $model->append();
-            $model->set( $iter, 0 => $name, 1 => $tree );
-        }
+        my $project_tree = $project->get_selected_phylogeny;
 
+        my $i = -1;
         foreach my $tree (@trees) {
             next if !tree_has_prop_data($tree);
             my $name = $tree->get_name;
@@ -1608,14 +1603,18 @@ sub get_extra_calc_options {
             $model->set( $iter, 0 => $name, 1 => $tree );
             my $props = $tree->get_bootstrap_block->get_data;
             $props_by_tree{$tree} = [sort keys %$props];
+            $i++;
+            if ($tree == $project_tree) {
+                $default_iter = $i;
+            }
         }
 
         $tree_combo->set_model ($model);
         $tree_combo->set_active($default_iter);
 
-        $prop_combo->append_text('');
-
         $tree_combo->signal_connect(changed => \&update_prop_combo, [$prop_combo, \%props_by_tree]);
+        # initialise
+        update_prop_combo($tree_combo, [$prop_combo, \%props_by_tree]);
 
         my $check_button = Gtk3::CheckButton->new_with_label("Get branch ranges from tree");
 
@@ -1649,9 +1648,13 @@ sub get_extra_calc_options {
         if ($response eq 'ok' && $check_button->get_active) {
             my $iter = $tree_combo->get_active_iter;
             my $selected_tree = $model->get($iter, 1);
-            if (blessed $selected_tree) {
-                $results{use_ranges_from_tree_property} = $prop_combo->get_active_text;
-                $results{use_ranges_from_tree} = $selected_tree ne $project_tree ? $selected_tree : undef;
+            if (defined $selected_tree) {
+                my $tree_prop = $prop_combo->get_active_text;
+                my %range_hash;
+                foreach my $node_ref ($selected_tree->get_node_refs) {
+                    $range_hash{$node_ref->get_name} = $node_ref->get_bootstrap_block->get_value_aa($tree_prop);
+                }
+                $results{node_range_hash} = \%range_hash;
             }
         }
         # elsif ($response eq 'cancel') {

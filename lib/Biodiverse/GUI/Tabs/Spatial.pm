@@ -1496,30 +1496,8 @@ sub on_run {
     );
 
 
-    #  need to generalise this and pass  it through
-    #  but we need to check valid conditions and the like,
-    {
-        my $indices_object = Biodiverse::Indices->new(
-            BASEDATA_REF => $self->{basedata_ref},
-            # OUTPUT_REF   => $self,
-            NAME         => 'Indices for checking options',
-        );
-
-        #  step is needed here?
-        $indices_object->get_valid_calculations(
-            %args,
-            nbr_list_count     => 2,
-            element_list1      => [], #  for validity checking only
-            element_list2      => [],
-            processing_element => 'x',
-        );
-
-        my $pre_calc_globals = $indices_object->get_pre_calc_global_list;
-
-        my $extra_calc_options = $self->get_extra_calc_options (calcs => $pre_calc_globals);
-
-        @args{keys %$extra_calc_options} = values %$extra_calc_options;
-    }
+    my $extra_calc_options = $self->get_extra_calc_options(%args, );
+    @args{keys %$extra_calc_options} = values %$extra_calc_options;
 
 
     # Perform the analysis

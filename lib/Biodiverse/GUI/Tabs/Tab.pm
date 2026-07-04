@@ -1525,7 +1525,7 @@ sub get_phylogeny_hover_text {
 
 
 
-sub get_extra_calc_options {
+sub run_dlg_extra_calc_options {
     my ($self, %args) = @_;
 
     my $calcs = $args{calcs};
@@ -1665,6 +1665,33 @@ sub get_extra_calc_options {
     }
 
     return wantarray ? %results : \%results;
+}
+
+#  ideally we would check required nbrs etc as well
+sub get_extra_calc_options {
+    my ($self, %args) = @_;
+
+    $args{calculations} //= $args{spatial_calculations};
+
+    my $indices_object = Biodiverse::Indices->new(
+        BASEDATA_REF => $self->{basedata_ref},
+        NAME         => 'Indices for checking options',
+    );
+
+    #  step is needed here?
+    $indices_object->get_valid_calculations(
+        %args,
+        nbr_list_count     => 2,
+        element_list1      => [], #  for validity checking only
+        element_list2      => [],
+        processing_element => 'x',
+    );
+
+    my $pre_calc_globals = $indices_object->get_pre_calc_global_list;
+
+    my $extra_calc_options = $self->run_dlg_extra_calc_options (calcs => $pre_calc_globals);
+
+    return wantarray ? %$extra_calc_options : $extra_calc_options;
 }
 
 

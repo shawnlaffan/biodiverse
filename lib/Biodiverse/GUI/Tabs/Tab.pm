@@ -1538,40 +1538,42 @@ sub run_dlg_extra_calc_options {
     my $gui = Biodiverse::GUI::GUIManager->instance;
     my $project = $gui->get_project;
 
-    #  filter out trees with no bootstrap block
-    #  should check for prop lists also
-    my sub tree_has_prop_data {
-        my $tree = shift;
-        return () if !$tree;
-        my $booter = $tree->get_bootstrap_block;
-        my $data = $booter->get_data;
-        return keys %$data;
-    }
-
-    my sub update_prop_combo {
-        my ($tree_combo, $args) = @_;
-        my ($prop_combo, $props_hash) = @$args;
-
-        my $iter = $tree_combo->get_active_iter;
-        my $tree = $tree_combo->get_model->get($iter, 1);
-
-        #  Refresh the combo contents.
-        #  Could keep a liststore for each tree and
-        #  set that but this will do for now.
-        $prop_combo->remove_all;
-        my $keys = $props_hash->{$tree};
-        foreach my $key (@$keys) {
-            $prop_combo->append_text ($key);
-        }
-        #  Maybe one day we will remember per-tree selections.
-        $prop_combo->set_active (0);
-    }
-
-    my $trees = $project->get_phylogeny_list;
-    my @trees = grep {tree_has_prop_data($_)} @$trees;
+    my $runs_get_node_hash = grep { $_ eq 'get_node_range_hash' } @$calcs;
 
     #  bodgy - need to generalise
-    if (@trees && grep { $_ eq 'get_node_range_hash' } @$calcs) {
+    if ($runs_get_node_hash) {
+
+        #  filter out trees with no bootstrap block
+        #  should check for prop lists also
+        my sub tree_has_prop_data {
+            my $tree = shift;
+            return () if !$tree;
+            my $booter = $tree->get_bootstrap_block;
+            my $data = $booter->get_data;
+            return keys %$data;
+        }
+
+        my sub update_prop_combo {
+            my ($tree_combo, $args) = @_;
+            my ($prop_combo, $props_hash) = @$args;
+
+            my $iter = $tree_combo->get_active_iter;
+            my $tree = $tree_combo->get_model->get($iter, 1);
+
+            #  Refresh the combo contents.
+            #  Could keep a liststore for each tree and
+            #  set that but this will do for now.
+            $prop_combo->remove_all;
+            my $keys = $props_hash->{$tree};
+            foreach my $key (@$keys) {
+                $prop_combo->append_text ($key);
+            }
+            #  Maybe one day we will remember per-tree selections.
+            $prop_combo->set_active (0);
+        }
+
+        my $trees = $project->get_phylogeny_list;
+        my @trees = grep {tree_has_prop_data($_)} @$trees;
 
         my $dlg = Gtk3::Dialog->new_with_buttons (
             'Tree node ranges',
@@ -1634,9 +1636,11 @@ sub run_dlg_extra_calc_options {
         $check_button->show;
 
         my $box = $dlg->get_content_area;
-        $box->pack_start ($check_button, 0, 0, 0);
-        $box->pack_start ($tree_box, 0, 0, 0);
-        $box->pack_start ($prop_box, 0, 0, 0);
+        if (@trees) {
+            $box->pack_start($check_button, 0, 0, 0);
+            $box->pack_start($tree_box, 0, 0, 0);
+            $box->pack_start($prop_box, 0, 0, 0);
+        }
         $box->show_all;
 
         #  toggle button to trigger callbacks
@@ -1664,6 +1668,7 @@ sub run_dlg_extra_calc_options {
 
         $dlg->destroy;
     }
+
 
     return wantarray ? %results : \%results;
 }

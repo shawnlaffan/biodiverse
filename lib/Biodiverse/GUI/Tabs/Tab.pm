@@ -1586,37 +1586,40 @@ sub run_dlg_extra_calc_options {
         my $tree_combo = Gtk3::ComboBox->new;
         my $prop_combo = Gtk3::ComboBoxText->new;
 
-        my $renderer_text = Gtk3::CellRendererText->new();
-        $tree_combo->pack_start($renderer_text, 1);
-        $tree_combo->add_attribute($renderer_text, "text", 0);
+        if (@trees) {
 
-        my $model = Gtk3::ListStore->new('Glib::String', 'Glib::Scalar');
+            my $renderer_text = Gtk3::CellRendererText->new();
+            $tree_combo->pack_start($renderer_text, 1);
+            $tree_combo->add_attribute($renderer_text, "text", 0);
 
-        my $default_iter  = 0;
-        my %props_by_tree = (none => []);
+            my $model = Gtk3::ListStore->new('Glib::String', 'Glib::Scalar');
 
-        my $project_tree = $project->get_selected_phylogeny;
+            my $default_iter = 0;
+            my %props_by_tree = (none => []);
 
-        my $i = -1;
-        foreach my $tree (@trees) {
-            next if !tree_has_prop_data($tree);
-            my $name = $tree->get_name;
-            my $iter = $model->append();
-            $model->set( $iter, 0 => $name, 1 => $tree );
-            my $props = $tree->get_bootstrap_block->get_data;
-            $props_by_tree{$tree} = [sort keys %$props];
-            $i++;
-            if ($tree == $project_tree) {
-                $default_iter = $i;
+            my $project_tree = $project->get_selected_phylogeny;
+
+            my $i = -1;
+            foreach my $tree (@trees) {
+                next if !tree_has_prop_data($tree);
+                my $name = $tree->get_name;
+                my $iter = $model->append();
+                $model->set( $iter, 0 => $name, 1 => $tree );
+                my $props = $tree->get_bootstrap_block->get_data;
+                $props_by_tree{$tree} = [sort keys %$props];
+                $i++;
+                if ($tree == $project_tree) {
+                    $default_iter = $i;
+                }
             }
+
+            $tree_combo->set_model ($model);
+            $tree_combo->set_active($default_iter);
+
+            $tree_combo->signal_connect(changed => \&update_prop_combo, [ $prop_combo, \%props_by_tree ]);
+            # initialise
+            update_prop_combo($tree_combo, [ $prop_combo, \%props_by_tree ]);
         }
-
-        $tree_combo->set_model ($model);
-        $tree_combo->set_active($default_iter);
-
-        $tree_combo->signal_connect(changed => \&update_prop_combo, [$prop_combo, \%props_by_tree]);
-        # initialise
-        update_prop_combo($tree_combo, [$prop_combo, \%props_by_tree]);
 
         my $check_button = Gtk3::CheckButton->new_with_label("Get branch ranges from tree");
 
@@ -1649,9 +1652,14 @@ sub run_dlg_extra_calc_options {
 
 
         my $response = $dlg->run;
-        if ($response eq 'ok' && $check_button->get_active) {
+        if ($response ne 'ok') {
+            $dlg->destroy;
+            croak 'User cancelled operation';
+        }
+
+        if ($check_button->get_active) {
             my $iter = $tree_combo->get_active_iter;
-            my $selected_tree = $model->get($iter, 1);
+            my $selected_tree = $tree_combo->get_model->get($iter, 1);
             if (defined $selected_tree) {
                 my $tree_prop = $prop_combo->get_active_text;
                 my %range_hash;
@@ -1661,10 +1669,7 @@ sub run_dlg_extra_calc_options {
                 $results{node_range_hash} = \%range_hash;
             }
         }
-        elsif ($response eq 'cancel') {
-            $dlg->destroy;
-            croak 'User cancelled operation';
-        }
+
 
         $dlg->destroy;
     }

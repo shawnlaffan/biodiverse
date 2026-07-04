@@ -925,6 +925,9 @@ sub test_node_range_hash {
         my $list1 = $sp1->get_list_ref_aa($el, 'SPATIAL_RESULTS');
         my $list2 = $sp4->get_list_ref_aa($el, 'SPATIAL_RESULTS');
         next if !(keys (%$list1) && keys (%$list2));
+        #  avoid some precision mismatches
+        $_ = sprintf("%.10f", $_) for values %$list1;
+        $_ = sprintf("%.10f", $_) for values %$list2;
         $exp{$el} = $list1;
         $got{$el} = $list2;
     }

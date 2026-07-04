@@ -1562,6 +1562,24 @@ sub get_valid_calculation_count {
     return scalar keys %$calcs;
 }
 
+{
+    #  get_pre_calc_global_list and friends
+    no strict 'refs';
+    my $pkg = __PACKAGE__;
+    foreach my $type (qw /pre_calc_global pre_calc post_calc post_calc_global/) {
+        my $meth = "get_${type}_list";
+        *{ $pkg . "::" . $meth } = sub {
+            my $self = shift;
+            my $validated_calcs = $self->get_param('VALID_CALCULATIONS');
+            return wantarray ? (): []
+                if !$validated_calcs;
+            my $calcs = $validated_calcs->{calc_lists_by_type}{$type} // [];
+            return wantarray ? @$calcs : [@$calcs];
+        };
+    }
+}
+
+
 sub run_dependencies {
     my $self = shift;
     my %args = @_;

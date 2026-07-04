@@ -1496,7 +1496,11 @@ sub on_run {
     );
 
 
-    my $extra_calc_options = $self->get_extra_calc_options(%args, );
+    my $extra_calc_options = eval {$self->get_extra_calc_options(%args)};
+    if ($EVAL_ERROR) {
+        $self->{basedata_ref}->delete_output(output => $output_ref);
+        return;
+    }
     @args{keys %$extra_calc_options} = values %$extra_calc_options;
 
 

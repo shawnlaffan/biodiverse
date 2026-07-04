@@ -1657,9 +1657,10 @@ sub run_dlg_extra_calc_options {
                 $results{node_range_hash} = \%range_hash;
             }
         }
-        # elsif ($response eq 'cancel') {
-        #     croak 'User cancelled operation';
-        # }
+        elsif ($response eq 'cancel') {
+            $dlg->destroy;
+            croak 'User cancelled operation';
+        }
 
         $dlg->destroy;
     }

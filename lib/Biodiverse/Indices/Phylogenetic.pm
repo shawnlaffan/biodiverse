@@ -1867,8 +1867,8 @@ sub get_node_range_hash {
         if ($range_hash) {
             #  all tree branches must be on the range hash
             my $node_names = $tree->get_node_names;
-            croak "Nodes missing from node_range_hash passed as a user arg"
-              if any {!exists $range_hash->{$_}} @$node_names;
+            croak "Nodes missing or ranges undefined in node_range_hash passed as a user arg"
+              if any {not exists $range_hash->{$_} or not defined $range_hash->{$_}} @$node_names;
             #  Check if ranges are less than in the basedata?
             #  Would cause many numeric issues if they are.
             my %results = (node_range => $range_hash);

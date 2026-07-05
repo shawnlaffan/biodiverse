@@ -1543,6 +1543,14 @@ sub run_dlg_extra_calc_options {
     #  bodgy - need to generalise
     if ($runs_get_node_hash) {
 
+        my $dlg = Gtk3::Dialog->new_with_buttons (
+            'Tree node ranges',
+            undef,
+            'destroy-with-parent',
+            'gtk-ok' => 'ok',
+            'gtk-cancel' => 'cancel',
+        );
+
         #  filter out trees with no bootstrap block
         #  should check for prop lists also
         my sub tree_has_prop_data {
@@ -1574,14 +1582,6 @@ sub run_dlg_extra_calc_options {
 
         my $trees = $project->get_phylogeny_list;
         my @trees = grep {tree_has_prop_data($_)} @$trees;
-
-        my $dlg = Gtk3::Dialog->new_with_buttons (
-            'Tree node ranges',
-            undef,
-            'destroy-with-parent',
-            'gtk-ok' => 'ok',
-            'gtk-cancel' => 'cancel',
-        );
 
         my $tree_combo = Gtk3::ComboBox->new;
         my $prop_combo = Gtk3::ComboBoxText->new;
@@ -1621,7 +1621,63 @@ sub run_dlg_extra_calc_options {
             update_prop_combo($tree_combo, [ $prop_combo, \%props_by_tree ]);
         }
 
-        my $tree_check_button = Gtk3::CheckButton->new_with_label("Get branch ranges from tree");
+        my %range_hash_seen;
+        my @range_hashes_from_outputs;
+        my $basedatas = $project->get_base_data_list // [];
+        foreach my $bd (@$basedatas) {
+            my $bd_name = $bd->get_name;
+            use experimental qw /for_list/;
+            foreach my ($name, $output) ($bd->get_spatial_outputs) {
+                #  messy
+                next if $output eq ($self->{output_ref} // '');
+                next if !$output->get_param ('COMPLETED');
+                #  should be simplified as an output method to just get the args
+                my ($p_key, $analysis_args) = $self->get_analysis_args_from_object (
+                    object => $output
+                );
+                next if !$analysis_args;
+                my $range_hash = $analysis_args->{node_range_hash};
+                next if !$range_hash;
+                next if $range_hash_seen{$range_hash};
+                push @range_hashes_from_outputs, ["$bd_name: $name", $range_hash];
+                $range_hash_seen{$range_hash}++;
+            }
+        }
+
+        my $from_outputs_combo = Gtk3::ComboBox->new;
+
+        if (@range_hashes_from_outputs) {
+            my $renderer_text = Gtk3::CellRendererText->new();
+            $from_outputs_combo->pack_start($renderer_text, 1);
+            $from_outputs_combo->add_attribute($renderer_text, "text", 0);
+
+            my $model = Gtk3::ListStore->new('Glib::String', 'Glib::Scalar');
+
+            foreach my $aref (@range_hashes_from_outputs) {
+                my $name = $aref->[0];
+                my $iter = $model->append();
+                $model->set( $iter, 0 => $name, 1 => $aref->[1] );
+            }
+
+            $from_outputs_combo->set_model ($model);
+            $from_outputs_combo->set_active(0);
+        }
+
+
+        my $skip_check_button = Gtk3::RadioButton->new_with_label(undef, "Generate from current tree");
+        my $tree_check_button = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from tree");
+        my $file_check_button = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from file");
+        my $sp_check_button   = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from other output");
+
+        $skip_check_button->set_tooltip_text('This is the default');
+        $tree_check_button->set_tooltip_text(
+            'Trees are listed only if they were imported from Newick format and contained annotations'
+        );
+        $sp_check_button->set_tooltip_text(
+            "Only the first is shown if a table is used for more than one analysis.\n"
+            . 'Naming scheme is "basedata name: output name"',
+        );
+        $file_check_button->set_tooltip_text ('Load ranges from a delimited text file');
 
         my $tree_box = Gtk3::Box->new('horizontal', 0);
         $tree_box->pack_start (Gtk3::Label->new('Tree to use'), 0, 0, 0);
@@ -1638,20 +1694,25 @@ sub run_dlg_extra_calc_options {
         });
         $tree_check_button->show;
 
-        my $file_check_button = Gtk3::CheckButton->new_with_label("Load branch ranges from file");
-
         my $box = $dlg->get_content_area;
+        $box->pack_start($skip_check_button, 0, 0, 0);
         if (@trees) {  #  don't pack them if there are no trees to work with
             $box->pack_start($tree_check_button, 0, 0, 0);
             $box->pack_start($tree_box, 0, 0, 0);
             $box->pack_start($prop_box, 0, 0, 0);
         }
         $box->pack_start($file_check_button, 0, 0, 0);
+        if (@range_hashes_from_outputs) {
+            $box->pack_start($sp_check_button, 0, 0, 0);
+            $box->pack_start($from_outputs_combo, 0, 0, 0);
+        }
+
         $box->show_all;
 
         #  toggle button to trigger callbacks
         $tree_check_button->set_active(1);
         $tree_check_button->set_active(0);
+        $skip_check_button->set_active(1);
 
 
         my $response = $dlg->run;

@@ -5,7 +5,7 @@ use 5.036;
 
 our $VERSION = '5.99_002';
 
-use List::Util qw/min max/;
+use List::Util qw/min max all/;
 use Scalar::Util qw /blessed/;
 use List::MoreUtils qw /minmax/;
 use Gtk3;
@@ -1621,7 +1621,7 @@ sub run_dlg_extra_calc_options {
             update_prop_combo($tree_combo, [ $prop_combo, \%props_by_tree ]);
         }
 
-        my $check_button = Gtk3::CheckButton->new_with_label("Get branch ranges from tree");
+        my $tree_check_button = Gtk3::CheckButton->new_with_label("Get branch ranges from tree");
 
         my $tree_box = Gtk3::Box->new('horizontal', 0);
         $tree_box->pack_start (Gtk3::Label->new('Tree to use'), 0, 0, 0);
@@ -1631,24 +1631,27 @@ sub run_dlg_extra_calc_options {
         $prop_box->pack_start (Gtk3::Label->new('Prop to use'), 0, 0, 0);
         $prop_box->pack_start ($prop_combo, 0, 0, 0);
 
-        $check_button->signal_connect (toggled => sub {
+        $tree_check_button->signal_connect (toggled => sub {
             my $active = shift->get_active;
             $tree_box->set_visible($active);
             $prop_box->set_visible($active);
         });
-        $check_button->show;
+        $tree_check_button->show;
+
+        my $file_check_button = Gtk3::CheckButton->new_with_label("Load branch ranges from file");
 
         my $box = $dlg->get_content_area;
-        if (@trees) {
-            $box->pack_start($check_button, 0, 0, 0);
+        if (@trees) {  #  don't pack them if there are no trees to work with
+            $box->pack_start($tree_check_button, 0, 0, 0);
             $box->pack_start($tree_box, 0, 0, 0);
             $box->pack_start($prop_box, 0, 0, 0);
         }
+        $box->pack_start($file_check_button, 0, 0, 0);
         $box->show_all;
 
         #  toggle button to trigger callbacks
-        $check_button->set_active(1);
-        $check_button->set_active(0);
+        $tree_check_button->set_active(1);
+        $tree_check_button->set_active(0);
 
 
         my $response = $dlg->run;
@@ -1657,7 +1660,7 @@ sub run_dlg_extra_calc_options {
             croak 'User cancelled operation';
         }
 
-        if ($check_button->get_active) {
+        if ($tree_check_button->get_active) {
             my $iter = $tree_combo->get_active_iter;
             my $selected_tree = $tree_combo->get_model->get($iter, 1);
             if (defined $selected_tree) {
@@ -1668,6 +1671,9 @@ sub run_dlg_extra_calc_options {
                 }
                 $results{node_range_hash} = \%range_hash;
             }
+        }
+        elsif ($file_check_button->get_active) {
+            $results{node_range_hash} = $self->load_range_table_as_hash;
         }
 
 
@@ -1705,5 +1711,150 @@ sub get_extra_calc_options {
     return wantarray ? %$extra_calc_options : $extra_calc_options;
 }
 
+sub load_range_table_as_hash {
+    my ($self, %args) = @_;
+
+    my $max_cols_to_show = $args{max_cols_to_show} || 100;
+
+    my $gui = Biodiverse::GUI::GUIManager->instance;
+    my $project = $gui->get_project;
+
+    # Get filename for the name-translation file
+    my $filename //= $gui->show_open_dialog(
+        title       => "Select file",
+        suffix      => '*',
+    );
+
+    return wantarray ? () : {} if !defined $filename;
+
+    my $remap      = Biodiverse::ElementProperties->new;
+    my $remap_args = $remap->get_args( sub => 'import_data' );
+    my $params     = $remap_args->{parameters};
+
+    #  much of the following is used elsewhere to get file options, almost verbatim.  Should move to a sub.
+    my $dlgxml = Gtk3::Builder->new();
+    $dlgxml->add_from_file( $gui->get_gtk_ui_file('dlgImportParameters.ui') );
+    my $dlg = $dlgxml->get_object('dlgImportParameters');
+    $dlg->set_title( "File options" );
+
+    # Build widgets for parameters
+    my $table_name = 'tableImportParameters';
+    my $table      = $dlgxml->get_object($table_name);
+
+    # (passing $dlgxml because generateFile uses existing widget on the dialog)
+    my $parameters_table = Biodiverse::GUI::ParametersTable->new;
+    my $extractors = $parameters_table->fill( $params, $table, $dlgxml );
+
+    $dlg->show_all;
+    my $response = $dlg->run;
+    $dlg->destroy;
+
+    return wantarray ? () : {} if $response ne 'ok';
+
+    my $properties_params = $parameters_table->extract($extractors);
+    my %properties_params = @$properties_params;
+
+    # Get header columns
+    say "[GUI] Discovering columns from $filename";
+
+    my $input_fh = Biodiverse::Common->get_file_handle (
+        file_name => $filename,
+        use_bom   => 1,
+    );
+
+    my ( $line, $line_unchomped );
+    while (<$input_fh>) {    # get first non-blank line
+        $line           = $_;
+        $line_unchomped = $line;
+        $line =~ s/[\r\n]+$//;
+        last if $line;
+    }
+    close($input_fh);
+
+    #  we should inherit from Biodiverse::Common, but not until that has been subdivided into smaller units.
+    my $csv_obj = $project->get_csv_object_using_guesswork(
+        fname      => $filename,
+        quote_char => $properties_params{input_quote_char},
+        sep_char   => $properties_params{input_sep_char},
+    );
+
+    my @headers_full = $project->csv2list(
+        string     => $line_unchomped,
+        csv_object => $csv_obj,
+    );
+
+    my @headers = map { $_ // '{null}' }
+        @headers_full[ 0 .. min( $#headers_full, $max_cols_to_show - 1 ) ];
+
+
+    my $required_cols = [qw/node_name range/];
+
+    state %explain = (
+        Ignore    => 'There is no setting for this column.  It will be ignored.',
+        node_name => 'Name of the node',
+        range     => 'Range value',
+    );
+
+
+    ( $dlg, my $col_widgets ) = Biodiverse::GUI::BasedataImport::make_remap_columns_dialog(
+        header           => \@headers,
+        wnd_main         => $gui->get_object('wndMain'),
+        # other_props      => $other_properties,
+        column_overrides => $required_cols,
+    );
+
+    my $column_settings = {};
+    $dlg->set_title( "Specify columns" );
+
+    RUN_DLG:
+    while (1) {
+        $response = $dlg->run();
+        if ( $response eq 'ok' ) {
+            $column_settings =
+                Biodiverse::GUI::BasedataImport::get_remap_column_settings( $col_widgets, \@headers );
+        }
+        elsif ( $response eq 'help' ) {
+            Biodiverse::GUI::BasedataImport::show_expl_dialog( \%explain, $dlg );
+            next RUN_DLG;
+        }
+        else {
+            $dlg->destroy();
+            return wantarray ? () : {};
+        }
+
+        #  drop out
+        last RUN_DLG if all { $column_settings->{$_} && @{$column_settings->{$_}} == 1 } @$required_cols;
+
+        #  need to check we have the right number...
+        my $text = 'Invalid columns chosen.  Must have one (and only one) of each of: '
+                . join ' ', @$required_cols;
+        my $msg = Gtk3::MessageDialog->new(
+            undef, 'modal', 'error', 'ok', $text
+        );
+
+        $msg->run();
+        $msg->destroy();
+    }
+
+    $dlg->destroy();
+
+    #  column settings should be an object
+    my $node_name_col = $column_settings->{node_name}[0]{name};
+    my $range_col     = $column_settings->{range}[0]{name};
+
+    my %results;
+    my $fh = Biodiverse::Common->get_file_handle (
+        file_name => $filename,
+        use_bom   => 1,
+    );
+    $csv_obj->column_names (@headers_full);
+    my $data = $csv_obj->getline_hr_all ($fh);
+    shift @$data;  #  header
+    foreach my $row (@$data) {
+        $results{$row->{$node_name_col}} = $row->{$range_col};
+    }
+
+    return wantarray ? %results : \%results;
+}
 
 1;

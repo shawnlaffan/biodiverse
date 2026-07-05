@@ -1497,7 +1497,8 @@ sub on_run {
 
 
     my $extra_calc_options = eval {$self->get_extra_calc_options(%args)};
-    if ($EVAL_ERROR) {
+    if (my $e = $EVAL_ERROR) {
+        say $e;
         $self->{basedata_ref}->delete_output(output => $output_ref);
         return;
     }

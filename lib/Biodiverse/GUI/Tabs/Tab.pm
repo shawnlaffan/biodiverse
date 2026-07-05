@@ -1672,12 +1672,17 @@ sub run_dlg_extra_calc_options {
         my $file_check_button = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from file");
         my $sp_check_button   = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from other output");
 
-        $skip_check_button->set_tooltip_text('This is the default');
+        $skip_check_button->set_tooltip_text(
+            'Ranges are estimated using the union of the tip ranges, '
+            . 'where those are counted as the number of groups containing each tip.  '
+            . 'This is the default.'
+        );
         $tree_check_button->set_tooltip_text(
             'Trees are listed only if they were imported from Newick format and contained annotations'
         );
         $sp_check_button->set_tooltip_text(
-            "Only the first is shown if a table is used for more than one analysis.\n"
+            "This is listed only when one or more other analyses used a node range table. "
+            . "If a table is used for more than one analysis then only the first is shown.\n"
             . 'Naming scheme is "basedata name: output name"',
         );
         $file_check_button->set_tooltip_text ('Load ranges from a delimited text file');

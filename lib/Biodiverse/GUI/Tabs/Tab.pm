@@ -1551,6 +1551,9 @@ sub run_dlg_extra_calc_options {
             'gtk-cancel' => 'cancel',
         );
 
+        my $cancel_widget = $dlg->get_widget_for_response ('cancel');
+        $cancel_widget->set_tooltip_text('Cancelling will go back to the analysis options window');
+
         #  filter out trees with no bootstrap block
         #  should check for prop lists also
         my sub tree_has_prop_data {

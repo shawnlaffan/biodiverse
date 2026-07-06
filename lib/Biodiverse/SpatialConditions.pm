@@ -1050,7 +1050,7 @@ sub get_conditions_code_ref {
             my ( @d, @D, $D, $Dsqr, @c, @C, $C, $Csqr );
 
             if ( $args{calc_distances} ) {
-                \%dists = eval { $self->get_distances(@_) };
+                \%dists = eval { $self->get_distances(@_) } // {};
                 croak $EVAL_ERROR if $EVAL_ERROR;
 
                 @d    = @{ $dists{d_list} };

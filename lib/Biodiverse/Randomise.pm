@@ -1300,11 +1300,17 @@ sub get_spatial_allocation_sp_condition_metadata {
         EOT
     ;
 
+    my $default =<<~EOD
+        sp_select_all()
+        #  Conditions such as "sp_square_cell (size => 3)" could be used for basedatas with numeric axes.
+        #  The text matching functions could be used for basedatas with text-group axes.
+        EOD
+    ;
+
     my $spatial_condition_param = bless {
         name                  => 'spatial_conditions_for_label_allocation',
         label_text            => "Spatial condition\nto define target groups\naround a seed location",
-        default               => 'sp_square_cell (size => 3)',
-        #default    => 'sp_circle(radius => 300000)',
+        default               => $default,
         type                  => 'spatial_conditions',
         tooltip               => $tooltip,
         promise_current_label => 1,

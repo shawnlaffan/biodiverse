@@ -1583,6 +1583,11 @@ sub run_dlg_extra_calc_options {
             $prop_combo->set_active (0);
         }
 
+        my $skip_check_button = Gtk3::RadioButton->new_with_label(undef, "Generate from current tree");
+        my $tree_check_button = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from tree");
+        my $file_check_button = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from file");
+        my $sp_check_button   = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from other output");
+
         my $trees = $project->get_phylogeny_list;
         my @trees = grep {tree_has_prop_data($_)} @$trees;
 
@@ -1623,6 +1628,8 @@ sub run_dlg_extra_calc_options {
             # initialise
             update_prop_combo($tree_combo, [ $prop_combo, \%props_by_tree ]);
         }
+        my $tree_label = Gtk3::Label->new('Tree to use');
+        my $prop_label = Gtk3::Label->new('Prop to use');
 
         my %range_hash_seen;
         my @range_hashes_from_outputs;
@@ -1668,22 +1675,25 @@ sub run_dlg_extra_calc_options {
 
         my $range_hash_from_file = {};
         my $file_chooser_button = Gtk3::Button->new_from_icon_name ('folder', 4);
-        my $file_chooser_name   = Gtk3::Label->new('no file selected');
+        my $file_chooser_label   = Gtk3::Label->new(' (choose file)');
+        $file_chooser_button->set_hexpand(0);
         $file_chooser_button->signal_connect (clicked => sub {
             my %res = $self->load_range_table_as_hash;
             my ($filename, $data) = @res{qw /filename data/};
             if (!!$data) {
-                $file_chooser_name->set_text($filename);
+                $file_chooser_button->set_tooltip_text("Sourced from $filename");
+                $file_chooser_label->set_tooltip_text("Sourced from $filename");
                 $range_hash_from_file = $data;
+                use Path::Tiny qw /path/;
+                $file_chooser_label->set_text(sprintf (" (.../%s)", path ($filename)->basename));
+                $file_check_button->set_active (1);
             }
         });
 
 
-        my $skip_check_button = Gtk3::RadioButton->new_with_label(undef, "Generate from current tree");
-        my $tree_check_button = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from tree");
-        my $file_check_button = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from file");
-        my $sp_check_button   = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from other output");
-
+        foreach my $widget ($skip_check_button, $tree_check_button, $file_check_button, $sp_check_button) {
+            $widget->set_valign('start');
+        }
         $skip_check_button->set_tooltip_text(
             'Ranges are estimated using the union of the tip ranges, '
             . 'where those are counted as the number of groups containing each tip.  '
@@ -1695,40 +1705,35 @@ sub run_dlg_extra_calc_options {
         $sp_check_button->set_tooltip_text(
             "This is listed only when one or more other analyses used a node range table. "
             . "If a table is used for more than one analysis then only the first is shown.\n"
-            . 'Naming scheme is "basedata name: output name"',
+            . 'Naming scheme is "basedata name: output name".',
         );
         $file_check_button->set_tooltip_text ('Load ranges from a delimited text file');
 
-        my $tree_box = Gtk3::Box->new('horizontal', 0);
-        $tree_box->pack_start (Gtk3::Label->new('Tree to use'), 0, 0, 0);
-        $tree_box->pack_start ($tree_combo, 0, 0, 0);
 
-        my $prop_box = Gtk3::Box->new('horizontal', 0);
-        $prop_box->pack_start (Gtk3::Label->new('Prop to use'), 0, 0, 0);
-        $prop_box->pack_start ($prop_combo, 0, 0, 0);
-
-        $tree_check_button->signal_connect (toggled => sub {
-            my $active = shift->get_active;
-            $tree_box->set_visible($active);
-            $prop_box->set_visible($active);
-        });
-        $tree_check_button->show;
+        my $grid = Gtk3::Grid->new;
+        my $row = 0;
+        $grid->attach($skip_check_button, 0, $row, 1, 1);
+        if (@trees) {  #  don't pack them if there are no trees to work with
+            $row++;
+            $grid->attach($tree_check_button, 0, $row, 1, 1);
+            $grid->attach($tree_label, 1, $row, 1, 1);
+            $grid->attach($tree_combo, 2, $row, 1, 1);
+            $row++;
+            $grid->attach($prop_label, 1, $row, 1, 1);
+            $grid->attach($prop_combo, 2, $row, 1, 1);
+        }
+        $row++;
+        $grid->attach($file_check_button,   0, $row, 1, 1);
+        $grid->attach($file_chooser_label,  1, $row, 1, 1);
+        $grid->attach($file_chooser_button, 2, $row, 1, 1);
+        if (@range_hashes_from_outputs) {
+            $row++;
+            $grid->attach($sp_check_button,    0, $row, 1, 1);
+            $grid->attach($from_outputs_combo, 1, $row, 2, 1);  #  full span
+        }
 
         my $box = $dlg->get_content_area;
-        $box->pack_start($skip_check_button, 0, 0, 0);
-        if (@trees) {  #  don't pack them if there are no trees to work with
-            $box->pack_start($tree_check_button, 0, 0, 0);
-            $box->pack_start($tree_box, 0, 0, 0);
-            $box->pack_start($prop_box, 0, 0, 0);
-        }
-        $box->pack_start($file_check_button, 0, 0, 0);
-        $box->pack_start($file_chooser_button, 0, 0, 0);
-        $box->pack_start($file_chooser_name, 0, 0, 0);
-        if (@range_hashes_from_outputs) {
-            $box->pack_start($sp_check_button, 0, 0, 0);
-            $box->pack_start($from_outputs_combo, 0, 0, 0);
-        }
-
+        $box->pack_start($grid, 0, 0, 0);
         $box->show_all;
 
         #  toggle button to trigger callbacks

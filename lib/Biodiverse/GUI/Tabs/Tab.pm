@@ -1584,7 +1584,7 @@ sub run_dlg_extra_calc_options {
             $prop_combo->set_active (0);
         }
 
-        my $skip_check_button = Gtk3::RadioButton->new_with_label(undef, "Generate from current tree");
+        my $skip_check_button = Gtk3::RadioButton->new_with_label(undef, "Union of tree tip ranges");
         my $tree_check_button = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from tree");
         my $file_check_button = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from file");
         my $sp_check_button   = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from other output");
@@ -1696,8 +1696,8 @@ sub run_dlg_extra_calc_options {
             $widget->set_valign('start');
         }
         $skip_check_button->set_tooltip_text(
-            'Ranges are estimated using the union of the tip ranges, '
-            . 'where those are counted as the number of groups containing each tip.  '
+            'Ranges are estimated using the union of the tip ranges. '
+            . 'A tip\'s range is the set of groups containing that tip label.  '
             . 'This is the default.'
         );
         $tree_check_button->set_tooltip_text(
@@ -1705,10 +1705,12 @@ sub run_dlg_extra_calc_options {
         );
         $sp_check_button->set_tooltip_text(
             "This is listed only when one or more other analyses used a node range table. "
-            . "If a table is used for more than one analysis then only the first is shown.\n"
+            . "If a table was used for more than one analysis then only the first is shown.\n"
             . 'Naming scheme is "basedata name: output name".',
         );
-        $file_check_button->set_tooltip_text ('Load ranges from a delimited text file');
+        $file_check_button->set_tooltip_text (
+            'Load ranges from a delimited text file. There must be a range value for each tree node.'
+        );
 
 
         my $grid = Gtk3::Grid->new;

@@ -427,7 +427,8 @@ sub get_canvas_list {
 sub queue_draw {
     my ($self) = @_;
     foreach my $canvas_name ($self->get_canvas_list) {
-        $self->{$canvas_name}->queue_draw;
+        $self->{$canvas_name}->queue_draw
+          if defined $self->{$canvas_name};
     }
 }
 

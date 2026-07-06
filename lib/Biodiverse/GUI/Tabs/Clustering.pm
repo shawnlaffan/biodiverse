@@ -1330,6 +1330,10 @@ sub on_run_analysis {
         prng_seed           => $prng_seed,
     );
 
+    my $extra_calc_options = $self->get_extra_calc_options(%analysis_args, calculations => \@calculations_to_run);
+    return if $EVAL_ERROR;
+    @analysis_args{keys %$extra_calc_options} = values %$extra_calc_options;
+
     if ($self->get_use_tie_breakers) {
         my $tie_breakers = $self->get_tie_breakers;
         $analysis_args{cluster_tie_breaker} = $tie_breakers;

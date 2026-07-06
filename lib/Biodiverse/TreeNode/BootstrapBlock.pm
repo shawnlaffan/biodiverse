@@ -12,7 +12,7 @@ use JSON::PP ();
 use JSON::MaybeXS;
 use Ref::Util qw /is_arrayref is_hashref/;
 
-use parent qw /Biodiverse::Common/;
+use parent qw /Biodiverse::Common::Caching/;
 
 our $VERSION = '5.99_002';
 
@@ -41,15 +41,18 @@ sub set_value_aa {
 # given a key, get value. returns undef if the value hasn't been set.
 sub get_value {
     my ($self, %args) = @_;
-    my $key = $args{ key };
+    return $self->{_data}{$args{key}};
+}
+
+sub get_value_aa {
+    my ($self, $key) = @_;
     return $self->{_data}{$key};
 }
 
 # removes given key from the bootstrap block
 sub delete_value {
     my ($self, %args) = @_;
-    my $key = $args{ key };
-    delete $self->{_data}{$key};
+    delete $self->{_data}{$args{key}};
 }
 
 sub delete_value_aa {

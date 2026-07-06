@@ -78,9 +78,10 @@ sub get_rwibald_global_lists {
 
     my $range_threshold = $self->get_elbow_threshold(data => [map { 1 / $_ } grep {!!$_} values %ranges]);
 
-    #  assumes ranges are equal area and based on unit size
+    #  Assumes ranges are equal area and based on unit size.
+    #  Also need to guard against zero ranges when range tables are passed.
     my %diffs
-        = map {$_ => ($orig_lengths{$_} - $eq_lengths{$_}) / $ranges{$_}}
+        = map {$_ => $ranges{$_} ? (($orig_lengths{$_} - $eq_lengths{$_}) / $ranges{$_}) : 0}
           keys %ranges;
 
     #my $abs_diff_thresh = $self->get_elbow_threshold(data => [map {abs $_} values %diffs], log => 0);
@@ -94,7 +95,7 @@ sub get_rwibald_global_lists {
 
     foreach my $key (keys %diffs) {
         my $diff = $diffs{$key};
-        if ((1 / $ranges{$key}) >= $range_threshold) {
+        if ($ranges{$key} and (1 / $ranges{$key}) >= $range_threshold) {
             $rwibald_diffs{$key} = $diff;
             $coded{$key}
                 = $diff <= $neg_threshold   ? 1  #  neo

@@ -1483,8 +1483,6 @@ sub on_run {
 
     my $options = $self->get_options;
 
-    #my $defq = $self->{definition_query1}->get_validated_conditions;
-
     my %args = (
         calculations       => \@to_run,
         matrix_ref         => $self->{project}->get_selected_matrix,
@@ -1496,6 +1494,16 @@ sub on_run {
         ],
         %$options,
     );
+
+
+    my $extra_calc_options = eval {$self->get_extra_calc_options(%args)};
+    if (my $e = $EVAL_ERROR) {
+        say $e;
+        $self->{basedata_ref}->delete_output(output => $output_ref);
+        return;
+    }
+    @args{keys %$extra_calc_options} = values %$extra_calc_options;
+
 
     # Perform the analysis
     $self->{initialising_grid} = 1;  #  desensitise the grid if it is already displayed

@@ -5,7 +5,7 @@ use 5.036;
 
 our $VERSION = '5.99_002';
 
-use List::Util qw/min max/;
+use List::Util qw/min max all/;
 use Scalar::Util qw /blessed/;
 use List::MoreUtils qw /minmax/;
 use Gtk3;
@@ -427,7 +427,8 @@ sub get_canvas_list {
 sub queue_draw {
     my ($self) = @_;
     foreach my $canvas_name ($self->get_canvas_list) {
-        $self->{$canvas_name}->queue_draw;
+        $self->{$canvas_name}->queue_draw
+          if defined $self->{$canvas_name};
     }
 }
 
@@ -1522,5 +1523,431 @@ sub get_phylogeny_hover_text {
     return ($map_text, $dendro_text);
 }
 
+
+
+
+sub run_dlg_extra_calc_options {
+    my ($self, %args) = @_;
+
+    my $calcs = $args{calcs};
+
+    return wantarray ? (): {}
+        if !$calcs;
+
+    my %results;
+
+    my $gui = Biodiverse::GUI::GUIManager->instance;
+    my $project = $gui->get_project;
+
+    my $runs_get_node_hash = grep { $_ eq 'get_node_range_hash' } @$calcs;
+
+    #  bodgy - need to generalise
+    if ($runs_get_node_hash) {
+
+        my $dlg = Gtk3::Dialog->new_with_buttons (
+            'Tree node ranges',
+            undef,
+            'destroy-with-parent',
+            'gtk-ok' => 'ok',
+            'gtk-cancel' => 'cancel',
+        );
+
+        my $cancel_widget = $dlg->get_widget_for_response ('cancel');
+        $cancel_widget->set_tooltip_text('Cancelling will go back to the analysis options window');
+
+        #  filter out trees with no bootstrap block
+        #  should check for prop lists also
+        my sub tree_has_prop_data {
+            my $tree = shift;
+            return () if !$tree;
+            my $booter = $tree->get_bootstrap_block;
+            my $data = $booter->get_data;
+            return keys %$data;
+        }
+
+        my sub update_prop_combo {
+            my ($tree_combo, $args) = @_;
+            my ($prop_combo, $props_hash) = @$args;
+
+            my $iter = $tree_combo->get_active_iter;
+            my $tree = $tree_combo->get_model->get($iter, 1);
+
+            #  Refresh the combo contents.
+            #  Could keep a liststore for each tree and
+            #  set that but this will do for now.
+            $prop_combo->remove_all;
+            my $keys = $props_hash->{$tree};
+            foreach my $key (@$keys) {
+                $prop_combo->append_text ($key);
+            }
+            #  Maybe one day we will remember per-tree selections.
+            $prop_combo->set_active (0);
+        }
+
+        my $skip_check_button = Gtk3::RadioButton->new_with_label(undef, "Union of tree tip ranges");
+        my $tree_check_button = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from tree");
+        my $file_check_button = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from file");
+        my $sp_check_button   = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from other output");
+
+        my $trees = $project->get_phylogeny_list;
+        my @trees = grep {tree_has_prop_data($_)} @$trees;
+
+        my $tree_combo = Gtk3::ComboBox->new;
+        my $prop_combo = Gtk3::ComboBoxText->new;
+
+        if (@trees) {
+
+            my $renderer_text = Gtk3::CellRendererText->new();
+            $tree_combo->pack_start($renderer_text, 1);
+            $tree_combo->add_attribute($renderer_text, "text", 0);
+
+            my $model = Gtk3::ListStore->new('Glib::String', 'Glib::Scalar');
+
+            my $default_iter = 0;
+            my %props_by_tree = (none => []);
+
+            my $project_tree = $project->get_selected_phylogeny;
+
+            my $i = -1;
+            foreach my $tree (@trees) {
+                next if !tree_has_prop_data($tree);
+                my $name = $tree->get_name;
+                my $iter = $model->append();
+                $model->set( $iter, 0 => $name, 1 => $tree );
+                my $props = $tree->get_bootstrap_block->get_data;
+                $props_by_tree{$tree} = [sort keys %$props];
+                $i++;
+                if ($tree == $project_tree) {
+                    $default_iter = $i;
+                }
+            }
+
+            $tree_combo->set_model ($model);
+            $tree_combo->set_active($default_iter);
+
+            $tree_combo->signal_connect(changed => \&update_prop_combo, [ $prop_combo, \%props_by_tree ]);
+            # initialise
+            update_prop_combo($tree_combo, [ $prop_combo, \%props_by_tree ]);
+        }
+        my $tree_label = Gtk3::Label->new('Tree to use');
+        my $prop_label = Gtk3::Label->new('Prop to use');
+
+        my %range_hash_seen;
+        my @range_hashes_from_outputs;
+        my $basedatas = $project->get_base_data_list // [];
+        foreach my $bd (@$basedatas) {
+            my $bd_name = $bd->get_name;
+            use experimental qw /for_list/;
+            foreach my ($name, $output) ($bd->get_spatial_outputs) {
+                #  messy
+                next if $output eq ($self->{output_ref} // '');
+                next if !$output->get_param ('COMPLETED');
+                #  should be simplified as an output method to just get the args
+                my ($p_key, $analysis_args) = $self->get_analysis_args_from_object (
+                    object => $output
+                );
+                next if !$analysis_args;
+                my $range_hash = $analysis_args->{node_range_hash};
+                next if !$range_hash;
+                next if $range_hash_seen{$range_hash};
+                push @range_hashes_from_outputs, ["$bd_name: $name", $range_hash];
+                $range_hash_seen{$range_hash}++;
+            }
+        }
+
+        my $from_outputs_combo = Gtk3::ComboBox->new;
+
+        if (@range_hashes_from_outputs) {
+            my $renderer_text = Gtk3::CellRendererText->new();
+            $from_outputs_combo->pack_start($renderer_text, 1);
+            $from_outputs_combo->add_attribute($renderer_text, "text", 0);
+
+            my $model = Gtk3::ListStore->new('Glib::String', 'Glib::Scalar');
+
+            foreach my $aref (@range_hashes_from_outputs) {
+                my $name = $aref->[0];
+                my $iter = $model->append();
+                $model->set( $iter, 0 => $name, 1 => $aref->[1] );
+            }
+
+            $from_outputs_combo->set_model ($model);
+            $from_outputs_combo->set_active(0);
+        }
+
+        my $range_hash_from_file = {};
+        my $file_chooser_button = Gtk3::Button->new_from_icon_name ('folder', 4);
+        my $file_chooser_label   = Gtk3::Label->new(' (choose file)');
+        $file_chooser_button->set_hexpand(0);
+        $file_chooser_button->signal_connect (clicked => sub {
+            my %res = $self->load_range_table_as_hash;
+            my ($filename, $data) = @res{qw /filename data/};
+            if (!!$data) {
+                $file_chooser_button->set_tooltip_text("Sourced from $filename");
+                $file_chooser_label->set_tooltip_text("Sourced from $filename");
+                $range_hash_from_file = $data;
+                use Path::Tiny qw /path/;
+                $file_chooser_label->set_text(sprintf (" (.../%s)", path ($filename)->basename));
+                $file_check_button->set_active (1);
+            }
+        });
+
+
+        foreach my $widget ($skip_check_button, $tree_check_button, $file_check_button, $sp_check_button) {
+            $widget->set_valign('start');
+        }
+        $skip_check_button->set_tooltip_text(
+            'Ranges are estimated using the union of the tip ranges. '
+            . 'A tip\'s range is the set of groups containing that tip label.  '
+            . 'This is the default.'
+        );
+        $tree_check_button->set_tooltip_text(
+            'Trees are listed only if they were imported from Newick format and contained annotations'
+        );
+        $sp_check_button->set_tooltip_text(
+            "This is listed only when one or more other analyses used a node range table. "
+            . "If a table was used for more than one analysis then only the first is shown.\n"
+            . 'Naming scheme is "basedata name: output name".',
+        );
+        $file_check_button->set_tooltip_text (
+            'Load ranges from a delimited text file. There must be a range value for each tree node.'
+        );
+
+
+        my $grid = Gtk3::Grid->new;
+        my $row = 0;
+        $grid->attach($skip_check_button, 0, $row, 1, 1);
+        if (@trees) {  #  don't pack them if there are no trees to work with
+            $row++;
+            $grid->attach($tree_check_button, 0, $row, 1, 1);
+            $grid->attach($tree_label, 1, $row, 1, 1);
+            $grid->attach($tree_combo, 2, $row, 1, 1);
+            $row++;
+            $grid->attach($prop_label, 1, $row, 1, 1);
+            $grid->attach($prop_combo, 2, $row, 1, 1);
+        }
+        $row++;
+        $grid->attach($file_check_button,   0, $row, 1, 1);
+        $grid->attach($file_chooser_label,  1, $row, 1, 1);
+        $grid->attach($file_chooser_button, 2, $row, 1, 1);
+        if (@range_hashes_from_outputs) {
+            $row++;
+            $grid->attach($sp_check_button,    0, $row, 1, 1);
+            $grid->attach($from_outputs_combo, 1, $row, 2, 1);  #  full span
+        }
+
+        my $box = $dlg->get_content_area;
+        $box->pack_start($grid, 0, 0, 0);
+        $box->show_all;
+
+        #  toggle button to trigger callbacks
+        $tree_check_button->set_active(1);
+        $tree_check_button->set_active(0);
+        $skip_check_button->set_active(1);
+
+
+        my $response = $dlg->run;
+        if ($response ne 'ok') {
+            $dlg->destroy;
+            croak 'User cancelled operation';
+        }
+
+        if ($tree_check_button->get_active) {
+            my $iter = $tree_combo->get_active_iter;
+            my $selected_tree = $tree_combo->get_model->get($iter, 1);
+            if (defined $selected_tree) {
+                my $tree_prop = $prop_combo->get_active_text;
+                my %range_hash;
+                foreach my $node_ref ($selected_tree->get_node_refs) {
+                    $range_hash{$node_ref->get_name} = $node_ref->get_bootstrap_block->get_value_aa($tree_prop);
+                }
+                $results{node_range_hash} = \%range_hash;
+            }
+        }
+        elsif ($file_check_button->get_active) {
+            $results{node_range_hash} = $range_hash_from_file;
+        }
+
+
+        $dlg->destroy;
+    }
+
+
+    return wantarray ? %results : \%results;
+}
+
+#  ideally we would check required nbrs etc as well
+sub get_extra_calc_options {
+    my ($self, %args) = @_;
+
+    $args{calculations} //= $args{spatial_calculations};
+
+    my $indices_object = Biodiverse::Indices->new(
+        BASEDATA_REF => $self->{basedata_ref},
+        NAME         => 'Indices for checking options',
+    );
+
+    #  step is needed here?
+    $indices_object->get_valid_calculations(
+        %args,
+        nbr_list_count     => 2,
+        element_list1      => [], #  for validity checking only
+        element_list2      => [],
+        processing_element => 'x',
+    );
+
+    my $pre_calc_globals = $indices_object->get_pre_calc_global_list;
+
+    my $extra_calc_options = $self->run_dlg_extra_calc_options (calcs => $pre_calc_globals);
+
+    return wantarray ? %$extra_calc_options : $extra_calc_options;
+}
+
+sub load_range_table_as_hash {
+    my ($self, %args) = @_;
+
+    my $max_cols_to_show = $args{max_cols_to_show} || 100;
+
+    my $gui = Biodiverse::GUI::GUIManager->instance;
+    my $project = $gui->get_project;
+
+    # Get filename for the name-translation file
+    my $filename //= $gui->show_open_dialog(
+        title       => "Select file",
+        suffix      => '*',
+    );
+
+    return wantarray ? () : {} if !defined $filename;
+
+    my $remap      = Biodiverse::ElementProperties->new;
+    my $remap_args = $remap->get_args( sub => 'import_data' );
+    my $params     = $remap_args->{parameters};
+
+    #  much of the following is used elsewhere to get file options, almost verbatim.  Should move to a sub.
+    my $dlgxml = Gtk3::Builder->new();
+    $dlgxml->add_from_file( $gui->get_gtk_ui_file('dlgImportParameters.ui') );
+    my $dlg = $dlgxml->get_object('dlgImportParameters');
+    $dlg->set_title( "File options" );
+
+    # Build widgets for parameters
+    my $table_name = 'tableImportParameters';
+    my $table      = $dlgxml->get_object($table_name);
+
+    # (passing $dlgxml because generateFile uses existing widget on the dialog)
+    my $parameters_table = Biodiverse::GUI::ParametersTable->new;
+    my $extractors = $parameters_table->fill( $params, $table, $dlgxml );
+
+    $dlg->show_all;
+    my $response = $dlg->run;
+    $dlg->destroy;
+
+    return wantarray ? () : {} if $response ne 'ok';
+
+    my $properties_params = $parameters_table->extract($extractors);
+    my %properties_params = @$properties_params;
+
+    # Get header columns
+    say "[GUI] Discovering columns from $filename";
+
+    my $input_fh = Biodiverse::Common->get_file_handle (
+        file_name => $filename,
+        use_bom   => 1,
+    );
+
+    my ( $line, $line_unchomped );
+    while (<$input_fh>) {    # get first non-blank line
+        $line           = $_;
+        $line_unchomped = $line;
+        $line =~ s/[\r\n]+$//;
+        last if $line;
+    }
+    close($input_fh);
+
+    #  we should inherit from Biodiverse::Common, but not until that has been subdivided into smaller units.
+    my $csv_obj = $project->get_csv_object_using_guesswork(
+        fname      => $filename,
+        quote_char => $properties_params{input_quote_char},
+        sep_char   => $properties_params{input_sep_char},
+    );
+
+    my @headers_full = $project->csv2list(
+        string     => $line_unchomped,
+        csv_object => $csv_obj,
+    );
+
+    my @headers = map { $_ // '{null}' }
+        @headers_full[ 0 .. min( $#headers_full, $max_cols_to_show - 1 ) ];
+
+
+    my $required_cols = [qw/node_name range/];
+
+    state %explain = (
+        Ignore    => 'There is no setting for this column.  It will be ignored.',
+        node_name => 'Name of the node',
+        range     => 'Range value',
+    );
+
+
+    ( $dlg, my $col_widgets ) = Biodiverse::GUI::BasedataImport::make_remap_columns_dialog(
+        header           => \@headers,
+        wnd_main         => $gui->get_object('wndMain'),
+        # other_props      => $other_properties,
+        column_overrides => $required_cols,
+    );
+
+    my $column_settings = {};
+    $dlg->set_title( "Specify columns" );
+
+    RUN_DLG:
+    while (1) {
+        $response = $dlg->run();
+        if ( $response eq 'ok' ) {
+            $column_settings =
+                Biodiverse::GUI::BasedataImport::get_remap_column_settings( $col_widgets, \@headers );
+        }
+        elsif ( $response eq 'help' ) {
+            Biodiverse::GUI::BasedataImport::show_expl_dialog( \%explain, $dlg );
+            next RUN_DLG;
+        }
+        else {
+            $dlg->destroy();
+            return wantarray ? () : {};
+        }
+
+        #  drop out
+        last RUN_DLG if all { $column_settings->{$_} && @{$column_settings->{$_}} == 1 } @$required_cols;
+
+        #  need to check we have the right number...
+        my $text = 'Invalid columns chosen.  Must have one (and only one) of each of: '
+                . join ' ', @$required_cols;
+        my $msg = Gtk3::MessageDialog->new(
+            undef, 'modal', 'error', 'ok', $text
+        );
+
+        $msg->run();
+        $msg->destroy();
+    }
+
+    $dlg->destroy();
+
+    #  column settings should be an object
+    my $node_name_col = $column_settings->{node_name}[0]{name};
+    my $range_col     = $column_settings->{range}[0]{name};
+
+    my %data;
+    my $fh = Biodiverse::Common->get_file_handle (
+        file_name => $filename,
+        use_bom   => 1,
+    );
+    $csv_obj->column_names (@headers_full);
+    my $data = $csv_obj->getline_hr_all ($fh);
+    shift @$data;  #  header
+    foreach my $row (@$data) {
+        $data{$row->{$node_name_col}} = $row->{$range_col};
+    }
+
+    my %results = (filename => $filename, data => $data);
+
+    return wantarray ? %results : \%results;
+}
 
 1;

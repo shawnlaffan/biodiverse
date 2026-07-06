@@ -1666,6 +1666,18 @@ sub run_dlg_extra_calc_options {
             $from_outputs_combo->set_active(0);
         }
 
+        my $range_hash_from_file = {};
+        my $file_chooser_button = Gtk3::Button->new_from_icon_name ('folder', 4);
+        my $file_chooser_name   = Gtk3::Label->new('no file selected');
+        $file_chooser_button->signal_connect (clicked => sub {
+            my %res = $self->load_range_table_as_hash;
+            my ($filename, $data) = @res{qw /filename data/};
+            if (!!$data) {
+                $file_chooser_name->set_text($filename);
+                $range_hash_from_file = $data;
+            }
+        });
+
 
         my $skip_check_button = Gtk3::RadioButton->new_with_label(undef, "Generate from current tree");
         my $tree_check_button = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from tree");
@@ -1710,6 +1722,8 @@ sub run_dlg_extra_calc_options {
             $box->pack_start($prop_box, 0, 0, 0);
         }
         $box->pack_start($file_check_button, 0, 0, 0);
+        $box->pack_start($file_chooser_button, 0, 0, 0);
+        $box->pack_start($file_chooser_name, 0, 0, 0);
         if (@range_hashes_from_outputs) {
             $box->pack_start($sp_check_button, 0, 0, 0);
             $box->pack_start($from_outputs_combo, 0, 0, 0);
@@ -1742,7 +1756,7 @@ sub run_dlg_extra_calc_options {
             }
         }
         elsif ($file_check_button->get_active) {
-            $results{node_range_hash} = $self->load_range_table_as_hash;
+            $results{node_range_hash} = $range_hash_from_file;
         }
 
 
@@ -1911,7 +1925,7 @@ sub load_range_table_as_hash {
     my $node_name_col = $column_settings->{node_name}[0]{name};
     my $range_col     = $column_settings->{range}[0]{name};
 
-    my %results;
+    my %data;
     my $fh = Biodiverse::Common->get_file_handle (
         file_name => $filename,
         use_bom   => 1,
@@ -1920,8 +1934,10 @@ sub load_range_table_as_hash {
     my $data = $csv_obj->getline_hr_all ($fh);
     shift @$data;  #  header
     foreach my $row (@$data) {
-        $results{$row->{$node_name_col}} = $row->{$range_col};
+        $data{$row->{$node_name_col}} = $row->{$range_col};
     }
+
+    my %results = (filename => $filename, data => $data);
 
     return wantarray ? %results : \%results;
 }

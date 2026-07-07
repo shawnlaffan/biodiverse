@@ -1625,7 +1625,13 @@ sub run_dlg_extra_calc_options {
             $tree_combo->set_model ($model);
             $tree_combo->set_active($default_iter);
 
-            $tree_combo->signal_connect(changed => \&update_prop_combo, [ $prop_combo, \%props_by_tree ]);
+            $tree_combo->signal_connect(
+                changed => \&update_prop_combo, [ $prop_combo, \%props_by_tree ]
+            );
+            $tree_combo->signal_connect (
+                changed => sub {$tree_check_button->set_active(1)}
+            );
+
             # initialise
             update_prop_combo($tree_combo, [ $prop_combo, \%props_by_tree ]);
         }
@@ -1673,6 +1679,9 @@ sub run_dlg_extra_calc_options {
 
             $from_outputs_combo->set_model ($model);
             $from_outputs_combo->set_active(0);
+            $from_outputs_combo->signal_connect (
+                changed => sub {$sp_check_button->set_active(1)}
+            );
         }
 
         my $range_hash_from_file = {};

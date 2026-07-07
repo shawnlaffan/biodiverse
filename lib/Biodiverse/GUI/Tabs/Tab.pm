@@ -1933,7 +1933,7 @@ sub load_range_table_as_hash {
     my $node_name_col = $column_settings->{node_name}[0]{name};
     my $range_col     = $column_settings->{range}[0]{name};
 
-    my %data;
+    my %range_data;
     my $fh = Biodiverse::Common->get_file_handle (
         file_name => $filename,
         use_bom   => 1,
@@ -1942,10 +1942,10 @@ sub load_range_table_as_hash {
     my $data = $csv_obj->getline_hr_all ($fh);
     shift @$data;  #  header
     foreach my $row (@$data) {
-        $data{$row->{$node_name_col}} = $row->{$range_col};
+        $range_data{$row->{$node_name_col}} = $row->{$range_col};
     }
 
-    my %results = (filename => $filename, data => $data);
+    my %results = (filename => $filename, data => \%range_data);
 
     return wantarray ? %results : \%results;
 }

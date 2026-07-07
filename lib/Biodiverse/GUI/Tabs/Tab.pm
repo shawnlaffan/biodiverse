@@ -1638,18 +1638,19 @@ sub run_dlg_extra_calc_options {
         foreach my $bd (@$basedatas) {
             my $bd_name = $bd->get_name;
             use experimental qw /for_list/;
-            foreach my ($name, $output) ($bd->get_spatial_outputs) {
+            foreach my $output ($bd->get_spatial_output_refs, $bd->get_cluster_output_refs) {
                 #  messy
                 next if $output eq ($self->{output_ref} // '');
                 next if !$output->get_param ('COMPLETED');
                 #  should be simplified as an output method to just get the args
-                my ($p_key, $analysis_args) = $self->get_analysis_args_from_object (
+                my ($p_key, $analysis_args) = $output->get_analysis_args_from_object (
                     object => $output
                 );
                 next if !$analysis_args;
                 my $range_hash = $analysis_args->{node_range_hash};
                 next if !$range_hash;
                 next if $range_hash_seen{$range_hash};
+                my $name = $output->get_name;
                 push @range_hashes_from_outputs, ["$bd_name: $name", $range_hash];
                 $range_hash_seen{$range_hash}++;
             }

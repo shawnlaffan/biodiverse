@@ -1584,10 +1584,10 @@ sub run_dlg_extra_calc_options {
             $prop_combo->set_active (0);
         }
 
-        my $skip_check_button = Gtk3::RadioButton->new_with_label(undef, "Union of tree tip ranges");
-        my $tree_check_button = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from tree");
-        my $file_check_button = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from file");
-        my $sp_check_button   = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from other output");
+        my $skip_check_button   = Gtk3::RadioButton->new_with_label(undef, "Union of tree tip ranges");
+        my $tree_check_button   = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from tree");
+        my $file_check_button   = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from file");
+        my $output_check_button = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from other output");
 
         my $trees = $project->get_phylogeny_list;
         my @trees = grep {tree_has_prop_data($_)} @$trees;
@@ -1680,7 +1680,7 @@ sub run_dlg_extra_calc_options {
             $from_outputs_combo->set_model ($model);
             $from_outputs_combo->set_active(0);
             $from_outputs_combo->signal_connect (
-                changed => sub {$sp_check_button->set_active(1)}
+                changed => sub {$output_check_button->set_active(1)}
             );
         }
 
@@ -1702,7 +1702,7 @@ sub run_dlg_extra_calc_options {
         });
 
 
-        foreach my $widget ($skip_check_button, $tree_check_button, $file_check_button, $sp_check_button) {
+        foreach my $widget ($skip_check_button, $tree_check_button, $file_check_button, $output_check_button) {
             $widget->set_valign('start');
         }
         $skip_check_button->set_tooltip_text(
@@ -1713,7 +1713,7 @@ sub run_dlg_extra_calc_options {
         $tree_check_button->set_tooltip_text(
             'Trees are listed only if they were imported from Newick format and contained annotations'
         );
-        $sp_check_button->set_tooltip_text(
+        $output_check_button->set_tooltip_text(
             "This is listed only when one or more other analyses used a node range table. "
             . "If a table was used for more than one analysis then only the first is shown.\n"
             . 'Naming scheme is "basedata name: output name".',
@@ -1741,8 +1741,8 @@ sub run_dlg_extra_calc_options {
         $grid->attach($file_chooser_button, 2, $row, 1, 1);
         if (@range_hashes_from_outputs) {
             $row++;
-            $grid->attach($sp_check_button,    0, $row, 1, 1);
-            $grid->attach($from_outputs_combo, 1, $row, 2, 1);  #  full span
+            $grid->attach($output_check_button, 0, $row, 1, 1);
+            $grid->attach($from_outputs_combo,  1, $row, 2, 1);  #  full span
         }
 
         my $box = $dlg->get_content_area;

@@ -1584,10 +1584,10 @@ sub run_dlg_extra_calc_options {
             $prop_combo->set_active (0);
         }
 
-        my $skip_check_button = Gtk3::RadioButton->new_with_label(undef, "Union of tree tip ranges");
-        my $tree_check_button = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from tree");
-        my $file_check_button = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from file");
-        my $sp_check_button   = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from other output");
+        my $skip_check_button   = Gtk3::RadioButton->new_with_label(undef, "Union of tree tip ranges");
+        my $tree_check_button   = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from tree");
+        my $file_check_button   = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from file");
+        my $output_check_button = Gtk3::RadioButton->new_with_label($skip_check_button, "Load from other output");
 
         my $trees = $project->get_phylogeny_list;
         my @trees = grep {tree_has_prop_data($_)} @$trees;
@@ -1625,7 +1625,13 @@ sub run_dlg_extra_calc_options {
             $tree_combo->set_model ($model);
             $tree_combo->set_active($default_iter);
 
-            $tree_combo->signal_connect(changed => \&update_prop_combo, [ $prop_combo, \%props_by_tree ]);
+            $tree_combo->signal_connect(
+                changed => \&update_prop_combo, [ $prop_combo, \%props_by_tree ]
+            );
+            $tree_combo->signal_connect (
+                changed => sub {$tree_check_button->set_active(1)}
+            );
+
             # initialise
             update_prop_combo($tree_combo, [ $prop_combo, \%props_by_tree ]);
         }
@@ -1638,18 +1644,19 @@ sub run_dlg_extra_calc_options {
         foreach my $bd (@$basedatas) {
             my $bd_name = $bd->get_name;
             use experimental qw /for_list/;
-            foreach my ($name, $output) ($bd->get_spatial_outputs) {
+            foreach my $output ($bd->get_spatial_output_refs, $bd->get_cluster_output_refs) {
                 #  messy
                 next if $output eq ($self->{output_ref} // '');
                 next if !$output->get_param ('COMPLETED');
                 #  should be simplified as an output method to just get the args
-                my ($p_key, $analysis_args) = $self->get_analysis_args_from_object (
+                my ($p_key, $analysis_args) = $output->get_analysis_args_from_object (
                     object => $output
                 );
                 next if !$analysis_args;
                 my $range_hash = $analysis_args->{node_range_hash};
                 next if !$range_hash;
                 next if $range_hash_seen{$range_hash};
+                my $name = $output->get_name;
                 push @range_hashes_from_outputs, ["$bd_name: $name", $range_hash];
                 $range_hash_seen{$range_hash}++;
             }
@@ -1672,6 +1679,9 @@ sub run_dlg_extra_calc_options {
 
             $from_outputs_combo->set_model ($model);
             $from_outputs_combo->set_active(0);
+            $from_outputs_combo->signal_connect (
+                changed => sub {$output_check_button->set_active(1)}
+            );
         }
 
         my $range_hash_from_file = {};
@@ -1692,7 +1702,7 @@ sub run_dlg_extra_calc_options {
         });
 
 
-        foreach my $widget ($skip_check_button, $tree_check_button, $file_check_button, $sp_check_button) {
+        foreach my $widget ($skip_check_button, $tree_check_button, $file_check_button, $output_check_button) {
             $widget->set_valign('start');
         }
         $skip_check_button->set_tooltip_text(
@@ -1703,7 +1713,7 @@ sub run_dlg_extra_calc_options {
         $tree_check_button->set_tooltip_text(
             'Trees are listed only if they were imported from Newick format and contained annotations'
         );
-        $sp_check_button->set_tooltip_text(
+        $output_check_button->set_tooltip_text(
             "This is listed only when one or more other analyses used a node range table. "
             . "If a table was used for more than one analysis then only the first is shown.\n"
             . 'Naming scheme is "basedata name: output name".',
@@ -1731,8 +1741,8 @@ sub run_dlg_extra_calc_options {
         $grid->attach($file_chooser_button, 2, $row, 1, 1);
         if (@range_hashes_from_outputs) {
             $row++;
-            $grid->attach($sp_check_button,    0, $row, 1, 1);
-            $grid->attach($from_outputs_combo, 1, $row, 2, 1);  #  full span
+            $grid->attach($output_check_button, 0, $row, 1, 1);
+            $grid->attach($from_outputs_combo,  1, $row, 2, 1);  #  full span
         }
 
         my $box = $dlg->get_content_area;
@@ -1933,7 +1943,7 @@ sub load_range_table_as_hash {
     my $node_name_col = $column_settings->{node_name}[0]{name};
     my $range_col     = $column_settings->{range}[0]{name};
 
-    my %data;
+    my %range_data;
     my $fh = Biodiverse::Common->get_file_handle (
         file_name => $filename,
         use_bom   => 1,
@@ -1942,10 +1952,10 @@ sub load_range_table_as_hash {
     my $data = $csv_obj->getline_hr_all ($fh);
     shift @$data;  #  header
     foreach my $row (@$data) {
-        $data{$row->{$node_name_col}} = $row->{$range_col};
+        $range_data{$row->{$node_name_col}} = $row->{$range_col};
     }
 
-    my %results = (filename => $filename, data => $data);
+    my %results = (filename => $filename, data => \%range_data);
 
     return wantarray ? %results : \%results;
 }

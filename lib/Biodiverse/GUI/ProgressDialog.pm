@@ -110,8 +110,6 @@ sub destroy_callback {
 }
 
 
-my $LAST_UPDATE_TIME = time;
-
 sub update {
     my ($self, $text, $progress) = @_;
 
@@ -129,36 +127,23 @@ sub update {
       // Biodiverse::GUI::ProgressDialog::Cancel->throw(
             message  => 'Progress bar closed, operation cancelled',
         );
-    
-
-    return if $self->{last_update_time}
-              and time - $self->{last_update_time}
-                    < $self->{progress_update_interval};
 
     #  Only refresh the display every so often, otherwise many progress dialogues
     #  trigger many display updates.
     #  This might need to be an instance var if we go parallel.
-    return if (time - $LAST_UPDATE_TIME) < $self->{progress_update_interval};
-
-    #  show all on first pass
-    Biodiverse::GUI::GUIManager->instance->show_progress
-        if !defined $self->{last_update_time};
-
-    # $text //= join "\n", scalar caller(), scalar caller(1), scalar caller(2), scalar caller(3);
-
-    $self->{last_update_time} = time;
+    return if (time - ($self->{last_update_time} // 0)) < $self->{progress_update_interval};
 
     # update dialog
     $self->{label_widget}->set_markup("<b>$text</b>")
         if defined $text && $self->{label_widget};
 
-    $self->{pulse} = 0;
+    # $self->{pulse} = 0;
 
     $bar->set_fraction($progress);
 
     Gtk3::main_iteration while Gtk3::events_pending;
 
-    $LAST_UPDATE_TIME = time;
+    $self->{last_update_time} = time;
 
     return;
 }

@@ -1644,7 +1644,8 @@ sub run_dlg_extra_calc_options {
         foreach my $bd (@$basedatas) {
             my $bd_name = $bd->get_name;
             use experimental qw /for_list/;
-            foreach my $output ($bd->get_spatial_output_refs, $bd->get_cluster_output_refs) {
+            my @orefs = ($bd->get_spatial_output_refs, $bd->get_cluster_output_refs);
+            foreach my $output (sort {$a->get_param('NAME') cmp $b->get_param('NAME')} @orefs) {
                 #  messy
                 next if $output eq ($self->{output_ref} // '');
                 next if !$output->get_param ('COMPLETED');

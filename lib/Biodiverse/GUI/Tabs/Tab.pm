@@ -1776,6 +1776,11 @@ sub run_dlg_extra_calc_options {
         elsif ($file_check_button->get_active) {
             $results{node_range_hash} = $range_hash_from_file;
         }
+        elsif ($output_check_button->get_active) {
+            my $iter = $from_outputs_combo->get_active_iter;
+            my $selection = $from_outputs_combo->get_model->get($iter, 1);
+            $results{node_range_hash} = $selection;
+        }
 
 
         $dlg->destroy;

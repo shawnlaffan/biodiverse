@@ -1534,12 +1534,15 @@ sub run_dlg_extra_calc_options {
     return wantarray ? (): {}
         if !$calcs;
 
+    my $calc_options_cb = $self->{calc_options_cb};
+    my $calc_options = $calc_options_cb->();
+
     my %results;
 
     my $gui = Biodiverse::GUI::GUIManager->instance;
     my $project = $gui->get_project;
 
-    my $runs_get_node_hash = grep { $_ eq 'get_node_range_hash' } @$calcs;
+    my $runs_get_node_hash = $calc_options->{get_node_range_hash} && grep { $_ eq 'get_node_range_hash' } @$calcs;
 
     #  bodgy - need to generalise
     if ($runs_get_node_hash) {
@@ -1969,6 +1972,48 @@ sub load_range_table_as_hash {
     my %results = (filename => $filename, data => \%range_data);
 
     return wantarray ? %results : \%results;
+}
+
+
+sub setup_calc_options_widgets {
+    my ($self, $tbl_name) = @_;
+
+    my $tbl = $self->get_xmlpage_object($tbl_name);
+
+    my $options_label = Gtk3::Label->new('Calc options');
+    $options_label->set_xalign(0);
+    my $chk_range = Gtk3::CheckButton->new_with_label ('Specify node ranges');
+    my $tooltip_text =<<~EOT
+        Use node ranges from another source instead of the union of tip ranges.
+        If a calculation that requires node ranges is selected then a popup
+        window will allow selection of the source when the analysis is run.
+        EOT
+    ;
+    $chk_range->set_tooltip_text ($tooltip_text);
+
+    my $box = Gtk3::Box->new('horizontal', 0);
+    $box->pack_start($chk_range, 0, 0, 0);
+    $box->set_halign ('start');
+
+    # compensate for glade file having an empty column.
+    my $col_offset = $tbl_name =~ /cluster/ ? 1 : 0;
+
+    my ($nrows, $ncols) = $tbl->get_size;
+    $tbl->attach ($options_label, 0, 1, $nrows, $nrows+1, 'fill', [], 0, 0);
+    $tbl->attach ($box, 1 + $col_offset, 2 + $col_offset, $nrows, $nrows+1, 'fill', [], 0, 0);
+
+
+    $tbl->show_all;
+
+
+    my $extractor_cb = sub {
+        my %res = (
+            get_node_range_hash => $chk_range->get_active,
+        );
+        return wantarray ? %res : \%res;
+    };
+
+    $self->{calc_options_cb} = $extractor_cb
 }
 
 1;

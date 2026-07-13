@@ -177,6 +177,8 @@ sub new {
 
     $self->setup_tie_breaker_widgets($cluster_ref);
 
+    $self->setup_calc_options_widgets ('tbl_cluster_parameters');
+
     # Initialise widgets
     $xml_page ->get_object('txtClusterName')->set_text( $self->{output_name} );
     $xml_label->get_object('lblClusteringName')->set_text($self->{output_name} );

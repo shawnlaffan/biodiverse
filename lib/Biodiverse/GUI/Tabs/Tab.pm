@@ -1771,8 +1771,22 @@ sub run_dlg_extra_calc_options {
             if (defined $selected_tree) {
                 my $tree_prop = $prop_combo->get_active_text;
                 my %range_hash;
+                my $warn_count = 0;
+              NODE_REF:
                 foreach my $node_ref ($selected_tree->get_node_refs) {
-                    $range_hash{$node_ref->get_name} = $node_ref->get_bootstrap_block->get_value_aa($tree_prop);
+                    my $booter = $node_ref->get_bootstrap_block_or_undef;
+                    if (!defined $booter) {
+                        #  We could croak but tree trimming might
+                        #  take care of the missing ones.
+                        if ($warn_count < 11) {
+                            my $node_name = $node_ref->get_name;
+                            say STDERR "Tree node $node_name does not have a value for $tree_prop "
+                                . "(only the first ten cases will be listed)";
+                            $warn_count++;
+                        }
+                        next NODE_REF;
+                    }
+                    $range_hash{$node_ref->get_name} = $booter->get_value_aa($tree_prop);
                 }
                 $results{node_range_hash} = \%range_hash;
             }

@@ -2117,6 +2117,10 @@ sub get_bootstrap_block {
       ||=  Biodiverse::TreeNode::BootstrapBlock->new;
 }
 
+sub get_bootstrap_block_or_undef {
+    my ($self) = @_;
+    $self->{_bootstrap_block};
+}
 
 #  convert the entire tree to a table structure, using a basestruct
 #  object as an intermediate

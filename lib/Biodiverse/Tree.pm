@@ -889,6 +889,30 @@ sub get_branch_node_refs {
     return wantarray ? @node_list : \@node_list;
 }
 
+sub get_bootstrap_keys {
+    my $self = shift;
+
+    state $cache_key = 'BOOTSTRAP_KEYS';
+
+    my $key_hr = $self->get_cached_value($cache_key);
+
+    return wantarray ? %$key_hr : $key_hr
+      if defined $key_hr;
+
+    my %keys;
+    foreach my $node ($self->get_node_refs) {
+        my $booter = $node->get_bootstrap_block_or_undef;
+        next if !$booter;
+        my $data   = $booter->get_data;
+        @keys{keys %$data} = ();
+    }
+
+    $self->set_cached_value($cache_key => \%keys);
+
+    return wantarray ? %keys : \%keys;
+}
+
+
 #  get an internal node name that is not currently used
 sub get_free_internal_name {
     my $self = shift;

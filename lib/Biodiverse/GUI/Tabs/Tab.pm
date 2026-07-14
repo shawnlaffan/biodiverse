@@ -1563,9 +1563,10 @@ sub run_dlg_extra_calc_options {
         my sub tree_has_prop_data {
             my $tree = shift;
             return () if !$tree;
-            my $booter = $tree->get_bootstrap_block;
-            my $data = $booter->get_data;
-            return keys %$data;
+
+            my $keys = $tree->get_bootstrap_keys;
+
+            return keys %$keys;
         }
 
         my sub update_prop_combo {
@@ -1613,12 +1614,11 @@ sub run_dlg_extra_calc_options {
 
             my $i = -1;
             foreach my $tree (@trees) {
-                next if !tree_has_prop_data($tree);
+                my @keys = tree_has_prop_data($tree);
                 my $name = $tree->get_name;
                 my $iter = $model->append();
                 $model->set( $iter, 0 => $name, 1 => $tree );
-                my $props = $tree->get_bootstrap_block->get_data;
-                $props_by_tree{$tree} = [sort keys %$props];
+                $props_by_tree{$tree} = [sort @keys];
                 $i++;
                 if ($tree == $project_tree) {
                     $default_iter = $i;
@@ -1994,9 +1994,10 @@ sub setup_calc_options_widgets {
     my $box = Gtk3::Box->new('horizontal', 0);
     $box->pack_start($chk_range, 0, 0, 0);
     $box->set_halign ('start');
+    $box->show_all;
 
     # compensate for glade file having an empty column.
-    my $col_offset = $tbl_name =~ /cluster/ ? 1 : 0;
+    my $col_offset = ($tbl_name =~ /cluster/) ? 1 : 0;
 
     my ($nrows, $ncols) = $tbl->get_size;
     $tbl->attach ($options_label, 0, 1, $nrows, $nrows+1, 'fill', [], 0, 0);

@@ -1525,7 +1525,9 @@ sub get_phylogeny_hover_text {
 
 
 
-
+#  All of this extra calc args handling should move into its own class,
+#  possibly as a superclass of CalculationsTree.
+#  It could then perhaps be built from index metadata.
 sub run_dlg_extra_calc_options {
     my ($self, %args) = @_;
 
@@ -1990,11 +1992,9 @@ sub load_range_table_as_hash {
 
 
 sub setup_calc_options_widgets {
-    my ($self, $tbl_name) = @_;
+    my ($self) = @_;
 
-    my $tbl = $self->get_xmlpage_object($tbl_name);
-
-    my $options_label = Gtk3::Label->new('Calc options');
+    my $options_label = Gtk3::Label->new('Options:');
     $options_label->set_xalign(0);
     my $chk_range = Gtk3::CheckButton->new_with_label ('Specify node ranges');
     my $tooltip_text =<<~EOT
@@ -2005,21 +2005,25 @@ sub setup_calc_options_widgets {
     ;
     $chk_range->set_tooltip_text ($tooltip_text);
 
-    my $box = Gtk3::Box->new('horizontal', 0);
-    $box->pack_start($chk_range, 0, 0, 0);
-    $box->set_halign ('start');
-    $box->show_all;
+    my $opt_box = Gtk3::Box->new('horizontal', 10);
+    $opt_box->pack_start ($options_label, 0, 0, 0);
+    $opt_box->pack_start($chk_range, 0, 0, 0);
+    $opt_box->set_halign ('start');
+    $opt_box->show_all;
 
-    # compensate for glade file having an empty column.
-    my $col_offset = ($tbl_name =~ /cluster/) ? 1 : 0;
-
-    my ($nrows, $ncols) = $tbl->get_size;
-    $tbl->attach ($options_label, 0, 1, $nrows, $nrows+1, 'fill', [], 0, 0);
-    $tbl->attach ($box, 1 + $col_offset, 2 + $col_offset, $nrows, $nrows+1, 'fill', [], 0, 0);
-
-
-    $tbl->show_all;
-
+    my $calc_tree
+        = $self->get_xmlpage_object('treeCalculations')
+        || $self->get_xmlpage_object('treeSpatialCalculations');
+    my $frame = $calc_tree->get_parent;
+    $frame->remove($calc_tree);
+    my $vbox = Gtk3::Box->new ('vertical', 0);
+    $vbox->pack_start ($opt_box, 0, 0, 0);
+    my $lbl_calcs = Gtk3::Label->new('Calcs:');
+    $lbl_calcs->set_halign('start');
+    $vbox->pack_start ($lbl_calcs, 0, 0, 0);
+    $vbox->pack_start ($calc_tree, 0, 0, 0);
+    $frame->add($vbox);
+    $frame->show_all;
 
     my $extractor_cb = sub {
         my %res = (

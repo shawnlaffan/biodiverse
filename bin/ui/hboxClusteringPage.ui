@@ -929,7 +929,7 @@ compatible format</property>
                                                         <property name="can-focus">True</property>
                                                         <property name="receives-default">False</property>
                                                         <property name="has-tooltip">True</property>
-                                                        <property name="tooltip-text" translatable="yes">Only if the "Output
+                                                        <property name="tooltip-text" translatable="yes">Only available if the "Output
 matrices to text files"
 option is checked.</property>
                                                         <property name="draw-indicator">True</property>

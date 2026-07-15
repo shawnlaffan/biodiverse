@@ -273,7 +273,7 @@ sub new {
         $self,
     );
 
-    $self->get_xmlpage_object('chk_output_gdm_format')->set_sensitive (0);
+    $self->get_xmlpage_object('chk_output_gdm_format')->set_visible (0);
 
     #$self->set_colour_stretch_widgets_and_signals;
 
@@ -496,7 +496,7 @@ sub init_colour_clusters {
     return;
 }
 
-#  change sensitivity of the GDM output widget
+#  change visibility of the GDM output widget
 sub on_chk_output_to_file_changed {
     my $self = shift;
 
@@ -504,7 +504,7 @@ sub on_chk_output_to_file_changed {
     my $active = $widget->get_active;
 
     my $gdm_widget = $self->get_xmlpage_object('chk_output_gdm_format');
-    $gdm_widget->set_sensitive($active);
+    $gdm_widget->set_visible($active);
 
     return;
 }

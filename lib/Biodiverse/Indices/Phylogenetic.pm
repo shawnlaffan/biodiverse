@@ -1871,7 +1871,7 @@ sub get_node_range_hash {
               if any {not exists $range_hash->{$_} or not defined $range_hash->{$_}} @$node_names;
             #  Check if ranges are less than in the basedata?
             #  Would cause many numeric issues if they are.
-            my %results = (node_range => $range_hash);
+            my %results = (node_range => $range_hash, node_range_user_defined => 1);
             #  No caching of these results as it would "infect"
             #  analyses not passed the arg.
             return wantarray ? %results : \%results;
@@ -1884,7 +1884,7 @@ sub get_node_range_hash {
 
     if ($output_ref) {
         if (my $cached = $output_ref->_get_cached_node_range_table_aa($tree, $return_lists)) {
-            my %results = (node_range => $cached);
+            my %results = (node_range => $cached, node_range_user_defined => 1);
             return wantarray ? %results : \%results;
         }
 
@@ -1897,7 +1897,7 @@ sub get_node_range_hash {
             next if !$ocache;
             #  store on ourselves in the event the other analysis is deleted
             $output_ref->_set_cached_node_range_table_aa($ocache, $tree, $return_lists);
-            my %results = (node_range => $ocache);
+            my %results = (node_range => $ocache, node_range_user_defined => 1);
             return wantarray ? %results : \%results;
         }
     }

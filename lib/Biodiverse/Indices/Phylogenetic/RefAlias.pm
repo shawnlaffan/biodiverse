@@ -35,11 +35,20 @@ sub _calc_pe {
 
     my %results;
 
+    #  If the node_range_hash arg was passed to the main call,
+    #  and element count exceeds any of its range values,
+    #  then we need to check and adjust the weights.
+    #  These can be set to the original branch length.
+    #  Assumes ranges are always >1.
+    my $check_wt_sum = $args{node_range_user_defined} && @$element_list_all > 1;
+    my %wt_sums;
+
     foreach my $group (@$element_list_all) {
         my $results_this_gp;
         #  use the cached results for a group if present
         if (exists $results_cache->{$group}) {
             $results_this_gp = $results_cache->{$group};
+            $wt_sums{$_}++ for keys %{$results_this_gp->{PE_WTLIST}};
         }
         #  else build them and cache them
         else {
@@ -55,6 +64,9 @@ sub _calc_pe {
 
             my %gp_wts    = %rw_node_lengths{keys %$nodes_in_path};
             my $gp_score  = sum values %gp_wts;
+            if ($check_wt_sum) {
+                $wt_sums{$_}++ for keys %gp_wts;
+            }
 
           #  old approach - left here as notes for the
           #  non-equal area case in the future
@@ -90,6 +102,13 @@ sub _calc_pe {
 
     }
 
+    if ($check_wt_sum) {
+        \my %node_ranges = $args{node_range};
+        foreach my $node (grep {$wt_sums{$_} > $node_ranges{$_}} keys %wt_sums) {
+            $PE_WE -= $rw_node_lengths{$node} * ($wt_sums{$node} - $node_ranges{$node});
+        }
+    }
+
     {
         no warnings 'uninitialized';
         my $total_tree_length = $tree_ref->get_total_tree_length;
@@ -118,6 +137,15 @@ sub _calc_pe_hierarchical {
     my $tree_ref         = $args{trimmed_tree};
     my $results_cache    = $args{PE_RESULTS_CACHE};
 
+    #  If the node_range_hash arg was passed to the main call,
+    #  and element count exceeds any of its range values,
+    #  then we need to check and adjust the weights.
+    #  These can be set to the original branch length.
+    #  Assumes ranges are always >1.
+    my $check_wt_sum = $args{node_range_user_defined} && @$child_names > 1;
+    my %wt_sums;
+    \my %rw_node_lengths = $args{inverse_range_weighted_node_lengths};
+
     #  default these to undef - more meaningful than zero
     my ($PE_WE, $PE_WE_P);
 
@@ -137,8 +165,28 @@ sub _calc_pe_hierarchical {
                 = $self->_calc_pe (%args);
         }
 
-        if (defined $results_this_gp->{PE_WE}) {
+        if ($check_wt_sum) {
+            if (!defined $results_this_gp->{local_ranges}) {
+                $wt_sums{$_}++ for keys %{$results_this_gp->{PE_WTLIST}};
+            }
+            else {
+                \my %lr = $results_this_gp->{local_ranges};
+                $wt_sums{$_} += $lr{$_} for keys %lr;
+            }
+            $PE_WE += $results_this_gp->{PE_WE_uncorrected} // $results_this_gp->{PE_WE};
+        }
+        elsif (defined $results_this_gp->{PE_WE}) {
             $PE_WE += $results_this_gp->{PE_WE};
+        }
+    }
+
+    if ($check_wt_sum) {
+        $results_cache->{$node_name}{local_ranges} = \%wt_sums;
+        $results_cache->{$node_name}{PE_WE_uncorrected} = $PE_WE;
+
+        \my %node_ranges = $args{node_range};
+        foreach my $node (grep {$wt_sums{$_} - $node_ranges{$_} > 0} keys %wt_sums) {
+            $PE_WE -= $rw_node_lengths{$node} * ($wt_sums{$node} - $node_ranges{$node});
         }
     }
 

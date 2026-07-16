@@ -289,6 +289,90 @@ sub test_pe_central_and_whole {
     return;
 }
 
+sub test_pe_range_tables {
+
+    my @calcs = qw/
+        calc_pe
+        calc_pe_lists
+        calc_pe_central
+        calc_pe_central_lists
+    /;
+
+    my $cell_sizes = [200000, 200000];
+    my $bd   = get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
+    my $tree = get_tree_object_from_sample_data();
+
+    $bd->build_spatial_index(resolutions => [200000, 200000]);
+
+    my %range_hash;
+
+    {
+        my $sp1 = $bd->add_spatial_output(name => 'get range hash');
+        $sp1->run_analysis(
+            calculations       => [ 'calc_pe_lists' ],
+            spatial_conditions => [ 'sp_select_all()' ],
+            tree_ref           => $tree,
+        );
+        my $elements = $sp1->get_element_list;
+        my $rh = $sp1->get_list_ref_aa($elements->[0], 'PE_RANGELIST');
+        %range_hash = %$rh;
+        foreach my $val (values %range_hash) {
+            if ($val > 1) {
+                $val = $val / 2;
+            }
+        }
+    }
+
+
+    my $exp = {
+        PE_WE        => $tree->get_total_tree_length,
+        PE_WE_P      => 1,
+        RECYCLED_SET => 1,
+    };
+
+    foreach my $val (values %$exp) {
+        $val = sprintf "%.8g", $val;
+    }
+
+    {
+        my $sp = $bd->add_spatial_output(name => 'sp pass range hash');
+        $sp->run_analysis(
+            calculations       => [ 'calc_pe' ],
+            spatial_conditions => [ 'sp_select_all()' ],
+            tree_ref           => $tree,
+            node_range_hash    => \%range_hash,
+        );
+        my $elements = $sp->get_element_list;
+        my $rh = $sp->get_list_ref_aa($elements->[0], 'SPATIAL_RESULTS');
+        foreach my $val (values %$rh) {
+            $val = sprintf "%.8g", $val;
+        }
+
+        is $rh, $exp, 'Spatial PE sums correctly when node_range_hash passed';
+    }
+
+    {
+        my $cl = $bd->add_cluster_output(name => 'cl pass range hash');
+        $cl->run_analysis(
+            spatial_calculations => [ 'calc_pe' ],
+            tree_ref             => $tree,
+            node_range_hash      => \%range_hash,
+            index                => 'SORENSON',
+            linkage_function     => 'link_average',
+            spatial_conditions   => ['sp_select_all()'],
+        );
+        my $rh = $cl->get_list_ref_aa('SPATIAL_RESULTS');
+        foreach my $val (values %$rh) {
+            $val = sprintf "%.8g", $val;
+        }
+
+        delete $exp->{RECYCLED_SET};
+        is $rh, $exp, 'Cluster PE sums correctly when node_range_hash passed';
+    }
+
+    return;
+
+}
 
 sub get_pe_check_hashes {
     my ($sp, $scalar_indices_to_check, $list_indices_to_check) = @_;

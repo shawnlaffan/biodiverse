@@ -363,6 +363,7 @@ sub get_metadata_calc_phylo_rpe2 {
             get_trimmed_tree_range_inverse_hash_nonzero_len
             get_pe_element_cache
             get_rpe_element_cache
+            get_node_range_hash
         /],
         uses_nbr_lists  => 1,
         indices         => {
@@ -459,6 +460,19 @@ sub calc_phylo_rpe2 {
             $pe_null += $results_this_gp->{RPE_WE};
         }
 
+    }
+
+    my $check_wt_sum = $args{node_range_user_defined} && @$element_list_all > 1;
+    if ($check_wt_sum) {
+        use Digest::SHA qw/sha256_hex/;
+        my $sha = sha256_hex join "\034", sort @$element_list_all;
+        \my %wt_sums = $pe_results_cache->{$sha}{local_ranges} // {};
+        \my %node_ranges = $args{node_range};
+        my $correction = 0;
+        foreach my $node (grep {$wt_sums{$_} > $node_ranges{$_}} keys %wt_sums) {
+            $correction += $range_inverse{$node} * ($wt_sums{$node} - $node_ranges{$node});
+        }
+        $pe_null -= $correction * $default_eq_len;
     }
 
     {

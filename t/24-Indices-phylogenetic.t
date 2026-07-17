@@ -324,26 +324,32 @@ sub test_pe_range_tables {
     }
 
 
+    my $sum_of_branches = $tree->get_total_tree_length;
     my $exp = {
-        PE_WE        => $tree->get_total_tree_length,
-        PE_WE_P      => 1,
-        RECYCLED_SET => 1,
+        PE_WE           => $sum_of_branches,
+        PE_WE_P         => 1,
+        PHYLO_RPE_NULL2 => 1,
     };
 
     foreach my $val (values %$exp) {
         $val = sprintf "%.8g", $val;
     }
 
+    my $calcs = [ 'calc_pe', 'calc_phylo_rpe2' ];
+    my @deleters = qw/PHYLO_RPE2 PHYLO_RPE_DIFF2 RECYCLED_SET/;
+
     {
         my $sp = $bd->add_spatial_output(name => 'sp pass range hash');
         $sp->run_analysis(
-            calculations       => [ 'calc_pe' ],
+            calculations       => $calcs,
             spatial_conditions => [ 'sp_select_all()' ],
             tree_ref           => $tree,
             node_range_hash    => \%range_hash,
         );
         my $elements = $sp->get_element_list;
         my $rh = $sp->get_list_ref_aa($elements->[0], 'SPATIAL_RESULTS');
+        delete @{$rh}{@deleters};
+
         foreach my $val (values %$rh) {
             $val = sprintf "%.8g", $val;
         }
@@ -354,7 +360,7 @@ sub test_pe_range_tables {
     {
         my $cl = $bd->add_cluster_output(name => 'cl pass range hash');
         $cl->run_analysis(
-            spatial_calculations => [ 'calc_pe' ],
+            spatial_calculations => $calcs,
             tree_ref             => $tree,
             node_range_hash      => \%range_hash,
             index                => 'SORENSON',
@@ -362,11 +368,12 @@ sub test_pe_range_tables {
             spatial_conditions   => ['sp_select_all()'],
         );
         my $rh = $cl->get_list_ref_aa('SPATIAL_RESULTS');
+        delete @{$rh}{@deleters};
+
         foreach my $val (values %$rh) {
             $val = sprintf "%.8g", $val;
         }
 
-        delete $exp->{RECYCLED_SET};
         is $rh, $exp, 'Cluster PE sums correctly when node_range_hash passed';
     }
 

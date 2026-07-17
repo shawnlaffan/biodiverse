@@ -107,6 +107,9 @@ sub _calc_pe {
         foreach my $node (grep {$wt_sums{$_} > $node_ranges{$_}} keys %wt_sums) {
             $PE_WE -= $rw_node_lengths{$node} * ($wt_sums{$node} - $node_ranges{$node});
         }
+        use Digest::SHA qw/sha256_hex/;
+        my $sha = sha256_hex join "\034", sort @$element_list_all;
+        $results_cache->{$sha}{local_ranges} = \%wt_sums;
     }
 
     {
@@ -188,6 +191,14 @@ sub _calc_pe_hierarchical {
         foreach my $node (grep {$wt_sums{$_} - $node_ranges{$_} > 0} keys %wt_sums) {
             $PE_WE -= $rw_node_lengths{$node} * ($wt_sums{$node} - $node_ranges{$node});
         }
+
+        #  needed for RPE
+        use Digest::SHA qw/sha256_hex/;
+        my $output_ref = $self->get_param('OUTPUT_REF');
+        my $node_ref = $output_ref->get_node_ref_aa($node_name);
+        my $tips = $node_ref->get_terminal_elements;
+        my $sha = sha256_hex join "\034", sort keys %$tips;
+        $results_cache->{$sha}{local_ranges} = \%wt_sums;
     }
 
     {

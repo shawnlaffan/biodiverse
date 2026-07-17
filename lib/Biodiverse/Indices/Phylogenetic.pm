@@ -2780,42 +2780,16 @@ sub _calc_phylo_abc_lists {
         el_list  => $args{element_list2},
     );
 
+    use Hash::Util::Set qw(keys_partition);
+    use experimental qw/declared_refs/;
+    my (\@bb, \@aa, \@cc) = keys_partition(%$nodes_in_path1, %$nodes_in_path2);
+    my %A = %{$nodes_in_path1}{@aa};
+    my %B = %{$nodes_in_path1}{@bb};
+    my %C = %{$nodes_in_path2}{@cc};
+
     my %results;
-    #  one day we can clean this all up
-    if (HAVE_BD_UTILS) {
-        my $res = Biodiverse::Utils::get_hash_shared_and_unique (
-            $nodes_in_path1,
-            $nodes_in_path2,
-        );
-        @results{qw /PHYLO_A_LIST PHYLO_B_LIST PHYLO_C_LIST/}
-          = @$res{qw /a b c/};
-    }
-    else {
-        my %A;
-        if (HAVE_DATA_RECURSIVE) {
-            Data::Recursive::hash_merge (\%A, $nodes_in_path1, Data::Recursive::LAZY());
-            Data::Recursive::hash_merge (\%A, $nodes_in_path2, Data::Recursive::LAZY());
-        }
-        else {
-            %A = (%$nodes_in_path1, %$nodes_in_path2);
-        }
-    
-        # create a new hash %B for nodes in label hash 1 but not 2
-        # then get length of B
-        my %B = %A;
-        delete @B{keys %$nodes_in_path2};
-    
-        # create a new hash %C for nodes in label hash 2 but not 1
-        # then get length of C
-        my %C = %A;
-        delete @C{keys %$nodes_in_path1};
-    
-        # get length of %A = branches not in %B or %C
-        delete @A{keys %B, keys %C};
-    
-         @results{qw /PHYLO_A_LIST PHYLO_B_LIST PHYLO_C_LIST/}
-           = (\%A, \%B, \%C);
-    }
+    @results{qw /PHYLO_A_LIST PHYLO_B_LIST PHYLO_C_LIST/}
+        = (\%A, \%B, \%C);
 
     return wantarray ? %results : \%results;
 }

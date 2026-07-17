@@ -311,6 +311,14 @@ sub _calc_pe_lists {
         }
     }
 
+    my $check_wt_sum = $args{node_range_user_defined} && @$element_list_all > 1;
+    if ($check_wt_sum) {
+        \my %node_ranges = $args{node_range};
+        if (my @overs = grep {$local_ranges{$_} > $node_ranges{$_}} keys %local_ranges) {
+            @local_ranges{@overs} = @node_ranges{@overs};
+        }
+    }
+
     #  collate
     $wts{$_} = $rw_node_lengths{$_} * $local_ranges{$_}
         for keys %local_ranges;

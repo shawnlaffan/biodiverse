@@ -380,6 +380,33 @@ sub test_pe_range_tables {
         is $rh, $exp, 'Cluster PE sums correctly when node_range_hash passed';
     }
 
+    {
+        my $sp = $bd->add_spatial_output(name => 'sp pass range hash, 2 nbr sets');
+        $sp->run_analysis(
+            calculations       => [@$calcs, 'calc_pe_central_lists'],
+            spatial_conditions => [ 'sp_self_only()', 'sp_select_all()' ],
+            tree_ref           => $tree,
+            node_range_hash    => \%range_hash,
+        );
+        my @elements = sort $sp->get_element_list;
+        my $rh = $sp->get_list_ref_aa($elements[0], 'SPATIAL_RESULTS');
+        delete @{$rh}{@deleters};
+
+        foreach my $val (values %$rh) {
+            $val = sprintf "%.8g", $val;
+        }
+
+        local $exp->{PEC_WE}   = 0.99276923;
+        local $exp->{PEC_WE_P} = 0.046867996;
+
+        is $rh, $exp, 'Spatial PE sums correctly when node_range_hash passed, two nbr sets';
+
+        my $global_range_list = $sp->get_list_ref_aa($elements[0], 'PEC_RANGELIST');
+        my $local_range_list  = $sp->get_list_ref_aa($elements[0], 'PEC_LOCAL_RANGELIST');
+        is $global_range_list, $local_range_list, 'local ranges <= global when node_range_hash passed';
+    }
+
+
     return;
 
 }

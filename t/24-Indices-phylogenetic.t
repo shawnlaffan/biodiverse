@@ -324,10 +324,13 @@ sub test_pe_range_tables {
     }
 
 
+    #  PEC_WE_* are the same as PE_WE_* when one nbr set so are here for paranoia
     my $sum_of_branches = $tree->get_total_tree_length;
     my $exp = {
         PE_WE           => $sum_of_branches,
         PE_WE_P         => 1,
+        PEC_WE          => $sum_of_branches,
+        PEC_WE_P        => 1,
         PHYLO_RPE_NULL2 => 1,
     };
 
@@ -335,7 +338,7 @@ sub test_pe_range_tables {
         $val = sprintf "%.8g", $val;
     }
 
-    my $calcs = [ 'calc_pe', 'calc_phylo_rpe2' ];
+    my $calcs = [ 'calc_pe', 'calc_pe_central', 'calc_phylo_rpe2' ];
     my @deleters = qw/PHYLO_RPE2 PHYLO_RPE_DIFF2 RECYCLED_SET/;
 
     {

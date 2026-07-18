@@ -407,6 +407,54 @@ sub test_pe_range_tables {
     }
 
 
+    {
+        #  PEC calcs where one basedata has "excess" ranges and the other
+        #  is the expected range table.
+        use experimental qw/for_list/;
+
+        #  integerise
+        $_ = (int ($_) || 1) for values %range_hash;
+
+        my $bdrr = $bd->clone (no_outputs => 1);
+
+        my $el_list = $bdrr->get_groups;
+        my $target_gp = (sort @$el_list)[0];
+
+        LABEL:
+        foreach my ($label, $range) (%range_hash) {
+            my $gps = $bdrr->get_groups_with_label_as_hash(label => $label);
+            my $has_target = !!delete local $gps->{$target_gp};
+            my @targets = sort grep {$_ ne $target_gp} keys %$gps;
+            my $to_delete = @targets - $range - $has_target;
+            next LABEL if $to_delete <= 0;
+            foreach my $group (@targets[0 .. $to_delete - 1]) {
+                $bdrr->delete_sub_element(group => $group, label => $label);
+            }
+        }
+
+        my %sp_args = (
+            calculations       => [@$calcs, 'calc_pe_central_lists'],
+            spatial_conditions => [ 'sp_self_only()', 'sp_select_all()' ],
+            tree_ref           => $tree,
+        );
+
+        my $sp_name = 'int range hash';
+        my $sprr = $bdrr->add_spatial_output(name => $sp_name);
+        $sprr->run_analysis(
+            %sp_args
+        );
+        my $rh_rr = $sprr->get_list_ref_aa($target_gp, 'SPATIAL_RESULTS');
+
+        my $spxx = $bd->add_spatial_output(name => $sp_name);
+        $spxx->run_analysis(
+            %sp_args,
+            node_range_hash    => \%range_hash,
+        );
+        my $rh_xx = $sprr->get_list_ref_aa($target_gp, 'SPATIAL_RESULTS');
+
+        is $rh_xx, $rh_rr, 'same PEC when range table matches a second basedata';
+    }
+
     return;
 
 }

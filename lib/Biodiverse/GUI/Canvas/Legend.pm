@@ -281,7 +281,7 @@ sub make_data {
         }
     }
     elsif ($self->get_zscore_mode) {
-        @labels = ('<-2.58', '[-2.58,-1.96)', '[-1.96,-1.65)', '[-1.65,1.65]', '(1.65,1.96]', '(1.96,2.58]', '>2.58');
+        @labels = reverse ('<-2.58', '[-2.58,-1.96)', '[-1.96,-1.65)', '[-1.65,1.65]', '(1.65,1.96]', '(1.96,2.58]', '>2.58');
         my @dummy_zvals = (-2.6, -2, -1.7, 0, 1.7, 2, 2.6);
         foreach my $i (reverse 0..$#dummy_zvals) {
             my $colour = $self->get_colour_zscore ($dummy_zvals[$i]);

@@ -2002,7 +2002,10 @@ sub cluster {
         $self->set_param (ANALYSIS_ARGS => \%args_sub);
         $self->set_param (CALCULATIONS_REQUESTED => $args_sub{spatial_calculations});
 
-        $self->run_spatial_calculations (%args_sub);
+        #  Passed args is a clunky workaround for now as otherwise range tables are not used
+        #  unless they were passed in the first call.  Ultimately we should support range tables
+        #  for the metric and for the spatial calcs.
+        $self->run_spatial_calculations (%args_sub, %{$passed_args{spatial_args}});
 
         return 1;
     }

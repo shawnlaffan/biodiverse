@@ -1907,7 +1907,7 @@ sub delete_element {
     my $self = shift;
     my %args = @_;
 
-    croak "Label or Group not specified in delete_element call\n"
+    croak "type arg of Label or Group not specified in delete_element call\n"
       if !defined $args{type};
 
     my $type = uc( $args{type} );

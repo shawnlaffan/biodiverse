@@ -2008,7 +2008,7 @@ sub highlight_path {
 # Provides list of results for tab to use as it sees fit
 sub get_map_lists {
     my $self = shift;
-    my $lists = scalar $self->{tree_node}->get_hash_lists();
+    my $lists = scalar $self->{current_tree}->get_hash_lists();
     return [sort @$lists];
 }
 
@@ -2051,7 +2051,7 @@ sub setup_map_list_model {
 sub update_map_list_model {
     my $self = shift;
 
-    $self->setup_map_list_model( scalar $self->{tree_node}->get_hash_lists() );
+    $self->setup_map_list_model( scalar $self->{current_tree}->get_hash_lists() );
 }
 
 # Provides list of map indices for tab to use as it sees fit.

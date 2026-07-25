@@ -100,14 +100,8 @@ sub get_metadata_import_data_common {
 sub get_metadata_import_data_text {
     my $self = shift;
 
-    my @sep_chars =
-      defined $ENV{BIODIVERSE_FIELD_SEPARATORS}
-      ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
-      : ( q{,}, 'tab', q{;}, 'space', q{:} );
-    my @input_sep_chars = ( 'guess', @sep_chars );
-
-    my @quote_chars = qw /" ' + $/;
-    my @input_quote_chars = ( 'guess', @quote_chars );
+    my @input_sep_chars   = qw / guess , tab ; space : /;
+    my @input_quote_chars = qw / guess " ' + $ /;
 
     my @parameters = (
 

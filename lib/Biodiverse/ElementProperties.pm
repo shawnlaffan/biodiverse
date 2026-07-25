@@ -31,44 +31,10 @@ our %PARAMS = (  #  default parameters to load.  These will be overwritten if ne
 );
 
 
+#  should refactor the underlying method
 sub get_metadata_import_data {
-    
-    my @sep_chars = defined $ENV{BIODIVERSE_FIELD_SEPARATORS}
-                  ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
-                  : (',', 'tab', ';', 'space', ":");
-    my @quote_chars = qw /" ' + $/; #"
-    my @input_sep_chars = ('guess', @sep_chars);
-    my @input_quote_chars = ('guess', @quote_chars);
-    
-    #  these parameters are only for the GUI, so are not a full set
-    #  add options for range etc?
-    my @parameters = (
-        {
-            name       => 'input_sep_char',
-            label_text => "Input field separator",
-            tooltip    => "Select character",
-            type       => 'choice',
-            choices    => \@input_sep_chars,
-            default   => 0,
-        },
-        {
-            name       => 'input_quote_char',
-            label_text => "Input quote character",
-            tooltip    => "Select character",
-            type       => 'choice',
-            choices    => \@input_quote_chars,
-            default    => 0,
-        },
-    );
-    for (@parameters) {
-        bless $_, $parameter_metadata_class;
-    }
-
-    my %arg_hash = (
-        parameters => \@parameters,
-    ); 
-
-    return wantarray ? %arg_hash : \%arg_hash;
+    my ($self, %args) = @_;
+    $self->Biodiverse::BaseData::Import::get_metadata_import_data_text(%args);
 }
 
 sub import_data {

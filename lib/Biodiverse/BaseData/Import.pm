@@ -98,16 +98,29 @@ sub get_metadata_import_data_common {
 }
 
 sub get_metadata_import_data_text {
-    my $self = shift;
+    my ($self, %args) = @_;
 
-    my @sep_chars =
-      defined $ENV{BIODIVERSE_FIELD_SEPARATORS}
-      ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
-      : ( q{,}, 'tab', q{;}, 'space', q{:} );
-    my @input_sep_chars = ( 'guess', @sep_chars );
+    my @input_sep_chars   = split ' ', q{guess , tab ; space :};
+    my @input_quote_chars = split ' ', q{guess " ' + $};
 
-    my @quote_chars = qw /" ' + $/;
-    my @input_quote_chars = ( 'guess', @quote_chars );
+    my $default_sep_char_idx = 0;
+    if (defined $args{input_sep_char}) {
+        my %chars = (tab   => "\t", space => ' ');
+        $default_sep_char_idx = List::Util::first {
+            my $char = $input_sep_chars[$_];
+            ($chars{$char} // $char) eq $args{input_sep_char}
+        } 0..$#input_sep_chars;
+        $default_sep_char_idx = List::Util::max (0, $default_sep_char_idx);
+    }
+
+    my $default_qchar_idx = 0;
+    if (defined $args{input_quote_char}) {
+        $default_qchar_idx = List::Util::first {
+            my $char = $input_quote_chars[$_];
+            $char eq $args{input_quote_char}
+        } 0 .. $#input_quote_chars;
+        $default_qchar_idx = List::Util::max (0, $default_qchar_idx);
+    }
 
     my @parameters = (
 
@@ -118,7 +131,7 @@ sub get_metadata_import_data_text {
             tooltip    => 'Select character',
             type       => 'choice',
             choices    => \@input_sep_chars,
-            default    => 0,
+            default    => $default_sep_char_idx,
         },
         {
             name       => 'input_quote_char',
@@ -126,7 +139,7 @@ sub get_metadata_import_data_text {
             tooltip    => 'Select character',
             type       => 'choice',
             choices    => \@input_quote_chars,
-            default    => 0,
+            default    => $default_qchar_idx,
         },
     );
     for (@parameters) {

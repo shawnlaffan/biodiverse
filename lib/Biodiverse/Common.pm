@@ -1415,9 +1415,7 @@ sub guess_field_separator {
     my $string = $args{string};
     $string = $$string if ref $string;
     #  try a sequence of separators, starting with the default parameter
-    my @separators = defined $ENV{BIODIVERSE_FIELD_SEPARATORS}  #  these should be globals set by use_base
-        ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
-        : (',', "\t", ';', q{ });
+    my @separators = (',', "\t", ';', q{ });
     my $eol = $args{eol} // $self->guess_eol(%args);
 
     my %sep_count;
@@ -1529,9 +1527,7 @@ sub guess_quote_char {
     my $string = $args{string};
     $string = $$string if ref $string;
     #  try a sequence of separators, starting with the default parameter
-    my @q_types = defined $ENV{BIODIVERSE_QUOTES}
-        ? @$ENV{BIODIVERSE_QUOTES}
-        : qw /" '/;
+    my @q_types = qw /" '/;
     my $eol = $args{eol} or $self->guess_eol(%args);
     #my @q_types = qw /' "/;
 

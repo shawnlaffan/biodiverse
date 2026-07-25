@@ -1932,9 +1932,14 @@ sub get_remap_info {
 
     return wantarray ? () : {} if !defined $filename;
 
-    my $remap      = Biodiverse::ElementProperties->new;
-    my $remap_args = $remap->get_args( sub => 'import_data' );
-    my $params     = $remap_args->{parameters};
+    my $remap = Biodiverse::ElementProperties->new;
+    my $csv   = $remap->get_csv_object_using_guesswork(fname => $filename);
+    my $remap_args = $remap->get_args (
+        sub              => 'import_data',
+        input_sep_char   => $csv->sep_char,
+        input_quote_char => $csv->quote_char,
+    );
+    my $params = $remap_args->{parameters};
 
 #  much of the following is used elsewhere to get file options, almost verbatim.  Should move to a sub.
     my $dlgxml = Gtk3::Builder->new();

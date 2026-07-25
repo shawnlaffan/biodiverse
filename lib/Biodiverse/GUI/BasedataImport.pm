@@ -247,7 +247,13 @@ sub run {
 
     # set visible fields in import dialog
     if ( !!$read_format_is_text ) {
-        my %text_args = $basedata_ref->get_args( sub => 'import_data_text' );
+        my $csv = Biodiverse::Common->get_csv_object_using_guesswork (fname => $filenames[0]);
+
+        my %text_args = $basedata_ref->get_args(
+            sub              => 'import_data_text',
+            input_sep_char   => $csv->sep_char,
+            input_quote_char => $csv->quote_char,
+        );
 
         # add new params to args
         push @{ $args{parameters} }, @{ $text_args{parameters} };

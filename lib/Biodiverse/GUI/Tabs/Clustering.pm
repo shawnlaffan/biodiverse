@@ -400,6 +400,14 @@ sub get_tree_menu_items {
             },
             active   => 0,
         },
+        {
+            type     => 'Gtk3::MenuItem',
+            label    => "Set slider tip colour threshold",
+            tooltip  => "The slider bar will not colour branches with fewer tips than this.",
+            event    => 'activate',
+            callback => \&on_set_tip_count_colour_thresh,
+            active   => 0,
+        },
         (   map {$self->get_tree_menu_item($_)}
                qw/background_colour separator set_tree_branch_line_widths
                   separator export_tree/
@@ -407,6 +415,68 @@ sub get_tree_menu_items {
     );
 
     return wantarray ? @menu_items : \@menu_items;
+}
+
+sub on_set_tip_count_colour_thresh {
+    my $self = shift;
+
+    my $dendrogram = $self->{dendrogram};
+
+    return if !$dendrogram;
+
+    my $tooltip =<<~'EOT'
+        When using the slider to colour nodes, only those with more tips than this threshold will be coloured.
+        This is useful when the dendrogram contains outliers.
+        EOT
+    ;
+    $tooltip =~ s/\n/ /g;
+
+    my $ntips = $dendrogram->get_ntips;
+
+    my $props = {
+        name       => 'slider_tip_count_colour_thresh',
+        type       => 'integer',
+        default    => $dendrogram->get_tip_count_colour_thresh,
+        min        => 0,
+        max        => $ntips,
+        label_text => "Tip count colour threshold",
+        tooltip    => $tooltip,
+    };
+    bless $props, 'Biodiverse::Metadata::Parameter';
+
+    my $parameters_table = Biodiverse::GUI::ParametersTable->new;
+    my ($spinner, $extractor) = $parameters_table->generate_integer ($props);
+
+    my $dlg = Gtk3::Dialog->new_with_buttons (
+        'Set minimum tip count to colour',
+        undef,
+        'destroy-with-parent',
+        'gtk-ok' => 'ok',
+        'gtk-cancel' => 'cancel',
+    );
+
+    my $hbox  = Gtk3::HBox->new;
+    my $label = Gtk3::Label->new($props->{label_text});
+    $hbox->pack_start($label,   0, 0, 1);
+    $hbox->pack_start($spinner, 0, 0, 1);
+    $spinner->set_tooltip_text ($props->get_tooltip);
+
+    my $vbox = $dlg->get_content_area;
+    $vbox->pack_start($hbox, 0, 0, 10);
+
+    $dlg->show_all;
+    my $response = $dlg->run;
+
+    my $val = 0;
+    if ($response eq 'ok') {
+        $val = $extractor->();
+    }
+
+    $dlg->destroy;
+
+    $dendrogram->set_tip_count_colour_thresh ($val);
+
+    return $val;
 }
 
 sub init_colour_clusters {

@@ -243,6 +243,10 @@ sub set_current_tree {
     return;
 }
 
+sub get_ntips {
+    $_[0]->{data}{ntips} // 0;
+}
+
 sub get_current_tree {
     $_[0]->{current_tree};
 }
@@ -386,12 +390,27 @@ sub do_slider_intersection {
     return if $self->{no_use_slider_to_select_nodes};
 
     # Set up colouring
+
+    my $tip_count_colour_thresh = $self->get_tip_count_colour_thresh;
+
     #  these methods want tree nodes, not canvas branches
-    my @colour_nodes = map {$_->{node_ref}} @$nodes;
+    my @colour_nodes
+        = map {$_->{node_ref}}
+          grep {$_->{ntips} > $tip_count_colour_thresh}
+          @$nodes;
     $self->recolour_normal (\@colour_nodes);
 
     return;
 }
+
+sub get_tip_count_colour_thresh {
+    $_[0]->{tip_count_colour_thresh} // 0;
+}
+
+sub set_tip_count_colour_thresh {
+    $_[0]->{tip_count_colour_thresh} = $_[1];
+}
+
 
 sub get_slider_intersection {
     $_[0]->{slider_intersection} // [];

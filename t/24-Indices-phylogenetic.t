@@ -291,13 +291,6 @@ sub test_pe_central_and_whole {
 
 sub test_pe_range_tables {
 
-    my @calcs = qw/
-        calc_pe
-        calc_pe_lists
-        calc_pe_central
-        calc_pe_central_lists
-    /;
-
     my $cell_sizes = [200000, 200000];
     my $bd   = get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
     my $tree = get_tree_object_from_sample_data();
@@ -381,9 +374,42 @@ sub test_pe_range_tables {
     }
 
     {
+
+        my %r_hash = map {$_ => 1.5} keys %range_hash;
+
+        my @groups = sort $bd->get_groups;
+        my $target = $groups[-1];
+
+        my $sp = $bd->add_spatial_output(name => 'sp pass range hash RW turnover');
+        $sp->run_analysis(
+            calculations       => ['calc_phylo_rw_turnover'],
+            spatial_conditions => [ 'sp_self_only()', "sp_select_element (element => '$target')" ],
+            tree_ref           => $tree,
+            node_range_hash    => \%r_hash,
+            _use_pairwise_mode => 1,  #  not documented for a reason
+        );
+        my $rh = $sp->get_list_ref_aa($groups[0], 'SPATIAL_RESULTS');
+        delete @{$rh}{@deleters};
+
+        foreach my $val (values %$rh) {
+            $val = sprintf "%.8g", $val;
+        }
+
+        my $expxx = {
+            PHYLO_RW_TURNOVER   => 0.99542391,
+            PHYLO_RW_TURNOVER_A => 0.014056806,
+            PHYLO_RW_TURNOVER_B => 0.65481775,
+            PHYLO_RW_TURNOVER_C => 2.4029192,
+        };
+
+        is $rh, $expxx, 'Phylo RW turnover with user defined ranges';
+    }
+
+
+    {
         my $sp = $bd->add_spatial_output(name => 'sp pass range hash, 2 nbr sets');
         $sp->run_analysis(
-            calculations       => [@$calcs, 'calc_pe_central_lists'],
+            calculations       => [@$calcs, 'calc_pe_central_lists', 'calc_phylo_rw_turnover'],
             spatial_conditions => [ 'sp_self_only()', 'sp_select_all()' ],
             tree_ref           => $tree,
             node_range_hash    => \%range_hash,
@@ -398,8 +424,16 @@ sub test_pe_range_tables {
 
         local $exp->{PEC_WE}   = 0.99276923;
         local $exp->{PEC_WE_P} = 0.046867996;
+        local $exp->{PHYLO_RW_TURNOVER}   = 0.953132;
+        local $exp->{PHYLO_RW_TURNOVER_A} = 0.99276923;
+        local $exp->{PHYLO_RW_TURNOVER_B} = 0;
+        local $exp->{PHYLO_RW_TURNOVER_C} = 20.189473;
 
         is $rh, $exp, 'Spatial PE sums correctly when node_range_hash passed, two nbr sets';
+
+        is sprintf ("%.8g", sum (@{$rh}{qw/PHYLO_RW_TURNOVER_A PHYLO_RW_TURNOVER_B PHYLO_RW_TURNOVER_C/})),
+            $exp->{PE_WE},
+            'Sum of Phylo RW turnover scores same as PE_WE';
 
         my $global_range_list = $sp->get_list_ref_aa($elements[0], 'PEC_RANGELIST');
         my $local_range_list  = $sp->get_list_ref_aa($elements[0], 'PEC_LOCAL_RANGELIST');

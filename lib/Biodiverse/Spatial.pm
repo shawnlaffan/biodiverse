@@ -1071,6 +1071,12 @@ sub sp_calc {
     #$timer = [gettimeofday];    # to use with progress bar
     my $recyc_count = 0;
 
+
+    #  needed for testing, not for actual use
+    if ($args{_use_pairwise_mode}) {
+        $indices_object->set_pairwise_mode(1);
+    }
+
     #  loop though the elements and calculate the outputs
     #  Currently we don't allow user specified coords not in the basedata
     #  - this is for GUI reasons such as nbr selection

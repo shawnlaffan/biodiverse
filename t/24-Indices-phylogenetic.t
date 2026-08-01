@@ -403,6 +403,34 @@ sub test_pe_range_tables {
         };
 
         is $rh, $expxx, 'Phylo RW turnover with user defined ranges';
+
+        $r_hash{$_} = 0 for grep {$_ =~ /___/} keys %r_hash;
+
+        my $sp2 = $bd->add_spatial_output(name => 'sp pass range hash RW turnover with zero ranges');
+        ok no_warnings {
+                $sp2->run_analysis(
+                calculations       => [ 'calc_phylo_rw_turnover', 'calc_phylo_rpe2' ],
+                spatial_conditions => [ 'sp_self_only()', "sp_select_element (element => '$target')" ],
+                tree_ref           => $tree,
+                node_range_hash    => \%r_hash,
+            )
+        }, 'No warnings with zero ranges';
+        my $rh2 = $sp2->get_list_ref_aa($groups[0], 'SPATIAL_RESULTS');
+        delete @{$rh2}{@deleters};
+
+        foreach my $val (values %$rh2) {
+            $val = sprintf "%.8g", $val;
+        }
+
+        $expxx = {
+            PHYLO_RW_TURNOVER   => 1,
+            PHYLO_RW_TURNOVER_A => 0,
+            PHYLO_RW_TURNOVER_B => 0.65247495,
+            PHYLO_RW_TURNOVER_C => 1.7626634,
+            PHYLO_RPE_NULL2     => 0.057471264,
+        };
+
+        is $rh2, $expxx, 'Phylo RW turnover with user defined zero ranges';
     }
 
 

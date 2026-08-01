@@ -1809,9 +1809,9 @@ sub get_inverse_range_weighted_path_lengths {
 
     my %range_weighted;
 
-    foreach my $name (keys %node_length_hash) {
-        next if !$node_ranges{$name};
-        $range_weighted{$name} = $node_length_hash{$name} / $node_ranges{$name};
+    #  user defined ranges might be zero
+    foreach my $name (grep { defined $node_ranges{$_} } keys %node_length_hash) {
+        $range_weighted{$name} = $node_ranges{$name} ? $node_length_hash{$name} / $node_ranges{$name} : 0;
     }
     
     my %results = (inverse_range_weighted_node_lengths => \%range_weighted);

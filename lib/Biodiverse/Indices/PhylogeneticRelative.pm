@@ -783,14 +783,13 @@ sub get_trimmed_tree_range_inverse_hash {
     my $self = shift;
     my %args = @_;
 
-    # my $tree = $args{TRIMMED_TREE};
     my $node_ranges = $args{node_range};
 
     my %range_weighted;
 
     foreach my ($name, $range) (%$node_ranges) {
-        next if !$range;
-        $range_weighted{$name} = 1 / $range;
+        next if !defined $range;
+        $range_weighted{$name} = $range ? 1 / $range : 0;
     }
 
     my %results = (trimmed_tree_range_inverse_hash => \%range_weighted);
@@ -824,9 +823,9 @@ sub get_trimmed_tree_range_inverse_hash_nonzero_len {
 
     my %range_weighted;
 
-    foreach my $name (keys %node_ranges) {
-        my $range = $node_ranges{$name} || next;
-        $range_weighted{$name} = ($length_hash{$name} ? 1 : 0) / $range;
+    foreach my ($name, $range) (%node_ranges) {
+        next if !defined $range;
+        $range_weighted{$name} = $range ? ($length_hash{$name} ? 1 : 0) / $range : 0;
     }
 
     my %results = (trimmed_tree_range_inverse_hash_nonzero_len => \%range_weighted);

@@ -1869,8 +1869,8 @@ sub get_node_range_hash {
             my $node_names = $tree->get_node_names;
             croak "Nodes missing or ranges undefined in node_range_hash passed as a user arg"
               if any {not exists $range_hash->{$_} or not defined $range_hash->{$_}} @$node_names;
-            #  Check if ranges are less than in the basedata?
-            #  Would cause many numeric issues if they are.
+            #  Negative values are set to zero.
+            $_ = List::Util::max (0, $_) for values %$range_hash;
             my %results = (node_range => $range_hash, node_range_user_defined => 1);
             #  No caching of these results as it would "infect"
             #  analyses not passed the arg.

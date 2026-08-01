@@ -382,11 +382,11 @@ sub test_pe_range_tables {
 
         my $sp = $bd->add_spatial_output(name => 'sp pass range hash RW turnover');
         $sp->run_analysis(
-            calculations       => ['calc_phylo_rw_turnover'],
+            calculations       => [ 'calc_phylo_rw_turnover' ],
             spatial_conditions => [ 'sp_self_only()', "sp_select_element (element => '$target')" ],
             tree_ref           => $tree,
             node_range_hash    => \%r_hash,
-            _use_pairwise_mode => 1,  #  not documented for a reason
+            _use_pairwise_mode => 1, #  not documented for a reason
         );
         my $rh = $sp->get_list_ref_aa($groups[0], 'SPATIAL_RESULTS');
         delete @{$rh}{@deleters};
@@ -408,7 +408,7 @@ sub test_pe_range_tables {
 
         my $sp2 = $bd->add_spatial_output(name => 'sp pass range hash RW turnover with zero ranges');
         ok no_warnings {
-                $sp2->run_analysis(
+            $sp2->run_analysis(
                 calculations       => [ 'calc_phylo_rw_turnover', 'calc_phylo_rpe2' ],
                 spatial_conditions => [ 'sp_self_only()', "sp_select_element (element => '$target')" ],
                 tree_ref           => $tree,
@@ -431,6 +431,26 @@ sub test_pe_range_tables {
         };
 
         is $rh2, $expxx, 'Phylo RW turnover with user defined zero ranges';
+
+        $r_hash{$_} = -1 for grep {$_ =~ /___/} keys %r_hash;
+
+        my $sp3 = $bd->add_spatial_output(name => 'sp pass range hash RW turnover with negative ranges');
+        ok no_warnings {
+            $sp3->run_analysis(
+                calculations       => [ 'calc_phylo_rw_turnover', 'calc_phylo_rpe2' ],
+                spatial_conditions => [ 'sp_self_only()', "sp_select_element (element => '$target')" ],
+                tree_ref           => $tree,
+                node_range_hash    => \%r_hash,
+            )
+        }, 'No warnings with zero ranges';
+        my $rh3 = $sp3->get_list_ref_aa($groups[0], 'SPATIAL_RESULTS');
+        delete @{$rh3}{@deleters};
+
+        foreach my $val (values %$rh3) {
+            $val = sprintf "%.8g", $val;
+        }
+
+        is $rh2, $expxx, 'user defined negative ranges same as zero ranges';
     }
 
 

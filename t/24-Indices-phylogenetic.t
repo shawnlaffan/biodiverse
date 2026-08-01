@@ -289,6 +289,257 @@ sub test_pe_central_and_whole {
     return;
 }
 
+sub test_pe_range_tables {
+
+    my $cell_sizes = [200000, 200000];
+    my $bd   = get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
+    my $tree = get_tree_object_from_sample_data();
+
+    $bd->build_spatial_index(resolutions => [200000, 200000]);
+
+    my %range_hash;
+
+    {
+        my $sp1 = $bd->add_spatial_output(name => 'get range hash');
+        $sp1->run_analysis(
+            calculations       => [ 'calc_pe_lists' ],
+            spatial_conditions => [ 'sp_select_all()' ],
+            tree_ref           => $tree,
+        );
+        my $elements = $sp1->get_element_list;
+        my $rh = $sp1->get_list_ref_aa($elements->[0], 'PE_RANGELIST');
+        %range_hash = %$rh;
+        foreach my $val (values %range_hash) {
+            if ($val > 1) {
+                $val = $val / 2;
+            }
+        }
+    }
+
+
+    #  PEC_WE_* are the same as PE_WE_* when one nbr set so are here for paranoia
+    my $sum_of_branches = $tree->get_total_tree_length;
+    my $exp = {
+        PE_WE           => $sum_of_branches,
+        PE_WE_P         => 1,
+        PEC_WE          => $sum_of_branches,
+        PEC_WE_P        => 1,
+        PHYLO_RPE_NULL2 => 1,
+    };
+
+    foreach my $val (values %$exp) {
+        $val = sprintf "%.8g", $val;
+    }
+
+    my $calcs = [ 'calc_pe', 'calc_pe_central', 'calc_phylo_rpe2' ];
+    my @deleters = qw/PHYLO_RPE2 PHYLO_RPE_DIFF2 RECYCLED_SET/;
+
+    {
+        my $sp = $bd->add_spatial_output(name => 'sp pass range hash');
+        $sp->run_analysis(
+            calculations       => $calcs,
+            spatial_conditions => [ 'sp_select_all()' ],
+            tree_ref           => $tree,
+            node_range_hash    => \%range_hash,
+        );
+        my $elements = $sp->get_element_list;
+        my $rh = $sp->get_list_ref_aa($elements->[0], 'SPATIAL_RESULTS');
+        delete @{$rh}{@deleters};
+
+        foreach my $val (values %$rh) {
+            $val = sprintf "%.8g", $val;
+        }
+
+        is $rh, $exp, 'Spatial PE sums correctly when node_range_hash passed';
+    }
+
+    {
+        my $cl = $bd->add_cluster_output(name => 'cl pass range hash');
+        $cl->run_analysis(
+            spatial_calculations => $calcs,
+            tree_ref             => $tree,
+            node_range_hash      => \%range_hash,
+            index                => 'SORENSON',
+            linkage_function     => 'link_average',
+            spatial_conditions   => ['sp_select_all()'],
+        );
+        my $rh = $cl->get_list_ref_aa('SPATIAL_RESULTS');
+        delete @{$rh}{@deleters};
+
+        foreach my $val (values %$rh) {
+            $val = sprintf "%.8g", $val;
+        }
+
+        is $rh, $exp, 'Cluster PE sums correctly when node_range_hash passed';
+    }
+
+    {
+
+        my %r_hash = map {$_ => 1.5} keys %range_hash;
+
+        my @groups = sort $bd->get_groups;
+        my $target = $groups[-1];
+
+        my $sp = $bd->add_spatial_output(name => 'sp pass range hash RW turnover');
+        $sp->run_analysis(
+            calculations       => [ 'calc_phylo_rw_turnover' ],
+            spatial_conditions => [ 'sp_self_only()', "sp_select_element (element => '$target')" ],
+            tree_ref           => $tree,
+            node_range_hash    => \%r_hash,
+            _use_pairwise_mode => 1, #  not documented for a reason
+        );
+        my $rh = $sp->get_list_ref_aa($groups[0], 'SPATIAL_RESULTS');
+        delete @{$rh}{@deleters};
+
+        foreach my $val (values %$rh) {
+            $val = sprintf "%.8g", $val;
+        }
+
+        my $expxx = {
+            PHYLO_RW_TURNOVER   => 0.99542391,
+            PHYLO_RW_TURNOVER_A => 0.014056806,
+            PHYLO_RW_TURNOVER_B => 0.65481775,
+            PHYLO_RW_TURNOVER_C => 2.4029192,
+        };
+
+        is $rh, $expxx, 'Phylo RW turnover with user defined ranges';
+
+        $r_hash{$_} = 0 for grep {$_ =~ /___/} keys %r_hash;
+
+        my $sp2 = $bd->add_spatial_output(name => 'sp pass range hash RW turnover with zero ranges');
+        ok no_warnings {
+            $sp2->run_analysis(
+                calculations       => [ 'calc_phylo_rw_turnover', 'calc_phylo_rpe2' ],
+                spatial_conditions => [ 'sp_self_only()', "sp_select_element (element => '$target')" ],
+                tree_ref           => $tree,
+                node_range_hash    => \%r_hash,
+            )
+        }, 'No warnings with zero ranges';
+        my $rh2 = $sp2->get_list_ref_aa($groups[0], 'SPATIAL_RESULTS');
+        delete @{$rh2}{@deleters};
+
+        foreach my $val (values %$rh2) {
+            $val = sprintf "%.8g", $val;
+        }
+
+        $expxx = {
+            PHYLO_RW_TURNOVER   => 1,
+            PHYLO_RW_TURNOVER_A => 0,
+            PHYLO_RW_TURNOVER_B => 0.65247495,
+            PHYLO_RW_TURNOVER_C => 1.7626634,
+            PHYLO_RPE_NULL2     => 0.057471264,
+        };
+
+        is $rh2, $expxx, 'Phylo RW turnover with user defined zero ranges';
+
+        $r_hash{$_} = -1 for grep {$_ =~ /___/} keys %r_hash;
+
+        my $sp3 = $bd->add_spatial_output(name => 'sp pass range hash RW turnover with negative ranges');
+        ok no_warnings {
+            $sp3->run_analysis(
+                calculations       => [ 'calc_phylo_rw_turnover', 'calc_phylo_rpe2' ],
+                spatial_conditions => [ 'sp_self_only()', "sp_select_element (element => '$target')" ],
+                tree_ref           => $tree,
+                node_range_hash    => \%r_hash,
+            )
+        }, 'No warnings with zero ranges';
+        my $rh3 = $sp3->get_list_ref_aa($groups[0], 'SPATIAL_RESULTS');
+        delete @{$rh3}{@deleters};
+
+        foreach my $val (values %$rh3) {
+            $val = sprintf "%.8g", $val;
+        }
+
+        is $rh2, $expxx, 'user defined negative ranges same as zero ranges';
+    }
+
+
+    {
+        my $sp = $bd->add_spatial_output(name => 'sp pass range hash, 2 nbr sets');
+        $sp->run_analysis(
+            calculations       => [@$calcs, 'calc_pe_central_lists', 'calc_phylo_rw_turnover'],
+            spatial_conditions => [ 'sp_self_only()', 'sp_select_all()' ],
+            tree_ref           => $tree,
+            node_range_hash    => \%range_hash,
+        );
+        my @elements = sort $sp->get_element_list;
+        my $rh = $sp->get_list_ref_aa($elements[0], 'SPATIAL_RESULTS');
+        delete @{$rh}{@deleters};
+
+        foreach my $val (values %$rh) {
+            $val = sprintf "%.8g", $val;
+        }
+
+        local $exp->{PEC_WE}   = 0.99276923;
+        local $exp->{PEC_WE_P} = 0.046867996;
+        local $exp->{PHYLO_RW_TURNOVER}   = 0.953132;
+        local $exp->{PHYLO_RW_TURNOVER_A} = 0.99276923;
+        local $exp->{PHYLO_RW_TURNOVER_B} = 0;
+        local $exp->{PHYLO_RW_TURNOVER_C} = 20.189473;
+
+        is $rh, $exp, 'Spatial PE sums correctly when node_range_hash passed, two nbr sets';
+
+        is sprintf ("%.8g", sum (@{$rh}{qw/PHYLO_RW_TURNOVER_A PHYLO_RW_TURNOVER_B PHYLO_RW_TURNOVER_C/})),
+            $exp->{PE_WE},
+            'Sum of Phylo RW turnover scores same as PE_WE';
+
+        my $global_range_list = $sp->get_list_ref_aa($elements[0], 'PEC_RANGELIST');
+        my $local_range_list  = $sp->get_list_ref_aa($elements[0], 'PEC_LOCAL_RANGELIST');
+        is $global_range_list, $local_range_list, 'local ranges <= global when node_range_hash passed';
+    }
+
+
+    {
+        #  PEC calcs where one basedata has "excess" ranges and the other
+        #  is the expected range table.
+        use experimental qw/for_list/;
+
+        #  integerise
+        $_ = (int ($_) || 1) for values %range_hash;
+
+        my $bdrr = $bd->clone (no_outputs => 1);
+
+        my $el_list = $bdrr->get_groups;
+        my $target_gp = (sort @$el_list)[0];
+
+        LABEL:
+        foreach my ($label, $range) (%range_hash) {
+            my $gps = $bdrr->get_groups_with_label_as_hash(label => $label);
+            my $has_target = !!delete local $gps->{$target_gp};
+            my @targets = sort grep {$_ ne $target_gp} keys %$gps;
+            my $to_delete = @targets - $range - $has_target;
+            next LABEL if $to_delete <= 0;
+            foreach my $group (@targets[0 .. $to_delete - 1]) {
+                $bdrr->delete_sub_element(group => $group, label => $label);
+            }
+        }
+
+        my %sp_args = (
+            calculations       => [@$calcs, 'calc_pe_central_lists'],
+            spatial_conditions => [ 'sp_self_only()', 'sp_select_all()' ],
+            tree_ref           => $tree,
+        );
+
+        my $sp_name = 'int range hash';
+        my $sprr = $bdrr->add_spatial_output(name => $sp_name);
+        $sprr->run_analysis(
+            %sp_args
+        );
+        my $rh_rr = $sprr->get_list_ref_aa($target_gp, 'SPATIAL_RESULTS');
+
+        my $spxx = $bd->add_spatial_output(name => $sp_name);
+        $spxx->run_analysis(
+            %sp_args,
+            node_range_hash    => \%range_hash,
+        );
+        my $rh_xx = $sprr->get_list_ref_aa($target_gp, 'SPATIAL_RESULTS');
+
+        is $rh_xx, $rh_rr, 'same PEC when range table matches a second basedata';
+    }
+
+    return;
+
+}
 
 sub get_pe_check_hashes {
     my ($sp, $scalar_indices_to_check, $list_indices_to_check) = @_;

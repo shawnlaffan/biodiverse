@@ -242,6 +242,8 @@ sub new {
             $output_ref,
     );
 
+    $self->setup_calc_options_widgets;
+
     Biodiverse::GUI::Tabs::CalculationsTree::init_calculations_tree(
         $self->get_xmlpage_object('treeCalculations'),
         $self->{calculations_model},

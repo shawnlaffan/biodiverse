@@ -74,8 +74,12 @@ sub init_calculations_tree {
     $tree->insert_column($col_desc,  -1);
     $tree->set_headers_visible(0);
     $tree->set_model( $model );
-    
-    $tree->signal_connect_swapped('row-collapsed' => \&on_row_collapsed, $tree);
+
+    #  resize the contents - this reclaims unused horizontal space
+    #  and seems to fix scrollbar mismatches.
+    my $cb_resize = sub {$_[0]->columns_autosize};
+    $tree->signal_connect('row-collapsed' => $cb_resize);
+    $tree->signal_connect('row-expanded'  => $cb_resize);
 
     #  set vertical alignment of cells
     foreach my $renderer (
@@ -86,15 +90,6 @@ sub init_calculations_tree {
         ) {
         $renderer->set (yalign => 0);
     }
-    
-    return;
-}
-
-#  resize the contents - this reclaims unused horizontal space 
-sub on_row_collapsed {
-    my $tree = shift;
-    
-    $tree->columns_autosize();
     
     return;
 }

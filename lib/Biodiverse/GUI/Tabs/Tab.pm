@@ -1525,7 +1525,9 @@ sub get_phylogeny_hover_text {
 
 
 
-
+#  All of this extra calc args handling should move into its own class,
+#  possibly as a superclass of CalculationsTree.
+#  It could then perhaps be built from index metadata.
 sub run_dlg_extra_calc_options {
     my ($self, %args) = @_;
 
@@ -1534,12 +1536,15 @@ sub run_dlg_extra_calc_options {
     return wantarray ? (): {}
         if !$calcs;
 
+    my $calc_options_cb = $self->{calc_options_cb};
+    my $calc_options = $calc_options_cb->();
+
     my %results;
 
     my $gui = Biodiverse::GUI::GUIManager->instance;
     my $project = $gui->get_project;
 
-    my $runs_get_node_hash = grep { $_ eq 'get_node_range_hash' } @$calcs;
+    my $runs_get_node_hash = $calc_options->{get_node_range_hash} && grep { $_ eq 'get_node_range_hash' } @$calcs;
 
     #  bodgy - need to generalise
     if ($runs_get_node_hash) {
@@ -1560,9 +1565,10 @@ sub run_dlg_extra_calc_options {
         my sub tree_has_prop_data {
             my $tree = shift;
             return () if !$tree;
-            my $booter = $tree->get_bootstrap_block;
-            my $data = $booter->get_data;
-            return keys %$data;
+
+            my $keys = $tree->get_bootstrap_keys;
+
+            return keys %$keys;
         }
 
         my sub update_prop_combo {
@@ -1610,12 +1616,11 @@ sub run_dlg_extra_calc_options {
 
             my $i = -1;
             foreach my $tree (@trees) {
-                next if !tree_has_prop_data($tree);
+                my @keys = tree_has_prop_data($tree);
                 my $name = $tree->get_name;
                 my $iter = $model->append();
                 $model->set( $iter, 0 => $name, 1 => $tree );
-                my $props = $tree->get_bootstrap_block->get_data;
-                $props_by_tree{$tree} = [sort keys %$props];
+                $props_by_tree{$tree} = [sort @keys];
                 $i++;
                 if ($tree == $project_tree) {
                     $default_iter = $i;
@@ -1644,7 +1649,8 @@ sub run_dlg_extra_calc_options {
         foreach my $bd (@$basedatas) {
             my $bd_name = $bd->get_name;
             use experimental qw /for_list/;
-            foreach my $output ($bd->get_spatial_output_refs, $bd->get_cluster_output_refs) {
+            my @orefs = ($bd->get_spatial_output_refs, $bd->get_cluster_output_refs);
+            foreach my $output (sort {$a->get_param('NAME') cmp $b->get_param('NAME')} @orefs) {
                 #  messy
                 next if $output eq ($self->{output_ref} // '');
                 next if !$output->get_param ('COMPLETED');
@@ -1767,14 +1773,33 @@ sub run_dlg_extra_calc_options {
             if (defined $selected_tree) {
                 my $tree_prop = $prop_combo->get_active_text;
                 my %range_hash;
+                my $warn_count = 0;
+              NODE_REF:
                 foreach my $node_ref ($selected_tree->get_node_refs) {
-                    $range_hash{$node_ref->get_name} = $node_ref->get_bootstrap_block->get_value_aa($tree_prop);
+                    my $booter = $node_ref->get_bootstrap_block_or_undef;
+                    if (!defined $booter) {
+                        #  We could croak but tree trimming might
+                        #  take care of the missing ones.
+                        if ($warn_count < 11) {
+                            my $node_name = $node_ref->get_name;
+                            say STDERR "Tree node $node_name does not have a value for $tree_prop "
+                                . "(only the first ten cases will be listed)";
+                            $warn_count++;
+                        }
+                        next NODE_REF;
+                    }
+                    $range_hash{$node_ref->get_name} = $booter->get_value_aa($tree_prop);
                 }
                 $results{node_range_hash} = \%range_hash;
             }
         }
         elsif ($file_check_button->get_active) {
             $results{node_range_hash} = $range_hash_from_file;
+        }
+        elsif ($output_check_button->get_active) {
+            my $iter = $from_outputs_combo->get_active_iter;
+            my $selection = $from_outputs_combo->get_model->get($iter, 1);
+            $results{node_range_hash} = $selection;
         }
 
 
@@ -1963,6 +1988,51 @@ sub load_range_table_as_hash {
     my %results = (filename => $filename, data => \%range_data);
 
     return wantarray ? %results : \%results;
+}
+
+
+sub setup_calc_options_widgets {
+    my ($self) = @_;
+
+    my $options_label = Gtk3::Label->new('Options:');
+    $options_label->set_xalign(0);
+    my $chk_range = Gtk3::CheckButton->new_with_label ('Specify node ranges');
+    my $tooltip_text =<<~EOT
+        Use node ranges from another source instead of the union of tip ranges.
+        If a calculation that requires node ranges is selected then a popup
+        window will allow selection of the source when the analysis is run.
+        EOT
+    ;
+    $chk_range->set_tooltip_text ($tooltip_text);
+
+    my $opt_box = Gtk3::Box->new('horizontal', 10);
+    $opt_box->pack_start ($options_label, 0, 0, 0);
+    $opt_box->pack_start($chk_range, 0, 0, 0);
+    $opt_box->set_halign ('start');
+    $opt_box->show_all;
+
+    my $calc_tree
+        = $self->get_xmlpage_object('treeCalculations')
+        || $self->get_xmlpage_object('treeSpatialCalculations');
+    my $scrolled_window = $calc_tree->get_parent;
+    $scrolled_window->remove($calc_tree);
+    my $vbox = Gtk3::Box->new ('vertical', 0);
+    $vbox->pack_start ($opt_box, 0, 0, 0);
+    my $lbl_calcs = Gtk3::Label->new('Calcs:');
+    $lbl_calcs->set_halign('start');
+    $vbox->pack_start ($lbl_calcs, 0, 0, 0);
+    $vbox->pack_start ($calc_tree, 1, 1, 0);
+    $scrolled_window->add($vbox);
+    $scrolled_window->show_all;
+
+    my $extractor_cb = sub {
+        my %res = (
+            get_node_range_hash => $chk_range->get_active,
+        );
+        return wantarray ? %res : \%res;
+    };
+
+    $self->{calc_options_cb} = $extractor_cb
 }
 
 1;

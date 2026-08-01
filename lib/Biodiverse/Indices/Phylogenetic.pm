@@ -1809,9 +1809,9 @@ sub get_inverse_range_weighted_path_lengths {
 
     my %range_weighted;
 
-    foreach my $name (keys %node_length_hash) {
-        next if !$node_ranges{$name};
-        $range_weighted{$name} = $node_length_hash{$name} / $node_ranges{$name};
+    #  user defined ranges might be zero
+    foreach my $name (grep { defined $node_ranges{$_} } keys %node_length_hash) {
+        $range_weighted{$name} = $node_ranges{$name} ? $node_length_hash{$name} / $node_ranges{$name} : 0;
     }
     
     my %results = (inverse_range_weighted_node_lengths => \%range_weighted);
@@ -1869,9 +1869,9 @@ sub get_node_range_hash {
             my $node_names = $tree->get_node_names;
             croak "Nodes missing or ranges undefined in node_range_hash passed as a user arg"
               if any {not exists $range_hash->{$_} or not defined $range_hash->{$_}} @$node_names;
-            #  Check if ranges are less than in the basedata?
-            #  Would cause many numeric issues if they are.
-            my %results = (node_range => $range_hash);
+            #  Negative values are set to zero.
+            $_ = List::Util::max (0, $_) for values %$range_hash;
+            my %results = (node_range => $range_hash, node_range_user_defined => 1);
             #  No caching of these results as it would "infect"
             #  analyses not passed the arg.
             return wantarray ? %results : \%results;
@@ -1884,7 +1884,7 @@ sub get_node_range_hash {
 
     if ($output_ref) {
         if (my $cached = $output_ref->_get_cached_node_range_table_aa($tree, $return_lists)) {
-            my %results = (node_range => $cached);
+            my %results = (node_range => $cached, node_range_user_defined => 1);
             return wantarray ? %results : \%results;
         }
 
@@ -1897,7 +1897,7 @@ sub get_node_range_hash {
             next if !$ocache;
             #  store on ourselves in the event the other analysis is deleted
             $output_ref->_set_cached_node_range_table_aa($ocache, $tree, $return_lists);
-            my %results = (node_range => $ocache);
+            my %results = (node_range => $ocache, node_range_user_defined => 1);
             return wantarray ? %results : \%results;
         }
     }
@@ -2780,42 +2780,16 @@ sub _calc_phylo_abc_lists {
         el_list  => $args{element_list2},
     );
 
+    use Hash::Util::Set qw(keys_partition);
+    use experimental qw/declared_refs/;
+    my (\@bb, \@aa, \@cc) = keys_partition(%$nodes_in_path1, %$nodes_in_path2);
+    my %A = %{$nodes_in_path1}{@aa};
+    my %B = %{$nodes_in_path1}{@bb};
+    my %C = %{$nodes_in_path2}{@cc};
+
     my %results;
-    #  one day we can clean this all up
-    if (HAVE_BD_UTILS) {
-        my $res = Biodiverse::Utils::get_hash_shared_and_unique (
-            $nodes_in_path1,
-            $nodes_in_path2,
-        );
-        @results{qw /PHYLO_A_LIST PHYLO_B_LIST PHYLO_C_LIST/}
-          = @$res{qw /a b c/};
-    }
-    else {
-        my %A;
-        if (HAVE_DATA_RECURSIVE) {
-            Data::Recursive::hash_merge (\%A, $nodes_in_path1, Data::Recursive::LAZY());
-            Data::Recursive::hash_merge (\%A, $nodes_in_path2, Data::Recursive::LAZY());
-        }
-        else {
-            %A = (%$nodes_in_path1, %$nodes_in_path2);
-        }
-    
-        # create a new hash %B for nodes in label hash 1 but not 2
-        # then get length of B
-        my %B = %A;
-        delete @B{keys %$nodes_in_path2};
-    
-        # create a new hash %C for nodes in label hash 2 but not 1
-        # then get length of C
-        my %C = %A;
-        delete @C{keys %$nodes_in_path1};
-    
-        # get length of %A = branches not in %B or %C
-        delete @A{keys %B, keys %C};
-    
-         @results{qw /PHYLO_A_LIST PHYLO_B_LIST PHYLO_C_LIST/}
-           = (\%A, \%B, \%C);
-    }
+    @results{qw /PHYLO_A_LIST PHYLO_B_LIST PHYLO_C_LIST/}
+        = (\%A, \%B, \%C);
 
     return wantarray ? %results : \%results;
 }

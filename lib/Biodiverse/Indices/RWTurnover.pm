@@ -9,6 +9,7 @@ use experimental 'refaliasing';
 use Carp;
 use List::Util qw /sum reduce/;
 use Ref::Util qw /is_hashref/;
+use Hash::Util::Set qw /keys_intersection/;
 
 our $VERSION = '5.99_002';
 
@@ -121,13 +122,11 @@ sub get_metadata_calc_phylo_rw_turnover {
         name            => 'Phylo Range weighted Turnover',
         reference       => 'Laffan et al. (2016) https://doi.org/10.1111/2041-210X.12513',
         type            => 'Phylogenetic Turnover',
-        pre_calc        => [qw /_calc_pe_lists_per_element_set/],
-        # pre_calc_global => [qw /
-        #     get_node_range_hash_as_lists
-        #     get_trimmed_tree_parent_name_hash
-        # /],
-        #    get_trimmed_tree_child_name_hash
-        #/],
+        pre_calc        => [qw /_calc_pe_lists_per_element_set calc_abc/],
+        pre_calc_global => [qw /
+            get_node_range_hash
+        /],
+        required_args   => [qw /tree_ref/],
         uses_nbr_lists  => 2,  #  how many lists it must have
         distribution    => 'nonnegative',  # for A, B and C
         indices         => {
@@ -174,6 +173,10 @@ sub calc_phylo_rw_turnover {
 
     my ($aa, $bb, $cc) = (0, 0, 0);
 
+    #  Do we need to account for user specified ranges?
+    #  This is done as separate blocks so as not to slow down the common case.
+    my $check_wt_sum = $args{node_range_user_defined} && @{$args{element_list_all}} > 1;
+
     if ($self->get_pairwise_mode) {
         #  we can cache the sums of branch lengths and thus
         #  simplify the calcs as we only need to find $aa
@@ -195,9 +198,24 @@ sub calc_phylo_rw_turnover {
             (exists $list1{$_} and $aa += $list2{$_}) 
               foreach keys %list2;
         }
+        if ($check_wt_sum) {
+            #  Correct for any over-weighting in user defined ranges.
+            #  Weights are in branch units and ranges in cell units,
+            #  so if weighted value is more than half the branch length then
+            #  we must compensate before the other calcs.
+            my $tree = $args{tree_ref};
+            my $res  = $self->get_results_from_pre_calc_global (calculation => 'get_node_range_hash');
+            \my %range_hash = $res->{node_range};
+            foreach my $key (grep {$range_hash{$_} < 2} keys_intersection (%list1, %list2)) {
+                #  we can cache the checkers if profiling says to
+                my $half_branch_len = 0.5 * $tree->get_node_ref_aa($key)->get_length;
+                $aa -= ($list1{$key} - $half_branch_len)
+                  if $list1{$key} > $half_branch_len;
+            }
+        }
         $bb = $sum_i - $aa;
         $cc = $sum_j - $aa;
-        $aa *= 2;  #  needs to be double counted now
+        $aa *= 2;
     }
     else {
         foreach my $key (keys %list1) {
@@ -208,6 +226,19 @@ sub calc_phylo_rw_turnover {
         #  postfix for speed
         (!exists $list1{$_} and $cc += $list2{$_})
           foreach keys %list2;
+        if ($check_wt_sum) {
+            #  Correct for over-weighting by user-defined ranges.
+            #  Any summed weight exceeding the branch length is over the odds.
+            my $n_elements = @{$args{element_list_all}};
+            my $tree = $args{tree_ref};
+            my $res  = $self->get_results_from_pre_calc_global (calculation => 'get_node_range_hash');
+            \my %range_hash = $res->{node_range};
+            foreach my $key (grep {$range_hash{$_} < $n_elements} keys_intersection (%list1, %list2)) {
+                my $branch_len = $tree->get_node_ref_aa($key)->get_length;
+                my $sum = $list1{$key} + $list2{$key};
+                $aa -= ($sum - $branch_len) if $sum > $branch_len;
+            }
+        }
     }
 
 

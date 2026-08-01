@@ -177,6 +177,9 @@ sub new {
 
     $self->setup_tie_breaker_widgets($cluster_ref);
 
+    $self->setup_calc_options_widgets;
+    $self->get_xmlpage_object ('tbl_cluster_parameters')->show_all;
+
     # Initialise widgets
     $xml_page ->get_object('txtClusterName')->set_text( $self->{output_name} );
     $xml_label->get_object('lblClusteringName')->set_text($self->{output_name} );
@@ -271,7 +274,7 @@ sub new {
         $self,
     );
 
-    $self->get_xmlpage_object('chk_output_gdm_format')->set_sensitive (0);
+    $self->get_xmlpage_object('chk_output_gdm_format')->set_visible (0);
 
     #$self->set_colour_stretch_widgets_and_signals;
 
@@ -494,7 +497,7 @@ sub init_colour_clusters {
     return;
 }
 
-#  change sensitivity of the GDM output widget
+#  change visibility of the GDM output widget
 sub on_chk_output_to_file_changed {
     my $self = shift;
 
@@ -502,7 +505,7 @@ sub on_chk_output_to_file_changed {
     my $active = $widget->get_active;
 
     my $gdm_widget = $self->get_xmlpage_object('chk_output_gdm_format');
-    $gdm_widget->set_sensitive($active);
+    $gdm_widget->set_visible($active);
 
     return;
 }
@@ -1403,6 +1406,7 @@ sub on_run_analysis {
     my $extra_calc_options = $self->get_extra_calc_options(%analysis_args, calculations => \@calculations_to_run);
     return if $EVAL_ERROR;
     @analysis_args{keys %$extra_calc_options} = values %$extra_calc_options;
+    $analysis_args{spatial_args} = $extra_calc_options;
 
     if ($self->get_use_tie_breakers) {
         my $tie_breakers = $self->get_tie_breakers;
@@ -1498,6 +1502,7 @@ sub on_run_analysis {
 
         $self->init_colour_clusters;
         $self->update_tree_menu;
+        $self->update_map_lists_combo;
 
         # If just ran a new analysis, pull up the pane
         if ($isnew or not $new_analysis) {

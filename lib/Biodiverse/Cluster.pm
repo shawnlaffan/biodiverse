@@ -858,12 +858,6 @@ sub build_matrices {
         );
     };
     croak $EVAL_ERROR if $EVAL_ERROR;                #  Did we complete properly?
-    #croak $e if $e;                     #  Throw a hissy fit if we didn't complete properly
-
-    my %cache;  #  cache the label hashes
-                # - makes a small amount of difference
-                # which will count for randomisations
-    $self->set_param (MATRIX_ELEMENT_LABEL_CACHE => \%cache);
 
     my $valid_count = 0;
 
@@ -973,14 +967,6 @@ sub build_matrices {
     }
 
     $self->set_matrix_ref(matrices => \@matrices);
-
-    #  Clear the cache unless we're using link_recalculate
-    #  Is this already set or not?
-    my $analysis_args = $self->get_param ('ANALYSIS_ARGS');
-    my $linkage_function = $analysis_args->{linkage_function};
-    if (defined $linkage_function and not $linkage_function =~ /recalculate/) {
-        $self->set_param (MATRIX_ELEMENT_LABEL_CACHE => undef);
-    }
 
     $indices_object->set_pairwise_mode (0);    #  turn off this flag
 

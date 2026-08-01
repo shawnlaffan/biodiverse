@@ -860,18 +860,6 @@ sub build_matrices {
     croak $EVAL_ERROR if $EVAL_ERROR;                #  Did we complete properly?
     #croak $e if $e;                     #  Throw a hissy fit if we didn't complete properly
 
-    if (not $args{keep_sp_nbrs_output}) {
-        #  remove it from the basedata so it isn't
-        #  added to a GUI project on next open
-        $bd->delete_output (
-            output              => $sp,
-            delete_basedata_ref => 0,
-        );
-    }
-    else {
-        $self->set_param (SP_NBRS_OUTPUT_NAME => $sp->get_param('NAME'));
-    }
-
     my %cache;  #  cache the label hashes
                 # - makes a small amount of difference
                 # which will count for randomisations
@@ -890,12 +878,10 @@ sub build_matrices {
 
     my $progress_bar = Biodiverse::Progress->new();
     my $count = 0;
-    my $printed_progress = -1;
     my $target_element_count = $to_do * ($to_do - 1) / 2; # n(n-1)/2
     my $progress_pfx = "Building matrix\n"
                         . "$name\n"
                         . "Target is $target_element_count matrix elements\n";
-    #print "[CLUSTER] Progress (% of $to_do elements):     ";
     my %processed_elements;
 
     my $no_progress;
@@ -997,7 +983,16 @@ sub build_matrices {
     }
 
     $indices_object->set_pairwise_mode (0);    #  turn off this flag
-    
+
+    if (not $args{keep_sp_nbrs_output}) {
+        #  remove it from the basedata so it isn't
+        #  added to a GUI project on next open
+        $bd->delete_output (output => $sp);
+    }
+    else {
+        $self->set_param (SP_NBRS_OUTPUT_NAME => $sp->get_param('NAME'));
+    }
+
     my $time_taken = time - $start_time;
     printf "[CLUSTER] Matrix build took %.3f seconds.\n", $time_taken;
     $self->set_param (ANALYSIS_TIME_TAKEN_MATRIX => $time_taken);

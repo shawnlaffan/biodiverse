@@ -2021,7 +2021,7 @@ sub setup_calc_options_widgets {
     my $lbl_calcs = Gtk3::Label->new('Calcs:');
     $lbl_calcs->set_halign('start');
     $vbox->pack_start ($lbl_calcs, 0, 0, 0);
-    $vbox->pack_start ($calc_tree, 0, 0, 0);
+    $vbox->pack_start ($calc_tree, 1, 1, 0);
     $frame->add($vbox);
     $frame->show_all;
 

@@ -242,7 +242,7 @@ sub new {
             $output_ref,
     );
 
-    $self->setup_calc_options_widgets ('tbl_spatial_parameters');
+    $self->setup_calc_options_widgets;
 
     Biodiverse::GUI::Tabs::CalculationsTree::init_calculations_tree(
         $self->get_xmlpage_object('treeCalculations'),

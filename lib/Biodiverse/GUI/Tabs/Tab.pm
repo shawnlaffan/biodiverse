@@ -2014,16 +2014,16 @@ sub setup_calc_options_widgets {
     my $calc_tree
         = $self->get_xmlpage_object('treeCalculations')
         || $self->get_xmlpage_object('treeSpatialCalculations');
-    my $frame = $calc_tree->get_parent;
-    $frame->remove($calc_tree);
+    my $scrolled_window = $calc_tree->get_parent;
+    $scrolled_window->remove($calc_tree);
     my $vbox = Gtk3::Box->new ('vertical', 0);
     $vbox->pack_start ($opt_box, 0, 0, 0);
     my $lbl_calcs = Gtk3::Label->new('Calcs:');
     $lbl_calcs->set_halign('start');
     $vbox->pack_start ($lbl_calcs, 0, 0, 0);
     $vbox->pack_start ($calc_tree, 1, 1, 0);
-    $frame->add($vbox);
-    $frame->show_all;
+    $scrolled_window->add($vbox);
+    $scrolled_window->show_all;
 
     my $extractor_cb = sub {
         my %res = (

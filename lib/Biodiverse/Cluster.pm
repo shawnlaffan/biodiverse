@@ -845,6 +845,16 @@ sub build_matrices {
     #  we use a spatial object as it handles all the spatial checks.
     say "[CLUSTER] Generating neighbour lists";
     my $sp = $bd->add_spatial_output (name => $name . "_clus_nbrs_" . time());
+
+    if (not $args{keep_sp_nbrs_output}) {
+        #  remove it from the basedata so it isn't
+        #  added to a GUI project on next open
+        $bd->delete_output(output => $sp, delete_basedata_ref => 0);
+    }
+    else {
+        $self->set_param(SP_NBRS_OUTPUT_NAME => $sp->get_param('NAME'));
+    }
+
     my $sp_success = eval {
         $sp->run_analysis (
             %args,
@@ -969,15 +979,6 @@ sub build_matrices {
     $self->set_matrix_ref(matrices => \@matrices);
 
     $indices_object->set_pairwise_mode (0);    #  turn off this flag
-
-    if (not $args{keep_sp_nbrs_output}) {
-        #  remove it from the basedata so it isn't
-        #  added to a GUI project on next open
-        $bd->delete_output (output => $sp);
-    }
-    else {
-        $self->set_param (SP_NBRS_OUTPUT_NAME => $sp->get_param('NAME'));
-    }
 
     my $time_taken = time - $start_time;
     printf "[CLUSTER] Matrix build took %.3f seconds.\n", $time_taken;

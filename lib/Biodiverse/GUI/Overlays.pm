@@ -117,7 +117,9 @@ sub set_button_actions {
     #  these vary by grid so need to be disconnected first or we mess up other plots
     foreach my $btn (qw/btnClear btnSet/) {
         my $id = $signals->{$btn} // next;
-        $buttons->{$btn}->signal_handler_disconnect($id);
+        if ($buttons->{$btn}->signal_handler_is_connected($id)) {
+            $buttons->{$btn}->signal_handler_disconnect($id);
+        }
     }
     $signals->{btnClear} = $buttons->{btnClear}->signal_connect_swapped(
         clicked => \&on_clear,
@@ -420,7 +422,35 @@ sub on_add {
     #  need to handle layers in geopackages and geodatabases
     my $layer;
 
-    if ($filename !~ /.shp$/) {
+    if ($filename =~ /.shp$/) {
+        my $shx = $filename =~ s/.shp$/.shx/r;
+        if (!Biodiverse::Common->file_exists_aa ($shx)) {
+            my $dlg_text =<<~'EOT'
+
+                Shapefile is missing required .shx file, create it?
+
+                Note that this will not create the .dbf file so if this is also
+                missing due to incomplete copying or downloading then say no
+                and fix the missing files outside Biodiverse.
+                EOT
+            ;
+
+            return
+              if Biodiverse::GUI::YesNoCancel->run({header => 'Create SHX file?', text => $dlg_text}) eq 'no';
+            my $e;
+            my $old_val = Geo::GDAL::FFI::GetConfigOption ('SHAPE_RESTORE_SHX');
+            Geo::GDAL::FFI::SetConfigOption('SHAPE_RESTORE_SHX' => 'YES');
+            eval {Geo::GDAL::FFI::Open($filename); 1} or do {$e = $@};
+            Geo::GDAL::FFI::SetConfigOption('SHAPE_RESTORE_SHX' => $old_val);
+            if (!!$e) {
+                my $msg = "Unable to create shx file, check directory permissions\n$e";
+                Biodiverse::GUI::GUIManager->instance->report_error($msg);
+                return;
+            }
+
+        }
+    }
+    else {
         my @layers = get_layer_names_in_ogc_dataset($filename);
         return Biodiverse::GUI::GUIManager->instance->report_error (
             "Selected database does not contain any layers",

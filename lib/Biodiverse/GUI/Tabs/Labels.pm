@@ -164,6 +164,8 @@ sub new {
         'phylogeny',
         $self->{phylogeny_callback},
     );
+    #  set tree to use 90% of its pane.  No need for the scree plot to use half.
+    $self->queue_set_pane(0.9, 'vpanePhylogeny');
     $self->on_selected_phylogeny_changed();
 
 

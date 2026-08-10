@@ -117,7 +117,9 @@ sub set_button_actions {
     #  these vary by grid so need to be disconnected first or we mess up other plots
     foreach my $btn (qw/btnClear btnSet/) {
         my $id = $signals->{$btn} // next;
-        $buttons->{$btn}->signal_handler_disconnect($id);
+        if ($buttons->{$btn}->signal_handler_is_connected($id)) {
+            $buttons->{$btn}->signal_handler_disconnect($id);
+        }
     }
     $signals->{btnClear} = $buttons->{btnClear}->signal_connect_swapped(
         clicked => \&on_clear,

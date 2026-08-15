@@ -392,6 +392,7 @@ sub do_slider_intersection {
     # Set up colouring
 
     my $tip_count_colour_thresh = $self->get_tip_count_colour_thresh;
+    my $colour_start_node = $self->get_colour_start_node;
 
     #  these methods want tree nodes, not canvas branches
     my @colour_nodes
@@ -409,6 +410,14 @@ sub get_tip_count_colour_thresh {
 
 sub set_tip_count_colour_thresh {
     $_[0]->{tip_count_colour_thresh} = $_[1];
+}
+
+sub get_colour_start_node {
+    $_->{colour_start_node};
+}
+
+sub set_colour_start_node {
+    $_->{colour_start_node} = $_[1];
 }
 
 
@@ -1342,7 +1351,7 @@ sub do_colour_nodes_below {
     #  selecting branches.
     return if !$start_node && $in_multiselect_mode;
 
-    $self->{colour_start_node} = $start_node;
+    $self->set_colour_start_node ($start_node);
 
     my $num_clusters = $in_multiselect_mode ? 1 : $self->get_num_clusters;
     my $original_num_clusters = $num_clusters;
@@ -1586,13 +1595,12 @@ sub set_cluster_colour_mode {
     if ($prev_mode =~ /multi/) {
         my $prev_nodes = delete $self->{multiselect}{prev_processed_nodes};
         $self->set_processed_nodes($prev_nodes);
-        $self->{colour_start_node}
-            = delete $self->{multiselect}{prev_colour_start_node};
+        $self->set_colour_start_node (delete $self->{multiselect}{prev_colour_start_node});
         $self->{element_to_cluster_remap} = {};
     }
     elsif ($mode =~ /multi/) {
         $self->{multiselect}{prev_processed_nodes} = $self->get_processed_nodes;
-        $self->{multiselect}{prev_colour_start_node} = $self->{colour_start_node};
+        $self->{multiselect}{prev_colour_start_node} = $self->get_colour_start_node;
         $self->{element_to_cluster_remap} = {};
     }
 
@@ -2242,8 +2250,8 @@ sub on_map_index_combo_changed {
 sub recolour {
     my $self = shift;
 
-    if ($self->{colour_start_node}) {
-        $self->do_colour_nodes_below($self->{colour_start_node});
+    if (my $node = $self->get_colour_start_node) {
+        $self->do_colour_nodes_below($node);
     }
 
     return;

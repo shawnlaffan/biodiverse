@@ -1244,6 +1244,8 @@ sub use_highlight_func {
 sub recolour_cluster_lines {
     my ($self, $cluster_nodes, $no_colour_descendants, $default_colour) = @_;
 
+    return if !$self->get_current_tree;
+
     if ($self->in_multiselect_mode) {
         #  a different structure, handled below
         $cluster_nodes = $self->get_multiselect_node_array;

@@ -467,17 +467,33 @@ sub on_set_tip_count_colour_thresh {
     my $vbox = $dlg->get_content_area;
     $vbox->pack_start($hbox, 0, 0, 10);
 
+    $spinner->signal_connect (value_changed => sub {
+        my $val = $extractor->();
+        $dendrogram->set_tip_count_colour_thresh ($val);
+        if (my $nodes = $dendrogram->get_slider_intersection) {
+            $dendrogram->do_slider_intersection($nodes);
+            $self->queue_draw;
+        }
+    });
+
+    #  get value here so we can reset on cancel
+    my $val = $dendrogram->get_tip_count_colour_thresh // 0;
+
     $dlg->show_all;
     my $response = $dlg->run;
 
-    my $val = 0;
     if ($response eq 'ok') {
         $val = $extractor->();
     }
 
-    $dlg->destroy;
-
+    #  resets if user cancelled after changing things
     $dendrogram->set_tip_count_colour_thresh ($val);
+    if (my $nodes = $dendrogram->get_slider_intersection) {
+        $dendrogram->do_slider_intersection($nodes);
+        $self->queue_draw;
+    }
+
+    $dlg->destroy;
 
     return $val;
 }

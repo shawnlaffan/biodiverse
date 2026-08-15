@@ -385,7 +385,7 @@ sub coord_in_root_marker_bbox {
 sub do_slider_intersection {
     my ($self, $nodes) = @_;
 
-    $self->{slider_intersection} = $nodes // [];
+    $self->set_slider_intersection ($nodes // []);
 
     return if $self->{no_use_slider_to_select_nodes};
 
@@ -411,6 +411,10 @@ sub set_tip_count_colour_thresh {
     $_[0]->{tip_count_colour_thresh} = $_[1];
 }
 
+
+sub set_slider_intersection {
+    $_[0]->{slider_intersection} = $_[1];
+}
 
 sub get_slider_intersection {
     $_[0]->{slider_intersection} // [];
@@ -1329,6 +1333,8 @@ sub recolour_cluster_lines {
 # Colours a certain number of nodes below a start node
 sub do_colour_nodes_below {
     my ($self, $start_node) = @_;
+
+    $self->set_slider_intersection (undef);
 
     my $in_multiselect_mode = $self->in_multiselect_mode;
 

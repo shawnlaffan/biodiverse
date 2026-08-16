@@ -405,10 +405,10 @@ sub get_tree_menu_items {
         },
         {
             type     => 'Gtk3::MenuItem',
-            label    => "Set slider tip colour threshold",
-            tooltip  => "The slider bar will not colour branches with fewer tips than this.",
+            label    => "Set slider properties",
+            tooltip  => "Settings to control tree slider actions such as excluding outliers",
             event    => 'activate',
-            callback => \&on_set_tip_count_colour_thresh,
+            callback => \&on_set_slider_actions,
             active   => 0,
         },
         (   map {$self->get_tree_menu_item($_)}
@@ -420,7 +420,7 @@ sub get_tree_menu_items {
     return wantarray ? @menu_items : \@menu_items;
 }
 
-sub on_set_tip_count_colour_thresh {
+sub on_set_slider_actions {
     my $self = shift;
 
     my $dendrogram = $self->{dendrogram};
@@ -436,7 +436,7 @@ sub on_set_tip_count_colour_thresh {
 
     my $ntips = $dendrogram->get_ntips;
 
-    my $props = {
+    my $widget_tip_thresh = {
         name       => 'slider_tip_count_colour_thresh',
         type       => 'integer',
         default    => $dendrogram->get_tip_count_colour_thresh,
@@ -445,39 +445,68 @@ sub on_set_tip_count_colour_thresh {
         label_text => "Tip count colour threshold",
         tooltip    => $tooltip,
     };
-    bless $props, 'Biodiverse::Metadata::Parameter';
+    bless $widget_tip_thresh, 'Biodiverse::Metadata::Parameter';
 
     my $parameters_table = Biodiverse::GUI::ParametersTable->new;
-    my ($spinner, $extractor) = $parameters_table->generate_integer ($props);
+    my ($spinner, $extractor)     = $parameters_table->generate_integer ($widget_tip_thresh);
+
+    my $chkbox = Gtk3::CheckButton->new_with_label ("Slider colours selection");
+    $chkbox->set_active($dendrogram->get_slider_colour_below_selected_node);
 
     my $dlg = Gtk3::Dialog->new_with_buttons (
-        'Set minimum tip count to colour',
+        'Set slider properties',
         undef,
         'destroy-with-parent',
         'gtk-ok' => 'ok',
         'gtk-cancel' => 'cancel',
     );
 
-    my $hbox  = Gtk3::HBox->new;
-    my $label = Gtk3::Label->new($props->{label_text});
-    $hbox->pack_start($label,   0, 0, 1);
-    $hbox->pack_start($spinner, 0, 0, 1);
-    $spinner->set_tooltip_text ($props->get_tooltip);
+    my $hbox1 = Gtk3::Box->new ('horizontal', 0);
+    my $label = Gtk3::Label->new($widget_tip_thresh->{label_text});
+    $hbox1->pack_start($label,   0, 0, 1);
+    $hbox1->pack_start($spinner, 0, 0, 1);
+    $spinner->set_tooltip_text ($widget_tip_thresh->get_tooltip);
+
+    $chkbox->set_tooltip_text ('Slider will only colour branches below the last selected branch');
 
     my $vbox = $dlg->get_content_area;
-    $vbox->pack_start($hbox, 0, 0, 10);
+    $vbox->pack_start($hbox1,  0, 0, 10);
+    $vbox->pack_start($chkbox, 0, 0, 10);
+
+    my $cb_display = sub {
+        $dendrogram->set_slider_colour_below_selected_node($chkbox->get_active);
+        my $val = $extractor->();
+        $dendrogram->set_tip_count_colour_thresh ($val);
+        if (my $nodes = $dendrogram->get_slider_intersection) {
+            $dendrogram->do_slider_intersection($nodes);
+            $self->queue_draw;
+        }
+    };
+
+    $spinner->signal_connect (value_changed => $cb_display);
+    $chkbox->signal_connect (toggled => $cb_display);
+
+    #  get value here so we can reset on cancel
+    my $val = $dendrogram->get_tip_count_colour_thresh // 0;
+    my $chk_val = $dendrogram->get_slider_colour_below_selected_node;
 
     $dlg->show_all;
     my $response = $dlg->run;
 
-    my $val = 0;
     if ($response eq 'ok') {
         $val = $extractor->();
+        $chk_val = $chkbox->get_active;
+    }
+
+    #  resets if user cancelled after changing things
+    $dendrogram->set_slider_colour_below_selected_node($chk_val);
+    $dendrogram->set_tip_count_colour_thresh ($val);
+    if (my $nodes = $dendrogram->get_slider_intersection) {
+        $dendrogram->do_slider_intersection($nodes);
+        $self->queue_draw;
     }
 
     $dlg->destroy;
-
-    $dendrogram->set_tip_count_colour_thresh ($val);
 
     return $val;
 }

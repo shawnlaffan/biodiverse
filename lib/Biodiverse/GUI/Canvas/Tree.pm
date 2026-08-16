@@ -385,23 +385,43 @@ sub coord_in_root_marker_bbox {
 sub do_slider_intersection {
     my ($self, $nodes) = @_;
 
-    $self->{slider_intersection} = $nodes // [];
+    $self->set_slider_intersection ($nodes // []);
 
-    return if $self->{no_use_slider_to_select_nodes};
+    return if $self->get_no_use_slider_to_select_nodes;
+    return if $self->in_multiselect_mode;
 
     # Set up colouring
 
     my $tip_count_colour_thresh = $self->get_tip_count_colour_thresh;
+    my $colour_start_node = $self->get_colour_start_node;
 
     #  these methods want tree nodes, not canvas branches
+    #  ntips is zero for terminals
     my @colour_nodes
         = map {$_->{node_ref}}
-          grep {$_->{ntips} > $tip_count_colour_thresh}
+          grep {($_->{ntips} || 1) > $tip_count_colour_thresh}
           @$nodes;
+    if (defined $colour_start_node and $self->get_slider_colour_below_selected_node) {
+        my $start_node_name = $colour_start_node->get_name;
+        @colour_nodes = grep {
+            \my %path = $_->get_path_lengths_to_root_node_aa;
+            exists $path{$start_node_name};
+        } @colour_nodes;
+    }
+
     $self->recolour_normal (\@colour_nodes);
 
     return;
 }
+
+sub get_slider_colour_below_selected_node {
+    $_[0]->{slider_colour_below_selected_node};
+}
+
+sub set_slider_colour_below_selected_node {
+    $_[0]->{slider_colour_below_selected_node} = $_[1];
+}
+
 
 sub get_tip_count_colour_thresh {
     $_[0]->{tip_count_colour_thresh} // 0;
@@ -411,6 +431,18 @@ sub set_tip_count_colour_thresh {
     $_[0]->{tip_count_colour_thresh} = $_[1];
 }
 
+sub get_colour_start_node {
+    $_->{colour_start_node};
+}
+
+sub set_colour_start_node {
+    $_->{colour_start_node} = $_[1];
+}
+
+
+sub set_slider_intersection {
+    $_[0]->{slider_intersection} = $_[1];
+}
 
 sub get_slider_intersection {
     $_[0]->{slider_intersection} // [];
@@ -561,6 +593,10 @@ sub get_show_slider {
 sub set_no_use_slider_to_select_nodes {
     my ($self, $bool) = @_;
     $self->{no_use_slider_to_select_nodes} = !!$bool;
+}
+
+sub get_no_use_slider_to_select_nodes {
+    $_[0]->{no_use_slider_to_select_nodes};
 }
 
 sub get_slider_coords {
@@ -1231,6 +1267,8 @@ sub use_highlight_func {
 sub recolour_cluster_lines {
     my ($self, $cluster_nodes, $no_colour_descendants, $default_colour) = @_;
 
+    return if !$self->get_current_tree;
+
     if ($self->in_multiselect_mode) {
         #  a different structure, handled below
         $cluster_nodes = $self->get_multiselect_node_array;
@@ -1330,13 +1368,15 @@ sub recolour_cluster_lines {
 sub do_colour_nodes_below {
     my ($self, $start_node) = @_;
 
+    $self->set_slider_intersection (undef);
+
     my $in_multiselect_mode = $self->in_multiselect_mode;
 
     #  Don't clear if we are multi-select - allows for mis-hits when
     #  selecting branches.
     return if !$start_node && $in_multiselect_mode;
 
-    $self->{colour_start_node} = $start_node;
+    $self->set_colour_start_node ($start_node);
 
     my $num_clusters = $in_multiselect_mode ? 1 : $self->get_num_clusters;
     my $original_num_clusters = $num_clusters;
@@ -1580,13 +1620,12 @@ sub set_cluster_colour_mode {
     if ($prev_mode =~ /multi/) {
         my $prev_nodes = delete $self->{multiselect}{prev_processed_nodes};
         $self->set_processed_nodes($prev_nodes);
-        $self->{colour_start_node}
-            = delete $self->{multiselect}{prev_colour_start_node};
+        $self->set_colour_start_node (delete $self->{multiselect}{prev_colour_start_node});
         $self->{element_to_cluster_remap} = {};
     }
     elsif ($mode =~ /multi/) {
         $self->{multiselect}{prev_processed_nodes} = $self->get_processed_nodes;
-        $self->{multiselect}{prev_colour_start_node} = $self->{colour_start_node};
+        $self->{multiselect}{prev_colour_start_node} = $self->get_colour_start_node;
         $self->{element_to_cluster_remap} = {};
     }
 
@@ -2236,8 +2275,8 @@ sub on_map_index_combo_changed {
 sub recolour {
     my $self = shift;
 
-    if ($self->{colour_start_node}) {
-        $self->do_colour_nodes_below($self->{colour_start_node});
+    if (my $node = $self->get_colour_start_node) {
+        $self->do_colour_nodes_below($node);
     }
 
     return;

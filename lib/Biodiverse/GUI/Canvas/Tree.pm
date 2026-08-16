@@ -388,6 +388,7 @@ sub do_slider_intersection {
     $self->set_slider_intersection ($nodes // []);
 
     return if $self->{no_use_slider_to_select_nodes};
+    return if $self->in_multiselect_mode;
 
     # Set up colouring
 

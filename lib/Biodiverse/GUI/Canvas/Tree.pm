@@ -396,9 +396,10 @@ sub do_slider_intersection {
     my $colour_start_node = $self->get_colour_start_node;
 
     #  these methods want tree nodes, not canvas branches
+    #  ntips is zero for terminals
     my @colour_nodes
         = map {$_->{node_ref}}
-          grep {$_->{ntips} > $tip_count_colour_thresh}
+          grep {($_->{ntips} || 1) > $tip_count_colour_thresh}
           @$nodes;
     if (defined $colour_start_node and $self->get_slider_colour_below_selected_node) {
         my $start_node_name = $colour_start_node->get_name;
@@ -407,6 +408,7 @@ sub do_slider_intersection {
             exists $path{$start_node_name};
         } @colour_nodes;
     }
+
     $self->recolour_normal (\@colour_nodes);
 
     return;

@@ -399,10 +399,26 @@ sub do_slider_intersection {
         = map {$_->{node_ref}}
           grep {$_->{ntips} > $tip_count_colour_thresh}
           @$nodes;
+    if (defined $colour_start_node and $self->get_slider_colour_below_selected_node) {
+        my $start_node_name = $colour_start_node->get_name;
+        @colour_nodes = grep {
+            \my %path = $_->get_path_lengths_to_root_node_aa;
+            exists $path{$start_node_name};
+        } @colour_nodes;
+    }
     $self->recolour_normal (\@colour_nodes);
 
     return;
 }
+
+sub get_slider_colour_below_selected_node {
+    $_[0]->{slider_colour_below_selected_node};
+}
+
+sub set_slider_colour_below_selected_node {
+    $_[0]->{slider_colour_below_selected_node} = $_[1];
+}
+
 
 sub get_tip_count_colour_thresh {
     $_[0]->{tip_count_colour_thresh} // 0;

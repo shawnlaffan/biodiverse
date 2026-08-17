@@ -477,7 +477,8 @@ sub on_set_slider_actions {
         $dendrogram->set_slider_colour_below_selected_node($chkbox->get_active);
         my $val = $extractor->();
         $dendrogram->set_tip_count_colour_thresh ($val);
-        if (my $nodes = $dendrogram->get_slider_intersection) {
+        my $nodes = $dendrogram->get_slider_intersection // [];
+        if (@$nodes) {
             $dendrogram->do_slider_intersection($nodes);
             $self->queue_draw;
         }
@@ -501,7 +502,8 @@ sub on_set_slider_actions {
     #  resets if user cancelled after changing things
     $dendrogram->set_slider_colour_below_selected_node($chk_val);
     $dendrogram->set_tip_count_colour_thresh ($val);
-    if (my $nodes = $dendrogram->get_slider_intersection) {
+    my $nodes = $dendrogram->get_slider_intersection // [];
+    if (@$nodes) {
         $dendrogram->do_slider_intersection($nodes);
         $self->queue_draw;
     }

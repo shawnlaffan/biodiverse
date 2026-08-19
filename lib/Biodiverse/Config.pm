@@ -81,7 +81,8 @@ BEGIN {
         }
     }
     if ($^O =~ /mswin/i) {
-        eval 'use Alien::GtkStack::Windows';
+        eval 'use Alien::GtkStack::Windows'
+          if !$ENV{BD_NO_ALIEN_GTKSTACK};  #  mainly for PAR packing
         if (!$EVAL_ERROR) {
             say "Added Alien::GtkStack::Windows bin dir to path";
             say "GI_TYPELIB_PATH is now $ENV{GI_TYPELIB_PATH}"

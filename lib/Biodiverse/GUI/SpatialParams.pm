@@ -83,6 +83,11 @@ sub new {
     my $tree_combo = $self->update_dendrogram_combo;
     $tree_combo->show_all;
 
+    foreach my $widget ($tree_combo, $syntax_button, $options_button) {
+        $widget->set_vexpand(0);
+        $widget->set_valign('start');
+    }
+
     # Scrolled window for multi-line conditions
     my $scroll = Gtk3::ScrolledWindow->new;
     $scroll->set_policy('automatic', 'automatic');

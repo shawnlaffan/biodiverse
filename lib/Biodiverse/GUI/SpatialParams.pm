@@ -88,6 +88,7 @@ sub new {
     $scroll->set_policy('automatic', 'automatic');
     $scroll->set_shadow_type('in');
     $scroll->add( $text_view );
+    $scroll->set_vexpand(1);
 
     # Framed text view for single-line conditions
     my $frame = Gtk3::Frame->new();
@@ -99,8 +100,8 @@ sub new {
         $options_button, $syntax_button,
     ];
 
-    my $hbox = Gtk3::Box->new('horizontal',2);
-    $hbox->pack_start($scroll, 1, 1, 0);
+    my $hbox = Gtk3::Box->new('horizontal', 2);
+    $hbox->pack_start($scroll, 1, 1, 1);
     $hbox->pack_start($frame, 1, 1, 0);
     $hbox->pack_start($tree_combo, 0, 1, 0);
     $hbox->pack_start($options_button, 0, 0, 0);

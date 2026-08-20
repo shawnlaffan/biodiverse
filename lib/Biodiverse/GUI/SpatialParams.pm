@@ -154,15 +154,7 @@ sub new {
     );
     $expander->set_expanded(!$start_hidden);
 
-    my $visible = !$start_hidden;
-    foreach my $widget (@$hideable_widgets) {
-        if (not $widget =~ 'Button|ComboBox' and not $widget =~ $self->{current_text_view}) {
-            $widget->hide;  # hide the inactive textview regardless
-        }
-        else {
-            $widget->set_visible($visible);
-        }
-    }
+    $hbox->set_visible(!$start_hidden);
 
     $hbox->set_no_show_all (1);
 

@@ -35,8 +35,7 @@ use Ref::Util qw /is_blessed_ref/;
 use parent qw /Biodiverse::Common/;  #  need get/set_param
 
 sub new {
-    my $class = shift;
-    my %args = @_;
+    my ($class, %args) = @_;
 
     my $initial_text = $args{initial_text} // '';
     my $start_hidden = $args{start_hidden};
@@ -44,8 +43,8 @@ sub new {
     my $condition_object = $args{condition_object} // $args{conditions_object};
     my $promise_current_label = $args{promise_current_label};
 
-    my $hbox = Gtk3::HBox->new(0,2);
-    
+    my $hbox_main = Gtk3::Box->new('horizontal',2);
+
     # Text view
     my $text_buffer = Gtk3::TextBuffer->new;
 
@@ -57,7 +56,7 @@ sub new {
 
     my $self = {
         buffer                => $text_buffer,
-        hbox                  => $hbox,
+        hbox                  => $hbox_main,
         text_view             => $text_view,
         is_def_query          => $is_def_query,
         expander              => $expander,
@@ -100,14 +99,17 @@ sub new {
         $options_button, $syntax_button,
     ];
 
-    # HBox
-    $hbox->pack_start($expander, 0, 0, 0);
+    my $hbox = Gtk3::Box->new('horizontal',2);
     $hbox->pack_start($scroll, 1, 1, 0);
     $hbox->pack_start($frame, 1, 1, 0);
     $hbox->pack_start($tree_combo, 0, 1, 0);
     $hbox->pack_start($options_button, 0, 0, 0);
     $hbox->pack_end($syntax_button, 0, 0, 0);
     $hbox->show_all();
+
+    $hbox_main->pack_start($expander, 0, 0, 0);
+    $hbox_main->pack_start($hbox, 1, 1, 0);
+    $hbox_main->show_all;
 
     $self->{tree_combo} = $tree_combo;
 
@@ -134,14 +136,7 @@ sub new {
 
     my $expander_cb = sub {
         my $visible = !$expander->get_expanded;
-        foreach my $widget (@$hideable_widgets) {
-            if (not $widget =~ 'Button|ComboBox' and not $widget =~ $self->{current_text_view}) {
-                $widget->hide;  # hide the inactive textview regardless
-            }
-            else {
-                $widget->set_visible($visible);
-            }
-        }
+        $hbox->set_visible($visible);
     };
     $expander->set_tooltip_text (
         'Show or hide the edit box and other widgets.  '

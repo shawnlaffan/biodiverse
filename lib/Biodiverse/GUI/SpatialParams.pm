@@ -125,6 +125,10 @@ sub new {
             $frame->hide;
             $text_view->grab_focus;
             $self->{current_text_view} = 'Scroll';
+            my $size = $text_view->get_allocation;
+            if ($size->{height} > 100) {
+                say $size->{height};
+            }
         }
         else {
             $scroll->hide;

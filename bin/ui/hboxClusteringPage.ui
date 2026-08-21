@@ -518,7 +518,7 @@ Colours are currently taken from the outer ring.</property>
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkExpander" id="expander4">
+                                  <object class="GtkExpander" id="expander_cluster_parameters">
                                     <property name="visible">True</property>
                                     <property name="can-focus">True</property>
                                     <property name="expanded">True</property>

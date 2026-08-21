@@ -141,6 +141,11 @@ sub new {
         $self,
     );
 
+    my $expander = $self->get_xmlpage_object('expander_randomisation_parameters');
+    $expander->signal_connect (
+        activate=> sub {$self->on_show_hide_parameters_table (@_)}
+    );
+
     $self->update_randomise_button; # will disable button just in case have no basedatas
 
     print "[Randomise tab] Loaded tab - Randomise\n";
@@ -150,9 +155,7 @@ sub new {
 sub get_table_widget {
     my $self = shift;
 
-    my $table = $self->get_xmlpage_object('table_randomise_setup');
-
-    return $table;
+    return $self->get_xmlpage_object('table_randomise_setup');
 }
 
 sub add_row_to_table {

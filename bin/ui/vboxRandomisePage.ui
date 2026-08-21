@@ -29,7 +29,7 @@
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <child>
-                  <object class="GtkExpander" id="expander1">
+                  <object class="GtkExpander" id="expander_randomisation_parameters">
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
                     <property name="expanded">True</property>
@@ -247,7 +247,7 @@ Set to undef or leave blank to use system seed.</property>
                     </child>
                   </object>
                   <packing>
-                    <property name="expand">True</property>
+                    <property name="expand">False</property>
                     <property name="fill">True</property>
                     <property name="position">0</property>
                   </packing>
@@ -339,6 +339,12 @@ Set to undef or leave blank to use system seed.</property>
     <property name="n-columns">2</property>
     <property name="column-spacing">3</property>
     <property name="row-spacing">3</property>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
     <child>
       <placeholder/>
     </child>

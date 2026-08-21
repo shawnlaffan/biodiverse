@@ -80,10 +80,11 @@ sub new {
     $options_button->signal_connect_swapped(clicked => \&run_options_dialogue, $self);
     $options_button->set_tooltip_text('Control some of the processing options');
 
+    my $tree_label = Gtk3::Label->new('Tree:');
     my $tree_combo = $self->update_dendrogram_combo;
     $tree_combo->show_all;
 
-    foreach my $widget ($tree_combo, $syntax_button, $options_button) {
+    foreach my $widget ($tree_combo, $syntax_button, $options_button, $tree_label) {
         $widget->set_vexpand(0);
         $widget->set_valign('start');
     }
@@ -94,6 +95,7 @@ sub new {
     $scroll->set_shadow_type('in');
     $scroll->add( $text_view );
     $scroll->set_vexpand(1);
+    #$scroll->set_max_content_height(200);
 
     # Framed text view for single-line conditions
     my $frame = Gtk3::Frame->new();
@@ -102,6 +104,7 @@ sub new {
     my $hbox = Gtk3::Box->new('horizontal', 2);
     $hbox->pack_start($scroll, 1, 1, 1);
     $hbox->pack_start($frame, 1, 1, 0);
+    $hbox->pack_start($tree_label, 0, 1, 0);
     $hbox->pack_start($tree_combo, 0, 1, 0);
     $hbox->pack_start($options_button, 0, 0, 0);
     $hbox->pack_end($syntax_button, 0, 0, 0);

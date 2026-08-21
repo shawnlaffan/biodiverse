@@ -99,12 +99,6 @@ sub new {
     my $frame = Gtk3::Frame->new();
     $frame->add($text_view_no_scroll);
 
-    my $hideable_widgets = [
-        $scroll, $frame,
-        $tree_combo,
-        $options_button, $syntax_button,
-    ];
-
     my $hbox = Gtk3::Box->new('horizontal', 2);
     $hbox->pack_start($scroll, 1, 1, 1);
     $hbox->pack_start($frame, 1, 1, 0);
@@ -125,10 +119,6 @@ sub new {
             $frame->hide;
             $text_view->grab_focus;
             $self->{current_text_view} = 'Scroll';
-            my $size = $text_view->get_allocation;
-            if ($size->{height} > 100) {
-                say $size->{height};
-            }
         }
         else {
             $scroll->hide;

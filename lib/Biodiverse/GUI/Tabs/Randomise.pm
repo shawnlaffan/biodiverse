@@ -226,7 +226,6 @@ sub set_button_sensitivity {
         $self->get_xmlpage_object($widget)->set_sensitive ($sens);
     }
 
-    my $table = $self->get_xmlpage_object('tableParams');
 
     return;
 }

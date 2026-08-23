@@ -127,7 +127,7 @@ sub new {
             #  clunky but otherwise the widgets expand too much
             #  - maybe a parent container needs to have a setting changed
             use List::Util qw/max min/;
-            my $size = max ($scroll->get_preferred_height);
+            state $size = max ($scroll->get_preferred_height);
             my $multiplier = 0.52 * max (3, min (5, $line_count));
             $hbox_main->set_size_request(-1,  $multiplier * $size);
         }

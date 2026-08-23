@@ -14,20 +14,22 @@ our $VERSION = '5.99_002';
 
 #  Poss too many, but we are a catch-all class.
 my %methods_and_defaults = (
-    name        => '',
-    label_text  => '',
-    tooltip     => '',
-    type        => '',
-    choices     => [],
-    default     => '',
-    sensitive   => 1,
-    min         => undef,
-    max         => undef,
-    digits      => undef,
-    increment   => 1,
+    name             => '',
+    label_text       => '',
+    tooltip          => '',
+    type             => '',
+    choices          => [],
+    default          => '',
+    sensitive        => 1,
+    min              => undef,
+    max              => undef,
+    digits           => undef,
+    increment        => 1,
     always_sensitive => undef,
-    mutable     => undef,
-    box_group   => undef,
+    mutable          => undef,
+    box_group        => undef,
+    hexpand          => undef,
+    vexpand          => undef,
 );
 
 sub _get_method_default_hash {

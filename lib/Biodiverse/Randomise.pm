@@ -1187,6 +1187,7 @@ sub get_common_rand_metadata {
             type       => 'text',
             default    => '',
             tooltip    => 'List of labels to not randomise, one per line',
+            hexpand    => 1,  #  for GUI
         },
         {
             name       => 'build_randomised_trees',

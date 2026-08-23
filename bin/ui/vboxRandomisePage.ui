@@ -263,6 +263,7 @@ Set to undef or leave blank to use system seed.</property>
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="left-padding">12</property>
+                        <property name="right-padding">12</property>
                         <child>
                           <!-- n-columns=2 n-rows=1 -->
                           <object class="GtkGrid" id="tableParams">

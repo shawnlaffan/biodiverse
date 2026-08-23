@@ -487,6 +487,22 @@ sub generate_text {
         $scroll->set_vexpand($vexpand);
     }
 
+    my $cb_text_buffer = sub {
+        my $line_count = $text_buffer->get_line_count;
+        if ($line_count > 2) {
+            #  a clunky resize
+            use List::Util qw/max min/;
+            state $size = max ($scroll->get_preferred_height);
+            my $multiplier = 0.52 * max (3, min (5, $line_count));
+            $scroll->set_size_request(-1,  $multiplier * $size);
+        }
+        else {
+            $scroll->set_size_request(-1, -1);
+        }
+    };
+    $text_buffer->signal_connect_swapped (
+        changed => $cb_text_buffer,
+    );
 
     my $extract = sub {
         my ($start, $end) = $text_buffer->get_bounds();

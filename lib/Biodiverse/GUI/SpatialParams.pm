@@ -94,8 +94,7 @@ sub new {
     $scroll->set_policy('automatic', 'automatic');
     $scroll->set_shadow_type('in');
     $scroll->add( $text_view );
-    $scroll->set_vexpand(1);
-    #$scroll->set_max_content_height(200);
+    # $scroll->set_vexpand(1);  #  expands too much in some cases
 
     # Framed text view for single-line conditions
     my $frame = Gtk3::Frame->new();
@@ -117,17 +116,27 @@ sub new {
     $self->{tree_combo} = $tree_combo;
 
     my $cb_text_buffer = sub {
-        if ($text_buffer->get_line_count > 1) {
+        my $line_count = shift // $text_buffer->get_line_count;
+        if ($line_count > 1) {
             $scroll->show;
             $frame->hide;
             $text_view->grab_focus;
             $self->{current_text_view} = 'Scroll';
+
+            #  resize
+            #  clunky but otherwise the widgets expand too much
+            #  - maybe a parent container needs to have a setting changed
+            use List::Util qw/max min/;
+            my $size = max ($scroll->get_preferred_height);
+            my $multiplier = 0.52 * max (3, min (5, $line_count));
+            $hbox_main->set_size_request(-1,  $multiplier * $size);
         }
         else {
             $scroll->hide;
             $frame->show;
             $text_view_no_scroll->grab_focus;
             $self->{current_text_view} = 'Frame';
+            $hbox_main->set_size_request (-1, -1);
         }
     };
     $text_buffer->signal_connect_swapped (
@@ -140,6 +149,7 @@ sub new {
     my $expander_cb = sub {
         my $visible = !$expander->get_expanded;
         $hbox->set_visible($visible);
+        $cb_text_buffer->($visible ? () : 0);
     };
     $expander->set_tooltip_text (
         'Show or hide the edit box and other widgets.  '

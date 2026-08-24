@@ -331,6 +331,11 @@ sub new {
         );
     }
 
+    my $expander = $self->get_xmlpage_object('expander_cluster_parameters');
+    $expander->signal_connect (
+        activate=> sub {$self->on_show_hide_parameters_table (@_)}
+    );
+
     $self->choose_tool('Select');
 
     $self->{menubar} = $self->get_xmlpage_object('menubar_clustering');
@@ -342,6 +347,13 @@ sub new {
 
     return $self;
 }
+
+sub get_table_widget {
+    my $self = shift;
+
+    return $self->get_xmlpage_object('tbl_cluster_parameters');
+}
+
 
 sub get_cluster_ref {
     my $self = shift;

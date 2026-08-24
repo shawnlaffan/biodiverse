@@ -134,7 +134,7 @@ sub fill {
             if (!$self->{box_groups}{$box_group_name}) {
                 # $table->set('n-rows' => $rows);
                 $added_hbox_row++;
-                $hbox = $self->{box_groups}{$box_group_name} = Gtk3::HBox->new;
+                $hbox = $self->{box_groups}{$box_group_name} = Gtk3::Box->new('horizontal', 2);
                 if ($box_group_name eq 'Debug') {
                     $debug_hbox //= $hbox;
                 }
@@ -151,6 +151,7 @@ sub fill {
             $hbox->pack_start($label, 0, 0, 0);
             if (!$is_comment) {
                 $hbox->pack_start($widget, 0, 0, 0);
+                $widget->set_vexpand(0);  #  need to adjust if we box up a text entry
             }
             if ($box_group_name ne 'Debug'){
                 $hbox->show_all;
@@ -477,7 +478,31 @@ sub generate_text {
     $scroll->set_policy('automatic', 'automatic');
     $scroll->set_shadow_type('in');
     $scroll->add( $text_view );
+    my $hexpand = $param->get_hexpand;
+    if (defined $hexpand) {
+        $scroll->set_hexpand($hexpand);
+    }
+    my $vexpand = $param->get_vexpand;
+    if (defined $vexpand) {
+        $scroll->set_vexpand($vexpand);
+    }
 
+    my $cb_text_buffer = sub {
+        my $line_count = $text_buffer->get_line_count;
+        if ($line_count > 2) {
+            #  a clunky resize
+            use List::Util qw/max min/;
+            state $size = max ($scroll->get_preferred_height);
+            my $multiplier = 0.52 * max (3, min (5, $line_count));
+            $scroll->set_size_request(-1,  $multiplier * $size);
+        }
+        else {
+            $scroll->set_size_request(-1, -1);
+        }
+    };
+    $text_buffer->signal_connect_swapped (
+        changed => $cb_text_buffer,
+    );
 
     my $extract = sub {
         my ($start, $end) = $text_buffer->get_bounds();

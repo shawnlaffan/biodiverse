@@ -2035,4 +2035,19 @@ sub setup_calc_options_widgets {
     $self->{calc_options_cb} = $extractor_cb
 }
 
+
+sub on_show_hide_parameters_table {
+    my ($self, $expander) = @_;
+
+    #  This is triggered immediately before the expansion state is changed,
+    #  so use negated value.
+    my $active = !$expander->get_expanded;
+
+    my $table = $self->get_table_widget;
+
+    $table->set_visible ($active);
+
+    return;
+}
+
 1;

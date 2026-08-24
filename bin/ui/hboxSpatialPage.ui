@@ -581,7 +581,7 @@ Colours are scaled using percentiles defined in the colour stretch menu. </prope
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkExpander" id="expander3">
+                                  <object class="GtkExpander" id="expander_spatial_parameters">
                                     <property name="visible">True</property>
                                     <property name="can-focus">True</property>
                                     <property name="expanded">True</property>

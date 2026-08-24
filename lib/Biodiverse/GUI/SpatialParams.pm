@@ -35,8 +35,7 @@ use Ref::Util qw /is_blessed_ref/;
 use parent qw /Biodiverse::Common/;  #  need get/set_param
 
 sub new {
-    my $class = shift;
-    my %args = @_;
+    my ($class, %args) = @_;
 
     my $initial_text = $args{initial_text} // '';
     my $start_hidden = $args{start_hidden};
@@ -44,8 +43,8 @@ sub new {
     my $condition_object = $args{condition_object} // $args{conditions_object};
     my $promise_current_label = $args{promise_current_label};
 
-    my $hbox = Gtk3::HBox->new(0,2);
-    
+    my $hbox_main = Gtk3::Box->new('horizontal',2);
+
     # Text view
     my $text_buffer = Gtk3::TextBuffer->new;
 
@@ -57,7 +56,7 @@ sub new {
 
     my $self = {
         buffer                => $text_buffer,
-        hbox                  => $hbox,
+        hbox                  => $hbox_main,
         text_view             => $text_view,
         is_def_query          => $is_def_query,
         expander              => $expander,
@@ -81,48 +80,63 @@ sub new {
     $options_button->signal_connect_swapped(clicked => \&run_options_dialogue, $self);
     $options_button->set_tooltip_text('Control some of the processing options');
 
+    my $tree_label = Gtk3::Label->new('Tree:');
     my $tree_combo = $self->update_dendrogram_combo;
     $tree_combo->show_all;
+
+    foreach my $widget ($tree_combo, $syntax_button, $options_button, $tree_label) {
+        $widget->set_vexpand(0);
+        $widget->set_valign('start');
+    }
 
     # Scrolled window for multi-line conditions
     my $scroll = Gtk3::ScrolledWindow->new;
     $scroll->set_policy('automatic', 'automatic');
     $scroll->set_shadow_type('in');
     $scroll->add( $text_view );
+    # $scroll->set_vexpand(1);  #  expands too much in some cases
 
     # Framed text view for single-line conditions
     my $frame = Gtk3::Frame->new();
     $frame->add($text_view_no_scroll);
 
-    my $hideable_widgets = [
-        $scroll, $frame,
-        $tree_combo,
-        $options_button, $syntax_button,
-    ];
-
-    # HBox
-    $hbox->pack_start($expander, 0, 0, 0);
-    $hbox->pack_start($scroll, 1, 1, 0);
+    my $hbox = Gtk3::Box->new('horizontal', 2);
+    $hbox->pack_start($scroll, 1, 1, 1);
     $hbox->pack_start($frame, 1, 1, 0);
+    $hbox->pack_start($tree_label, 0, 1, 0);
     $hbox->pack_start($tree_combo, 0, 1, 0);
     $hbox->pack_start($options_button, 0, 0, 0);
     $hbox->pack_end($syntax_button, 0, 0, 0);
     $hbox->show_all();
 
+    $hbox_main->pack_start($expander, 0, 0, 0);
+    $hbox_main->pack_start($hbox, 1, 1, 0);
+    $hbox_main->show_all;
+
     $self->{tree_combo} = $tree_combo;
 
     my $cb_text_buffer = sub {
-        if ($text_buffer->get_line_count > 1) {
+        my $line_count = shift // $text_buffer->get_line_count;
+        if ($line_count > 1) {
             $scroll->show;
             $frame->hide;
             $text_view->grab_focus;
             $self->{current_text_view} = 'Scroll';
+
+            #  resize
+            #  clunky but otherwise the widgets expand too much
+            #  - maybe a parent container needs to have a setting changed
+            use List::Util qw/max min/;
+            state $size = max ($scroll->get_preferred_height);
+            my $multiplier = 0.52 * max (3, min (5, $line_count));
+            $hbox_main->set_size_request(-1,  $multiplier * $size);
         }
         else {
             $scroll->hide;
             $frame->show;
             $text_view_no_scroll->grab_focus;
             $self->{current_text_view} = 'Frame';
+            $hbox_main->set_size_request (-1, -1);
         }
     };
     $text_buffer->signal_connect_swapped (
@@ -134,14 +148,8 @@ sub new {
 
     my $expander_cb = sub {
         my $visible = !$expander->get_expanded;
-        foreach my $widget (@$hideable_widgets) {
-            if (not $widget =~ 'Button|ComboBox' and not $widget =~ $self->{current_text_view}) {
-                $widget->hide;  # hide the inactive textview regardless
-            }
-            else {
-                $widget->set_visible($visible);
-            }
-        }
+        $hbox->set_visible($visible);
+        $cb_text_buffer->($visible ? () : 0);
     };
     $expander->set_tooltip_text (
         'Show or hide the edit box and other widgets.  '
@@ -153,15 +161,7 @@ sub new {
     );
     $expander->set_expanded(!$start_hidden);
 
-    my $visible = !$start_hidden;
-    foreach my $widget (@$hideable_widgets) {
-        if (not $widget =~ 'Button|ComboBox' and not $widget =~ $self->{current_text_view}) {
-            $widget->hide;  # hide the inactive textview regardless
-        }
-        else {
-            $widget->set_visible($visible);
-        }
-    }
+    $hbox->set_visible(!$start_hidden);
 
     $hbox->set_no_show_all (1);
 

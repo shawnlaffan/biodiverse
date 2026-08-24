@@ -326,6 +326,11 @@ sub new {
         );
     }
 
+    my $expander = $self->get_xmlpage_object('expander_spatial_parameters');
+    $expander->signal_connect (
+        activate=> sub {$self->on_show_hide_parameters_table (@_)}
+    );
+
     #  We don't have the grid for new outputs
     #  Could perhaps move this to where the grid is initialised
     if ($self->{grid}) {
@@ -351,6 +356,12 @@ sub new {
     say "[Spatial tab] - Loaded tab - Spatial Analysis";
 
     return $self;
+}
+
+sub get_table_widget {
+    my $self = shift;
+
+    return $self->get_xmlpage_object('tbl_spatial_parameters');
 }
 
 sub get_tree_menu_items {
@@ -461,19 +472,6 @@ sub screenshot {
     return;
 }
 
-
-sub on_show_hide_parameters {
-    my $self = shift;
-
-    my $frame = $self->get_xmlpage_object('frame_spatial_parameters');
-    my $widget = $frame->get_label_widget;
-    my $active = $widget->get_active;
-
-    my $table = $self->get_xmlpage_object('tbl_spatial_parameters');
-    $table->set_visible ($active);
-
-    return;
-}
 
 
 sub setup_dendrogram {

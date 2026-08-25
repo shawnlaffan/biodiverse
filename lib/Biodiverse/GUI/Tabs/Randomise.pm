@@ -568,9 +568,18 @@ sub update_randomise_button {
     my $project = $self->{gui}->get_project;
     return if not $project;
 
-    my $outputs_list = $project->get_basedata_outputs($self->{selected_basedata_ref}) // [];
+    my $bd = $project->get_selected_basedata;
 
-    $self->get_xmlpage_object('btnRandomise')->set_sensitive(@$outputs_list  ? 1 : 0);
+    my $outputs_list = $bd ? $bd->get_randomisable_output_refs : [];
+
+    my $has_randomisable_outputs = @$outputs_list;
+
+    my $button = $self->get_xmlpage_object('btnRandomise');
+    $button->set_sensitive($has_randomisable_outputs);
+
+    $button->set_tooltip_text (
+        $has_randomisable_outputs ? 'Run analysis' : 'Basedata has no randomisable outputs'
+    );
 
     return;
 }

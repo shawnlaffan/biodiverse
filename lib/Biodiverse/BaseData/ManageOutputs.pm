@@ -502,6 +502,12 @@ sub get_spatial_outputs {
       : { %{ $self->{SPATIAL_OUTPUTS} } };
 }
 
+sub get_randomisable_output_refs {
+    my $self = shift;
+    my @outputs = ($self->get_spatial_output_refs, $self->get_cluster_output_refs);
+    return wantarray ? @outputs : \@outputs;
+}
+
 ########################################################
 #  methods to set, create and select the current matrix output object
 

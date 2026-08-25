@@ -1996,11 +1996,11 @@ sub setup_calc_options_widgets {
 
     my $options_label = Gtk3::Label->new('Options:');
     $options_label->set_xalign(0);
-    my $chk_range = Gtk3::CheckButton->new_with_label ('Specify node ranges');
+    my $chk_range = Gtk3::CheckButton->new_with_label ('Specify node range sizes');
     my $tooltip_text =<<~EOT
-        Use node ranges from another source instead of the union of tip ranges.
-        If a calculation that requires node ranges is selected then a popup
-        window will allow selection of the source when the analysis is run.
+        Use node range sizes from another source instead of calculating the union of tip ranges.
+        If a calculation that requires node ranges is selected then a popup window will allow
+        selection of the source when the analysis is run.
         EOT
     ;
     $chk_range->set_tooltip_text ($tooltip_text);

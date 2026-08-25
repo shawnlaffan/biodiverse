@@ -50,7 +50,7 @@ use Clone ();
 
 use parent qw(Biodiverse::Common::Caching Biodiverse::Common::IO);
 
-our $VERSION = '5.99_002';
+our $VERSION = '5.99_003';
 
 my $EMPTY_STRING = q{};
 

@@ -31,7 +31,7 @@ use parent qw /
     Biodiverse::Common::IO
 /;
 
-our $VERSION = '5.99_002';
+our $VERSION = '5.99_003';
 
 my $metadata_class = 'Biodiverse::Metadata::SpatialConditions';
 use Biodiverse::Metadata::SpatialConditions;

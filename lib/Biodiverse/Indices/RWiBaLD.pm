@@ -6,7 +6,7 @@ use experimental qw/refaliasing declared_refs/;
 use Ref::Util qw /is_hashref/;
 use Carp qw/croak/;
 
-our $VERSION = '5.99_002';
+our $VERSION = '5.99_003';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 

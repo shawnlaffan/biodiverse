@@ -93,6 +93,40 @@ sub new {
         $self,
     );
     $tree->signal_connect_swapped('row-collapsed' => \&on_row_collapsed, $self);
+    $tree->signal_connect('button-press-event', sub {
+        my ($treeview, $event) = @_;
+
+        my $e_state  = $event->state;
+        my $e_button = $event->button;
+
+        return if !($e_button == 1 && $e_state >= [ 'control-mask' ]);
+
+        my ($path, @rest) = $treeview->get_path_at_pos($event->x, $event->y);
+
+        my $model = $treeview->get_model;
+        my $iter = $model->get_iter($path);
+        my $parent_iter = $model->iter_parent($iter);
+
+        #  get first iter of this row
+        $iter = $model->iter_children($parent_iter);
+
+        my $collapse = $treeview->row_expanded($path);
+
+        while (1) {
+            my $p = $model->get_path($iter);
+            last if !defined $p;
+            if ($collapse) {
+                $treeview->collapse_row($p)
+            }
+            else {
+                $treeview->expand_row($p, 0);
+            }
+            last if !$model->iter_next($iter);
+        }
+
+        $treeview->columns_autosize;
+        return 1;
+    });
 
     print "[Outputs tab] Loaded tab - Outputs\n";
 

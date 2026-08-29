@@ -4,9 +4,9 @@ package Biodiverse::Matrix;
 #  these are not matrices in the proper sense of the word, but are actually hash tables to provide easier linking
 #  they are also double indexed - "by pair" and "by value by pair".
 
+use 5.036;
 use strict;
 use warnings;
-use 5.010;
 
 our $VERSION = '5.99_003';
 
@@ -569,6 +569,39 @@ sub add_element_aa {
     #  cache the component elements to save searching through the other lists later
     $self->{ELEMENTS}{$element1}++;
     $self->{ELEMENTS}{$element2}++;    #  also keeps a count of the elements
+
+    return;
+}
+
+sub batch_add_element {
+    my ($self, %args) = @_;
+
+    my $element1 = $args{element1};
+    croak "Element1 not specified in call to add_element\n"
+        if !defined $element1;
+
+    my $data = $args{data};
+    croak "data hash not specified in call to add_element\n"
+        if !defined $data;
+
+    my $index_prec = $self->get_param('VAL_INDEX_PRECISION');
+    my $have_index_prec = defined $index_prec;
+
+    foreach my ($element2, $val) (%$data) {
+        if ( !defined $val && !$self->get_param('ALLOW_UNDEF') ) {
+            warn "[Matrix] add_element Warning: Value not defined and "
+                . "ALLOW_UNDEF not set, not adding row $element1 col $element2.\n";
+            return;
+        }
+
+        my $index_val = $have_index_prec ? sprintf $index_prec, $val : $val;
+
+        $self->{BYELEMENT}{$element1}{$element2} = $val;
+        $self->{BYVALUE}{$index_val}{$element1}{$element2}++;
+        #  cache the component elements to save searching through the other lists later
+        $self->{ELEMENTS}{$element1}++;
+        $self->{ELEMENTS}{$element2}++; #  also keeps a count of the elements
+    }
 
     return;
 }

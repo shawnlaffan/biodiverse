@@ -1,5 +1,6 @@
 #  a low memory version of Biodiverse::Matrix, with less functionality to boot.  
 package Biodiverse::Matrix::LowMem;
+use 5.036;
 use strict;
 use warnings;
 
@@ -125,6 +126,32 @@ sub add_element_aa {  #  add an element pair to the object
     
     return;
 }
+
+sub batch_add_element {
+    my ($self, %args) = @_;
+
+    use experimental qw /for_list/;
+
+    my $element1 = $args{element1};
+    croak "Element1 not specified in call to add_element\n"
+        if !defined $element1;
+
+    my $data = $args{data};
+    croak "data hash not specified in call to add_element\n"
+        if !defined $data;
+
+    foreach my ($element2, $val) (%$data) {
+        if (! defined $val && ! $self->get_param('ALLOW_UNDEF')) {
+            warn "[Matrix] add_element Warning: Value not defined and ALLOW_UNDEF not set, not adding row $element1 col $element2.\n";
+            return;
+        }
+
+        $self->{BYELEMENT}{$element1}{$element2} = $val;
+    }
+
+    return;
+}
+
 
 sub delete_element {  #  should be called delete_element_pair, but need to find where it's used first
     my $self = shift;

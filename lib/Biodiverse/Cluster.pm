@@ -1086,6 +1086,8 @@ sub build_matrix_elements {
     my $first_mx_ref = $matrices->[0];
     my %key_vals;
 
+    my $element1_as_list = [$element1];
+
     my $n = 0;
   ELEMENT2:
     foreach my $element2 (sort @$element_list2) {
@@ -1151,11 +1153,11 @@ sub build_matrix_elements {
                 if ($aa || ($bb && $cc));
         }
         else {
-            my %elements = (
-                element_list1   => [$element1],
-                element_list2   => [$element2],
+            my $values = $indices_object->run_calculations(
+                %args,
+                element_list1 => $element1_as_list,
+                element_list2 => [$element2],
             );
-            my $values = $indices_object->run_calculations(%args, %elements);
             $index_val = $values->{$index};
         }
 
@@ -1164,7 +1166,6 @@ sub build_matrix_elements {
         # write results to file handles if supplied, otherwise store them
         if (!!$one_mx) {
             $key_vals{$element2} = $index_val;
-            # $first_mx_ref->add_element_aa ($element1, $element2, $index_val)
         }
         elsif (defined $ofh) {
             my $res_list = $output_gdm_format

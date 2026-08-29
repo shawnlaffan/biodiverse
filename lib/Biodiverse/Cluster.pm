@@ -1087,6 +1087,10 @@ sub build_matrix_elements {
     my %key_vals;
 
     my $element1_as_list = [$element1];
+    my @element1_gdm_array
+        = $output_gdm_format
+        ? @{[$bd->get_group_element_as_array(element => $element1)]}[0,1]
+        : ();
 
     my $n = 0;
   ELEMENT2:
@@ -1170,7 +1174,7 @@ sub build_matrix_elements {
         elsif (defined $ofh) {
             my $res_list = $output_gdm_format
                 ? [
-                   @{[$bd->get_group_element_as_array(element => $element1)]}[0,1],  #  need to generalise these
+                   @element1_gdm_array,  #  need to generalise these
                    @{[$bd->get_group_element_as_array(element => $element2)]}[0,1],
                    $index_val,
                    ]

@@ -891,9 +891,18 @@ sub build_matrices {
     my $no_progress;
     my $build_start_time = time();
 
+    my $trim_processed;
+    if (@matrices == 1) {
+        my $sp_conds = $sp->get_spatial_conditions_arr;
+        my $sp_cond = $sp_conds->[0];
+        if ($sp_cond->get_result_type eq 'always_true') {
+            $trim_processed = 1;
+        }
+    }
+
     #  Use $sp for the groups so any def query will have an effect
     BY_ELEMENT:
-    foreach my $element1 (sort @elements_to_calc) {
+    foreach my $element1 (@elements_to_calc) {
 
         $count ++;
         my $progress = $count / $to_do;
@@ -912,6 +921,9 @@ sub build_matrices {
             my %neighbour_hash;
             @neighbour_hash{@$neighours} = (1) x scalar @$neighours;
             delete $neighbour_hash{$element1};  #  exclude ourselves
+            if ($trim_processed) {
+                delete @neighbour_hash{keys %processed_elements};
+            }
             $neighbours[$m] = \%neighbour_hash;
         }
         my %nbrs_so_far_this_element;  #  track which nbrs have been done - needed when writing direct to file
@@ -956,7 +968,7 @@ sub build_matrices {
                  < 3 * $Biodiverse::Config::progress_update_interval)) {
                 $no_progress = 1;
             }
-            $build_start_time= $build_end_time;
+            $build_start_time = $build_end_time;
         }
 
         $processed_elements{$element1}++;
@@ -1104,6 +1116,7 @@ sub build_matrix_elements {
                 defined $value
                     ? ($exists++)
                     : ($not_exists_iter{$iter} = 1);
+                # say "FOUND " . $mx->get_param('NAME');
                 $iter ++;
             }
 

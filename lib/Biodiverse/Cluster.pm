@@ -1082,6 +1082,8 @@ sub build_matrix_elements {
         : {};
 
     my $no_check_in_prev_mx = $args{no_check_in_prev_mx};
+    my $one_mx       = !(defined $ofh) && 1 == @$matrices;
+    my $first_mx_ref = $matrices->[0];
 
     my $n = 0;
   ELEMENT2:
@@ -1159,7 +1161,10 @@ sub build_matrix_elements {
         next ELEMENT2 if ! defined $index_val;  #  don't add it if it is undefined
 
         # write results to file handles if supplied, otherwise store them
-        if (defined $ofh) {
+        if (!!$one_mx) {
+            $first_mx_ref->add_element_aa ($element1, $element2, $index_val)
+        }
+        elsif (defined $ofh) {
             my $res_list = $output_gdm_format
                 ? [
                    @{[$bd->get_group_element_as_array(element => $element1)]}[0,1],  #  need to generalise these

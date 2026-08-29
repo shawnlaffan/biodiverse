@@ -1082,7 +1082,7 @@ sub build_matrix_elements {
         : {};
 
     my $no_check_in_prev_mx = $args{no_check_in_prev_mx};
-    my $one_mx       = !(defined $ofh) && 1 == @$matrices;
+    my $have_one_mx  = !(defined $ofh) && 1 == @$matrices;
     my $first_mx_ref = $matrices->[0];
     my %key_vals;
 
@@ -1164,7 +1164,7 @@ sub build_matrix_elements {
         next ELEMENT2 if ! defined $index_val;  #  don't add it if it is undefined
 
         # write results to file handles if supplied, otherwise store them
-        if (!!$one_mx) {
+        if (!!$have_one_mx) {
             $key_vals{$element2} = $index_val;
         }
         elsif (defined $ofh) {
@@ -1190,7 +1190,7 @@ sub build_matrix_elements {
         $valid_count ++;
     }
 
-    if (!!$one_mx) {
+    if (!!$have_one_mx) {
         $first_mx_ref->batch_add_element (element1 => $element1, data => \%key_vals);
     }
     

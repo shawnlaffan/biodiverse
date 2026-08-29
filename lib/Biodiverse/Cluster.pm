@@ -1084,6 +1084,7 @@ sub build_matrix_elements {
     my $no_check_in_prev_mx = $args{no_check_in_prev_mx};
     my $one_mx       = !(defined $ofh) && 1 == @$matrices;
     my $first_mx_ref = $matrices->[0];
+    my %key_vals;
 
     my $n = 0;
   ELEMENT2:
@@ -1162,7 +1163,8 @@ sub build_matrix_elements {
 
         # write results to file handles if supplied, otherwise store them
         if (!!$one_mx) {
-            $first_mx_ref->add_element_aa ($element1, $element2, $index_val)
+            $key_vals{$element2} = $index_val;
+            # $first_mx_ref->add_element_aa ($element1, $element2, $index_val)
         }
         elsif (defined $ofh) {
             my $res_list = $output_gdm_format
@@ -1185,6 +1187,10 @@ sub build_matrix_elements {
         }
 
         $valid_count ++;
+    }
+
+    if (!!$one_mx) {
+        $first_mx_ref->batch_add_element (element1 => $element1, data => \%key_vals);
     }
     
     #my $cache_size = scalar keys %$cache;

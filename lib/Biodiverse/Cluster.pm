@@ -944,7 +944,7 @@ sub build_matrices {
             #  this actually takes most of the args from params,
             #  but setting explicitly might save micro-seconds of time
             my $x = $self->build_matrix_elements (
-                %args,  
+                %args,
                 matrices           => $matrices_array,
                 element            => $element1,
                 element_list       => [keys %$nbr_hash],
@@ -956,6 +956,7 @@ sub build_matrices {
                 processed_elements => \%processed_elements,
                 no_progress        => $no_progress,
                 csv_object         => $csv_object,
+                no_check_in_prev_mx      => $trim_processed,
                 nbrs_so_far_this_element => \%nbrs_so_far_this_element,
             );
 
@@ -1080,6 +1081,8 @@ sub build_matrix_elements {
         ? ($label_cache{$element1} //= $bd->get_labels_in_group_as_hash_aa($element1))
         : {};
 
+    my $no_check_in_prev_mx = $args{no_check_in_prev_mx};
+
     my $n = 0;
   ELEMENT2:
     foreach my $element2 (sort @$element_list2) {
@@ -1101,7 +1104,7 @@ sub build_matrix_elements {
         #  Some of these contortions appear to be due to an old approach
         #  where all matrices were built in one loop.
         #  Could probably drop out sooner now.
-        if (!$ofh) {
+        if (!$ofh && !$no_check_in_prev_mx) {
             my $iter   = 0;
             my $exists = 0;
             my %not_exists_iter;

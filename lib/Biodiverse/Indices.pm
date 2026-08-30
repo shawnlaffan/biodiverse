@@ -1650,12 +1650,11 @@ sub run_dependencies {
 
 sub run_calculations {
     my $self = shift;
-    my %args = @_;
 
     #  clear any previous local results - poss redundant now
     $self->reset_results;
 
-    my $pre_calc_local_results = $self->run_precalc_locals(%args);
+    my $pre_calc_local_results = $self->run_precalc_locals(@_);
 
     use experimental qw/refaliasing/;
     \my %calcs_to_run = $self->get_valid_calculations_to_run;
@@ -1672,7 +1671,7 @@ sub run_calculations {
         @results{ keys %$calc_results } = values %$calc_results;
     }
 
-    $self->run_postcalc_locals(%args);
+    $self->run_postcalc_locals(@_);
 
     return wantarray ? %results : \%results;
 }

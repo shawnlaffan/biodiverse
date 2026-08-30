@@ -2306,7 +2306,7 @@ sub run_indices_object_cleanup {
     if ($indices_object) {
         eval {
             $indices_object->run_postcalc_globals;
-            $indices_object->reset_results(global => 1);
+            $indices_object->reset_global_results;
         };
     }
     $self->set_param(INDICES_OBJECT => undef);
@@ -2322,7 +2322,7 @@ sub run_tiebreaker_indices_object_cleanup {
     if ($indices_object) {
         eval {
             $indices_object->run_postcalc_globals;
-            $indices_object->reset_results(global => 1);
+            $indices_object->reset_global_results;
         };
     }
     $self->set_param(CLUSTER_TIE_BREAKER_INDICES_OBJECT => undef);

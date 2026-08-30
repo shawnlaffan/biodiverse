@@ -64,7 +64,7 @@ sub new {
     $self->set_params( %PARAMS, %args );
     $self->set_default_params;    #  load any user overrides
 
-    $self->reset_results( global => 1 );
+    $self->reset_global_results;
 
     #  avoid memory leak probs with circular refs to parents
     #  ensures children are destroyed when parent is destroyed
@@ -87,6 +87,11 @@ sub reset_results {
     }
 
     return;
+}
+
+sub reset_global_results {
+    my $self = shift;
+    $self->set_param( AS_RESULTS_FROM_GLOBAL => {} );
 }
 
 ###########################
@@ -1651,9 +1656,6 @@ sub run_dependencies {
 sub run_calculations {
     my $self = shift;
 
-    #  clear any previous local results - poss redundant now
-    $self->reset_results;
-
     my $pre_calc_local_results = $self->run_precalc_locals(@_);
 
     use experimental qw/refaliasing/;
@@ -1683,10 +1685,7 @@ sub run_calculations {
 #  Local results are more problematic as they can be cleaned up by post_calc_locals.
 #  Or are they?  However, the fact remains that, at the moment, they are not stored anywhere.
 sub get_results_from_pre_calc_global {
-    my $self = shift;
-    my %args = @_;
-
-    no autovivification;
+    my ($self, %args) = @_;
 
     my $results      = $self->get_param('AS_RESULTS_FROM_GLOBAL');
     my $calc_results = $results->{ $args{calculation} };

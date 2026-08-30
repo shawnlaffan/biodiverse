@@ -1620,14 +1620,14 @@ sub run_dependencies {
         my %dep_results;
         if (my $deps = $dep_list->{$calc} ) {
           LOCAL_DEP:
-            foreach my $dep_res (map {$as_results_from{$_}} @$deps) {
+            foreach my $dep_res (@as_results_from{@$deps}) {
                 next LOCAL_DEP if !$dep_res;
                 @dep_results{ keys %$dep_res } = values %$dep_res;
             }
         }
         if (my $deps = $dep_list_global->{$calc}) {
           GLOBAL_DEP:
-            foreach my $dep_res (map {$as_results_from_global{$_}} @$deps) {
+            foreach my $dep_res (@as_results_from_global{@$deps}) {
                 next GLOBAL_DEP if !$dep_res;
                 @dep_results{ keys %$dep_res } = values %$dep_res;
             }

@@ -1671,7 +1671,10 @@ sub run_calculations {
         @results{ keys %$calc_results } = values %$calc_results;
     }
 
-    $self->run_postcalc_locals(@_);
+    #  Most methods do not have local postcalcs.
+    #  Skipping early is important in matrix building given the number of iterations.
+    $self->run_postcalc_locals(@_)
+        if $self->has_postcalc_locals;
 
     return wantarray ? %results : \%results;
 }
@@ -1705,14 +1708,19 @@ sub run_precalc_locals {
     return $self->run_dependencies( @_, type => 'pre_calc', );
 }
 
+sub has_postcalc_locals {
+    return $_[0]->{has_precalc_locals} //= do {
+        my $validated_calcs = $_[0]->get_param('VALID_CALCULATIONS');
+        !!$validated_calcs->{calc_lists_by_type}{post_calc_local};
+    }
+}
+
 sub run_postcalc_locals {
     my $self = shift;
 
     #  Most cases do not have local post calcs so we can save some time,
     #  especially when building pairwise matrices.
-    #  Should perhaps be a method with caching - has_post_calc_locals
-    my $validated_calcs = $self->get_param('VALID_CALCULATIONS');
-    return if !$validated_calcs->{calc_lists_by_type}{post_calc_local};
+    return if !$self->has_postcalc_locals;
 
     return $self->run_dependencies( @_, type => 'post_calc' );
 }

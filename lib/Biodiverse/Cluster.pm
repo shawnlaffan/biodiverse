@@ -1005,23 +1005,23 @@ sub build_matrix_elements {
     my $self = shift;
     my %args = @_;
 
-    my $element1 = $args{element};
-    my $element_list2 = $args{element_list};
+    my $element1 = delete $args{element};
+    my $element_list2 = delete $args{element_list};
     if (is_hashref($element_list2)) {
         $element_list2 = [keys %$element_list2];
     }
 
-    my $matrices = $args{matrices};  #  two items, second is shadow matrix
+    my $matrices = delete $args{matrices};  #  two items, second is shadow matrix
 
-    my $index            = $args{index}
+    my $index            = delete $args{index}
                            || $self->get_param ('CLUSTER_INDEX');
-    my $indices_object   = $args{indices_object}
+    my $indices_object   = delete $args{indices_object}
                            || $self->get_param ('INDICES_OBJECT');
 
-    my $processed_elements = $args{processed_elements};
+    my $processed_elements = delete $args{processed_elements};
 
     my $ofh = delete $args{file_handle};
-    my $output_gdm_format = $args{output_gdm_format};
+    my $output_gdm_format = delete $args{output_gdm_format};
 
     my $bd = $self->get_basedata_ref;
 
@@ -1030,7 +1030,7 @@ sub build_matrix_elements {
 
     my %already_calculated;
 
-    my $csv_out = $args{csv_object};
+    my $csv_out = delete $args{csv_object};
     #  take care of closed file handles
     if ( defined $ofh ) {
         if ( not defined fileno $ofh ) {
@@ -1091,6 +1091,26 @@ sub build_matrix_elements {
         = $output_gdm_format
         ? @{[$bd->get_group_element_as_array(element => $element1)]}[0,1]
         : ();
+
+    #  no need to pass all of these on
+    delete @args{qw /
+        clear_cached_values
+        cluster_tie_breaker
+        flatten_tree
+        index_function
+        indices
+        nbrs_so_far_this_element
+        no_check_in_prev_mx
+        no_progress
+        type
+        cache_abc
+        spatial_conditions
+        linkage_function
+        no_clone_matrices
+        prng_seed
+        def_query
+        spatial_object
+    /};
 
     my $n = 0;
   ELEMENT2:

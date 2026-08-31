@@ -1622,9 +1622,17 @@ sub run_dependencies {
 
     my $is_pre_calc_global = $type eq 'pre_calc_global';
 
+    #  bodgy override - need a cleaner way of doing this
+    local $calc_list->[0] = '_calc_abc_pairwise_mode1'
+        if delete $args{_use_calc_abc_pairwise_mode1}
+            && $calc_list->[0] eq '_calc_abc_any';
+    state %calc_name_remap = (
+        _calc_abc_pairwise_mode1 => '_calc_abc_any',
+    );
+
     foreach my $calc (@$calc_list) {
         my %dep_results;
-        if (my $deps = $dep_list->{$calc} ) {
+        if (my $deps = $dep_list->{$calc_name_remap{$calc} // $calc} ) {
           LOCAL_DEP:
             foreach my $dep_res (@results{@$deps}) {
                 next LOCAL_DEP if !$dep_res;
@@ -1646,7 +1654,7 @@ sub run_dependencies {
             $as_results_from_global{$calc} = $calc_results;
         }
 
-        $results{$calc} = $calc_results;
+        $results{$calc_name_remap{$calc} // $calc} = $calc_results;
     }
 
     #  We refresh each call above, but this ensures last one is cleaned up.

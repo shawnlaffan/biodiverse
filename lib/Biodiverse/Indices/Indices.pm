@@ -2015,6 +2015,13 @@ sub _calc_abc_pairwise_mode {
     return wantarray ? %results : \%results;
 }
 
+sub _calc_abc_pairwise_mode1 {
+    my ($self, %args) = @_;
+    delete @args{qw /count_samples count_labels/};
+    $self->_calc_abc_pairwise_mode(%args);
+}
+
+
 sub _calc_abc_hierarchical_mode {
     my ($self, %args) = @_;
 

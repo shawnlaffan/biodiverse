@@ -1159,6 +1159,7 @@ sub build_matrix_elements {
         else {
             my $values = $indices_object->run_calculations(
                 %args,
+                _use_calc_abc_pairwise_mode1 => 1,
                 element_list1 => $element1_as_list,
                 element_list2 => [$element2],
             );
@@ -1419,7 +1420,6 @@ sub cluster_matrix_elements {
         #  indices like richness, WE, PD etc. as it could affect
         #  the order of higher linkages.
     }
-
     my $rand = $self->initialise_rand (
         seed  => $args{prng_seed} || undef,
         state => $args{prng_state},

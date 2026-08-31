@@ -782,7 +782,7 @@ sub parse_dependencies_for_calc {
             {
                 Biodiverse::Indices::InsufficientElementLists->throw(
                     error =>
-"[INDICES] WARNING: Insufficient neighbour lists for $calc. "
+                        "[INDICES] WARNING: Insufficient neighbour lists for $calc. "
                       . "Need $uses_nbr_lists but only $nbr_list_count available.\n",
                 );
             }

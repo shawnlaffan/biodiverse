@@ -75,6 +75,10 @@ sub get_max_poss_matrix_value {
     my $indices_object = $self->get_indices_object_for_matrix_and_clustering;
     my $elements       = $mx->get_elements_as_array;
 
+    #  override
+    my $pairwise_mode = $indices_object->get_pairwise_mode;
+    $indices_object->set_pairwise_mode(undef);
+
     my $analysis_args = $self->get_param('ANALYSIS_ARGS');
     my $results = $indices_object->run_calculations(
         %args,
@@ -84,6 +88,8 @@ sub get_max_poss_matrix_value {
         label_hash1     => undef,
         label_hash2     => undef,
     );
+
+    $indices_object->set_pairwise_mode($pairwise_mode);
 
     my $index = $args{index} || $self->get_param ('CLUSTER_INDEX');
     my $index_value = $results->{$index};

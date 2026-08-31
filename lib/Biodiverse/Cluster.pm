@@ -1420,6 +1420,12 @@ sub cluster_matrix_elements {
         #  indices like richness, WE, PD etc. as it could affect
         #  the order of higher linkages.
     }
+    {
+        #  disable pairwise mode, just to be sure
+        my $indices_object
+            = $self->get_indices_object_for_matrix_and_clustering;
+        $indices_object->set_pairwise_mode(undef);
+    };
     my $rand = $self->initialise_rand (
         seed  => $args{prng_seed} || undef,
         state => $args{prng_state},

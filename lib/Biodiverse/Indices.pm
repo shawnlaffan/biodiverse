@@ -932,6 +932,7 @@ sub get_valid_calculations {
     $self->set_param( VALID_CALCULATIONS   => \%results );
     $self->set_param( INVALID_CALCULATIONS => \@removed );
     $self->set_param( INVALID_CALCULATION_ERROR_MESSAGES => \@error_msgs );
+    $self->{calculations_to_run} = $results{calculations_to_run};
 
     return wantarray ? %results : \%results;
 }
@@ -1552,13 +1553,11 @@ sub index_distribution_is_valid {
 }
 
 
+#  this is set by get_valid_calculations
 sub get_valid_calculations_to_run {
-    my $self = shift;
-
-    my $valid_calcs = $self->get_param('VALID_CALCULATIONS');
-    my $calcs       = $valid_calcs->{calculations_to_run};
-
-    return wantarray ? %$calcs : $calcs;
+    return wantarray
+        ? %{$_[0]->{calculations_to_run}}
+        : $_[0]->{calculations_to_run};
 }
 
 sub get_valid_calculation_count {

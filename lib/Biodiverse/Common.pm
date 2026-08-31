@@ -425,11 +425,8 @@ sub set_params {
     return scalar keys %args;
 }
 
-sub delete_param {  #  just passes everything through to delete_params
-    my $self = shift;
-    $self->delete_params(@_);
-
-    return;
+sub delete_param {
+    delete $_[0]->{PARAMS}{$_[1]};
 }
 
 #  sometimes we have a reference to an object we wish to make weak

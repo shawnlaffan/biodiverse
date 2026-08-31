@@ -1608,11 +1608,10 @@ sub run_dependencies {
     #  We also keep track of what has been run
     #  to avoid repetition through multiple dependencies.
     my %results;
-    my %as_results_from;
 
     state $cache_name_local_results = 'AS_RESULTS_FROM_LOCAL';
     #  make sure this is new each iteration
-    $self->set_param ($cache_name_local_results => \%as_results_from);
+    $self->set_param ($cache_name_local_results => \%results);
 
     my $is_pre_calc_global = $type eq 'pre_calc_global';
 
@@ -1620,7 +1619,7 @@ sub run_dependencies {
         my %dep_results;
         if (my $deps = $dep_list->{$calc} ) {
           LOCAL_DEP:
-            foreach my $dep_res (@as_results_from{@$deps}) {
+            foreach my $dep_res (@results{@$deps}) {
                 next LOCAL_DEP if !$dep_res;
                 @dep_results{ keys %$dep_res } = values %$dep_res;
             }
@@ -1635,7 +1634,7 @@ sub run_dependencies {
 
         my $calc_results = eval { $self->$calc( %args, %dep_results ); };
         croak $EVAL_ERROR if $EVAL_ERROR;
-        $as_results_from{$calc} = $calc_results;
+
         if ( $is_pre_calc_global ) {
             $as_results_from_global{$calc} = $calc_results;
         }

@@ -845,6 +845,16 @@ sub build_matrices {
     #  we use a spatial object as it handles all the spatial checks.
     say "[CLUSTER] Generating neighbour lists";
     my $sp = $bd->add_spatial_output (name => $name . "_clus_nbrs_" . time());
+
+    if (not $args{keep_sp_nbrs_output}) {
+        #  remove it from the basedata so it isn't
+        #  added to a GUI project on next open
+        $bd->delete_output(output => $sp, delete_basedata_ref => 0);
+    }
+    else {
+        $self->set_param(SP_NBRS_OUTPUT_NAME => $sp->get_param('NAME'));
+    }
+
     my $sp_success = eval {
         $sp->run_analysis (
             %args,
@@ -858,24 +868,6 @@ sub build_matrices {
         );
     };
     croak $EVAL_ERROR if $EVAL_ERROR;                #  Did we complete properly?
-    #croak $e if $e;                     #  Throw a hissy fit if we didn't complete properly
-
-    if (not $args{keep_sp_nbrs_output}) {
-        #  remove it from the basedata so it isn't
-        #  added to a GUI project on next open
-        $bd->delete_output (
-            output              => $sp,
-            delete_basedata_ref => 0,
-        );
-    }
-    else {
-        $self->set_param (SP_NBRS_OUTPUT_NAME => $sp->get_param('NAME'));
-    }
-
-    my %cache;  #  cache the label hashes
-                # - makes a small amount of difference
-                # which will count for randomisations
-    $self->set_param (MATRIX_ELEMENT_LABEL_CACHE => \%cache);
 
     my $valid_count = 0;
 
@@ -890,20 +882,27 @@ sub build_matrices {
 
     my $progress_bar = Biodiverse::Progress->new();
     my $count = 0;
-    my $printed_progress = -1;
     my $target_element_count = $to_do * ($to_do - 1) / 2; # n(n-1)/2
     my $progress_pfx = "Building matrix\n"
                         . "$name\n"
                         . "Target is $target_element_count matrix elements\n";
-    #print "[CLUSTER] Progress (% of $to_do elements):     ";
     my %processed_elements;
 
     my $no_progress;
     my $build_start_time = time();
 
+    my $trim_processed;
+    if (@matrices == 1) {
+        my $sp_conds = $sp->get_spatial_conditions_arr;
+        my $sp_cond = $sp_conds->[0];
+        if ($sp_cond->get_result_type eq 'always_true') {
+            $trim_processed = 1;
+        }
+    }
+
     #  Use $sp for the groups so any def query will have an effect
     BY_ELEMENT:
-    foreach my $element1 (sort @elements_to_calc) {
+    foreach my $element1 (@elements_to_calc) {
 
         $count ++;
         my $progress = $count / $to_do;
@@ -922,6 +921,9 @@ sub build_matrices {
             my %neighbour_hash;
             @neighbour_hash{@$neighours} = (1) x scalar @$neighours;
             delete $neighbour_hash{$element1};  #  exclude ourselves
+            if ($trim_processed) {
+                delete @neighbour_hash{keys %processed_elements};
+            }
             $neighbours[$m] = \%neighbour_hash;
         }
         my %nbrs_so_far_this_element;  #  track which nbrs have been done - needed when writing direct to file
@@ -942,7 +944,7 @@ sub build_matrices {
             #  this actually takes most of the args from params,
             #  but setting explicitly might save micro-seconds of time
             my $x = $self->build_matrix_elements (
-                %args,  
+                %args,
                 matrices           => $matrices_array,
                 element            => $element1,
                 element_list       => [keys %$nbr_hash],
@@ -954,6 +956,7 @@ sub build_matrices {
                 processed_elements => \%processed_elements,
                 no_progress        => $no_progress,
                 csv_object         => $csv_object,
+                no_check_in_prev_mx      => $trim_processed,
                 nbrs_so_far_this_element => \%nbrs_so_far_this_element,
             );
 
@@ -966,7 +969,7 @@ sub build_matrices {
                  < 3 * $Biodiverse::Config::progress_update_interval)) {
                 $no_progress = 1;
             }
-            $build_start_time= $build_end_time;
+            $build_start_time = $build_end_time;
         }
 
         $processed_elements{$element1}++;
@@ -988,16 +991,8 @@ sub build_matrices {
 
     $self->set_matrix_ref(matrices => \@matrices);
 
-    #  Clear the cache unless we're using link_recalculate
-    #  Is this already set or not?
-    my $analysis_args = $self->get_param ('ANALYSIS_ARGS');
-    my $linkage_function = $analysis_args->{linkage_function};
-    if (defined $linkage_function and not $linkage_function =~ /recalculate/) {
-        $self->set_param (MATRIX_ELEMENT_LABEL_CACHE => undef);
-    }
-
     $indices_object->set_pairwise_mode (0);    #  turn off this flag
-    
+
     my $time_taken = time - $start_time;
     printf "[CLUSTER] Matrix build took %.3f seconds.\n", $time_taken;
     $self->set_param (ANALYSIS_TIME_TAKEN_MATRIX => $time_taken);
@@ -1010,23 +1005,23 @@ sub build_matrix_elements {
     my $self = shift;
     my %args = @_;
 
-    my $element1 = $args{element};
-    my $element_list2 = $args{element_list};
+    my $element1 = delete $args{element};
+    my $element_list2 = delete $args{element_list};
     if (is_hashref($element_list2)) {
         $element_list2 = [keys %$element_list2];
     }
 
-    my $matrices = $args{matrices};  #  two items, second is shadow matrix
+    my $matrices = delete $args{matrices};  #  two items, second is shadow matrix
 
-    my $index            = $args{index}
+    my $index            = delete $args{index}
                            || $self->get_param ('CLUSTER_INDEX');
-    my $indices_object   = $args{indices_object}
+    my $indices_object   = delete $args{indices_object}
                            || $self->get_param ('INDICES_OBJECT');
 
-    my $processed_elements = $args{processed_elements};
+    my $processed_elements = delete $args{processed_elements};
 
     my $ofh = delete $args{file_handle};
-    my $output_gdm_format = $args{output_gdm_format};
+    my $output_gdm_format = delete $args{output_gdm_format};
 
     my $bd = $self->get_basedata_ref;
 
@@ -1035,7 +1030,7 @@ sub build_matrix_elements {
 
     my %already_calculated;
 
-    my $csv_out = $args{csv_object};
+    my $csv_out = delete $args{csv_object};
     #  take care of closed file handles
     if ( defined $ofh ) {
         if ( not defined fileno $ofh ) {
@@ -1086,6 +1081,37 @@ sub build_matrix_elements {
         ? ($label_cache{$element1} //= $bd->get_labels_in_group_as_hash_aa($element1))
         : {};
 
+    my $no_check_in_prev_mx = $args{no_check_in_prev_mx};
+    my $have_one_mx  = !(defined $ofh) && 1 == @$matrices;
+    my $first_mx_ref = $matrices->[0];
+    my %key_vals;
+
+    my $element1_as_list = [$element1];
+    my @element1_gdm_array
+        = $output_gdm_format
+        ? @{[$bd->get_group_element_as_array(element => $element1)]}[0,1]
+        : ();
+
+    #  no need to pass all of these on
+    delete @args{qw /
+        clear_cached_values
+        cluster_tie_breaker
+        flatten_tree
+        index_function
+        indices
+        nbrs_so_far_this_element
+        no_check_in_prev_mx
+        no_progress
+        type
+        cache_abc
+        spatial_conditions
+        linkage_function
+        no_clone_matrices
+        prng_seed
+        def_query
+        spatial_object
+    /};
+
     my $n = 0;
   ELEMENT2:
     foreach my $element2 (sort @$element_list2) {
@@ -1107,7 +1133,7 @@ sub build_matrix_elements {
         #  Some of these contortions appear to be due to an old approach
         #  where all matrices were built in one loop.
         #  Could probably drop out sooner now.
-        if (!$ofh) {
+        if (!$ofh && !$no_check_in_prev_mx) {
             my $iter   = 0;
             my $exists = 0;
             my %not_exists_iter;
@@ -1122,6 +1148,7 @@ sub build_matrix_elements {
                 defined $value
                     ? ($exists++)
                     : ($not_exists_iter{$iter} = 1);
+                # say "FOUND " . $mx->get_param('NAME');
                 $iter ++;
             }
 
@@ -1150,21 +1177,25 @@ sub build_matrix_elements {
                 if ($aa || ($bb && $cc));
         }
         else {
-            my %elements = (
-                element_list1   => [$element1],
-                element_list2   => [$element2],
+            my $values = $indices_object->run_calculations(
+                %args,
+                _use_calc_abc_pairwise_mode1 => 1,
+                element_list1 => $element1_as_list,
+                element_list2 => [$element2],
             );
-            my $values = $indices_object->run_calculations(%args, %elements);
             $index_val = $values->{$index};
         }
 
         next ELEMENT2 if ! defined $index_val;  #  don't add it if it is undefined
 
         # write results to file handles if supplied, otherwise store them
-        if (defined $ofh) {
+        if (!!$have_one_mx) {
+            $key_vals{$element2} = $index_val;
+        }
+        elsif (defined $ofh) {
             my $res_list = $output_gdm_format
                 ? [
-                   @{[$bd->get_group_element_as_array(element => $element1)]}[0,1],  #  need to generalise these
+                   @element1_gdm_array,  #  need to generalise these
                    @{[$bd->get_group_element_as_array(element => $element2)]}[0,1],
                    $index_val,
                    ]
@@ -1182,6 +1213,10 @@ sub build_matrix_elements {
         }
 
         $valid_count ++;
+    }
+
+    if (!!$have_one_mx) {
+        $first_mx_ref->batch_add_element (element1 => $element1, data => \%key_vals);
     }
     
     #my $cache_size = scalar keys %$cache;
@@ -1405,7 +1440,12 @@ sub cluster_matrix_elements {
         #  indices like richness, WE, PD etc. as it could affect
         #  the order of higher linkages.
     }
-
+    {
+        #  disable pairwise mode, just to be sure
+        my $indices_object
+            = $self->get_indices_object_for_matrix_and_clustering;
+        $indices_object->set_pairwise_mode(undef);
+    };
     my $rand = $self->initialise_rand (
         seed  => $args{prng_seed} || undef,
         state => $args{prng_state},
@@ -2292,7 +2332,7 @@ sub run_indices_object_cleanup {
     if ($indices_object) {
         eval {
             $indices_object->run_postcalc_globals;
-            $indices_object->reset_results(global => 1);
+            $indices_object->reset_global_results;
         };
     }
     $self->set_param(INDICES_OBJECT => undef);
@@ -2308,7 +2348,7 @@ sub run_tiebreaker_indices_object_cleanup {
     if ($indices_object) {
         eval {
             $indices_object->run_postcalc_globals;
-            $indices_object->reset_results(global => 1);
+            $indices_object->reset_global_results;
         };
     }
     $self->set_param(CLUSTER_TIE_BREAKER_INDICES_OBJECT => undef);

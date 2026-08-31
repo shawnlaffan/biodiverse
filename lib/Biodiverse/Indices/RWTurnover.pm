@@ -122,7 +122,7 @@ sub get_metadata_calc_phylo_rw_turnover {
         name            => 'Phylo Range weighted Turnover',
         reference       => 'Laffan et al. (2016) https://doi.org/10.1111/2041-210X.12513',
         type            => 'Phylogenetic Turnover',
-        pre_calc        => [qw /_calc_pe_lists_per_element_set calc_abc/],
+        pre_calc        => [qw /_calc_pe_lists_per_element_set _calc_abc_any/],
         pre_calc_global => [qw /
             get_node_range_hash
         /],

@@ -64,7 +64,7 @@ sub new {
     $self->set_params( %PARAMS, %args );
     $self->set_default_params;    #  load any user overrides
 
-    $self->reset_results( global => 1 );
+    $self->reset_global_results;
 
     #  avoid memory leak probs with circular refs to parents
     #  ensures children are destroyed when parent is destroyed
@@ -87,6 +87,11 @@ sub reset_results {
     }
 
     return;
+}
+
+sub reset_global_results {
+    my $self = shift;
+    $self->set_param( AS_RESULTS_FROM_GLOBAL => {} );
 }
 
 ###########################
@@ -777,7 +782,7 @@ sub parse_dependencies_for_calc {
             {
                 Biodiverse::Indices::InsufficientElementLists->throw(
                     error =>
-"[INDICES] WARNING: Insufficient neighbour lists for $calc. "
+                        "[INDICES] WARNING: Insufficient neighbour lists for $calc. "
                       . "Need $uses_nbr_lists but only $nbr_list_count available.\n",
                 );
             }
@@ -927,6 +932,7 @@ sub get_valid_calculations {
     $self->set_param( VALID_CALCULATIONS   => \%results );
     $self->set_param( INVALID_CALCULATIONS => \@removed );
     $self->set_param( INVALID_CALCULATION_ERROR_MESSAGES => \@error_msgs );
+    $self->{calculations_to_run} = $results{calculations_to_run};
 
     return wantarray ? %results : \%results;
 }
@@ -1026,9 +1032,17 @@ sub aggregate_calc_lists_by_type {
     foreach my $type (@types) {
         my $array   = $aggregated{$type};
         my @u_array = uniq @$array;
-        if ($type eq 'pre_calc'
-            and scalar @u_array
-        ) {
+        if ($type eq 'pre_calc' and scalar @u_array) {
+            #  Shift _calc_abc_any to front if no other abc call.
+            #  We can later change it to pairwise mode directly
+            #  if it is still at the front after the next checks.
+            if (!grep {$_ =~ /^calc_abc[23]?/} @u_array) {
+                my $iter = first_index {$_ eq '_calc_abc_any'} @u_array;
+                if ($iter > 0) {
+                    unshift @u_array, splice @u_array, $iter, 1;
+                }
+            }
+
             #  move first /calc_abc[23]/ to front so
             #  calc_abc and _calc_abc_any can grab results
             #  otherwise ensure calc_abc is at the front
@@ -1547,13 +1561,11 @@ sub index_distribution_is_valid {
 }
 
 
+#  this is set by get_valid_calculations
 sub get_valid_calculations_to_run {
-    my $self = shift;
-
-    my $valid_calcs = $self->get_param('VALID_CALCULATIONS');
-    my $calcs       = $valid_calcs->{calculations_to_run};
-
-    return wantarray ? %$calcs : $calcs;
+    return wantarray
+        ? %{$_[0]->{calculations_to_run}}
+        : $_[0]->{calculations_to_run};
 }
 
 sub get_valid_calculation_count {
@@ -1603,26 +1615,33 @@ sub run_dependencies {
     #  We also keep track of what has been run
     #  to avoid repetition through multiple dependencies.
     my %results;
-    my %as_results_from;
 
     state $cache_name_local_results = 'AS_RESULTS_FROM_LOCAL';
     #  make sure this is new each iteration
-    $self->set_param ($cache_name_local_results => \%as_results_from);
+    $self->set_param ($cache_name_local_results => \%results);
 
     my $is_pre_calc_global = $type eq 'pre_calc_global';
 
+    #  bodgy override - need a cleaner way of doing this
+    local $calc_list->[0] = '_calc_abc_pairwise_mode1'
+        if delete $args{_use_calc_abc_pairwise_mode1}
+            && $calc_list->[0] eq '_calc_abc_any';
+    state %calc_name_remap = (
+        _calc_abc_pairwise_mode1 => '_calc_abc_any',
+    );
+
     foreach my $calc (@$calc_list) {
         my %dep_results;
-        if (my $deps = $dep_list->{$calc} ) {
+        if (my $deps = $dep_list->{$calc_name_remap{$calc} // $calc} ) {
           LOCAL_DEP:
-            foreach my $dep_res (map {$as_results_from{$_}} @$deps) {
+            foreach my $dep_res (@results{@$deps}) {
                 next LOCAL_DEP if !$dep_res;
                 @dep_results{ keys %$dep_res } = values %$dep_res;
             }
         }
         if (my $deps = $dep_list_global->{$calc}) {
           GLOBAL_DEP:
-            foreach my $dep_res (map {$as_results_from_global{$_}} @$deps) {
+            foreach my $dep_res (@as_results_from_global{@$deps}) {
                 next GLOBAL_DEP if !$dep_res;
                 @dep_results{ keys %$dep_res } = values %$dep_res;
             }
@@ -1630,12 +1649,12 @@ sub run_dependencies {
 
         my $calc_results = eval { $self->$calc( %args, %dep_results ); };
         croak $EVAL_ERROR if $EVAL_ERROR;
-        $as_results_from{$calc} = $calc_results;
+
         if ( $is_pre_calc_global ) {
             $as_results_from_global{$calc} = $calc_results;
         }
 
-        $results{$calc} = $calc_results;
+        $results{$calc_name_remap{$calc} // $calc} = $calc_results;
     }
 
     #  We refresh each call above, but this ensures last one is cleaned up.
@@ -1650,12 +1669,8 @@ sub run_dependencies {
 
 sub run_calculations {
     my $self = shift;
-    my %args = @_;
 
-    #  clear any previous local results - poss redundant now
-    $self->reset_results;
-
-    my $pre_calc_local_results = $self->run_precalc_locals(%args);
+    my $pre_calc_local_results = $self->run_precalc_locals(@_);
 
     use experimental qw/refaliasing/;
     \my %calcs_to_run = $self->get_valid_calculations_to_run;
@@ -1672,7 +1687,10 @@ sub run_calculations {
         @results{ keys %$calc_results } = values %$calc_results;
     }
 
-    $self->run_postcalc_locals(%args);
+    #  Most methods do not have local postcalcs.
+    #  Skipping early is important in matrix building given the number of iterations.
+    $self->run_postcalc_locals(@_)
+        if $self->has_postcalc_locals;
 
     return wantarray ? %results : \%results;
 }
@@ -1681,10 +1699,7 @@ sub run_calculations {
 #  Local results are more problematic as they can be cleaned up by post_calc_locals.
 #  Or are they?  However, the fact remains that, at the moment, they are not stored anywhere.
 sub get_results_from_pre_calc_global {
-    my $self = shift;
-    my %args = @_;
-
-    no autovivification;
+    my ($self, %args) = @_;
 
     my $results      = $self->get_param('AS_RESULTS_FROM_GLOBAL');
     my $calc_results = $results->{ $args{calculation} };
@@ -1706,14 +1721,19 @@ sub run_precalc_locals {
     return $self->run_dependencies( @_, type => 'pre_calc', );
 }
 
+sub has_postcalc_locals {
+    return $_[0]->{has_precalc_locals} //= do {
+        my $validated_calcs = $_[0]->get_param('VALID_CALCULATIONS');
+        !!$validated_calcs->{calc_lists_by_type}{post_calc_local};
+    }
+}
+
 sub run_postcalc_locals {
     my $self = shift;
 
     #  Most cases do not have local post calcs so we can save some time,
     #  especially when building pairwise matrices.
-    #  Should perhaps be a method with caching - has_post_calc_locals
-    my $validated_calcs = $self->get_param('VALID_CALCULATIONS');
-    return if !$validated_calcs->{calc_lists_by_type}{post_calc_local};
+    return if !$self->has_postcalc_locals;
 
     return $self->run_dependencies( @_, type => 'post_calc' );
 }

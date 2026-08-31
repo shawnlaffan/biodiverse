@@ -1032,9 +1032,17 @@ sub aggregate_calc_lists_by_type {
     foreach my $type (@types) {
         my $array   = $aggregated{$type};
         my @u_array = uniq @$array;
-        if ($type eq 'pre_calc'
-            and scalar @u_array
-        ) {
+        if ($type eq 'pre_calc' and scalar @u_array) {
+            #  Shift _calc_abc_any to front if no other abc call.
+            #  We can later change it to pairwise mode directly
+            #  if it is still at the front after the next checks.
+            if (!grep {$_ =~ /^calc_abc[23]?/} @u_array) {
+                my $iter = first_index {$_ eq '_calc_abc_any'} @u_array;
+                if ($iter > 0) {
+                    unshift @u_array, splice @u_array, $iter, 1;
+                }
+            }
+
             #  move first /calc_abc[23]/ to front so
             #  calc_abc and _calc_abc_any can grab results
             #  otherwise ensure calc_abc is at the front

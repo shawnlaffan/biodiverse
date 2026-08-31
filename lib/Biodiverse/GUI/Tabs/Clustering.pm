@@ -343,6 +343,9 @@ sub new {
     $self->update_tree_menu;
     $self->init_colour_clusters;
 
+    #  a crude way of getting ctl-G to work
+    $self->get_xmlpage_object('txtClusterName')->grab_focus;
+
     say "[Clustering tab] - Loaded tab - Clustering Analysis";
 
     return $self;

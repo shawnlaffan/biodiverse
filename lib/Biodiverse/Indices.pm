@@ -184,7 +184,7 @@ sub get_calculation_metadata_as_wiki {
     my $gadget_start_text
 
 #= q{<wiki:gadget url="http://mathml-gadget.googlecode.com/svn/trunk/mathml-gadget.xml" border="0" up_content="};
-      = '<img src="http://latex.codecogs.com/png.latex?';
+      = '<img src="https://latex.codecogs.com/png.latex?';
     my $gadget_end_text
 
       #= q{"/>};
@@ -473,7 +473,7 @@ sub get_calculation_metadata_as_markdown {
     my $count = 1;
     my $SPACE = q{ };
 
-    my $codecogs_url = 'http://latex.codecogs.com/png.latex?';
+    my $codecogs_url = 'https://latex.codecogs.com/png.latex?';
 
 #my $codecogs_prefix
 #    #= q{<wiki:gadget url="http://mathml-gadget.googlecode.com/svn/trunk/mathml-gadget.xml" border="0" up_content="};
@@ -661,7 +661,7 @@ sub get_calculation_metadata_as_markdown {
 sub _format_equation_as_markdown {
     my ($self, $eqn) = @_;
     use URI::Escape qw /uri_escape/;
-    my $codecogs_url = 'http://latex.codecogs.com/png.latex?\inline&space;\bg{white}';
+    my $codecogs_url = 'https://latex.codecogs.com/png.latex?\inline&space;\bg{white}';
 
     my $alt_text = $eqn;
     #  need to escape the backslashes for github to work
@@ -1794,7 +1794,7 @@ Biodiverse::Indices
 =head1 DESCRIPTION
 
 Indices handler for the Biodiverse system.
-See L<http://purl.org/biodiverse/wiki/Indices> for the list of available indices.
+See L<https://purl.org/biodiverse/wiki/Indices> for the list of available indices.
 
 =head1 METHODS
 
@@ -1806,7 +1806,7 @@ See L<http://purl.org/biodiverse/wiki/Indices> for the list of available indices
 
 =head1 REPORTING ERRORS
 
-Use the issue tracker at http://www.purl.org/biodiverse
+Use the issue tracker at https://www.purl.org/biodiverse
 
 =head1 COPYRIGHT
 
@@ -1824,6 +1824,6 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
-For a full copy of the license see <http://www.gnu.org/licenses/>.
+For a full copy of the license see <https://www.gnu.org/licenses/>.
 
 =cut

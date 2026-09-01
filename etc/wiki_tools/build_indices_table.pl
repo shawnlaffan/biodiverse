@@ -113,12 +113,12 @@ my $wiki_text = $intro_wiki . $html;
 $wiki_text =~ s/'Label counts'/\[Label counts\]\(#label-counts\)/g;
 
 my $code_cogs = << 'END_CODE_COGS'
-<img src="http://www.codecogs.com/images/poweredbycc.gif"
+<img src="https://www.codecogs.com/images/poweredbycc.gif"
  width="102" height="34" vspace="5" border="0"
  alt="Powered by CodeCogs"
  style="background-color:white;"
 />
-http://www.codecogs.com
+https://www.codecogs.com
 END_CODE_COGS
 ;
 

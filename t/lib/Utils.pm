@@ -112,7 +112,7 @@ sub _is_between {
 
 =head1 AUTHOR
 
-Shlomi Fish, L<http://www.shlomifish.org/> , C<shlomif@cpan.org>
+Shlomi Fish, L<https://www.shlomifish.org/> , C<shlomif@cpan.org>
 
 =head1 COPYRIGHT
 
@@ -121,7 +121,7 @@ Copyright(c) 2012 by Shlomi Fish.
 =head1 LICENSE
 
 This file is licensed under the MIT/X11 License:
-http://www.opensource.org/licenses/mit-license.php.
+https://www.opensource.org/licenses/mit-license.php.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in

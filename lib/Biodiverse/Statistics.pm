@@ -445,7 +445,7 @@ Calculates the inter-quartile range (q75 - q25).
 
 =head1 REPORTING ERRORS
 
-Use the issue tracker at http://www.purl.org/biodiverse
+Use the issue tracker at https://www.purl.org/biodiverse
 
 =head1 COPYRIGHT
 
@@ -463,6 +463,6 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
-For a full copy of the license see <http://www.gnu.org/licenses/>.
+For a full copy of the license see <https://www.gnu.org/licenses/>.
 
 =cut

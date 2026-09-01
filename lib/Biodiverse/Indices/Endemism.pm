@@ -162,7 +162,7 @@ sub get_metadata_calc_endemism_central {
     my $ref = 'Crisp et al. (2001) J Biogeog. '
               . 'https://doi.org/10.1046/j.1365-2699.2001.00524.x ; '
               . 'Laffan and Crisp (2003) J Biogeog. '
-              . 'http://www3.interscience.wiley.com/journal/118882020/abstract';
+              . 'https://doi.org/10.1046/j.1365-2699.2003.00875.x';
 
     my %metadata = (
         description     => $desc,
@@ -1017,7 +1017,7 @@ Biodiverse::Indices::Endemism
 Endemism indices for the Biodiverse system.
 It is inherited by Biodiverse::Indices and not to be used on it own.
 
-See L<http://purl.org/biodiverse/wiki/Indices> for more details.
+See L<https://biogeospatial.github.io/biodiverse-indices/> for more details.
 
 =head1 METHODS
 
@@ -1029,7 +1029,7 @@ See L<http://purl.org/biodiverse/wiki/Indices> for more details.
 
 =head1 REPORTING ERRORS
 
-Use the issue tracker at http://www.purl.org/biodiverse
+Use the issue tracker at https://www.purl.org/biodiverse
 
 =head1 COPYRIGHT
 
@@ -1047,6 +1047,6 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
-For a full copy of the license see <http://www.gnu.org/licenses/>.
+For a full copy of the license see <https://www.gnu.org/licenses/>.
 
 =cut

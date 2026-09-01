@@ -50,7 +50,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
-For a full copy of the license see <http://www.gnu.org/licenses/>.
+For a full copy of the license see <https://www.gnu.org/licenses/>.
 END_OF_LICENSE
   ;
 
@@ -294,7 +294,7 @@ Biodiverse::Config
 
 Configuration for the Biodiverse modules.
 
-See http://purl.oclc.org/biodiverse for more details.
+See https://purl.oclc.org/biodiverse for more details.
 
 =head1 SYNOPSIS
 
@@ -341,7 +341,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
-For a full copy of the license see <http://www.gnu.org/licenses/>.
+For a full copy of the license see <https://www.gnu.org/licenses/>.
 
 =cut
 

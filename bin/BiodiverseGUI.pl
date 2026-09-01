@@ -304,7 +304,7 @@ A spatial analysis tool for researchers working on issues of species (and other)
 
 This is the main script to run the GUI.
 
-See http://www.purl.org/biodiverse for more details.
+See https://www.purl.org/biodiverse for more details.
 
 =head1 SYNOPSIS
 

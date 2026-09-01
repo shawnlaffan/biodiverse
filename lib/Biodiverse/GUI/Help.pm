@@ -30,7 +30,7 @@ my $bandaid_text = '(This is a bandaid solution until we get hyperlinks working)
 #  Build the URL accessor subs from a hash
 #  process borrowed from Statistics::Descriptive v3
 
-my $base_url = 'http://purl.org/biodiverse/wiki/';
+my $base_url = 'https://purl.org/biodiverse/wiki/';
 
 my %subs_and_urls = (
     help_show_link_to_web_help         => $base_url . 'Home',
@@ -117,7 +117,7 @@ sub open_browser_and_show_url {
 sub help_show_check_for_updates {
     my $gui = shift;
     
-    my $download_url = 'http://purl.org/biodiverse/wiki/Downloads';
+    my $download_url = 'https://purl.org/biodiverse/wiki/Downloads';
     
     my $url = 'https://raw.githubusercontent.com/shawnlaffan/biodiverse/master/etc/versions.txt';
     my $http_response = HTTP::Tiny->new->get($url);

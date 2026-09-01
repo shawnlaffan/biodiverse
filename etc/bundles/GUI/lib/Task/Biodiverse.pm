@@ -28,7 +28,7 @@ The L<Gnome2::Canvas> dependency does not install cleanly on all platforms so mi
 need to be manually installed.
 See L<https://purl.org/biodiverse/wiki/Installation> for more details for your platform.
 
-See L<http://www.purl.org/biodiverse> for more details about Biodiverse itself.  
+See L<https://www.purl.org/biodiverse> for more details about Biodiverse itself.
 
 =head1 AUTHOR
 

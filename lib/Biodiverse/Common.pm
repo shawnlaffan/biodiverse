@@ -2976,7 +2976,7 @@ C<$self->getPossIndexValues>.
 
 Weakens the reference to a parent BaseData object.  This stops memory
 leakage problems due to circular references not being cleared out.
-http://www.perl.com/pub/a/2002/08/07/proxyobject.html?page=1
+https://www.perl.com/pub/a/2002/08/07/proxyobject.html?page=1
 
 =item $self->csv2list (string => $string, quote_char => "'", sep_char => ",");
 

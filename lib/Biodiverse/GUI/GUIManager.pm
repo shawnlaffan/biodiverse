@@ -3019,6 +3019,6 @@ LGPL
 
 =head1 SEE ALSO
 
-See http://www.purl.org/biodiverse for more details.
+See https://www.purl.org/biodiverse for more details.
 
 =cut

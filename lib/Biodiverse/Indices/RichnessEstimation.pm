@@ -1133,7 +1133,7 @@ Biodiverse::Indices::EstimateS
 =head1 DESCRIPTION
 
 Species richness estimation indices for the Biodiverse system,
-based on the EstimateS (L<http://purl.oclc.org/estimates>)
+based on the EstimateS (L<https://purl.oclc.org/estimates>)
 and SpadeR (L<https://github.com/AnneChao/SpadeR>) software.
 
 It is inherited by Biodiverse::Indices and not to be used on it own.
@@ -1150,7 +1150,7 @@ See L<http://code.google.com/p/biodiverse/wiki/Indices> for more details.
 
 =head1 REPORTING ERRORS
 
-Use the issue tracker at http://www.purl.org/biodiverse
+Use the issue tracker at https://www.purl.org/biodiverse
 
 =head1 COPYRIGHT
 
@@ -1168,6 +1168,6 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
-For a full copy of the license see <http://www.gnu.org/licenses/>.
+For a full copy of the license see <https://www.gnu.org/licenses/>.
 
 =cut

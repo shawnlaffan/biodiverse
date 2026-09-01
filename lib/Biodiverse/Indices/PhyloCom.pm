@@ -99,7 +99,7 @@ sub get_mpd_mntd_metadata {
         },
         PMPD_VARIANCE => {
             description    => "Variance of pairwise phylogenetic distances,\n"
-                . "similar to Clarke and Warwick (2001; http://dx.doi.org/10.3354/meps216265)"
+                . "similar to Clarke and Warwick (2001; https://doi.org/10.3354/meps216265)"
                 . " but uses tip-to-tip distances instead of tip to most recent common ancestor.",
             #formula        => $mpd_variance_formula,
             distribution => 'nonnegative',
@@ -1534,11 +1534,11 @@ Biodiverse::Indices::PhyloCom
 =head1 DESCRIPTION
 
 Phylogenetic indices for the Biodiverse system, based on
-those available in the PhyloCom system (L<http://phylodiversity.net/phylocom/>).
+those available in the PhyloCom system (L<https://github.com/phylocom/phylocom>).
 
 It is inherited by Biodiverse::Indices and not to be used on it own.
 
-See L<http://purl.org/biodiverse/wiki/Indices> for more details.
+See L<https://biogeospatial.github.io/biodiverse-indices> for more details.
 
 =head1 METHODS
 
@@ -1550,7 +1550,7 @@ See L<http://purl.org/biodiverse/wiki/Indices> for more details.
 
 =head1 REPORTING ERRORS
 
-Use the issue tracker at http://www.purl.org/biodiverse
+Use the issue tracker at https://www.purl.org/biodiverse
 
 =head1 COPYRIGHT
 
@@ -1568,6 +1568,6 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
-For a full copy of the license see <http://www.gnu.org/licenses/>.
+For a full copy of the license see <https://www.gnu.org/licenses/>.
 
 =cut

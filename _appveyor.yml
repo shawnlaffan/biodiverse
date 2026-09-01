@@ -22,8 +22,8 @@ install:
   - cd C:\projects\%APPVEYOR_PROJECT_NAME%
   
   #- cpanm --installdeps --notest PDL
-  #- ppm set repository BDV_PPM http://biodiverse.unsw.edu.au/downloads/ppm
-  #- ppm install --location http://biodiverse.unsw.edu.au/downloads/ppm PDL
+  #- ppm set repository BDV_PPM https://biodiverse.unsw.edu.au/downloads/ppm
+  #- ppm install --location https://biodiverse.unsw.edu.au/downloads/ppm PDL
   #- perl -MPDL -E"say 1"  #  check installation
   #- cpanm --notest --no-man-pages PDL
 

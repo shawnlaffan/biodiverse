@@ -100,7 +100,7 @@ sub on_about_activate {
     my $dlg = Gtk3::AboutDialog->new();
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
-    my $url = 'http://www.purl.org/biodiverse';
+    my $url = 'https://www.purl.org/biodiverse';
 
     $dlg->set(
         authors => [

@@ -27,7 +27,7 @@ Task file for Biodiverse dependencies for non-GUI use across all platforms.
 
 See L<Task::Biodiverse> for the additional libs needed by the GUI.
 
-See L<http://www.purl.org/biodiverse> for more details about Biodiverse itself.  
+See L<https://www.purl.org/biodiverse> for more details about Biodiverse itself.
 
 
 =head1 AUTHOR

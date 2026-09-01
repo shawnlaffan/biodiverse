@@ -1,10 +1,3 @@
-[![Build Status](https://travis-ci.org/shawnlaffan/biodiverse.svg?branch=master)](https://travis-ci.org/shawnlaffan/biodiverse)
-[![Build status](https://ci.appveyor.com/api/projects/status/9dnh2co30sfbl3i2/branch/master?svg=true)](https://ci.appveyor.com/project/shawnlaffan/biodiverse/branch/master)
-![Windows](https://github.com/shawnlaffan/biodiverse/workflows/Windows/badge.svg)
-![macos](https://github.com/shawnlaffan/biodiverse/workflows/macos/badge.svg)
-[![Build Status](https://api.cirrus-ci.com/github/shawnlaffan/biodiverse.svg)](https://cirrus-ci.com/github/shawnlaffan/biodiverse)
-
-
 # Biodiverse
 
 Biodiverse is a tool for the spatial analysis of diversity using indices based on taxonomic, phylogenetic, trait and matrix-based (e.g. genetic distance) relationships, as well as related environmental and temporal variations. 
@@ -22,33 +15,29 @@ Biodiverse supports the following processes:
 
 Biodiverse is open-source and supports user developed extensions. It can be used both through a graphical user interface (GUI) and through user written scripts.
 
-More than 300 indices are supported.  See the [Indices](https://github.com/shawnlaffan/biodiverse/wiki/Indices) page.
+More than 300 indices are supported.  See the [Indices](https://biogeospatial.github.io/biodiverse-indices/) page.
 
 *Screen shots* can be found on the ScreenShots page.
 
-**Example applications** can be seen at the [publications page](https://github.com/shawnlaffan/biodiverse/wiki/PublicationsList).
+**Example applications** can be seen at the [publications page](https://biogeospatial.github.io/biodiverse-publication-list/).
 
 *Help* can be located via the [help pages](https://github.com/shawnlaffan/biodiverse/wiki/Home) (these are also accessible via the wiki link on the right of this page).
 
-A **discussion group** is at http://groups.google.com.au/group/biodiverse-users and a **blog** at http://biodiverse-analysis-software.blogspot.com.au/
+A **discussion group** is at https://groups.google.com.au/group/biodiverse-users and a **blog** at https://biodiverse-analysis-software.blogspot.com.au/
 
 
 To cite Biodiverse or acknowledge its use, use the following details, substituting the version of the application that you used for "Version 1.0".
 
 * Laffan, S.W., Lubarsky, E. & Rosauer, D.F. (2010) Biodiverse, a tool for the spatial analysis of biological and related diversity. [Ecography. Vol 33, 643-647 (Version 1.0)](https://doi.org/10.1111/j.1600-0587.2010.06237.x).
 
-An overview of the system is also provided in Dan Rosauer's talk at TDWG2008:
-
-* Rosauer, D.F. & Laffan, S.W. (2008) Linking phylogenetic trees, taxonomy & geography to map phylogeography using Biodiverse. Taxonomic Data Working Group 2008, Perth, Australia. [PPT](http://www.tdwg.org/fileadmin/2008conference/slides/Rosauer_09_05_phyloTrees.ppt) [SWF with audio](http://www.tdwg.org/fileadmin/2008conference/slides/Rosauer_09_05_phyloTrees.swf). 
-
-For a list of **publications using Biodiverse**, see the [PublicationsList](https://github.com/shawnlaffan/biodiverse/wiki/PublicationsList) page.  
+For a list of **publications using Biodiverse**, see the [PublicationsList](https://biogeospatial.github.io/biodiverse-publication-list/) page.  
 
 # Installation
 Installation instructions can be accessed through the [Installation](https://github.com/shawnlaffan/biodiverse/wiki/Installation) page.
 
 # News 
 
-See http://shawnlaffan.github.io/biodiverse/#news
+See https://shawnlaffan.github.io/biodiverse/#news
 
 
 # Acknowledgements 
@@ -59,7 +48,7 @@ Much of the original GUI coding was by Eugene Lubarsky.  Substantial contributio
 
 # Persistent URL 
 
-http://www.purl.org/biodiverse
+https://www.purl.org/biodiverse
 
 ## Keywords 
 

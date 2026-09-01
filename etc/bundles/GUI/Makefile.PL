@@ -15,7 +15,7 @@ WriteMakefile(
             repository => {
                 type => 'git',
                 url  => 'https://github.com/shawnlaffan/biodiverse.git',
-                web  => 'http://purl.org/biodiverse',
+                web  => 'https://purl.org/biodiverse',
             },
             bugtracker => {
                 web => 'https://github.com/shawnlaffan/biodiverse/issues/',

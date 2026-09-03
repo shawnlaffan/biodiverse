@@ -176,6 +176,7 @@ sub choose_file_location_dialog {
     $dlg->set_transient_for( $gui->get_object('wndMain') );
     $dlg->set_title("Export format: $selected_format");
     $dlg->set_modal(1);
+    $gui->move_dlg_to_same_monitor_as_other($dlg);
 
     my $chooser = $dlgxml->get_object('filechooser');
     $chooser->set_current_folder_uri(getcwd());

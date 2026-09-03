@@ -151,6 +151,33 @@ sub set_dirty {
     return;
 }
 
+#  long sub name but we don't want to use it too often...
+sub move_dlg_to_same_monitor_as_other {
+    my ($self, $dlg_from, $dlg_to) = @_;
+
+    $dlg_to //= $self->get_object('wndMain');
+
+    if (my $w1 = $dlg_to->get_window) {
+        my $display = $w1->get_display;
+        if (my $monitor = $display->get_monitor_at_window($w1)) {
+
+            my $w2 = $dlg_from->get_window;
+            return if !defined $w2;
+            my $d2 = $w2->get_display;
+            my $m2 = $d2->get_monitor_at_window($w2);
+
+            return if $monitor == $m2;  #  already there
+
+            my $geom = $monitor->get_geometry;
+            $dlg_from->move($geom->{x} + 50, $geom->{y} + 50);
+        }
+    }
+
+    $dlg_from->set_position('GTK_WIN_POS_CENTER_ON_PARENT');
+
+    return;
+}
+
 #  A kludge to stop keyboard events triggering during exports
 #  when a display tab is open.
 #  Should look into trapping button-press-events
@@ -2753,6 +2780,8 @@ sub show_save_dialog {
     }
 
     $dlg->set_modal(1);
+    $self->move_dlg_to_same_monitor_as_other($dlg);
+
     eval { $dlg->set_do_overwrite_confirmation(1); }; # GTK < 2.8 doesn't have this
 
     my ( $filename, $format );
@@ -2794,6 +2823,8 @@ sub show_open_dialog {
     $filter->set_name(".$suffix files");
     $dlg->add_filter($filter);
     $dlg->set_modal(1);
+    $dlg->show;
+    $self->move_dlg_to_same_monitor_as_other($dlg);
 
     my $filename;
     if ( $dlg->run() eq 'ok' ) {

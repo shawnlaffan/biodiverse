@@ -539,6 +539,8 @@ sub close_project {
         my $dlg = $dlgxml->get_object('dlgClose');
         $dlg->set_transient_for( $self->get_object('wndMain') );
         $dlg->set_modal(1);
+        $self->move_dlg_to_same_monitor_as_other($dlg);
+
         my $response = $dlg->run();
         $dlg->destroy();
 

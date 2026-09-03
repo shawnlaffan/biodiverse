@@ -151,6 +151,11 @@ sub set_dirty {
     return;
 }
 
+sub get_main_window {
+    my $self = shift;
+    $self->get_object('wndMain');
+}
+
 #  long sub name but we don't want to use it too often...
 sub move_dlg_to_same_monitor_as_other {
     my ($self, $dlg_from, $dlg_to) = @_;

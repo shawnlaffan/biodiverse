@@ -358,6 +358,7 @@ sub on_export {
         my $dlg = $dlgxml->get_object('dlgGroupsLabels');
         $dlg->set_transient_for( $gui->get_object('wndMain') );
         $dlg->set_modal(1);
+        $gui->move_dlg_to_same_monitor_as_other($dlg);
         my $response = $dlg->run();
         $dlg->destroy();
 

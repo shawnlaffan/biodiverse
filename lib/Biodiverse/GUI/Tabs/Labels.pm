@@ -2779,6 +2779,7 @@ sub do_new_basedata_from_selection {
     my $dlg = $dlgxml->get_object('dlgDuplicate');
     $dlg->set_title ('Basedata object name');
     $dlg->set_transient_for( $gui->get_object('wndMain') );
+    $gui->move_dlg_to_same_monitor_as_other($dlg);
 
     my $txt_name = $dlgxml->get_object('txtName');
     my $name = $bd->get_param('NAME') . ' SUBSET';

@@ -169,6 +169,7 @@ sub run_axis_selector_dialog {
     my $dlg = $dlgxml->get_object('dlgGroupsLabels');
     $dlg->set_transient_for( $gui->get_object('wndMain') );
     $dlg->set_modal(1);
+    $self->move_dlg_to_same_monitor_as_other($dlg);
     my $label = $dlgxml->get_object('label_dlg_groups_labels');
     $label->set_text('Drop group or label axes?');
     $dlg->set_title('Axis selector');
@@ -277,6 +278,7 @@ sub do_basedata_attach_properties {
     my $dlg = $dlgxml->get_object('dlgGroupsLabels');
     $dlg->set_transient_for( $gui->get_object('wndMain') );
     $dlg->set_modal(1);
+    $self->move_dlg_to_same_monitor_as_other($dlg);
     my $label = $dlgxml->get_object('label_dlg_groups_labels');
     $label->set_text('Group or label properties?');
     $dlg->set_title('Attach properties');

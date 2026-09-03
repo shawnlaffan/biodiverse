@@ -863,7 +863,9 @@ sub get_dlg_duplicate {
     my $self   = shift;
     my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file( $self->get_gtk_ui_file('dlgDuplicate.ui') );
-    return ( $dlgxml, $dlgxml->get_object('dlgDuplicate') );
+    my $dlg = $dlgxml->get_object('dlgDuplicate');
+    $self->move_dlg_to_same_monitor_as_other($dlg);
+    return ( $dlgxml, $dlg );
 }
 
 

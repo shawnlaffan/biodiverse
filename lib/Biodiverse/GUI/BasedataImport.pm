@@ -1363,6 +1363,7 @@ sub make_reorder_dialog {
     $dlgxml->add_from_file( $gui->get_gtk_ui_file('dlgReorderColumns.ui') );
     my $dlg = $dlgxml->get_object('dlgReorderColumns');
     $dlg->set_transient_for( $gui->get_object('wndMain') );
+    $gui->move_dlg_to_same_monitor_as_other($dlg);
 
     my $list_groups =
       setup_reorder_list( 'groups', $dlgxml, $columns->{groups} );

@@ -319,6 +319,8 @@ sub do_basedata_attach_properties {
         $summary_text,
     );
     $summary_dlg->set_title('Assigned properties');
+    $summary_dlg->show;
+    $self->move_dlg_to_same_monitor_as_other($summary_dlg);
 
     $summary_dlg->run;
     $summary_dlg->destroy;
@@ -355,7 +357,9 @@ sub do_basedata_attach_group_properties_from_rasters {
     }
     $dlg->add_filter($filter);
     $dlg->set_modal(1);
-    
+    $dlg->show;
+    $self->move_dlg_to_same_monitor_as_other($dlg);
+
     my $vbox = $dlg->get_content_area;
 
     my $checkbox  = Gtk3::CheckButton->new;
@@ -476,6 +480,8 @@ sub do_basedata_attach_group_properties_from_rasters {
         $summary_text,
     );
     $summary_dlg->set_title('Assigned properties');
+    $summary_dlg->show;
+    $self->move_dlg_to_same_monitor_as_other($summary_dlg);
 
     $summary_dlg->run;
     $summary_dlg->destroy;

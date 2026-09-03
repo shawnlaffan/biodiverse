@@ -102,6 +102,8 @@ sub run {
 
     $self->{dlg} = $dlg;
     $dlg->show_all;
+    $self->{gui}->move_dlg_to_same_monitor_as_other($dlg);
+
     my $response = $dlg->run();
     delete $self->{dlg};
     $dlg->destroy();

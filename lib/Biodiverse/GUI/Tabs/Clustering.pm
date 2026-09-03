@@ -470,7 +470,7 @@ sub on_set_slider_actions {
 
     my $dlg = Gtk3::Dialog->new_with_buttons (
         'Set slider properties',
-        undef,
+        Biodiverse::GUI::GUIManager->instance->get_main_window,
         'destroy-with-parent',
         'gtk-ok' => 'ok',
         'gtk-cancel' => 'cancel',

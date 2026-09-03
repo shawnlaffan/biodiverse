@@ -291,7 +291,7 @@ sub run_options_dialogue {
 
     my $dlg = Gtk3::Dialog->new (
         'Spatial conditions options',
-        undef,
+        Biodiverse::GUI::GUIManager->instance->get_main_window,
         'modal',
         'gtk-cancel' => 'cancel',
         'gtk-ok' => 'ok',

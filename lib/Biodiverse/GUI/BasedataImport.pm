@@ -946,7 +946,7 @@ sub get_gdal_layer_selection {
     my $ds_name = $ds->GetDescription;
     my $dlg = Gtk3::Dialog->new(
         "Select layers",
-        undef,
+        Biodiverse::GUI::GUIManager->instance->get_main_window,
         'modal',
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok',

@@ -62,6 +62,9 @@ sub Run {
 
     # Show the dialog
     $dlg->set_modal(1);
+    $dlg->show;
+    $gui->move_dlg_to_same_monitor_as_other($dlg);
+
     my $response = $dlg->run();
 
     my ($name, $filename);

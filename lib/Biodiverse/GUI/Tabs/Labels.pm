@@ -966,7 +966,7 @@ sub run_highlight_label_range_polygons_dlg {
     if (!$self->range_polygons_are_valid) {
         my $dlg = Gtk3::Dialog->new_with_buttons (
             'Range polygons',
-            undef,
+            Biodiverse::GUI::GUIManager->instance->get_main_window,
             'destroy-with-parent',
             'gtk-ok' => 'ok',
             # 'gtk-cancel' => 'cancel',
@@ -998,7 +998,7 @@ sub run_highlight_label_range_polygons_dlg {
 
     my $dlg = Gtk3::Dialog->new_with_buttons (
         'Range polygons',
-        undef,
+        Biodiverse::GUI::GUIManager->instance->get_main_window,
         'destroy-with-parent',
         'gtk-ok' => 'ok',
         'gtk-cancel' => 'cancel',

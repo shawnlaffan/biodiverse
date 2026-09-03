@@ -441,7 +441,7 @@ sub run_combo_sparse_normal {
 
     my $dlg = Gtk3::Dialog->new_with_buttons(
         'Input file format',
-        undef,
+        Biodiverse::GUI::GUIManager->instance->get_main_window,
         'modal',
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok',

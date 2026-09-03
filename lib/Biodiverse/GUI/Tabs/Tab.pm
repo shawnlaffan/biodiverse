@@ -569,7 +569,7 @@ sub on_set_legend_font_size {
     my $current_size = $legend->get_font_size;
     my $dlg = Gtk3::Dialog->new_with_buttons (
         'Set legend font size',
-        undef,
+        Biodiverse::GUI::GUIManager->instance->get_main_window,
         'destroy-with-parent',
         'gtk-ok' => 'ok',
         'gtk-cancel' => 'cancel',
@@ -936,7 +936,7 @@ sub on_set_tree_line_widths {
 
     my $dlg = Gtk3::Dialog->new_with_buttons (
         'Set branch width',
-        undef,
+        Biodiverse::GUI::GUIManager->instance->get_main_window,
         'destroy-with-parent',
         'gtk-ok' => 'ok',
         'gtk-cancel' => 'cancel',
@@ -1551,7 +1551,7 @@ sub run_dlg_extra_calc_options {
 
         my $dlg = Gtk3::Dialog->new_with_buttons (
             'Tree node ranges',
-            undef,
+            Biodiverse::GUI::GUIManager->instance->get_main_window,
             'destroy-with-parent',
             'gtk-ok' => 'ok',
             'gtk-cancel' => 'cancel',

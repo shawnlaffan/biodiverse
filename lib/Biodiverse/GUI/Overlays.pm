@@ -502,7 +502,7 @@ sub get_choice {
 
     my $dlg = Gtk3::Dialog->new_with_buttons(
         $window_text // 'Layer selection',
-        undef,
+        Biodiverse::GUI::GUIManager->instance->get_main_window,
         'modal',
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok',

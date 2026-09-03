@@ -337,6 +337,7 @@ sub run {
     my $extractors = $parameters_table->fill( $table_params, $table, $dlgxml );
 
     $dlg->show_all;
+    $gui->move_dlg_to_same_monitor_as_other($dlg);
     $response = $dlg->run;
     $dlg->destroy;
 
@@ -498,6 +499,7 @@ sub run {
             );
 
             $dlg->show_all;
+            $gui->move_dlg_to_same_monitor_as_other($dlg);
             $response = $dlg->run;
 
             #  harvest before dlg destruction
@@ -578,6 +580,7 @@ sub run {
             gp_axis_precision => $import_params{gp_axis_precision},
             file_layer_label  => $read_format_is_shp ? 'Files and layers' : undef,
         );
+        $gui->move_dlg_to_same_monitor_as_other($dlg);
 
       GET_COLUMN_TYPES:
         while (1) {  # Keep showing dialog until have at least one label & group
@@ -646,6 +649,7 @@ sub run {
         }
 
         ( $dlgxml, $dlg ) = make_reorder_dialog( $gui, $column_settings );
+        $gui->move_dlg_to_same_monitor_as_other($dlg);
         $response = $dlg->run();
 
         $reorder_params = fill_params($dlgxml);
@@ -1472,6 +1476,8 @@ sub make_filename_dialog {
     my $dlg = $dlgxml->get_object($import_dlg_name);
     my $x   = $gui->get_object('wndMain');
     $dlg->set_transient_for($x);
+
+    $gui->move_dlg_to_same_monitor_as_other ($dlg);
 
     # Initialise the basedatas combo
     $dlgxml->get_object($combo_import_basedatas)

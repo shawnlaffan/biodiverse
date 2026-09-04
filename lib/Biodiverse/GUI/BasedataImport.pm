@@ -619,9 +619,11 @@ sub run {
                   ? 'Please select at least one group and the label start column'
                   : 'Please select at least one label and one group column';
 
-                my $msg =
-                  Gtk3::MessageDialog->new( undef, 'modal', 'error', 'ok',
-                    $text );
+                my $msg = Gtk3::MessageDialog->new(
+                    $gui->get_main_window,
+                    'modal', 'error', 'ok',
+                    $text
+                );
 
                 $msg->run();
                 $msg->destroy();
@@ -2036,8 +2038,10 @@ sub get_remap_info {
         my $text =
           'Insufficient columns chosen of types.  Must have at least one of: '
           . join ' ', @$required_cols;
-        my $msg =
-          Gtk3::MessageDialog->new( undef, 'modal', 'error', 'ok', $text );
+        my $msg = Gtk3::MessageDialog->new(
+            $gui->get_main_window,
+            'modal', 'error', 'ok', $text
+        );
 
         $msg->run();
         $msg->destroy();

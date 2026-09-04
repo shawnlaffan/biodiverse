@@ -204,7 +204,7 @@ END_OF_GT2_AXIS_TEXT
   ;
 
     my $dialog = Gtk3::MessageDialog->new (
-        undef,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'destroy-with-parent',
         'warning',
         'ok',
@@ -690,6 +690,7 @@ sub on_colour_mode_changed {
                 $colour_select->set_current_rgba($col);
             }
             $colour_dialog->show_all();
+            Biodiverse::GUI::GUIManager->instance->move_dlg_to_same_monitor_as_other ($colour_dialog);
             my $response = $colour_dialog->run;
             if ($response eq 'ok') {
                 $self->{hue} = $colour_select->get_current_rgba();
@@ -868,6 +869,7 @@ sub get_colour_from_chooser {
     my ($self, $colour) = @_;
 
     my $dialog = Gtk3::ColorChooserDialog->new ('Select a colour');
+    Biodiverse::GUI::GUIManager->instance->move_dlg_to_same_monitor_as_other ($dialog);
 
     if ($colour) {
         if ($colour->isa('Gtk3::Gdk::Color')) {
@@ -979,6 +981,7 @@ sub on_tree_background_colour_changed {
         $colour_dialog->set_rgba ($current_colour);
     }
     $colour_dialog->show_all();
+    Biodiverse::GUI::GUIManager->instance->move_dlg_to_same_monitor_as_other ($colour_dialog);
     my $response = $colour_dialog->run;
     if ($response eq 'ok') {
         my $hue = $colour_dialog->get_rgba();
@@ -1962,7 +1965,9 @@ sub load_range_table_as_hash {
         my $text = 'Invalid columns chosen.  Must have one (and only one) of each of: '
                 . join ' ', @$required_cols;
         my $msg = Gtk3::MessageDialog->new(
-            undef, 'modal', 'error', 'ok', $text
+            $gui->get_main_window,
+            'modal',
+            'error', 'ok', $text
         );
 
         $msg->run();

@@ -143,7 +143,7 @@ sub run {
 
         #  try again if we get to here
         my $msg = Gtk3::MessageDialog->new(
-            undef,
+            Biodiverse::GUI::GUIManager->get_main_window,
             'modal',
             'error',
             'close',

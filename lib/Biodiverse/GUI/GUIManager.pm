@@ -1229,13 +1229,14 @@ sub show_describe_dialog {
         $table_widget = $table;
 
         my $window = Gtk3::Window->new('toplevel');
+        $window->set_transient_for( $self->get_main_window );
         $window->set_title('Description');
         $window->add($table_widget);
         $window->show_all;
     }
     else {
         my $dlg = Gtk3::MessageDialog->new(
-            $self->{gui},
+            $self->{gui}->get_main_window,
             'destroy-with-parent',
             'info',    # message type
             'ok',      # which set of buttons?

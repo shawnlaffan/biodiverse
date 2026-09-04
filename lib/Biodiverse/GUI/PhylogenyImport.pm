@@ -236,9 +236,11 @@ sub get_column_use {
         foreach my $usage (@$col_usages) {
             say "checking $usage, " . $column_settings->{$usage};
             if ( !$column_settings->{$usage} ) {
-                my $msg =
-                  Gtk3::MessageDialog->new( undef, 'modal', 'error', 'close',
-                    'Please select one of each column usage type' );
+                my $msg = Gtk3::MessageDialog->new(
+                    $gui->get_main_window,
+                    'modal', 'error', 'close',
+                    'Please select one of each column usage type'
+                );
                 $msg->run();
                 $msg->destroy();
                 $column_settings = undef;

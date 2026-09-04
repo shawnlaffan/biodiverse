@@ -12,7 +12,7 @@ use rlib;
 
 local $| = 1;
 
-our $VERSION = '5.99_003';
+our $VERSION = '5.99_004';
 
 use Biodiverse::Config;
 

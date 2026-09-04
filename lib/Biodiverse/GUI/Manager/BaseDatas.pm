@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use 5.022;
 
-our $VERSION = '5.99_003';
+our $VERSION = '5.99_004';
 
 use Carp;
 use Scalar::Util qw /blessed/;

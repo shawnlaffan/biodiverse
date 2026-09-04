@@ -2,7 +2,7 @@ package Biodiverse::GUI::Canvas::Dims;
 use strict;
 use warnings;
 
-our $VERSION = '5.99_003';
+our $VERSION = '5.99_004';
 
 sub new {
     my ($class, %args) = @_;

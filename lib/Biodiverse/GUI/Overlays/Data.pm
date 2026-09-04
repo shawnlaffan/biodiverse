@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.036;
 
-our $VERSION = '5.99_003';
+our $VERSION = '5.99_004';
 
 use feature qw/postderef/;
 use experimental qw/refaliasing/;

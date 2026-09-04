@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.036;
 
-our $VERSION = '5.99_003';
+our $VERSION = '5.99_004';
 
 use Tree::R ();  #  keep for now as old data might contain cached trees
 use Tree::STR 0.06 ();

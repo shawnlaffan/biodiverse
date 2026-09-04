@@ -466,7 +466,7 @@ sub init {
     if ( $VERSION =~ /_/ && !$ENV{BD_NO_GUI_DEV_WARN} && !$ENV{BDV_PP_BUILDING} ) {
         say $dev_version_warning;
         my $dlg = Gtk3::MessageDialog->new(
-            Biodiverse::GUI::GUIManager->instance->get_main_window,
+            Biodiverse::GUI::GUIManager->get_main_window,
             'modal', 'error', 'ok',
             $dev_version_warning,
         );
@@ -479,7 +479,10 @@ sub init {
 }
 
 sub get_main_window {
-    my ($self) = @_;
+    my $self = shift;
+    if (!blessed $self) {
+        $self = __PACKAGE__->instance;
+    }
     $self->{main_window} || $self->get_object('wndMain');
 }
 
@@ -2771,7 +2774,7 @@ sub show_save_dialog {
 
     my $dlg = Gtk3::FileChooserDialog->new(
         $title,
-        Biodiverse::GUI::GUIManager->instance->get_main_window,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'save',
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok',
@@ -2812,7 +2815,7 @@ sub show_open_dialog {
 
     my $dlg = Gtk3::FileChooserDialog->new(
         $title,
-        Biodiverse::GUI::GUIManager->instance->get_main_window,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'open',
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok',
@@ -2847,7 +2850,7 @@ sub do_set_working_directory {
 
     my $dlg = Gtk3::FileChooserDialog->new(
         $title,
-        Biodiverse::GUI::GUIManager->instance->get_main_window,
+        Biodiverse::GUI::GUIManager->get_main_window,
         "open",
         "gtk-cancel",  "cancel",
         "gtk-ok",      'ok'

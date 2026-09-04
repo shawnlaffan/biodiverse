@@ -869,7 +869,6 @@ sub get_colour_from_chooser {
     my ($self, $colour) = @_;
 
     my $dialog = Gtk3::ColorChooserDialog->new ('Select a colour');
-    Biodiverse::GUI::GUIManager->instance->move_dlg_to_same_monitor_as_other ($dialog);
 
     if ($colour) {
         if ($colour->isa('Gtk3::Gdk::Color')) {
@@ -880,6 +879,9 @@ sub get_colour_from_chooser {
             $dialog->set_rgba($colour);
         }
     }
+
+    $dialog->show;
+    Biodiverse::GUI::GUIManager->instance->move_dlg_to_same_monitor_as_other ($dialog);
 
     if ($dialog->run eq 'ok') {
         $colour = $dialog->get_rgba;

@@ -116,8 +116,10 @@ sub make_dialog {
     my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file($gui->get_gtk_ui_file('wndCellPopup.ui'));
 
+    my $dlg = $dlgxml->get_object(DLG_NAME);
     # Put it on top of main window
-    $dlgxml->get_object(DLG_NAME)->set_transient_for($gui->get_main_window);
+    $dlg->set_transient_for($gui->get_main_window);
+    $gui->move_dlg_to_same_monitor_as_other($dlg);
 
     # Set height to be 1/3 of screen
     #$dlgxml->get_object(DLG_NAME)->resize(1, Gtk3::Gdk->screen_height() / 3);

@@ -1631,6 +1631,7 @@ sub init_overlay_hash {
             $text .= "  $name\n";
         }
 
+        #  don't make transient for main as it might not have been set by the time this is called
         my $dialog = Gtk3::MessageDialog->new(
             undef, 'destroy-with-parent', 'warning',
             'ok', $text,

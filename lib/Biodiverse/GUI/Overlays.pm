@@ -86,6 +86,7 @@ sub show_dialog {
 
     $dlg->set_modal(1);
     $dlg->show_all();
+    $gui->move_dlg_to_same_monitor_as_other($dlg);
 
     return;
 }
@@ -364,7 +365,7 @@ sub on_add {
 
     my $open = Gtk3::FileChooserDialog->new(
         'Add overlay feature class',
-        undef,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'open',
         'gtk-cancel',
         'cancel',
@@ -502,7 +503,7 @@ sub get_choice {
 
     my $dlg = Gtk3::Dialog->new_with_buttons(
         $window_text // 'Layer selection',
-        undef,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'modal',
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok',

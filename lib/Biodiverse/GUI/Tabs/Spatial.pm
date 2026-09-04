@@ -1424,7 +1424,7 @@ sub on_run {
 
     if (scalar @to_run == 0) {
         my $dlg = Gtk3::MessageDialog->new(
-            undef,
+            Biodiverse::GUI::GUIManager->get_main_window,
             'modal',
             'error',
             'close',
@@ -2424,7 +2424,7 @@ sub run_options_dialogue {
 
     my $dlg = Gtk3::Dialog->new (
         'Spatial conditions options',
-        undef,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'modal',
         'gtk-cancel' => 'cancel',
         'gtk-ok' => 'ok',
@@ -2551,6 +2551,7 @@ sub on_tree_colour_mode_changed {
             my $colour_dialog = Gtk3::ColorSelectionDialog->new('Pick Hue');
             my $colour_select = $colour_dialog->get_color_selection();
             $colour_dialog->show_all();
+            Biodiverse::GUI::GUIManager->instance->move_dlg_to_same_monitor_as_other ($colour_dialog);
             my $response = $colour_dialog->run;
             if ($response eq 'ok') {
                 my $hue = $colour_select->get_current_color();
@@ -2583,6 +2584,7 @@ sub on_tree_undef_colour_changed {
         $colour_select->set_current_rgba ($current_colour);
     }
     $colour_dialog->show_all();
+    Biodiverse::GUI::GUIManager->instance->move_dlg_to_same_monitor_as_other ($colour_dialog);
     my $response = $colour_dialog->run;
     if ($response eq 'ok') {
         my $hue = $colour_select->get_current_rgba();

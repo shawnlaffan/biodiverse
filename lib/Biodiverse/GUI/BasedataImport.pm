@@ -337,6 +337,7 @@ sub run {
     my $extractors = $parameters_table->fill( $table_params, $table, $dlgxml );
 
     $dlg->show_all;
+    $gui->move_dlg_to_same_monitor_as_other($dlg);
     $response = $dlg->run;
     $dlg->destroy;
 
@@ -498,6 +499,7 @@ sub run {
             );
 
             $dlg->show_all;
+            $gui->move_dlg_to_same_monitor_as_other($dlg);
             $response = $dlg->run;
 
             #  harvest before dlg destruction
@@ -571,13 +573,14 @@ sub run {
         my $row_widgets;
         ( $dlg, $row_widgets ) = make_columns_dialog(
             header            => $col_names_for_dialog,
-            wnd_main          => $gui->get_object('wndMain'),
+            wnd_main          => $gui->get_main_window,
             row_options       => $col_options,
             file_list_text    => $file_list_as_text,
             max_opt_rows      => $import_params{max_opt_cols},
             gp_axis_precision => $import_params{gp_axis_precision},
             file_layer_label  => $read_format_is_shp ? 'Files and layers' : undef,
         );
+        $gui->move_dlg_to_same_monitor_as_other($dlg);
 
       GET_COLUMN_TYPES:
         while (1) {  # Keep showing dialog until have at least one label & group
@@ -616,9 +619,11 @@ sub run {
                   ? 'Please select at least one group and the label start column'
                   : 'Please select at least one label and one group column';
 
-                my $msg =
-                  Gtk3::MessageDialog->new( undef, 'modal', 'error', 'ok',
-                    $text );
+                my $msg = Gtk3::MessageDialog->new(
+                    $gui->get_main_window,
+                    'modal', 'error', 'ok',
+                    $text
+                );
 
                 $msg->run();
                 $msg->destroy();
@@ -646,6 +651,7 @@ sub run {
         }
 
         ( $dlgxml, $dlg ) = make_reorder_dialog( $gui, $column_settings );
+        $gui->move_dlg_to_same_monitor_as_other($dlg);
         $response = $dlg->run();
 
         $reorder_params = fill_params($dlgxml);
@@ -942,7 +948,7 @@ sub get_gdal_layer_selection {
     my $ds_name = $ds->GetDescription;
     my $dlg = Gtk3::Dialog->new(
         "Select layers",
-        undef,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'modal',
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok',
@@ -1358,7 +1364,8 @@ sub make_reorder_dialog {
     my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file( $gui->get_gtk_ui_file('dlgReorderColumns.ui') );
     my $dlg = $dlgxml->get_object('dlgReorderColumns');
-    $dlg->set_transient_for( $gui->get_object('wndMain') );
+    $dlg->set_transient_for( $gui->get_main_window );
+    $gui->move_dlg_to_same_monitor_as_other($dlg);
 
     my $list_groups =
       setup_reorder_list( 'groups', $dlgxml, $columns->{groups} );
@@ -1470,8 +1477,10 @@ sub make_filename_dialog {
     my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file( $gui->get_gtk_ui_file('dlgImport1.ui') );
     my $dlg = $dlgxml->get_object($import_dlg_name);
-    my $x   = $gui->get_object('wndMain');
+    my $x   = $gui->get_main_window;
     $dlg->set_transient_for($x);
+
+    $gui->move_dlg_to_same_monitor_as_other ($dlg);
 
     # Initialise the basedatas combo
     $dlgxml->get_object($combo_import_basedatas)
@@ -1956,6 +1965,7 @@ sub get_remap_info {
     my $extractors = $parameters_table->fill( $params, $table, $dlgxml );
 
     $dlg->show_all;
+    $gui->move_dlg_to_same_monitor_as_other($dlg);
     my $response = $dlg->run;
     $dlg->destroy;
 
@@ -1997,7 +2007,7 @@ sub get_remap_info {
 
     ( $dlg, my $col_widgets ) = make_remap_columns_dialog(
         header           => \@headers,
-        wnd_main         => $gui->get_object('wndMain'),
+        wnd_main         => $gui->get_main_window,
         other_props      => $other_properties,
         column_overrides => $column_overrides,
     );
@@ -2028,8 +2038,10 @@ sub get_remap_info {
         my $text =
           'Insufficient columns chosen of types.  Must have at least one of: '
           . join ' ', @$required_cols;
-        my $msg =
-          Gtk3::MessageDialog->new( undef, 'modal', 'error', 'ok', $text );
+        my $msg = Gtk3::MessageDialog->new(
+            $gui->get_main_window,
+            'modal', 'error', 'ok', $text
+        );
 
         $msg->run();
         $msg->destroy();

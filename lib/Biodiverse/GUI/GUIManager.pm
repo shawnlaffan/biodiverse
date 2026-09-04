@@ -151,6 +151,35 @@ sub set_dirty {
     return;
 }
 
+#  long sub name but we don't want to use it too often...
+sub move_dlg_to_same_monitor_as_other {
+    my ($self, $dlg_from, $dlg_to) = @_;
+
+    $dlg_to //= $self->get_main_window;
+
+    if (my $w1 = $dlg_to->get_window) {
+        my $display = $w1->get_display;
+        if (my $monitor = $display->get_monitor_at_window($w1)) {
+
+            my $w2 = $dlg_from->get_window;
+            return if !defined $w2;
+            my $d2 = $w2->get_display;
+            my $m2 = $d2->get_monitor_at_window($w2);
+
+            return if $monitor == $m2;  #  already there
+
+            my $geom = $monitor->get_geometry;
+            my $xoff = rand() * 50 + 50;
+            my $yoff = rand() * 50 + 50;
+            $dlg_from->move($geom->{x} + $xoff, $geom->{y} + $yoff);
+        }
+    }
+
+    $dlg_from->set_position('GTK_WIN_POS_CENTER_ON_PARENT');
+
+    return;
+}
+
 #  A kludge to stop keyboard events triggering during exports
 #  when a display tab is open.
 #  Should look into trapping button-press-events
@@ -193,7 +222,7 @@ sub init_progress_window {
 
     # create window
     my $window = Gtk3::Window->new;
-    $window->set_transient_for( $self->get_object('wndMain') );
+    $window->set_transient_for( $self->get_main_window );
     $window->set_title('Progress');
     $window->set_default_size( 300, -1 );
 
@@ -295,7 +324,7 @@ sub clear_progress_entry {
     #  We seem not to be able to detect when windows are minimised on Windows
     #  as state is always normal.
     #my $window = $self->{progress_bars}->{window};
-    #$window = $self->get_object('wndMain');
+    #$window = $self->get_main_window;
     #my $state = $window->get_state;
     #warn "State is $state\n";
     #$self->{progress_bars}->{window}->resize(1,1);
@@ -361,8 +390,9 @@ my $dev_version_warning = <<~"END_OF_DEV_WARNING"
 sub init {
     my $self = shift;
 
-    my $window = $self->get_object('wndMain');
-    $self->{main_window} = $window;
+    my $window
+        = $self->{main_window}
+        = $self->get_object('wndMain');
 
     # title
     $window->set_title( 'Biodiverse ' . $self->get_version );
@@ -438,8 +468,11 @@ sub init {
     #  warn if we are a dev version
     if ( $VERSION =~ /_/ && !$ENV{BD_NO_GUI_DEV_WARN} && !$ENV{BDV_PP_BUILDING} ) {
         say $dev_version_warning;
-        my $dlg = Gtk3::MessageDialog->new( undef, 'modal', 'error', 'ok',
-            $dev_version_warning, );
+        my $dlg = Gtk3::MessageDialog->new(
+            Biodiverse::GUI::GUIManager->get_main_window,
+            'modal', 'error', 'ok',
+            $dev_version_warning,
+        );
 
         $dlg->run;
         $dlg->destroy;
@@ -449,8 +482,11 @@ sub init {
 }
 
 sub get_main_window {
-    my ($self) = @_;
-    $self->{main_window} || $self->get_object('wndMain');
+    my $self = shift;
+    if (!blessed $self) {
+        $self = __PACKAGE__->instance;
+    }
+    $self->{main_window} //= $self->get_object('wndMain');
 }
 
 #sub progress_test {
@@ -510,8 +546,10 @@ sub close_project {
         my $dlgxml = Gtk3::Builder->new();
         $dlgxml->add_from_file( $self->get_gtk_ui_file('dlgClose.ui') );
         my $dlg = $dlgxml->get_object('dlgClose');
-        $dlg->set_transient_for( $self->get_object('wndMain') );
+        $dlg->set_transient_for( $self->get_main_window );
         $dlg->set_modal(1);
+        $self->move_dlg_to_same_monitor_as_other($dlg);
+
         my $response = $dlg->run();
         $dlg->destroy();
 
@@ -553,9 +591,13 @@ sub do_open {
 
     # Show the file selection dialogbox
     my $self = shift;
-    my $dlg =
-      Gtk3::FileChooserDialog->new( 'Open Project', undef, 'open', 'gtk-cancel',
-        'cancel', 'gtk-ok', 'ok', );
+    my $dlg = Gtk3::FileChooserDialog->new(
+        'Open Project',
+        Biodiverse::GUI::GUIManager->get_main_window,
+        'open',
+        'gtk-cancel' => 'cancel',
+        'gtk-ok'     => 'ok',
+    );
     my $filter;
 
     #  Abortive attempt to load any file.
@@ -660,7 +702,7 @@ sub update_title_bar {
 
     my $title = 'Biodiverse ' . $self->get_version . '          ' . $name;
 
-    $self->get_object('wndMain')->set_title($title);
+    $self->get_main_window->set_title($title);
 
     return;
 }
@@ -712,7 +754,7 @@ sub do_save_as {
         $self->{filename} = $file;
 
         my $title = 'Biodiverse ' . $self->get_version . '          ' . $file;
-        $self->get_object('wndMain')->set_title($title);
+        $self->get_main_window->set_title($title);
 
         $self->{project}->clear_dirty();    # Mark as having no changes
 
@@ -834,7 +876,9 @@ sub get_dlg_duplicate {
     my $self   = shift;
     my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file( $self->get_gtk_ui_file('dlgDuplicate.ui') );
-    return ( $dlgxml, $dlgxml->get_object('dlgDuplicate') );
+    my $dlg = $dlgxml->get_object('dlgDuplicate');
+    $self->move_dlg_to_same_monitor_as_other($dlg);
+    return ( $dlgxml, $dlg );
 }
 
 
@@ -847,7 +891,7 @@ sub do_rename_output {
     # Show the Get Name dialog
     my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
     $dlg->set_title('Rename output');
-    $dlg->set_transient_for( $self->get_object('wndMain') );
+    $dlg->set_transient_for( $self->get_main_window );
 
     my $txt_name = $dlgxml->get_object('txtName');
     my $name     = $object->get_param('NAME');
@@ -907,7 +951,7 @@ sub do_rename_matrix {
     # Show the Get Name dialog
     my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
     $dlg->set_title('Rename matrix object');
-    $dlg->set_transient_for( $self->get_object('wndMain') );
+    $dlg->set_transient_for( $self->get_main_window );
 
     my $txt_name = $dlgxml->get_object('txtName');
     my $name     = $ref->get_param('NAME');
@@ -935,7 +979,7 @@ sub do_rename_phylogeny {
     # Show the Get Name dialog
     my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
     $dlg->set_title('Rename tree object');
-    $dlg->set_transient_for( $self->get_object('wndMain') );
+    $dlg->set_transient_for( $self->get_main_window );
 
     my $txt_name = $dlgxml->get_object('txtName');
     my $name     = $ref->get_param('NAME');
@@ -1187,13 +1231,14 @@ sub show_describe_dialog {
         $table_widget = $table;
 
         my $window = Gtk3::Window->new('toplevel');
+        $window->set_transient_for( $self->get_main_window );
         $window->set_title('Description');
         $window->add($table_widget);
         $window->show_all;
     }
     else {
         my $dlg = Gtk3::MessageDialog->new(
-            $self->{gui},
+            $self->{gui}->get_main_window,
             'destroy-with-parent',
             'info',    # message type
             'ok',      # which set of buttons?
@@ -1287,7 +1332,7 @@ sub do_duplicate_basedata {
 
     # Show the Get Name dialog
     my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
-    $dlg->set_transient_for( $self->get_object('wndMain') );
+    $dlg->set_transient_for( $self->get_main_window );
 
     my $txt_name = $dlgxml->get_object('txtName');
     my $name     = $object->get_param('NAME');
@@ -1522,7 +1567,7 @@ sub do_convert_labels_to_phylogeny {
 
     # Show the Get Name dialog
     my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
-    $dlg->set_transient_for( $self->get_object('wndMain') );
+    $dlg->set_transient_for( $self->get_main_window );
 
     my $txt_name = $dlgxml->get_object('txtName');
     my $name     = $bd->get_param('NAME');
@@ -1600,7 +1645,7 @@ sub do_trim_matrix_to_basedata {
       
     # Show the Get Name dialog
     my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
-    $dlg->set_transient_for( $self->get_object('wndMain') );
+    $dlg->set_transient_for( $self->get_main_window );
 
     my $txt_name = $dlgxml->get_object('txtName');
     my $name     = $mx->get_param('NAME');
@@ -1675,7 +1720,7 @@ sub do_convert_matrix_to_phylogeny {
 
         # Show the Get Name dialog
         my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
-        $dlg->set_transient_for( $self->get_object('wndMain') );
+        $dlg->set_transient_for( $self->get_main_window );
 
         my $txt_name = $dlgxml->get_object('txtName');
         my $name     = $matrix_ref->get_param('NAME');
@@ -1758,7 +1803,7 @@ sub do_convert_phylogeny_to_matrix {
     if ( $response eq 'no' ) {    #  get a new one
                                   # Show the Get Name dialog
         my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
-        $dlg->set_transient_for( $self->get_object('wndMain') );
+        $dlg->set_transient_for( $self->get_main_window );
 
         my $txt_name = $dlgxml->get_object('txtName');
         my $name     = $phylogeny->get_param('NAME');
@@ -1836,7 +1881,7 @@ sub do_trim_tree_to_basedata {
 
     # Show the Get Name dialog
     my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
-    $dlg->set_transient_for( $self->get_object('wndMain') );
+    $dlg->set_transient_for( $self->get_main_window );
     
     my $vbox = $dlg->get_content_area;
     my $checkbox  = Gtk3::CheckButton->new;
@@ -1948,7 +1993,7 @@ sub do_trim_tree_to_lca {
 
     # Show the Get Name dialog
     my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
-    $dlg->set_transient_for( $self->get_object('wndMain') );
+    $dlg->set_transient_for( $self->get_main_window );
 
     my $txt_name = $dlgxml->get_object('txtName');
     my $name     = $phylogeny->get_param('NAME');
@@ -2007,7 +2052,7 @@ sub do_tree_merge_knuckle_nodes {
 
     # Show the Get Name dialog
     my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
-    $dlg->set_transient_for( $self->get_object('wndMain') );
+    $dlg->set_transient_for( $self->get_main_window );
 
     my $txt_name = $dlgxml->get_object('txtName');
     my $name     = $phylogeny->get_param('NAME');
@@ -2065,7 +2110,7 @@ sub do_tree_equalise_branch_lengths {
 
     # Show the Get Name dialog
     my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
-    $dlg->set_transient_for( $self->get_object('wndMain') );
+    $dlg->set_transient_for( $self->get_main_window );
 
     my $txt_name = $dlgxml->get_object('txtName');
     my $name     = $phylogeny->get_param('NAME');
@@ -2119,7 +2164,7 @@ sub do_tree_rescale_branch_lengths {
 
     # Show the Get Name dialog
     my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
-    $dlg->set_transient_for( $self->get_object('wndMain') );
+    $dlg->set_transient_for( $self->get_main_window );
 
     my $txt_name = $dlgxml->get_object('txtName');
     my $name     = $phylogeny->get_param('NAME');
@@ -2160,7 +2205,7 @@ sub do_tree_rescale_branch_lengths {
     $dlgxml->add_from_file( $self->get_gtk_ui_file('dlgImportParameters.ui') );
     my $param_dlg = $dlgxml->get_object('dlgImportParameters');
 
-    #$param_dlg->set_transient_for( $self->get_object('wndMain') );
+    #$param_dlg->set_transient_for( $self->get_main_window );
     $param_dlg->set_title('Rescale options');
 
     # Build widgets for parameters
@@ -2419,7 +2464,7 @@ sub show_index_dialog {
     my $table = $dlgxml->get_object('tableImportParameters');
 
     my $dlg = $dlgxml->get_object('dlgImportParameters');
-    $dlg->set_transient_for( $self->get_object('wndMain') );
+    $dlg->set_transient_for( $self->get_main_window );
     $dlg->set_title('Set index sizes');
 
     #  add the incr/decr buttons
@@ -2621,7 +2666,7 @@ sub show_index_dialog_orig {
     my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file( $self->get_gtk_ui_file('dlgIndex.ui') );
     my $dlg = $dlgxml->get_object('dlgIndex');
-    $dlg->set_transient_for( $self->get_object('wndMain') );
+    $dlg->set_transient_for( $self->get_main_window );
     $dlg->set_modal(1);
 
     # set existing settings
@@ -2711,7 +2756,7 @@ sub do_run_exclusions {
         }
         my $dlg = Gtk3::Dialog->new(
             'Exclusion results',
-            $self->get_object('wndMain'),
+            $self->get_main_window,
             'modal', 'gtk-ok' => 'ok',
         );
         my $text_widget = Gtk3::Label->new();
@@ -2737,7 +2782,7 @@ sub show_save_dialog {
 
     my $dlg = Gtk3::FileChooserDialog->new(
         $title,
-        undef,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'save',
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok',
@@ -2753,6 +2798,7 @@ sub show_save_dialog {
     }
 
     $dlg->set_modal(1);
+
     eval { $dlg->set_do_overwrite_confirmation(1); }; # GTK < 2.8 doesn't have this
 
     my ( $filename, $format );
@@ -2777,7 +2823,7 @@ sub show_open_dialog {
 
     my $dlg = Gtk3::FileChooserDialog->new(
         $title,
-        undef,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'open',
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok',
@@ -2794,6 +2840,7 @@ sub show_open_dialog {
     $filter->set_name(".$suffix files");
     $dlg->add_filter($filter);
     $dlg->set_modal(1);
+    $dlg->show;
 
     my $filename;
     if ( $dlg->run() eq 'ok' ) {
@@ -2810,7 +2857,9 @@ sub do_set_working_directory {
     my $initial_dir = shift;
 
     my $dlg = Gtk3::FileChooserDialog->new(
-        $title, undef, "open",
+        $title,
+        Biodiverse::GUI::GUIManager->get_main_window,
+        "open",
         "gtk-cancel",  "cancel",
         "gtk-ok",      'ok'
     );
@@ -2878,7 +2927,7 @@ sub report_error {
 
     my $dlg = Gtk3::Dialog->new(
         $title,
-        $self->get_object('wndMain'),
+        $self->get_main_window,
         'modal',
         'show details' => $show_details_value,
         'gtk-ok'       => 'ok',

@@ -470,7 +470,7 @@ sub on_set_slider_actions {
 
     my $dlg = Gtk3::Dialog->new_with_buttons (
         'Set slider properties',
-        undef,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'destroy-with-parent',
         'gtk-ok' => 'ok',
         'gtk-cancel' => 'cancel',
@@ -505,6 +505,8 @@ sub on_set_slider_actions {
     #  get value here so we can reset on cancel
     my $val = $dendrogram->get_tip_count_colour_thresh // 0;
     my $chk_val = $dendrogram->get_slider_colour_below_selected_node;
+
+    $dlg->set_transient_for (Biodiverse::GUI::GUIManager->get_main_window);
 
     $dlg->show_all;
     my $response = $dlg->run;
@@ -1253,7 +1255,7 @@ sub get_output_file_handles {
 
     my $file_chooser = Gtk3::FileChooserDialog->new (
         'Choose file prefix',
-        undef,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'save',
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok'
@@ -1330,7 +1332,7 @@ sub get_overwrite_response {
 
     my $dlg = Gtk3::Dialog->new(
         $title,
-        $self->{gui}->get_object('wndMain'),
+        $self->{gui}->get_main_window,
         'modal',
         'gtk-yes' => 'ok',
         'gtk-no'  => 'no',

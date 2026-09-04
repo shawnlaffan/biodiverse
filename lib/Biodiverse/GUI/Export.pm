@@ -58,7 +58,7 @@ sub Run {
         $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgImportParameters.ui'));
         my $format_dlg = $dlgxml->get_object('dlgImportParameters');
 
-        $format_dlg->set_transient_for( $gui->get_object('wndMain') );
+        $format_dlg->set_transient_for( $gui->get_main_window );
         $format_dlg->set_title ('Export parameters');
 
         # Build widgets for parameters
@@ -173,9 +173,10 @@ sub choose_file_location_dialog {
     $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgExport.ui'));
 
     my $dlg = $dlgxml->get_object('dlgExport');
-    $dlg->set_transient_for( $gui->get_object('wndMain') );
+    $dlg->set_transient_for( $gui->get_main_window );
     $dlg->set_title("Export format: $selected_format");
     $dlg->set_modal(1);
+    $gui->move_dlg_to_same_monitor_as_other($dlg);
 
     my $chooser = $dlgxml->get_object('filechooser');
     $chooser->set_current_folder_uri(getcwd());

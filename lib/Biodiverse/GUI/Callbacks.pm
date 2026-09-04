@@ -141,6 +141,9 @@ sub on_about_activate {
 
     $dlg->signal_connect( response => sub { $_[0]->destroy; 1 } );
 
+    $dlg->show;
+    $gui->move_dlg_to_same_monitor_as_other($dlg);
+
     $dlg->run();
 }
 

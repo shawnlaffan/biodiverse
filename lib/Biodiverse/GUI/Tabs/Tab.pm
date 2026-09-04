@@ -204,7 +204,7 @@ END_OF_GT2_AXIS_TEXT
   ;
 
     my $dialog = Gtk3::MessageDialog->new (
-        undef,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'destroy-with-parent',
         'warning',
         'ok',
@@ -569,7 +569,7 @@ sub on_set_legend_font_size {
     my $current_size = $legend->get_font_size;
     my $dlg = Gtk3::Dialog->new_with_buttons (
         'Set legend font size',
-        undef,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'destroy-with-parent',
         'gtk-ok' => 'ok',
         'gtk-cancel' => 'cancel',
@@ -690,6 +690,7 @@ sub on_colour_mode_changed {
                 $colour_select->set_current_rgba($col);
             }
             $colour_dialog->show_all();
+            Biodiverse::GUI::GUIManager->instance->move_dlg_to_same_monitor_as_other ($colour_dialog);
             my $response = $colour_dialog->run;
             if ($response eq 'ok') {
                 $self->{hue} = $colour_select->get_current_rgba();
@@ -868,6 +869,7 @@ sub get_colour_from_chooser {
     my ($self, $colour) = @_;
 
     my $dialog = Gtk3::ColorChooserDialog->new ('Select a colour');
+    Biodiverse::GUI::GUIManager->instance->move_dlg_to_same_monitor_as_other ($dialog);
 
     if ($colour) {
         if ($colour->isa('Gtk3::Gdk::Color')) {
@@ -936,7 +938,7 @@ sub on_set_tree_line_widths {
 
     my $dlg = Gtk3::Dialog->new_with_buttons (
         'Set branch width',
-        undef,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'destroy-with-parent',
         'gtk-ok' => 'ok',
         'gtk-cancel' => 'cancel',
@@ -979,6 +981,7 @@ sub on_tree_background_colour_changed {
         $colour_dialog->set_rgba ($current_colour);
     }
     $colour_dialog->show_all();
+    Biodiverse::GUI::GUIManager->instance->move_dlg_to_same_monitor_as_other ($colour_dialog);
     my $response = $colour_dialog->run;
     if ($response eq 'ok') {
         my $hue = $colour_dialog->get_rgba();
@@ -1551,7 +1554,7 @@ sub run_dlg_extra_calc_options {
 
         my $dlg = Gtk3::Dialog->new_with_buttons (
             'Tree node ranges',
-            undef,
+            Biodiverse::GUI::GUIManager->get_main_window,
             'destroy-with-parent',
             'gtk-ok' => 'ok',
             'gtk-cancel' => 'cancel',
@@ -1877,6 +1880,8 @@ sub load_range_table_as_hash {
     my $extractors = $parameters_table->fill( $params, $table, $dlgxml );
 
     $dlg->show_all;
+    $gui->move_dlg_to_same_monitor_as_other($dlg);
+
     my $response = $dlg->run;
     $dlg->destroy;
 
@@ -1929,7 +1934,7 @@ sub load_range_table_as_hash {
 
     ( $dlg, my $col_widgets ) = Biodiverse::GUI::BasedataImport::make_remap_columns_dialog(
         header           => \@headers,
-        wnd_main         => $gui->get_object('wndMain'),
+        wnd_main         => $gui->get_main_window,
         # other_props      => $other_properties,
         column_overrides => $required_cols,
     );
@@ -1960,7 +1965,9 @@ sub load_range_table_as_hash {
         my $text = 'Invalid columns chosen.  Must have one (and only one) of each of: '
                 . join ' ', @$required_cols;
         my $msg = Gtk3::MessageDialog->new(
-            undef, 'modal', 'error', 'ok', $text
+            $gui->get_main_window,
+            'modal',
+            'error', 'ok', $text
         );
 
         $msg->run();

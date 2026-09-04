@@ -237,7 +237,8 @@ sub pre_remap_dlg {
     # The dialog itself
     my $dlg = Gtk3::Dialog->new_with_buttons(
         'Remap options',
-        undef, 'modal',
+        Biodiverse::GUI::GUIManager->get_main_window,
+        'modal',
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok',
     );
@@ -467,7 +468,8 @@ sub remap_results_dialog {
     # The dialog itself
     my $dlg = Gtk3::Dialog->new_with_buttons(
         'Remap results',
-        undef, 'modal',
+        Biodiverse::GUI::GUIManager->get_main_window,
+        'modal',
         'gtk-apply'  => 'yes',
         'gtk-cancel' => 'no'
     );

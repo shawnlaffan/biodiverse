@@ -83,11 +83,12 @@ sub run {
         $dlg->set_title ($args->{title});
     }
     
-    my $main_window = $gui->get_object('wndMain');
+    my $main_window = $gui->get_main_window;
     # Put it on top of main window
     $dlg->set_transient_for($main_window);
     #  and make it modal - sometimes we lose the dialog and have to kill the whole process
     $dlg->set_modal($main_window);
+    $gui->move_dlg_to_same_monitor_as_other($dlg);
     
     ##  add timeout as sometimes the dialog is nowhere to be seen
     ##  -- the move call above avoids that?

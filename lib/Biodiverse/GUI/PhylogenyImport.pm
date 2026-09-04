@@ -204,7 +204,7 @@ sub get_column_use {
     my ( $dlg, $col_widgets ) =
       Biodiverse::GUI::BasedataImport::make_remap_columns_dialog(
         header   => \@headers,
-        wnd_main => $gui->get_object('wndMain'),
+        wnd_main => $gui->get_main_window,
 
         #other_props => [],
         column_overrides => $col_usages,
@@ -236,9 +236,11 @@ sub get_column_use {
         foreach my $usage (@$col_usages) {
             say "checking $usage, " . $column_settings->{$usage};
             if ( !$column_settings->{$usage} ) {
-                my $msg =
-                  Gtk3::MessageDialog->new( undef, 'modal', 'error', 'close',
-                    'Please select one of each column usage type' );
+                my $msg = Gtk3::MessageDialog->new(
+                    $gui->get_main_window,
+                    'modal', 'error', 'close',
+                    'Please select one of each column usage type'
+                );
                 $msg->run();
                 $msg->destroy();
                 $column_settings = undef;
@@ -326,7 +328,7 @@ sub get_remap_info {
     }
 
     my ( $dlg, $col_widgets ) =
-      make_columns_dialog( \@headers, $gui->get_object('wndMain') );
+      make_columns_dialog( \@headers, $gui->get_main_window );
     my ( $column_settings, $response );
     while (1)
     { # keep showing Dialog until have at least one Label & one matrix-start column

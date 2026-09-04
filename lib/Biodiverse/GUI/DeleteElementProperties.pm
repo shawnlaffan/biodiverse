@@ -388,7 +388,8 @@ sub on_clicked_apply {
     }
     
     my $dlg = Gtk3::MessageDialog->new (
-        undef, 'modal',
+        Biodiverse::GUI::GUIManager->instance->get_main_window,
+        'modal',
         'info', # message type
         'ok',
         $msg,

@@ -2936,6 +2936,7 @@ sub do_select_labels_regex {
     my $extractors = $parameters_table->fill ($table_params, $table, $dlgxml);
 
     $dlg->show_all;
+    $gui->move_dlg_to_same_monitor_as_other($dlg);
     my $response = $dlg->run;
 
     if (lc($response) ne 'ok') {

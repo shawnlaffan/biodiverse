@@ -151,11 +151,6 @@ sub set_dirty {
     return;
 }
 
-sub get_main_window {
-    my $self = shift;
-    $self->get_object('wndMain');
-}
-
 #  long sub name but we don't want to use it too often...
 sub move_dlg_to_same_monitor_as_other {
     my ($self, $dlg_from, $dlg_to) = @_;
@@ -470,8 +465,11 @@ sub init {
     #  warn if we are a dev version
     if ( $VERSION =~ /_/ && !$ENV{BD_NO_GUI_DEV_WARN} && !$ENV{BDV_PP_BUILDING} ) {
         say $dev_version_warning;
-        my $dlg = Gtk3::MessageDialog->new( undef, 'modal', 'error', 'ok',
-            $dev_version_warning, );
+        my $dlg = Gtk3::MessageDialog->new(
+            Biodiverse::GUI::GUIManager->instance->get_main_window,
+            'modal', 'error', 'ok',
+            $dev_version_warning,
+        );
 
         $dlg->run;
         $dlg->destroy;
@@ -2773,7 +2771,7 @@ sub show_save_dialog {
 
     my $dlg = Gtk3::FileChooserDialog->new(
         $title,
-        undef,
+        Biodiverse::GUI::GUIManager->instance->get_main_window,
         'save',
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok',
@@ -2789,7 +2787,6 @@ sub show_save_dialog {
     }
 
     $dlg->set_modal(1);
-    $self->move_dlg_to_same_monitor_as_other($dlg);
 
     eval { $dlg->set_do_overwrite_confirmation(1); }; # GTK < 2.8 doesn't have this
 
@@ -2815,7 +2812,7 @@ sub show_open_dialog {
 
     my $dlg = Gtk3::FileChooserDialog->new(
         $title,
-        undef,
+        Biodiverse::GUI::GUIManager->instance->get_main_window,
         'open',
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok',
@@ -2833,7 +2830,6 @@ sub show_open_dialog {
     $dlg->add_filter($filter);
     $dlg->set_modal(1);
     $dlg->show;
-    $self->move_dlg_to_same_monitor_as_other($dlg);
 
     my $filename;
     if ( $dlg->run() eq 'ok' ) {
@@ -2850,7 +2846,9 @@ sub do_set_working_directory {
     my $initial_dir = shift;
 
     my $dlg = Gtk3::FileChooserDialog->new(
-        $title, undef, "open",
+        $title,
+        Biodiverse::GUI::GUIManager->instance->get_main_window,
+        "open",
         "gtk-cancel",  "cancel",
         "gtk-ok",      'ok'
     );

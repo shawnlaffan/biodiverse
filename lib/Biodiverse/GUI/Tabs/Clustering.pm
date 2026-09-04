@@ -506,6 +506,8 @@ sub on_set_slider_actions {
     my $val = $dendrogram->get_tip_count_colour_thresh // 0;
     my $chk_val = $dendrogram->get_slider_colour_below_selected_node;
 
+    $dlg->set_transient_for (Biodiverse::GUI::GUIManager->instance->get_main_window);
+
     $dlg->show_all;
     my $response = $dlg->run;
 

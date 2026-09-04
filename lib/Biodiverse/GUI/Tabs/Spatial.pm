@@ -1424,7 +1424,7 @@ sub on_run {
 
     if (scalar @to_run == 0) {
         my $dlg = Gtk3::MessageDialog->new(
-            undef,
+            Biodiverse::GUI::GUIManager->instance->get_main_window,
             'modal',
             'error',
             'close',

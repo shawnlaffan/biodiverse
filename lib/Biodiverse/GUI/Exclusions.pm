@@ -54,6 +54,7 @@ sub show_dialog {
 
     # Put it on top of main window
     $dlg->set_transient_for($gui->get_object('wndMain'));
+    $gui->move_dlg_to_same_monitor_as_other($dlg);
 
     # Init the widgets
     foreach my $name (keys %g_widget_map) {

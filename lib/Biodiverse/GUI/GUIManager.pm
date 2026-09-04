@@ -169,7 +169,9 @@ sub move_dlg_to_same_monitor_as_other {
             return if $monitor == $m2;  #  already there
 
             my $geom = $monitor->get_geometry;
-            $dlg_from->move($geom->{x} + 50, $geom->{y} + 50);
+            my $xoff = rand() * 50 + 50;
+            my $yoff = rand() * 50 + 50;
+            $dlg_from->move($geom->{x} + $xoff, $geom->{y} + $yoff);
         }
     }
 

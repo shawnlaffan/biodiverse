@@ -312,7 +312,7 @@ sub do_basedata_attach_properties {
 
     my $summary_text = "Assigned properties to $count ${type}";
     my $summary_dlg  = Gtk3::MessageDialog->new(
-        $self->{gui},
+        $self->get_main_window,
         'destroy-with-parent',
         'info',    # message type
         'ok',      # which set of buttons?
@@ -343,7 +343,7 @@ sub do_basedata_attach_group_properties_from_rasters {
     
     my $dlg = Gtk3::FileChooserDialog->new(
         'Select one or more rasters',
-        Biodiverse::GUI::GUIManager->get_main_window,
+        $self->get_main_window,
         'open',
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok',
@@ -473,7 +473,7 @@ sub do_basedata_attach_group_properties_from_rasters {
       . "Adding the intermediate property basedatas to "
       . "the project can be an effective means of doing this.";
     my $summary_dlg = Gtk3::MessageDialog->new(
-        $self->{gui},
+        $self->get_main_window,
         'destroy-with-parent',
         'info',    # message type
         'ok',      # which set of buttons?

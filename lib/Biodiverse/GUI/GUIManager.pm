@@ -589,9 +589,13 @@ sub do_open {
 
     # Show the file selection dialogbox
     my $self = shift;
-    my $dlg =
-      Gtk3::FileChooserDialog->new( 'Open Project', undef, 'open', 'gtk-cancel',
-        'cancel', 'gtk-ok', 'ok', );
+    my $dlg = Gtk3::FileChooserDialog->new(
+        'Open Project',
+        Biodiverse::GUI::GUIManager->get_main_window,
+        'open',
+        'gtk-cancel' => 'cancel',
+        'gtk-ok'     => 'ok',
+    );
     my $filter;
 
     #  Abortive attempt to load any file.

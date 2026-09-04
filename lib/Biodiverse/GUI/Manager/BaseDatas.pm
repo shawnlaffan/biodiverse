@@ -343,7 +343,7 @@ sub do_basedata_attach_group_properties_from_rasters {
     
     my $dlg = Gtk3::FileChooserDialog->new(
         'Select one or more rasters',
-        undef,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'open',
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok',

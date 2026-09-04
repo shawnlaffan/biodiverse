@@ -1255,7 +1255,7 @@ sub get_output_file_handles {
 
     my $file_chooser = Gtk3::FileChooserDialog->new (
         'Choose file prefix',
-        undef,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'save',
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok'

@@ -83,7 +83,7 @@ sub run {
         $dlg->set_title ($args->{title});
     }
     
-    my $main_window = $gui->get_object('wndMain');
+    my $main_window = $gui->get_main_window;
     # Put it on top of main window
     $dlg->set_transient_for($main_window);
     #  and make it modal - sometimes we lose the dialog and have to kill the whole process

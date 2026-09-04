@@ -1424,7 +1424,7 @@ sub on_run {
 
     if (scalar @to_run == 0) {
         my $dlg = Gtk3::MessageDialog->new(
-            Biodiverse::GUI::GUIManager->instance->get_main_window,
+            Biodiverse::GUI::GUIManager->get_main_window,
             'modal',
             'error',
             'close',
@@ -2424,7 +2424,7 @@ sub run_options_dialogue {
 
     my $dlg = Gtk3::Dialog->new (
         'Spatial conditions options',
-        Biodiverse::GUI::GUIManager->instance->get_main_window,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'modal',
         'gtk-cancel' => 'cancel',
         'gtk-ok' => 'ok',

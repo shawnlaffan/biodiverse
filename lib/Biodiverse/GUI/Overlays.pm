@@ -365,7 +365,7 @@ sub on_add {
 
     my $open = Gtk3::FileChooserDialog->new(
         'Add overlay feature class',
-        Biodiverse::GUI::GUIManager->instance->get_main_window,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'open',
         'gtk-cancel',
         'cancel',
@@ -503,7 +503,7 @@ sub get_choice {
 
     my $dlg = Gtk3::Dialog->new_with_buttons(
         $window_text // 'Layer selection',
-        Biodiverse::GUI::GUIManager->instance->get_main_window,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'modal',
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok',

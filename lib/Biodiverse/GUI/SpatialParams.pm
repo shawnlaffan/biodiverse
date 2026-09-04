@@ -215,7 +215,7 @@ sub on_syntax_check {
         }
 
         my $dlg = Gtk3::MessageDialog->new(
-            $gui->get_object('wndMain'),
+            $gui->get_main_window,
             'destroy-with-parent',
             $result_hash->{type},
             'ok',
@@ -291,7 +291,7 @@ sub run_options_dialogue {
 
     my $dlg = Gtk3::Dialog->new (
         'Spatial conditions options',
-        Biodiverse::GUI::GUIManager->instance->get_main_window,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'modal',
         'gtk-cancel' => 'cancel',
         'gtk-ok' => 'ok',

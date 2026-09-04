@@ -27,7 +27,7 @@ sub get_new_basedata_name {
 
     # Show the Get Name dialog
     my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
-    $dlg->set_transient_for( $self->get_object('wndMain') );
+    $dlg->set_transient_for( $self->get_main_window );
 
     my $txt_name = $dlgxml->get_object('txtName');
     my $name     = $bd->get_param('NAME');
@@ -167,7 +167,7 @@ sub run_axis_selector_dialog {
     my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file( $self->get_gtk_ui_file('dlgGroupsLabels.ui') );
     my $dlg = $dlgxml->get_object('dlgGroupsLabels');
-    $dlg->set_transient_for( $gui->get_object('wndMain') );
+    $dlg->set_transient_for( $gui->get_main_window );
     $dlg->set_modal(1);
     $self->move_dlg_to_same_monitor_as_other($dlg);
     my $label = $dlgxml->get_object('label_dlg_groups_labels');
@@ -276,7 +276,7 @@ sub do_basedata_attach_properties {
     my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file( $self->get_gtk_ui_file('dlgGroupsLabels.ui') );
     my $dlg = $dlgxml->get_object('dlgGroupsLabels');
-    $dlg->set_transient_for( $gui->get_object('wndMain') );
+    $dlg->set_transient_for( $gui->get_main_window );
     $dlg->set_modal(1);
     $self->move_dlg_to_same_monitor_as_other($dlg);
     my $label = $dlgxml->get_object('label_dlg_groups_labels');
@@ -550,7 +550,7 @@ sub do_rename_basedata {
     # Show the Get Name dialog
     my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
     $dlg->set_title('Rename Basedata object');
-    $dlg->set_transient_for( $self->get_object('wndMain') );
+    $dlg->set_transient_for( $self->get_main_window );
 
     my $txt_name = $dlgxml->get_object('txtName');
     my $name     = $bd->get_param('NAME');
@@ -637,7 +637,7 @@ sub do_basedata_reduce_axis_resolutions {
 
     my $dlg = Gtk3::Dialog->new (
         'Reduce basedata resolution',
-        $self->get_object('wndMain'),
+        $self->get_main_window,
         'modal',
         'gtk-ok'       => 'ok',
         'gtk-cancel'   => 'cancel',
@@ -656,7 +656,7 @@ sub do_basedata_reduce_axis_resolutions {
     $vbox->show_all();
 
     # Show the Get Name dialog
-    $dlg->set_transient_for( $self->get_object('wndMain') );
+    $dlg->set_transient_for( $self->get_main_window );
 
     my $response = $dlg->run();
     if ($response ne 'ok') {
@@ -1040,7 +1040,7 @@ sub do_merge_basedatas {
     $dlgxml->add_from_file( $self->get_gtk_ui_file('dlgImportParameters.ui') );
     my $param_dlg = $dlgxml->get_object('dlgImportParameters');
 
-    #$param_dlg->set_transient_for( $self->get_object('wndMain') );
+    #$param_dlg->set_transient_for( $self->get_main_window );
     $param_dlg->set_title('Select basedata');
 
     # Build widgets for parameters
@@ -1257,7 +1257,7 @@ sub do_basedata_trim_using_object {
 
     # Show the Get Name dialog
     my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
-    $dlg->set_transient_for( $self->get_object('wndMain') );
+    $dlg->set_transient_for( $self->get_main_window );
 
     my $vbox = $dlg->get_content_area;
     $vbox->pack_start( $hbox_clone,  0, 0, 0 );

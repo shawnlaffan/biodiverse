@@ -53,7 +53,7 @@ sub show_dialog {
     my $dlg = $dlgxml->get_object(DLG_NAME);
 
     # Put it on top of main window
-    $dlg->set_transient_for($gui->get_object('wndMain'));
+    $dlg->set_transient_for($gui->get_main_window);
     $gui->move_dlg_to_same_monitor_as_other($dlg);
 
     # Init the widgets

@@ -95,7 +95,7 @@ sub open_browser_and_show_url {
     
     my $dlg = Gtk3::Dialog->new(
         'Help link',
-        $gui->get_object('wndMain'),
+        $gui->get_main_window,
         'modal',
         'gtk-ok'     => 'ok',
     );
@@ -144,7 +144,7 @@ sub help_show_check_for_updates {
 
     my $dlg = Gtk3::Dialog->new(
         'Check for updates',
-        $gui->get_object('wndMain'),
+        $gui->get_main_window,
         'modal',
         'gtk-ok'     => 'ok',
     );

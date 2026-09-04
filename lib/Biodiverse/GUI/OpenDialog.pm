@@ -33,7 +33,7 @@ sub Run {
     $builder->add_from_file($gui->get_gtk_ui_file('OpenWithName.ui'));
     my $dlg = $builder->get_object('dlgOpenWithName');
 
-    $dlg->set_transient_for( $gui->get_object('wndMain') );
+    $dlg->set_transient_for( $gui->get_main_window );
     $dlg->set_title($title);
 
     # Connect file selected event - to automatically update name based on filename

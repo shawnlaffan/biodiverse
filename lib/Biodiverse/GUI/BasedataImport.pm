@@ -573,7 +573,7 @@ sub run {
         my $row_widgets;
         ( $dlg, $row_widgets ) = make_columns_dialog(
             header            => $col_names_for_dialog,
-            wnd_main          => $gui->get_object('wndMain'),
+            wnd_main          => $gui->get_main_window,
             row_options       => $col_options,
             file_list_text    => $file_list_as_text,
             max_opt_rows      => $import_params{max_opt_cols},
@@ -946,7 +946,7 @@ sub get_gdal_layer_selection {
     my $ds_name = $ds->GetDescription;
     my $dlg = Gtk3::Dialog->new(
         "Select layers",
-        Biodiverse::GUI::GUIManager->instance->get_main_window,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'modal',
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok',
@@ -1362,7 +1362,7 @@ sub make_reorder_dialog {
     my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file( $gui->get_gtk_ui_file('dlgReorderColumns.ui') );
     my $dlg = $dlgxml->get_object('dlgReorderColumns');
-    $dlg->set_transient_for( $gui->get_object('wndMain') );
+    $dlg->set_transient_for( $gui->get_main_window );
     $gui->move_dlg_to_same_monitor_as_other($dlg);
 
     my $list_groups =
@@ -1475,7 +1475,7 @@ sub make_filename_dialog {
     my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file( $gui->get_gtk_ui_file('dlgImport1.ui') );
     my $dlg = $dlgxml->get_object($import_dlg_name);
-    my $x   = $gui->get_object('wndMain');
+    my $x   = $gui->get_main_window;
     $dlg->set_transient_for($x);
 
     $gui->move_dlg_to_same_monitor_as_other ($dlg);
@@ -2005,7 +2005,7 @@ sub get_remap_info {
 
     ( $dlg, my $col_widgets ) = make_remap_columns_dialog(
         header           => \@headers,
-        wnd_main         => $gui->get_object('wndMain'),
+        wnd_main         => $gui->get_main_window,
         other_props      => $other_properties,
         column_overrides => $column_overrides,
     );

@@ -86,7 +86,7 @@ sub run {
 
     my $dlg = Gtk3::Dialog->new_with_buttons(
         'Delete Element Properties',
-        Biodiverse::GUI::GUIManager->instance->get_main_window,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'modal',
         'gtk-cancel' => 'cancel',
         'gtk-apply'  => 'apply',
@@ -388,7 +388,7 @@ sub on_clicked_apply {
     }
     
     my $dlg = Gtk3::MessageDialog->new (
-        Biodiverse::GUI::GUIManager->instance->get_main_window,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'modal',
         'info', # message type
         'ok',

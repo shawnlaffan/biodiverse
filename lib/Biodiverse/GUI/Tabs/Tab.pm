@@ -569,7 +569,7 @@ sub on_set_legend_font_size {
     my $current_size = $legend->get_font_size;
     my $dlg = Gtk3::Dialog->new_with_buttons (
         'Set legend font size',
-        Biodiverse::GUI::GUIManager->instance->get_main_window,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'destroy-with-parent',
         'gtk-ok' => 'ok',
         'gtk-cancel' => 'cancel',
@@ -936,7 +936,7 @@ sub on_set_tree_line_widths {
 
     my $dlg = Gtk3::Dialog->new_with_buttons (
         'Set branch width',
-        Biodiverse::GUI::GUIManager->instance->get_main_window,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'destroy-with-parent',
         'gtk-ok' => 'ok',
         'gtk-cancel' => 'cancel',
@@ -1551,7 +1551,7 @@ sub run_dlg_extra_calc_options {
 
         my $dlg = Gtk3::Dialog->new_with_buttons (
             'Tree node ranges',
-            Biodiverse::GUI::GUIManager->instance->get_main_window,
+            Biodiverse::GUI::GUIManager->get_main_window,
             'destroy-with-parent',
             'gtk-ok' => 'ok',
             'gtk-cancel' => 'cancel',
@@ -1931,7 +1931,7 @@ sub load_range_table_as_hash {
 
     ( $dlg, my $col_widgets ) = Biodiverse::GUI::BasedataImport::make_remap_columns_dialog(
         header           => \@headers,
-        wnd_main         => $gui->get_object('wndMain'),
+        wnd_main         => $gui->get_main_window,
         # other_props      => $other_properties,
         column_overrides => $required_cols,
     );

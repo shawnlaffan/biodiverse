@@ -356,7 +356,7 @@ sub on_export {
         $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgGroupsLabels.ui'));
 
         my $dlg = $dlgxml->get_object('dlgGroupsLabels');
-        $dlg->set_transient_for( $gui->get_object('wndMain') );
+        $dlg->set_transient_for( $gui->get_main_window );
         $dlg->set_modal(1);
         $gui->move_dlg_to_same_monitor_as_other($dlg);
         my $response = $dlg->run();
@@ -437,7 +437,7 @@ sub on_delete {
 
         # Confirmation dialog
         $dialog = Gtk3::MessageDialog->new (
-            $self->{gui}->get_object('wndMain'),
+            $self->{gui}->get_main_window,
             'destroy-with-parent',
             'question',
             'yes-no',
@@ -472,7 +472,7 @@ sub on_delete {
 
         # Confirmation dialog
         $dialog = Gtk3::MessageDialog->new (
-            $self->{gui}->get_object('wndMain'),
+            $self->{gui}->get_main_window,
             'destroy-with-parent',
             'question',
             'yes-no',

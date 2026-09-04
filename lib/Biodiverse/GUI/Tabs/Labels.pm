@@ -966,7 +966,7 @@ sub run_highlight_label_range_polygons_dlg {
     if (!$self->range_polygons_are_valid) {
         my $dlg = Gtk3::Dialog->new_with_buttons (
             'Range polygons',
-            Biodiverse::GUI::GUIManager->instance->get_main_window,
+            Biodiverse::GUI::GUIManager->get_main_window,
             'destroy-with-parent',
             'gtk-ok' => 'ok',
             # 'gtk-cancel' => 'cancel',
@@ -998,7 +998,7 @@ sub run_highlight_label_range_polygons_dlg {
 
     my $dlg = Gtk3::Dialog->new_with_buttons (
         'Range polygons',
-        Biodiverse::GUI::GUIManager->instance->get_main_window,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'destroy-with-parent',
         'gtk-ok' => 'ok',
         'gtk-cancel' => 'cancel',
@@ -2778,7 +2778,7 @@ sub do_new_basedata_from_selection {
     $dlgxml->add_from_file($self->{gui}->get_gtk_ui_file('dlgDuplicate.ui'));
     my $dlg = $dlgxml->get_object('dlgDuplicate');
     $dlg->set_title ('Basedata object name');
-    $dlg->set_transient_for( $gui->get_object('wndMain') );
+    $dlg->set_transient_for( $gui->get_main_window );
     $gui->move_dlg_to_same_monitor_as_other($dlg);
 
     my $txt_name = $dlgxml->get_object('txtName');

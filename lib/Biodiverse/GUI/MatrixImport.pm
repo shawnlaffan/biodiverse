@@ -125,7 +125,7 @@ sub run {
     #########
 
     my ( $dlg, $col_widgets ) =
-      make_columns_dialog_normal( \@headers, $gui->get_object('wndMain') );
+      make_columns_dialog_normal( \@headers, $gui->get_main_window );
     my ($column_settings);
 
   GET_RESPONSE:
@@ -441,7 +441,7 @@ sub run_combo_sparse_normal {
 
     my $dlg = Gtk3::Dialog->new_with_buttons(
         'Input file format',
-        Biodiverse::GUI::GUIManager->instance->get_main_window,
+        Biodiverse::GUI::GUIManager->get_main_window,
         'modal',
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok',

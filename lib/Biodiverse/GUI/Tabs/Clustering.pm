@@ -1869,9 +1869,10 @@ sub show_cluster_labels {
 
     # Add each label into the model
     my $model = Gtk3::ListStore->new('Glib::String', 'Glib::String');
+    my $str = q{};
     foreach my $label (natsort keys %total_labels) {
         my $iter = $model->append;
-        $model->set($iter, 0, $label, 1, q{});
+        $model->set($iter, 0, $label, 1, $str);
     }
 
     $popup->set_list_model($model);
@@ -1886,12 +1887,12 @@ sub show_cluster_elements {
 
     print "[Clustering tab] Making cluster elements model\n";
     my $elements = $node_ref->get_terminal_elements;
-    my $model = Gtk3::ListStore->new('Glib::String', 'Glib::Int');
+    my $model = Gtk3::ListStore->new('Glib::String', 'Glib::String');
+    my $str = q{};
 
     foreach my $element (natsort keys %{$elements}) {
-        my $count = $elements->{$element};
         my $iter = $model->append;
-        $model->set($iter,    0,$element ,  1,$count);
+        $model->set($iter,    0,$element ,  1, $str);
     }
 
     $popup->set_list_model($model);

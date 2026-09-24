@@ -1732,7 +1732,7 @@ sub get_most_similar_pair {
     #  need to get all the pairs
     my $csv = $self->get_csv_object;
     my @pairs;
-    my $pair_key_cache = $self->get_cached_value_dor_set_default_aa ('TIE_BREAKER_STRINGIFIED_PAIR_KEYS', {});
+    my $pair_key_cache = $self->get_cached_value_dor_set_default_href ('TIE_BREAKER_STRINGIFIED_PAIR_KEYS');
     foreach my ($name1, $ref) (%$keys_ref) {
         foreach my $name2 (keys %$ref) {
             my $stringified

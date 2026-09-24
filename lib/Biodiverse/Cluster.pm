@@ -1792,7 +1792,10 @@ sub get_most_similar_pair_using_tie_breaker {
             my @el_lists;
             foreach my $j (0, 1) {
                 my $node = $pair->[$j];
-                my $node_ref = $self->get_node_ref_aa ($node);
+                my $node_ref
+                    = $self->exists_node_name_aa ($node)
+                    ? $self->get_node_ref_aa ($node)
+                    : $self->add_node(name => $node);
                 my $el_list;
                 if ($node_ref->is_internal_node) {
                     my $terminals = $node_ref->get_terminal_elements;

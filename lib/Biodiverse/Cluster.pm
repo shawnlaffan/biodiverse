@@ -891,12 +891,74 @@ sub build_matrices {
     my $no_progress;
     my $build_start_time = time();
 
-    my $trim_processed;
+    my $mx_is_simple_triangle;
     if (@matrices == 1) {
         my $sp_conds = $sp->get_spatial_conditions_arr;
         my $sp_cond = $sp_conds->[0];
         if ($sp_cond->get_result_type eq 'always_true') {
-            $trim_processed = 1;
+            $mx_is_simple_triangle = 1;
+        }
+    }
+
+    my @nbr_hashes;
+    my $triangular_nbr_hash;
+    if ($mx_is_simple_triangle || $shadow_matrix) {
+        my %nbr_hash;
+        my @elements = @elements_to_calc;
+        while (my $element1 = shift @elements) {
+            last if !@elements;
+            my $subhash = ($nbr_hash{$element1} //= {});
+            @{$subhash}{@elements} = (1) x @elements;
+            $nbr_hash{$element1} = $subhash;
+        }
+        $triangular_nbr_hash = \%nbr_hash;
+    }
+    if ($mx_is_simple_triangle) {
+        $nbr_hashes[0] = $triangular_nbr_hash;
+    }
+    else {
+        foreach my $m (0 .. $#matrices) {
+            my $nbr_list_name = '_NBR_SET' . ($m + 1);
+            my %nbr_hash;
+            foreach my $element1 (@elements_to_calc) {
+                my $neighours = $sp->get_list_values(
+                    element => $element1,
+                    list    => $nbr_list_name,
+                );
+                foreach my $element2 (grep {!exists $nbr_hash{$_}} @$neighours) {
+                    #  store in ascending order
+                    $element1 lt $element2
+                        ? ($nbr_hash{$element1}{$element2} ||= 1)
+                        : ($nbr_hash{$element2}{$element1} ||= 1);
+                }
+                #  remove self-self - should be cheaper than repeatedly checking in the grep above
+                delete $nbr_hash{$element1}{$element1};
+                delete $nbr_hash{$element1} if !keys %{$nbr_hash{$element1}};
+            }
+            $nbr_hashes[$m] = \%nbr_hash;
+        }
+        if ($shadow_matrix) {
+            push @nbr_hashes, $triangular_nbr_hash;
+        }
+        if (@nbr_hashes > 1) {  #  sep condition in case we did not add the shadow matrix
+            #  deduplicate the matrices so later matrices do not contain pairs already in preceding matrices
+            my $max_idx = $#nbr_hashes;
+            foreach my $m (1 .. $max_idx) {
+                \my %nbr_hash = $nbr_hashes[$m];
+                foreach my $mm (0 .. $m-1) {
+                    \my %prev_nbr_hash = $nbr_hashes[$mm];
+                    foreach my $element1 (@elements_to_calc) {
+                        my $href  = $nbr_hash{$element1} // next;
+                        my $phref = $prev_nbr_hash{$element1} // next;
+                        my @keys  = keys %{$phref};
+                        delete @$href{@keys};
+                        delete $nbr_hash{$element1} if !keys %{$nbr_hash{$element1}};
+                    }
+                }
+            }
+            #  track and clean up empties
+            my @mx_names = grep {scalar keys %{$nbr_hashes[$_]}} (0..$#nbr_hashes);  #  not used yet
+            @nbr_hashes  = grep {scalar keys %{$_}} @nbr_hashes;
         }
     }
 
@@ -921,7 +983,7 @@ sub build_matrices {
             my %neighbour_hash;
             @neighbour_hash{@$neighours} = (1) x scalar @$neighours;
             delete $neighbour_hash{$element1};  #  exclude ourselves
-            if ($trim_processed) {
+            if ($mx_is_simple_triangle) {
                 delete @neighbour_hash{keys %processed_elements};
             }
             $neighbours[$m] = \%neighbour_hash;
@@ -956,7 +1018,7 @@ sub build_matrices {
                 processed_elements => \%processed_elements,
                 no_progress        => $no_progress,
                 csv_object         => $csv_object,
-                no_check_in_prev_mx      => $trim_processed,
+                no_check_in_prev_mx      => $mx_is_simple_triangle,
                 nbrs_so_far_this_element => \%nbrs_so_far_this_element,
             );
 

@@ -795,9 +795,8 @@ sub build_matrices {
         $mx_common_args{VAL_INDEX_PRECISION} = $mx_index_precision;
     }
 
-    my @matrices;
-    my $i = 0;
-    foreach my $condition (@spatial_conditions) {
+    my @mx_names;
+    foreach my $i (0 .. $#spatial_conditions) {
         my $mx_name = $name . " $index Matrix_$i";
 
         my $already_there = $bd->get_matrix_outputs;
@@ -808,39 +807,8 @@ sub build_matrices {
                 object  => $already_there->{$mx_name},
             );
         }
-
-        $matrices[$i] = $mx_class->new(
-            JOIN_CHAR    => $bd->get_param('JOIN_CHAR'),
-            NAME         => $mx_name,
-            %mx_common_args,
-            SPATIAL_CONDITION => $condition->get_conditions_unparsed,
-        );
-        $i ++;
+        push @mx_names, $mx_name;
     }
-
-    my $shadow_matrix;
-    if (scalar @matrices > 1) {
-        $shadow_matrix = $mx_class->new (
-            name         => $name . '_SHADOW_MATRIX',
-            %mx_common_args,
-        );
-    }
-    $self->set_shadow_matrix (matrix => $shadow_matrix);
-
-    say "[CLUSTER] BUILDING ", scalar @matrices, " MATRICES FOR $index CLUSTERING";
-
-    #  print headers to file handles (if such are present)
-    foreach my $fh (@$file_handles) {
-        say {$fh} $output_gdm_format
-            ? "x1,y1,x2,y2,$index"
-            : "Element1,Element2,$index";
-    }
-    
-    my $csv_object;
-    if (scalar @$file_handles) {
-        $csv_object = $self->get_csv_object;
-    }
-
 
     #  we use a spatial object as it handles all the spatial checks.
     say "[CLUSTER] Generating neighbour lists";
@@ -867,7 +835,9 @@ sub build_matrices {
             exclude_processed_elements    => 1,
         );
     };
-    croak $EVAL_ERROR if $EVAL_ERROR;                #  Did we complete properly?
+    croak $EVAL_ERROR if $EVAL_ERROR;
+
+    @spatial_conditions = @{$sp->get_spatial_conditions_arr};  #  array of objects now
 
     my $valid_count = 0;
 
@@ -891,18 +861,13 @@ sub build_matrices {
     my $no_progress;
     my $build_start_time = time();
 
-    my $mx_is_simple_triangle;
-    if (@matrices == 1) {
-        my $sp_conds = $sp->get_spatial_conditions_arr;
-        my $sp_cond = $sp_conds->[0];
-        if ($sp_cond->get_result_type eq 'always_true') {
-            $mx_is_simple_triangle = 1;
-        }
-    }
+    my $mx_is_simple_triangle
+        = @spatial_conditions == 1
+          && $spatial_conditions[0]->get_result_type eq 'always_true';
 
     my @nbr_hashes;
     my $triangular_nbr_hash;
-    if ($mx_is_simple_triangle || $shadow_matrix) {
+    if (1) {  #  need to skip if writing direct to files?
         my %nbr_hash;
         my @elements = @elements_to_calc;
         while (my $element1 = shift @elements) {
@@ -917,7 +882,7 @@ sub build_matrices {
         $nbr_hashes[0] = $triangular_nbr_hash;
     }
     else {
-        foreach my $m (0 .. $#matrices) {
+        foreach my $m (0 .. $#mx_names) {
             my $nbr_list_name = '_NBR_SET' . ($m + 1);
             my %nbr_hash;
             foreach my $element1 (@elements_to_calc) {
@@ -937,10 +902,11 @@ sub build_matrices {
             }
             $nbr_hashes[$m] = \%nbr_hash;
         }
-        if ($shadow_matrix) {
+        if ($triangular_nbr_hash) {
             push @nbr_hashes, $triangular_nbr_hash;
+            push @mx_names, "$name (shadow matrix)";
         }
-        if (@nbr_hashes > 1) {  #  sep condition in case we did not add the shadow matrix
+        if (@nbr_hashes > 1) {
             #  deduplicate the matrices so later matrices do not contain pairs already in preceding matrices
             my $max_idx = $#nbr_hashes;
             foreach my $m (1 .. $max_idx) {
@@ -957,9 +923,46 @@ sub build_matrices {
                 }
             }
             #  track and clean up empties
-            my @mx_names = grep {scalar keys %{$nbr_hashes[$_]}} (0..$#nbr_hashes);  #  not used yet
+            my @valid_mx_name_iters = grep {scalar keys %{$nbr_hashes[$_]}} (0..$#nbr_hashes);
             @nbr_hashes  = grep {scalar keys %{$_}} @nbr_hashes;
+            @mx_names = @mx_names[@valid_mx_name_iters];
         }
+    }
+
+    my @matrices;
+    foreach my $i (0..$#nbr_hashes) {
+        my $condition = blessed $spatial_conditions[$i]
+            ? $spatial_conditions[$i]->get_conditions_unparsed
+            : 'sp_select_all()';
+        $matrices[$i] = $mx_class->new(
+            JOIN_CHAR         => $bd->get_param('JOIN_CHAR'),
+            NAME              => $mx_names[$i],
+            %mx_common_args,
+            SPATIAL_CONDITION => $condition,
+        );
+    }
+
+    say "[CLUSTER] BUILDING ", scalar @matrices, " MATRICES FOR $index CLUSTERING";
+
+    my $shadow_matrix;
+    if (scalar @matrices > 1) {
+        $shadow_matrix = $mx_class->new (
+            name         => $name . '_SHADOW_MATRIX',
+            %mx_common_args,
+        );
+    }
+    $self->set_shadow_matrix (matrix => $shadow_matrix);
+
+    #  print headers to file handles (if such are present)
+    foreach my $fh (@$file_handles) {
+        say {$fh} $output_gdm_format
+            ? "x1,y1,x2,y2,$index"
+            : "Element1,Element2,$index";
+    }
+
+    my $csv_object;
+    if (scalar @$file_handles) {
+        $csv_object = $self->get_csv_object;
     }
 
     #  Use $sp for the groups so any def query will have an effect
@@ -974,7 +977,7 @@ sub build_matrices {
         );
 
         my @neighbours;  #  store the neighbours of this element
-        foreach my $m (0 .. $#matrices) {
+        foreach my $m (0 .. max (0, $#matrices-1)) {  #  temporary condition
             my $nbr_list_name = '_NBR_SET' . ($m+1);
             my $neighours = $sp->get_list_values (
                 element => $element1,

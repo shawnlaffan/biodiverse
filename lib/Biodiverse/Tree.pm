@@ -446,7 +446,7 @@ sub get_node_ref {
         #    say "key: $k";
         #}
         Biodiverse::Tree::NotExistsNode->throw(
-            "[Tree] $node does not exist, cannot get ref"
+            "[Tree] Node $node does not exist, cannot get ref"
         );
     }
 
@@ -992,7 +992,7 @@ sub export {
     my $metadata = $self->get_metadata( sub => 'export' );
 
     my $sub_to_use = $metadata->get_sub_name_from_format(%args);
-
+say STDERR "+++++++++++ $sub_to_use";
     #  remap the format name if needed - part of the matrices kludge
     my $component_map = $metadata->get_component_map;
     if ( $component_map->{ $args{format} } ) {

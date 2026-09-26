@@ -287,19 +287,18 @@ sub export_matrices {
         $shadow_matrix = $self->get_shadow_matrix;
     }
 
-    my $file = $args{file};
+    use Path::Tiny qw /path/;
+    my $file = path $args{file};
 
-    my $i = 0;
-
-    use File::Basename;
-
-    my ($name, $path, $suffix) = File::Basename::fileparse($file);
+    my ($name) = $file->basename (qr/\..+?$/);
+    my ($suffix) = $file =~ /\.(.+?)$/;
     if ($suffix ne $EMPTY_STRING) {
         $suffix = ".$suffix";
     }
 
-    $file = path($path, $name)->absolute;
+    $file = path($file->parent->stringify, $name)->absolute;
 
+    my $i = 0;
     foreach my $matrix (@$matrices) {
         next if ! defined $matrix;  #  allow for absent shadow matrix
         my $filename = $file;
@@ -313,7 +312,7 @@ sub export_matrices {
         );
         $i ++;
     }
-    if (scalar @$matrices > 1) {  #  only need the shadow (combined) matrix if more than one was used
+    if ($shadow_matrix) {  #  only need the shadow (combined) matrix if more than one was used
         my $filename = $file;
         $filename .= "_shadowmatrix$suffix";
         $shadow_matrix->export (

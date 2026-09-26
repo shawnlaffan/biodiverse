@@ -839,8 +839,6 @@ sub build_matrices {
 
     @spatial_conditions = @{$sp->get_spatial_conditions_arr};  #  array of objects now
 
-    my $valid_count = 0;
-
     # only those that passed the def query (if set) will be considered
     # sort to ensure consistent order - easier for debug
     my @elements_to_calc = sort keys %{$sp->get_element_hash};
@@ -867,7 +865,9 @@ sub build_matrices {
 
     my @nbr_hashes;
     my $triangular_nbr_hash;
-    if (1) {  #  need to skip if writing direct to files?
+    my $last_mx_is_shadow;
+    #  no need the triangle if writing direct to files
+    if ($mx_is_simple_triangle) {
         my %nbr_hash;
         my @elements = @elements_to_calc;
         while (my $element1 = shift @elements) {
@@ -877,34 +877,48 @@ sub build_matrices {
             $nbr_hash{$element1} = $subhash;
         }
         $triangular_nbr_hash = \%nbr_hash;
-    }
-    if ($mx_is_simple_triangle) {
         $nbr_hashes[0] = $triangular_nbr_hash;
     }
     else {
+        my %all_elts;
         foreach my $m (0 .. $#mx_names) {
             my $nbr_list_name = '_NBR_SET' . ($m + 1);
             my %nbr_hash;
             foreach my $element1 (@elements_to_calc) {
-                my $neighours = $sp->get_list_values(
+                my $neighbours = $sp->get_list_values(
                     element => $element1,
                     list    => $nbr_list_name,
                 );
-                foreach my $element2 (grep {!exists $nbr_hash{$_}} @$neighours) {
+                my $n = 0;
+                foreach my $element2 (grep {!exists $nbr_hash{$_}} @$neighbours) {
                     #  store in ascending order
                     $element1 lt $element2
                         ? ($nbr_hash{$element1}{$element2} ||= 1)
                         : ($nbr_hash{$element2}{$element1} ||= 1);
+                    $all_elts{$element2} ||= 1;
+                    $n++;
                 }
+                $all_elts{$element1} ||= 1 if $n;
                 #  remove self-self - should be cheaper than repeatedly checking in the grep above
                 delete $nbr_hash{$element1}{$element1};
                 delete $nbr_hash{$element1} if !keys %{$nbr_hash{$element1}};
             }
             $nbr_hashes[$m] = \%nbr_hash;
         }
-        if ($triangular_nbr_hash) {
+        if (!@$file_handles && @mx_names > 1) {
+            #  create the shadow matrix from the pairs
+            my %nbr_hash;
+            my @elements = sort keys %all_elts;
+            while (my $element1 = shift @elements) {
+                last if !@elements;
+                my $subhash = ($nbr_hash{$element1} //= {});
+                @{$subhash}{@elements} = (1) x @elements;
+                $nbr_hash{$element1} = $subhash;
+            }
+            $triangular_nbr_hash = \%nbr_hash;
             push @nbr_hashes, $triangular_nbr_hash;
-            push @mx_names, "$name (shadow matrix)";
+            push @mx_names, "$name $index Shadow matrix";
+            $last_mx_is_shadow = 1;
         }
         if (@nbr_hashes > 1) {
             #  deduplicate the matrices so later matrices do not contain pairs already in preceding matrices
@@ -916,16 +930,21 @@ sub build_matrices {
                     foreach my $element1 (@elements_to_calc) {
                         my $href  = $nbr_hash{$element1} // next;
                         my $phref = $prev_nbr_hash{$element1} // next;
-                        my @keys  = keys %{$phref};
-                        delete @$href{@keys};
-                        delete $nbr_hash{$element1} if !keys %{$nbr_hash{$element1}};
+                        delete @$href{keys %$phref};
+                        delete $nbr_hash{$element1} if !keys %$href;
                     }
                 }
             }
             #  track and clean up empties
             my @valid_mx_name_iters = grep {scalar keys %{$nbr_hashes[$_]}} (0..$#nbr_hashes);
-            @nbr_hashes  = grep {scalar keys %{$_}} @nbr_hashes;
-            @mx_names = @mx_names[@valid_mx_name_iters];
+            if ($last_mx_is_shadow && $valid_mx_name_iters[-1] != $#nbr_hashes) {
+                #  don't remove the shadow even if it is empty - we populate it below
+                push @valid_mx_name_iters, $#nbr_hashes;
+            }
+            @nbr_hashes  = @nbr_hashes[@valid_mx_name_iters];
+            @mx_names    = @mx_names[@valid_mx_name_iters];
+            @$file_handles = @{$file_handles}[@valid_mx_name_iters]
+              if @$file_handles;
         }
     }
 
@@ -944,15 +963,6 @@ sub build_matrices {
 
     say "[CLUSTER] BUILDING ", scalar @matrices, " MATRICES FOR $index CLUSTERING";
 
-    my $shadow_matrix;
-    if (scalar @matrices > 1) {
-        $shadow_matrix = $mx_class->new (
-            name         => $name . '_SHADOW_MATRIX',
-            %mx_common_args,
-        );
-    }
-    $self->set_shadow_matrix (matrix => $shadow_matrix);
-
     #  print headers to file handles (if such are present)
     foreach my $fh (@$file_handles) {
         say {$fh} $output_gdm_format
@@ -965,82 +975,83 @@ sub build_matrices {
         $csv_object = $self->get_csv_object;
     }
 
-    #  Use $sp for the groups so any def query will have an effect
-    BY_ELEMENT:
-    foreach my $element1 (@elements_to_calc) {
+    \my %gdm_el_array_cache = $self->get_cached_href('GDM_EL_ARRAY_CACHE');
 
-        $count ++;
+    my $m = -1;
+    $count = 0;
+    my $valid_count = 0;
+    foreach my $mx_ref (@matrices) {
+        $m++;
+        $count++;
         my $progress = $count / $to_do;
         $progress_bar->update(
             $progress_pfx . "(row $count / $to_do)",
             $progress,
         );
 
-        my @neighbours;  #  store the neighbours of this element
-        foreach my $m (0 .. max (0, $#matrices-1)) {  #  temporary condition
-            my $nbr_list_name = '_NBR_SET' . ($m+1);
-            my $neighours = $sp->get_list_values (
-                element => $element1,
-                list    => $nbr_list_name,
-            );
-            my %neighbour_hash;
-            @neighbour_hash{@$neighours} = (1) x scalar @$neighours;
-            delete $neighbour_hash{$element1};  #  exclude ourselves
-            if ($mx_is_simple_triangle) {
-                delete @neighbour_hash{keys %processed_elements};
-            }
-            $neighbours[$m] = \%neighbour_hash;
-        }
-        my %nbrs_so_far_this_element;  #  track which nbrs have been done - needed when writing direct to file
-
-        #  loop over the neighbours and add them to the appropriate matrix
-        foreach my $m (0 .. $#matrices) {
-            my $matrix = $matrices[$m];
-
-            my $nbr_hash = $neighbours[$m];  #  save a few calcs
-            if (scalar @$file_handles) {
-                @nbrs_so_far_this_element{keys %$nbr_hash} = undef;
-            }
-
-            my $matrices_array = defined $shadow_matrix
-                                ? [$matrix, $shadow_matrix]
-                                : [$matrix];
-
-            #  this actually takes most of the args from params,
-            #  but setting explicitly might save micro-seconds of time
-            my $x = $self->build_matrix_elements (
+        \my %nbr_hash = $nbr_hashes[$m];
+        foreach my $element1 (sort keys %nbr_hash) {
+            \my %elements = $nbr_hash{$element1};
+            my $key_vals = $self->build_matrix_element_subhash (
                 %args,
-                matrices           => $matrices_array,
-                element            => $element1,
-                element_list       => [keys %$nbr_hash],
-                index_function     => $index_function,
-                index              => $index,
-                file_handle        => $file_handles->[$m],
-                spatial_object     => $sp,
-                indices_object     => $indices_object,
-                processed_elements => \%processed_elements,
-                no_progress        => $no_progress,
-                csv_object         => $csv_object,
-                no_check_in_prev_mx      => $mx_is_simple_triangle,
-                nbrs_so_far_this_element => \%nbrs_so_far_this_element,
+                element                  => $element1,
+                element_list             => [ keys %elements ],
+                index_function           => $index_function,
+                index                    => $index,
+                indices_object           => $indices_object,
+                no_progress              => $no_progress,
             );
 
-            $valid_count += $x;
+            $valid_count += keys %$key_vals;
+
+            if (@$file_handles) {
+                my $fh = $file_handles->[$m];
+                my $element1_gdm_array
+                    = $gdm_el_array_cache{$element1} //= [@{[$bd->get_group_element_as_array_aa($element1)]}[0,1]];
+                foreach my $el2 (sort keys %$key_vals) {
+                    my $list = $output_gdm_format
+                        ? [@$element1_gdm_array,
+                            @{$gdm_el_array_cache{$el2} //= [@{[ $bd->get_group_element_as_array_aa($el2) ]}[0, 1]]},
+                            $key_vals->{$el2}
+                            ]
+                        : [$element1, $el2, $key_vals->{$el2}];
+                    say {$fh} $self->list2csv(
+                        list       => $list,
+                        csv_object => $csv_object
+                    );
+                    #  could delete row from nbr_hash to save memory
+                }
+            }
+            else {
+                $mx_ref->batch_add_element(element1 => $element1, data => $key_vals);
+            }
 
             #  do we need the progress dialogue?
             my $build_end_time = time();
             if (!$no_progress &&
                 ($build_end_time - $build_start_time
-                 < 3 * $Biodiverse::Config::progress_update_interval)) {
+                    < 3 * $Biodiverse::Config::progress_update_interval)) {
                 $no_progress = 1;
             }
             $build_start_time = $build_end_time;
-        }
 
-        $processed_elements{$element1}++;
+            $processed_elements{$element1}++;
+        }
     }
 
-    # my $element_check = $self->get_param ('ELEMENT_CHECK');
+    if ($last_mx_is_shadow) {
+        my $shadow_matrix = pop @matrices;
+        foreach my $mx (@matrices) {
+            foreach my $element1 ($mx->get_elements_as_array) {
+                my $row = $mx->_get_row_href_aa ($element1) // next;
+                $shadow_matrix->batch_add_element(
+                    element1 => $element1,
+                    data     => $row,
+                );
+            }
+        }
+        $self->set_shadow_matrix(matrix => $shadow_matrix);
+    }
 
     $progress_bar->update(
         "Building matrix\n$name\n(row $count / $to_do)",
@@ -1064,6 +1075,105 @@ sub build_matrices {
     $self->set_param (COMPLETED_MATRIX => 1);
 
     return wantarray ? @matrices : \@matrices;
+}
+
+#  like build_matrix_element but returns a hash without any of the other jiggery pokery
+#  and does not check if values are already in the MX - that is the caller's problem
+sub build_matrix_element_subhash {
+    my $self = shift;
+    my %args = @_;
+
+    my $element1      = delete $args{element};
+    my $element_list2 = delete $args{element_list};
+    if (is_hashref($element_list2)) {
+        $element_list2 = [keys %$element_list2];
+    }
+
+    my $index            = delete $args{index}
+        || $self->get_param ('CLUSTER_INDEX');
+    my $indices_object   = delete $args{indices_object}
+        || $self->get_param ('INDICES_OBJECT');
+
+    my $progress;
+    my $to_do = scalar @$element_list2;
+    if ($to_do > 100 && !$args{no_progress}) {  #  arbitrary threshold
+        $progress = Biodiverse::Progress->new (text => 'Processing row', gui_only => 1);
+    }
+
+    my $bd = $self->get_basedata_ref;
+
+    #  These are calculations that don't need the dependency infrastructure and its overheads
+    #  and which are commonly used in clustering.
+    state %direct_calls = (
+        SORENSON => sub {
+            my ($aa, $bb, $cc) = @_;
+            return 1 - (2 * $aa) / (2 * $aa + $bb + $cc);
+        },
+        JACCARD  => sub {
+            my ($aa, $bb, $cc) = @_;
+            return 1 - $aa / ($aa + $bb + $cc);
+        },
+        S2       => sub {
+            my ($aa, $bb, $cc) = @_;
+            return 1 - $aa / ($aa + min ($bb, $cc));
+        }
+    );
+    my $direct_call     = $direct_calls{$index};
+    my $use_direct_call = defined $direct_call;
+
+    \my %label_cache = $self->get_cached_href('LABELS_IN_GROUPS_AS_HASH');
+    \my %h1 = $use_direct_call
+        ? ($label_cache{$element1} //= $bd->get_labels_in_group_as_hash_aa($element1))
+        : {};
+
+    my $element1_as_list = [$element1];
+
+    #  no need to pass all of these on
+    delete @args{qw /
+        prng_seed           type     cache_abc  indices
+        linkage_function    no_clone_matrices   no_progress
+        spatial_conditions  spatial_object      def_query
+        clear_cached_values cluster_tie_breaker flatten_tree
+        index_function      no_check_in_prev_mx nbrs_so_far_this_element
+    /};
+
+    my %key_vals;
+
+    my $n = 0;
+    ELEMENT2:
+    foreach my $element2 (sort @$element_list2) {
+        $n++;
+
+        if ($progress) {
+            $progress->update ("processing column $n of $to_do", $n / $to_do);
+        }
+
+        my $index_val;
+        if ($use_direct_call) {
+            use Hash::Util::Set qw /keys_intersection/;
+            \my %h2 = $label_cache{$element2} //= $bd->get_labels_in_group_as_hash_aa($element2);
+            my $aa  = keys_intersection (%h1, %h2);
+            my $bb  = scalar (keys %h1) - $aa;
+            my $cc  = scalar (keys %h2) - $aa;
+            $index_val = $direct_call->($aa, $bb, $cc)
+                if ($aa || ($bb && $cc));
+        }
+        else {
+            my $values = $indices_object->run_calculations(
+                %args,
+                _use_calc_abc_pairwise_mode1 => 1,
+                element_list1 => $element1_as_list,
+                element_list2 => [$element2],
+            );
+            $index_val = $values->{$index};
+        }
+
+        next ELEMENT2 if ! defined $index_val;  #  don't add it if it is undefined
+
+        $key_vals{$element2} = $index_val;
+    }
+
+    return wantarray ? %key_vals : \%key_vals;
 }
 
 sub build_matrix_elements {
@@ -1328,11 +1438,15 @@ sub add_matrices_to_basedata {
 
     my %existing_outputs = $bd->get_matrix_outputs;
 
-    my $orig_matrices = $args{matrices} || $self->get_param ('ORIGINAL_MATRICES');
+    my $orig_matrices = $args{matrices} || $self->get_orig_matrices;
 
     foreach my $mx (@$orig_matrices) {
         next if exists $existing_outputs{$mx->get_name} || any { $mx eq $_ } values %existing_outputs;
         $bd->add_output(object => $mx);
+    }
+    my $shadow = $self->get_orig_shadow_matrix;
+    if ($shadow && $shadow->get_element_count) {
+        $bd->add_output(object => $shadow);
     }
 
     return;
@@ -2271,12 +2385,12 @@ sub cluster {
 
     MATRIX:
     foreach my $i (0 .. $#matrices) {  #  or maybe we should destructively sample this as well?
-        say "[CLUSTER] Using matrix $i";
+        say "[CLUSTER] Using matrix $i of $i..$#matrices";
         $self->set_param (CURRENT_MATRIX_ITER => $i);
 
         #  no elements left, so we've used this one up.  Move to the next
         next MATRIX if $matrices[$i]->get_element_count == 0;  
-
+# use DDP; p $matrices[$i];
         eval {
             $self->cluster_matrix_elements (%args);
         };

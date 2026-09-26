@@ -1528,6 +1528,10 @@ sub on_run_analysis {
             next if not $ref->get_element_count;  #  don't add if empty
             $project->add_output($self->{basedata_ref}, $ref);
         }
+        my $shadow = $output_ref->get_orig_shadow_matrix;
+        if ($shadow && $shadow->get_element_count) {
+            $project->add_output($self->{basedata_ref}, $shadow);
+        }
     }
 
     $self->register_in_outputs_model($output_ref, $self);

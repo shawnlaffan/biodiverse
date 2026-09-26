@@ -93,6 +93,11 @@ sub get_defined_value_aa {
     $el_ref->{$_[1]}{$_[2]} // $el_ref->{$_[2]}{$_[1]};
 }
 
+sub _get_row_href_aa {
+    my ($self, $element) = @_;
+    return $self->{BYELEMENT}{$element};
+}
+
 sub get_element_values {    #  get all values associated with one element
     my $self = shift;
     my %args = @_;

@@ -1025,7 +1025,7 @@ sub build_matrices {
                 }
             }
             else {
-                $mx_ref->batch_add_element(element1 => $element1, data => $key_vals);
+                $mx_ref->batch_add_element(element1 => $element1, data => $key_vals, no_undef_vals_in_data => 1);
             }
 
             #  do we need the progress dialogue?
@@ -1047,8 +1047,9 @@ sub build_matrices {
             foreach my $element1 ($mx->get_elements_as_array) {
                 my $row = $mx->_get_row_href_aa ($element1) // next;
                 $shadow_matrix->batch_add_element(
-                    element1 => $element1,
-                    data     => $row,
+                    element1              => $element1,
+                    data                  => $row,
+                    no_undef_vals_in_data => 1,
                 );
             }
         }

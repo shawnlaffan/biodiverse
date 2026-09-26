@@ -583,24 +583,56 @@ sub batch_add_element {
     my $data = $args{data};
     croak "data hash not specified in call to add_element\n"
         if !defined $data;
+    return if !%$data;
 
     my $index_prec = $self->get_param('VAL_INDEX_PRECISION');
     my $have_index_prec = defined $index_prec;
 
+    \my %by_el   = $self->{BYELEMENT}{$element1} //= {};
+    \my %by_val  = $self->{BYVALUE} //= {};
+    \my %el_hash = $self->{ELEMENTS} //= {};
+
+    if ($args{no_undef_vals_in_data}) {  #  promises, promises
+        $el_hash{$element1} += keys %$data;
+        if (keys %by_el) {
+            @by_el{keys %$data} = values %$data
+        }
+        else {
+            %by_el = %$data;
+        };
+        foreach my ($element2, $val) (%$data) {
+            my $idx = $have_index_prec ? sprintf $index_prec, $val : $val;
+            $by_val{$idx}{$element1}{$element2}++;
+            $el_hash{$element2}++;
+        }
+
+        return;
+    }
+
+    use List::Util qw/any/;
+    my $undef_count = 0;
+    if (any {!defined $_} values %$data) {
+        if (!$self->get_param('ALLOW_UNDEF')) {  #  filter data
+            $data = {map {$_ => $data->{$_}} grep {defined $data->{$_}} keys %$data};
+        }
+        else {
+            $undef_count = grep {!defined $_} values %$data;
+        }
+    }
+    $el_hash{$element1} += scalar (keys %$data) - $undef_count;
     foreach my ($element2, $val) (%$data) {
-        if ( !defined $val && !$self->get_param('ALLOW_UNDEF') ) {
+        if ($undef_count && !defined $val) {
             warn "[Matrix] add_element Warning: Value not defined and "
                 . "ALLOW_UNDEF not set, not adding row $element1 col $element2.\n";
-            return;
+            $el_hash{$element1}--;
+            next;
         }
 
         my $index_val = $have_index_prec ? sprintf $index_prec, $val : $val;
 
-        $self->{BYELEMENT}{$element1}{$element2} = $val;
-        $self->{BYVALUE}{$index_val}{$element1}{$element2}++;
-        #  cache the component elements to save searching through the other lists later
-        $self->{ELEMENTS}{$element1}++;
-        $self->{ELEMENTS}{$element2}++; #  also keeps a count of the elements
+        $by_el{$element2} = $val;
+        $by_val{$index_val}{$element1}{$element2}++;
+        $el_hash{$element2}++;
     }
 
     return;

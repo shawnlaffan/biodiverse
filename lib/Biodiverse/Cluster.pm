@@ -849,7 +849,7 @@ sub build_matrices {
 
     my $progress_bar = Biodiverse::Progress->new();
     my $count = 0;
-    my $target_element_count = $to_do * ($to_do - 1) / 2; # n(n-1)/2
+    # my $target_element_count = $to_do * ($to_do - 1) / 2; # n(n-1)/2
     my %processed_elements;
 
     my $no_progress;
@@ -862,6 +862,7 @@ sub build_matrices {
     my @nbr_hashes;
     my $triangular_nbr_hash;
     my $last_mx_is_shadow;
+    my $place_holder = \1;
     #  no need the triangle if writing direct to files
     if ($mx_is_simple_triangle) {
         my %nbr_hash;
@@ -869,7 +870,7 @@ sub build_matrices {
         while (my $element1 = shift @elements) {
             last if !@elements;
             my $subhash = ($nbr_hash{$element1} //= {});
-            @{$subhash}{@elements} = (1) x @elements;
+            @{$subhash}{@elements} = ($place_holder) x @elements;
             $nbr_hash{$element1} = $subhash;
         }
         $triangular_nbr_hash = \%nbr_hash;
@@ -889,8 +890,8 @@ sub build_matrices {
                 foreach my $element2 (grep {!exists $nbr_hash{$_}} @$neighbours) {
                     #  store in ascending order
                     $element1 lt $element2
-                        ? ($nbr_hash{$element1}{$element2} ||= 1)
-                        : ($nbr_hash{$element2}{$element1} ||= 1);
+                        ? ($nbr_hash{$element1}{$element2} ||= $place_holder)
+                        : ($nbr_hash{$element2}{$element1} ||= $place_holder);
                     $all_elts{$element2} ||= 1;
                     $n++;
                 }
@@ -908,7 +909,7 @@ sub build_matrices {
             while (my $element1 = shift @elements) {
                 last if !@elements;
                 my $subhash = ($nbr_hash{$element1} //= {});
-                @{$subhash}{@elements} = (1) x @elements;
+                @{$subhash}{@elements} = ($place_holder) x @elements;
                 $nbr_hash{$element1} = $subhash;
             }
             $triangular_nbr_hash = \%nbr_hash;

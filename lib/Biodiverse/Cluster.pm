@@ -850,9 +850,6 @@ sub build_matrices {
     my $progress_bar = Biodiverse::Progress->new();
     my $count = 0;
     my $target_element_count = $to_do * ($to_do - 1) / 2; # n(n-1)/2
-    my $progress_pfx = "Building matrix\n"
-                        . "$name\n"
-                        . "Target is $target_element_count matrix elements\n";
     my %processed_elements;
 
     my $no_progress;
@@ -977,19 +974,25 @@ sub build_matrices {
     \my %gdm_el_array_cache = $self->get_cached_href('GDM_EL_ARRAY_CACHE');
 
     my $m = -1;
-    $count = 0;
     my $valid_count = 0;
     foreach my $mx_ref (@matrices) {
         $m++;
-        $count++;
-        my $progress = $count / $to_do;
-        $progress_bar->update(
-            $progress_pfx . "(row $count / $to_do)",
-            $progress,
-        );
-
         \my %nbr_hash = $nbr_hashes[$m];
+
+        my $to_do_rows = keys %nbr_hash;
+        my $progress_pfx = "Building matrix\n"
+            . $mx_ref->get_name
+            . "\nTarget is $to_do_rows rows\n";
+
+        $count = 0;
         foreach my $element1 (sort keys %nbr_hash) {
+            $count++;
+            my $progress = $count / $to_do_rows;
+            $progress_bar->update(
+                $progress_pfx . "(row $count / $to_do_rows)",
+                $progress,
+            );
+
             \my %elements = $nbr_hash{$element1};
             my $key_vals = $self->build_matrix_element_subhash (
                 %args,

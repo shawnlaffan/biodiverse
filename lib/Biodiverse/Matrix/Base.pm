@@ -48,10 +48,9 @@ sub set_value {
 }
 
 sub get_value {  #  return the value of a pair of elements. argument checking is done by element_pair_exists.
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
-    my $exists = $args{pair_exists} // $self->element_pair_exists (@_);
+    my $exists = $args{pair_exists} // $self->element_pair_exists_aa (@args{qw/element1 element2/});
 
     return $self->{BYELEMENT}{$args{element1}}{$args{element2}}
         if $exists == 1;
@@ -61,9 +60,31 @@ sub get_value {  #  return the value of a pair of elements. argument checking is
 
     #  defaults to undef
     return $self->get_param ('SELF_SIMILARITY')
-      if !$exists
-          and $args{element1} eq $args{element2}
-          and $self->element_is_in_matrix_aa ($args{element1});
+        if !$exists
+            and $args{element1} eq $args{element2}
+            and $self->element_is_in_matrix_aa ($args{element1});
+
+    #  if we get this far then the combination does not exist
+    #  and we cannot get the value
+    return;
+}
+
+sub get_value_aa {
+    my ($self, $element1, $element2, $exists) = @_;
+
+    $exists //= $self->element_pair_exists_aa ($element1, $element2);
+
+    return $self->{BYELEMENT}{$element1}{$element2}
+        if $exists == 1;
+    #  elements exist, but in different order - switch them
+    return $self->{BYELEMENT}{$element2}{$element1}
+        if $exists == 2;
+
+    #  defaults to undef
+    return $self->get_param ('SELF_SIMILARITY')
+        if !$exists
+            and $element1 eq $element2
+            and $self->element_is_in_matrix_aa ($element1);
 
     #  if we get this far then the combination does not exist
     #  and we cannot get the value

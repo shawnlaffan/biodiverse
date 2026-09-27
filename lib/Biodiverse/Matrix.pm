@@ -641,25 +641,19 @@ sub batch_add_element {
 #  should be called delete_element_pair, but need to find where it's used first
 sub delete_element {
     my $self = shift;
-    my %args = @_;
 
     my $exists = $self->element_pair_exists(@_)
       || return 0;
 
-    #  handled in the exists check
-    # croak "element1 and/or element2 not defined\n"
-    #   if !( defined $args{element1} && defined $args{element2} );
+    #  unpack only if we passed the exists check
+    my %args = @_;
 
     my ( $element1, $element2 ) =
         $exists == 1
       ? @args{ 'element1', 'element2' }
       : @args{ 'element2', 'element1' };
 
-    my $value = $self->get_value(
-        element1    => $element1,
-        element2    => $element2,
-        pair_exists => 1,
-    );
+    my $value = $self->get_value_aa($element1, $element2, 1);
 
     #  save some repeated dereferencing below
     my $val_index   = $self->{BYVALUE};

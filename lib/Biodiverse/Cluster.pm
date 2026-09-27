@@ -984,6 +984,7 @@ sub build_matrices {
         my $progress_pfx = "Building matrix\n"
             . $mx_ref->get_name
             . "\nTarget is $to_do_rows rows\n";
+        say "Processing matrix " . $mx_ref->get_name;
 
         $count = 0;
         foreach my $element1 (sort keys %nbr_hash) {
@@ -1029,7 +1030,7 @@ sub build_matrices {
                 $mx_ref->batch_add_element(element1 => $element1, data => $key_vals, no_undef_vals_in_data => 1);
             }
 
-            #  do we need the progress dialogue?
+            #  do we need the progress dialogue when processing columns?
             my $build_end_time = time();
             if (!$no_progress &&
                 ($build_end_time - $build_start_time
@@ -1044,8 +1045,20 @@ sub build_matrices {
 
     if ($last_mx_is_shadow) {
         my $shadow_matrix = pop @matrices;
+        my $im = 0;
+        my $nm = @matrices;
         foreach my $mx (@matrices) {
+            $im++;
+            my $to_do_rows = $mx->get_element_count;  #  row count
+            my $progress_pfx = "Populating shadow matrix from matrix $im of $nm\n";
+            my $row_count = 0;
             foreach my $element1 ($mx->get_elements_as_array) {
+                $row_count++;
+                my $progress = $row_count / $to_do_rows;
+                $progress_bar->update(
+                    $progress_pfx . "(row $row_count / $to_do_rows)",
+                    $progress,
+                );
                 my $row = $mx->_get_row_href_aa ($element1) // next;
                 $shadow_matrix->batch_add_element(
                     element1              => $element1,

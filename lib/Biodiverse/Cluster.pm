@@ -2869,13 +2869,8 @@ sub run_linkage {
             matrix       => $matrix_with_elements,
         );
 
-        if ($shadow_matrix) {
-            $shadow_matrix->add_element  (
-                element1 => $new_node,
-                element2 => $check_node,
-                value    => $value,
-            );
-        }
+        $shadow_matrix->add_element_aa ($new_node, $check_node, $value)
+            if ($shadow_matrix);
 
         #  work from the current mx forwards
         MX_ITER:
@@ -2889,11 +2884,7 @@ sub run_linkage {
                     $mx->element_pair_exists_aa ($node2, $check_node)
                 );
 
-            $mx->add_element (
-                element1 => $new_node,
-                element2 => $check_node,
-                value    => $value,
-            );
+            $mx->add_element_aa ($new_node, $check_node, $value);
             last MX_ITER;
         }
     }

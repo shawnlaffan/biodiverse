@@ -878,10 +878,21 @@ sub build_matrices {
     }
     else {
         my %all_elts;
+        my $im = 0;
+        my $nm = @mx_names;
+        my $nrows = @elements_to_calc;
         foreach my $m (0 .. $#mx_names) {
+            $im++;
+            my $progress_pfx = "Collating elements for matrix $im of $nm\n";
             my $nbr_list_name = '_NBR_SET' . ($m + 1);
             my %nbr_hash;
+            my $row = 0;
             foreach my $element1 (@elements_to_calc) {
+                $row++;
+                $progress_bar->update (
+                    $progress_pfx . "row $row of $nrows",
+                    $row / $nrows,
+                );
                 my $neighbours = $sp->get_list_values(
                     element => $element1,
                     list    => $nbr_list_name,

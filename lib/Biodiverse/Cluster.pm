@@ -2928,16 +2928,14 @@ sub delete_links_from_matrix {
 
     #  clean up links from compare_nodes to elements1&2
     my $deletion_count = 0;
-    foreach my $check_element (@$compare_nodes) {
-        $deletion_count += $matrix->delete_element (
-            element1 => $check_element,
-            element2 => $element1,
-        );
-        $deletion_count += $matrix->delete_element (
-            element1 => $check_element,
-            element2 => $element2,
-        );
-    }
+    $deletion_count += $matrix->batch_delete_element_pairs (
+        element1 => $element1,
+        el2_list => $compare_nodes,
+    );
+    $deletion_count += $matrix->batch_delete_element_pairs (
+        element1 => $element2,
+        el2_list => $compare_nodes,
+    );
 
     return $expected - $deletion_count;
 }

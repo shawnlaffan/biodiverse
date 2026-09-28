@@ -548,7 +548,7 @@ sub add_element {
 }
 
 sub add_element_aa {
-    my ($self, $element1, $element2, $val) = @_;
+    my ($self, $element1, $element2, $val, $index_val) = @_;
 
     croak "Element1 not specified in call to add_element_aa\n"
         if !defined $element1;
@@ -562,7 +562,7 @@ sub add_element_aa {
         return;
     }
 
-    my $index_val = $self->get_value_index_key_aa( $val );
+    $index_val //= $self->get_value_index_key_aa( $val );
 
     $self->{BYELEMENT}{$element1}{$element2} = $val;
     $self->{BYVALUE}{$index_val}{$element1}{$element2}++;

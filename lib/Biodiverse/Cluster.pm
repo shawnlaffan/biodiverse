@@ -925,7 +925,7 @@ sub build_matrices {
             }
             $triangular_nbr_hash = \%nbr_hash;
             push @nbr_hashes, $triangular_nbr_hash;
-            push @mx_names, "$name $index Shadow matrix";
+            push @mx_names, "$name $index Matrix_catchall";
             $last_mx_is_shadow = 1;
         }
         if (@nbr_hashes > 1) {
@@ -945,10 +945,6 @@ sub build_matrices {
             }
             #  track and clean up empties
             my @valid_mx_name_iters = grep {scalar keys %{$nbr_hashes[$_]}} (0..$#nbr_hashes);
-            if ($last_mx_is_shadow && $valid_mx_name_iters[-1] != $#nbr_hashes) {
-                #  don't remove the shadow even if it is empty - we populate it below
-                push @valid_mx_name_iters, $#nbr_hashes;
-            }
             @nbr_hashes  = @nbr_hashes[@valid_mx_name_iters];
             @mx_names    = @mx_names[@valid_mx_name_iters];
             @$file_handles = @{$file_handles}[@valid_mx_name_iters]
@@ -961,8 +957,7 @@ sub build_matrices {
         my $condition = blessed $spatial_conditions[$i]
             ? $spatial_conditions[$i]->get_conditions_unparsed
             : 'sp_select_all()';
-        my $class = $last_mx_is_shadow && $i == $#nbr_hashes ? $mx_class_lowmem : $mx_class;
-        $matrices[$i] = $class->new(
+        $matrices[$i] = $mx_class->new(
             JOIN_CHAR         => $bd->get_param('JOIN_CHAR'),
             NAME              => $mx_names[$i],
             %mx_common_args,
@@ -1056,7 +1051,12 @@ sub build_matrices {
     }
 
     if ($last_mx_is_shadow) {
-        my $shadow_matrix = pop @matrices;
+        my $shadow_matrix = $mx_class_lowmem->new(
+            JOIN_CHAR         => $bd->get_param('JOIN_CHAR'),
+            NAME              => "$name $index SHADOW_MATRIX " . time(),
+            %mx_common_args,
+        );
+        # pop @matrices;
         my $im = 0;
         my $nm = @matrices;
         foreach my $mx (@matrices) {
@@ -1472,10 +1472,6 @@ sub add_matrices_to_basedata {
     foreach my $mx (@$orig_matrices) {
         next if exists $existing_outputs{$mx->get_name} || any { $mx eq $_ } values %existing_outputs;
         $bd->add_output(object => $mx);
-    }
-    my $shadow = $self->get_orig_shadow_matrix;
-    if ($shadow && $shadow->get_element_count) {
-        $bd->add_output(object => $shadow);
     }
 
     return;

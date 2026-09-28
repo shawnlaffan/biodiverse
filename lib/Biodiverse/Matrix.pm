@@ -700,6 +700,83 @@ sub delete_element {
     return 1;    # return success if we get this far
 }
 
+sub batch_delete_element_pairs {
+    my ($self, %args) = @_;
+
+    my $el1      = $args{element1};
+    my $el2_list = $args{el2_list};
+
+    #  save some repeated dereferencing below
+    \my %val_index   = $self->{BYVALUE} //= {};
+    \my %el_ref      = $self->{ELEMENTS} //= {};
+    \my %by_el_index = $self->{BYELEMENT} //= {};
+
+    my $index_prec = $self->get_param('VAL_INDEX_PRECISION');
+
+    my %pair_exists = map {
+        no autovivification;
+        my $e
+            = exists ($by_el_index{$el1}{$_}) ? 1
+            : exists ($by_el_index{$_}{$el1}) ? 2
+            : 0;
+        $e ? ($_ => $e) : ();
+    } @$el2_list;
+
+    foreach my ($el2, $exists) (%pair_exists) {
+        my ($element1, $element2) =
+            $exists == 1
+                ? ($el1, $el2)
+                : ($el2, $el1);
+
+        my $value = $self->get_value_aa($element1, $element2, 1);
+
+        #  now we get to the cleanup, including the containing hashes if they are now empty
+        #  all the undef - delete pairs are to ensure they get deleted properly
+        #  the hash ref must be empty (undef) or it won't be deleted
+        #  autovivification of $self->{BYELEMENT}{$element1} is avoided by $exists above
+        delete $by_el_index{$element1}{$element2};
+        if (!keys %{$by_el_index{$element1}}) {
+            delete $by_el_index{$element1}
+                // warn "ISSUES BYELEMENT $element1 $element2\n";
+        }
+
+        my $index_val = defined $index_prec
+            ? sprintf ($index_prec, $value)
+            : $value;
+
+        if (!$val_index{$index_val}) {
+            #  a bit underhanded, but this ensures we upgrade old matrices
+            $self->rebuild_value_index;
+        }
+
+        delete $val_index{$index_val}{$element1}{$element2};
+        if (!keys %{$val_index{$index_val}{$element1}}) {
+            delete $val_index{$index_val}{$element1};
+            if (!keys %{$val_index{$index_val}}) {
+                delete $val_index{$index_val}
+                    // warn "ISSUES BYVALUE $index_val $value $element1 $element2\n";
+            }
+        }
+
+        #  Decrement the ELEMENTS counts
+        $el_ref{$element1}--;
+        $el_ref{$element2}--;
+
+        #  Delete $el2 entry if now zero
+        #  as there are no more entries with this element
+        #  (postfix-or for speed)
+        $el_ref{$el2}
+            or delete $el_ref{$el2} // warn "ISSUES $el2\n";
+    }
+
+    #  do el1 outside the loop, although it might have already been wiped
+    if (exists $el_ref{$el1} && !$el_ref{$el1}) {
+        delete $el_ref{$el1} // warn "ISSUES $el1\n";
+    }
+
+    return 1;    # return success if we get this far
+}
+
 sub is_symmetric
 { #  check if the matrix is symmetric (each element has an equal number of entries)
     my $self = shift;

@@ -2823,6 +2823,10 @@ sub run_linkage {
     my $current_mx_iter = $self->get_param ('CURRENT_MATRIX_ITER');
 
     my $matrix_with_elements = $shadow_matrix || $matrix_array->[0];
+    #  save some checks below if we have one matrix and no shadow
+    my $need_second_exists_check
+        = @$matrix_array > 1
+        || (ref ($matrix_with_elements) ne ref ($matrix_array->[0]));
 
     #  Now we need to loop over the respective nodes across
     #  the matrices and merge as appropriate.
@@ -2886,11 +2890,12 @@ sub run_linkage {
             my $mx = $matrix_array->[$mx_iter];
 
             next MX_ITER
-              if ! (
+              if $need_second_exists_check &&
+                  ! (
                     $mx->element_pair_exists_aa ($node1, $check_node)
                     &&
                     $mx->element_pair_exists_aa ($node2, $check_node)
-                );
+                  );
 
             $mx->add_element_aa ($new_node, $check_node, $value, $index_val);
             last MX_ITER;

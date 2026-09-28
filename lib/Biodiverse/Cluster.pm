@@ -2637,11 +2637,12 @@ sub link_average {
     croak "one of the nodes not specified in linkage function call\n"
       if ! defined $args{node1} || ! defined $args{node2};
 
-    my $node1 = $args{node1};
-    my $node2 = $args{node2};
-
-    my $el1_count = $self->get_terminal_element_count (node => $node1);
-    my $el2_count = $self->get_terminal_element_count (node => $node2);
+    my $el1_count
+        = $args{node1_tip_count}
+        // $self->get_terminal_element_count (node => $args{node1});
+    my $el2_count
+        = $args{node2_tip_count}
+        // $self->get_terminal_element_count (node => $args{node2});
 
     my ($tmp1, $tmp2) = $self->get_values_for_linkage (%args);
 
@@ -2839,6 +2840,14 @@ sub run_linkage {
         );
     }
 
+    my @node_count_args;
+    if ($linkage_function eq 'link_average') {
+       @node_count_args = (
+           node1_tip_count => $self->get_terminal_element_count (node => $node1),
+           node2_tip_count => $self->get_terminal_element_count (node => $node2),
+       );
+    }
+
     my $i = 0;
   CHECK_NODE:
     foreach my $check_node (@check_node_array) {  
@@ -2867,6 +2876,7 @@ sub run_linkage {
             node2        => $node2,
             compare_node => $check_node,
             matrix       => $matrix_with_elements,
+            @node_count_args,
         );
         my $index_val = $matrix_with_elements->get_value_index_key_aa ($value);
 

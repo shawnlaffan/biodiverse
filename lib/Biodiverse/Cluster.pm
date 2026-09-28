@@ -2859,11 +2859,8 @@ sub run_linkage {
         next CHECK_NODE if $check_node eq $node1 || $check_node eq $node2;
 
         #  skip if we don't have both pairs check_node with node1 and with node2
-        next CHECK_NODE if !(
-            $matrix_with_elements->element_pair_exists_aa ($check_node, $node1)
-            &&
-            $matrix_with_elements->element_pair_exists_aa ($check_node, $node2)
-        );  
+        next CHECK_NODE
+            if !$matrix_with_elements->element_exists_in_two_pairs_aa ($check_node, $node1, $node2);
 
         if ($progress) {
             $progress->update(
@@ -2891,11 +2888,7 @@ sub run_linkage {
 
             next MX_ITER
               if $need_second_exists_check &&
-                  ! (
-                    $mx->element_pair_exists_aa ($node1, $check_node)
-                    &&
-                    $mx->element_pair_exists_aa ($node2, $check_node)
-                  );
+                  !$mx->element_exists_in_two_pairs_aa ($check_node, $node1, $node2);
 
             $mx->add_element_aa ($new_node, $check_node, $value, $index_val);
             last MX_ITER;

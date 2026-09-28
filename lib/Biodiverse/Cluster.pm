@@ -961,7 +961,8 @@ sub build_matrices {
         my $condition = blessed $spatial_conditions[$i]
             ? $spatial_conditions[$i]->get_conditions_unparsed
             : 'sp_select_all()';
-        $matrices[$i] = $mx_class->new(
+        my $class = $last_mx_is_shadow && $i == $#nbr_hashes ? $mx_class_lowmem : $mx_class;
+        $matrices[$i] = $class->new(
             JOIN_CHAR         => $bd->get_param('JOIN_CHAR'),
             NAME              => $mx_names[$i],
             %mx_common_args,

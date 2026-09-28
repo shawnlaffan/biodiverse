@@ -417,19 +417,16 @@ sub get_terminal_element_count {
     my $self = shift;
     my %args = ( cache => 1, @_ );    #  cache by default
 
-    my $node_ref;
-    if ( defined $args{node} ) {
-        $node_ref = $self->get_node_ref_aa ( $args{node} );
-    }
-    else {
-        $node_ref = $self->get_tree_ref;
-    }
+    my $node_ref
+        = defined $args{node}
+        ? $self->get_node_ref_aa ( $args{node} )
+        : $self->get_tree_ref;
 
     #  follow logic of get_terminal_elements, which returns a hash of
     #  node if not a ref - good or bad idea?  Ever used?
     return 1 if !defined $node_ref;
 
-    return $node_ref->get_terminal_element_count( cache => $args{cache} );
+    return $node_ref->get_terminal_element_count( %args{cache} );
 }
 
 sub get_node_ref {

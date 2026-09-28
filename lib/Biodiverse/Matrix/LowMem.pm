@@ -4,6 +4,8 @@ use 5.036;
 use strict;
 use warnings;
 
+use experimental qw /refaliasing for_list/;
+
 use Carp;
 use List::Util qw /min max/;
 
@@ -184,6 +186,47 @@ sub delete_element {  #  should be called delete_element_pair, but need to find 
     }
 
     return 1;  # return success if we get this far
+}
+
+sub get_value_index_key_aa {}
+
+sub batch_delete_element_pairs {
+    my ($self, %args) = @_;
+
+    my $el1      = $args{element1};
+    my $el2_list = $args{el2_list};
+
+    #  save some repeated dereferencing below
+    \my %by_el_index = $self->{BYELEMENT} //= {};
+
+    my %pair_exists = map {
+        no autovivification;
+        my $e
+            = exists ($by_el_index{$el1}{$_}) ? 1
+            : exists ($by_el_index{$_}{$el1}) ? 2
+            : 0;
+        $e ? ($_ => $e) : ();
+    } @$el2_list;
+
+    foreach my ($el2, $exists) (%pair_exists) {
+        my ($element1, $element2) =
+            $exists == 1
+                ? ($el1, $el2)
+                : ($el2, $el1);
+
+        #  now we get to the cleanup, including the containing hashes if they are now empty
+        #  all the undef - delete pairs are to ensure they get deleted properly
+        #  the hash ref must be empty (undef) or it won't be deleted
+        #  autovivification of $self->{BYELEMENT}{$element1} is avoided by $exists above
+        delete $by_el_index{$element1}{$element2};
+        if (!keys %{$by_el_index{$element1}}) {
+            delete $by_el_index{$element1}
+                // warn "ISSUES BYELEMENT $element1 $element2\n";
+        }
+
+    }
+
+    return 1;    # return success if we get this far
 }
 
 my $ludicrously_large_pos_value = 10 ** 20;

@@ -1226,6 +1226,131 @@ sub rename_element {
 
 sub numerically {$a <=> $b};
 
+#  Basic summary stats.
+#  Not using Biodiverse::Statistics due to memory issues
+#  with large matrices and calculation of percentiles.
+#  Was in Matrix.pm but applies to lowmem as well.
+sub get_summary_stats {
+    my $self = shift;
+
+    state $cachename = 'SUMMARY_STATS';
+    my $cached = $self->get_cached_value ($cachename);
+
+    return wantarray ? %$cached : $cached
+        if $cached;
+
+    my $n_elements = $self->get_element_count;
+    my $el_progress_thresh = 500;
+    my $progress = $n_elements > $el_progress_thresh ? Biodiverse::Progress->new(gui_only => 1) : undef;
+
+    my $progr_i = 0;
+    my (@v_ndarrays, @w_ndarrays);
+    my $n_mx_elements = 0;
+    my $n_precred_vals = 0;
+    my $prec_mult = 7;
+
+    \my %top_level = $self->{BYELEMENT};
+    foreach my $href (values %top_level) {
+        $progress && $progress->update ("Collating matrix stats data", ++$progr_i / $n_elements);
+        #  Round to save time and space - approximate vals should be OK for this.
+        #  Rounding mimics the sprintf %g formatting code.
+        my $ndarray = PDL->new(PDL::double(), [values %$href]);
+        my $m = 10 ** ($prec_mult - $ndarray->log10->floor);
+        $ndarray = ($ndarray * $m)->floor->divide($m)->badmask(0);
+        my @rle = $ndarray->inplace->qsort->rle;
+        push @w_ndarrays, $rle[0];
+        push @v_ndarrays, $rle[1];
+        $n_mx_elements  += keys %$href;
+        $n_precred_vals += $rle[0]->nelem;
+    }
+
+    my $p_v = PDL->zeroes ($n_precred_vals);
+    my $p_w = PDL->zeroes ($n_precred_vals);
+    my $ii = 0;
+    my $nd_i = 0;
+    foreach my $ndarray (@v_ndarrays) {
+        my $nmax = $ii + $ndarray->nelem - 1;
+        my $slice = $p_v->slice("$ii:$nmax");  #  debugger throws error if slice assign is all on one line
+        $slice .= $ndarray;
+        $slice = $p_w->slice("$ii:$nmax");
+        $slice .= $w_ndarrays[$nd_i];
+        $ii = $nmax + 1;
+        $nd_i++;
+    }
+
+    my %r;
+    my $stats = Statistics::Descriptive::PDL::SampleWeighted->new;
+    #  use internal methods until Statistics::Descriptive::PDL::SampleWeighted allows PDLs to be passed
+    $stats->_set_weights_piddle($p_w);
+    $stats->_set_piddle($p_v);
+
+    $progress && $progress->update("Calculating min, max, mean and SD", 0.33);
+    %r = (
+        MAX  => $stats->max,
+        MIN  => $stats->min,
+        MEAN => $stats->mean,
+        SD   => $stats->standard_deviation,
+    );
+
+    $progress && $progress->update("Calculating percentiles", 0.66);
+    if ($p_v->nelem < 5000) {
+        @r{qw/PCT025 PCT05 PCT95 PCT975/} = $stats->percentiles(2.5, 5, 95, 97.5);
+    }
+    else {
+        say sprintf ("[Matrix] Number of precision adjusted values is %d (of %d)", $p_v->nelem, $n_mx_elements);
+        say "[Matrix] Using a binned approximation to calculate percentiles, nbins is $prec_mult";
+        #  Use a histogram approximation for large data sets.
+        #  A future implementation might handle skewed distributions by using variable bin sizes.
+        my $hist_nsteps = 10 ** ($prec_mult - 1);
+        my $hist_step = ($r{MAX} - $r{MIN}) / $hist_nsteps;
+
+        my $hist = $p_v->whistogram($p_w, $hist_step, $r{MIN}, $hist_nsteps);
+        my $cumsum = $hist->cumusumover;
+        my $nn = $cumsum->at(-1);
+        #  cannot just use sprintf
+        my %pct_map = (
+            '2.5'  => 'PCT025',
+            '5'    => 'PCT05',
+            '95'   => 'PCT95',
+            '97.5' => 'PCT975',
+        );
+        foreach my $pct (2.5, 5, 95, 97.5) {
+            my $target = $nn * $pct / 100;
+            my $idx = PDL::vsearch_insert_leftmost($target, $cumsum)->sclr;
+            $idx ++ if $pct > 0.5;
+            $r{$pct_map{$pct}} = List::Util::min ($r{MAX}, $r{MIN} + $idx * $hist_step);
+        }
+    }
+
+    use constant PRECISION => 10**13;
+    foreach my $key (keys %r) {
+        $r{$key} = $self->round_to_precision_aa($r{$key}, PRECISION) + 0;
+    }
+
+    $self->set_cached_value($cachename => \%r);
+
+    #  ndarray cleanup can take user-visible time
+    if ($progress) {
+        $progress->update ("Cleaning up temporary stats objects", 0);
+        my $nn = 2.05 * @w_ndarrays;
+        my $jj;
+        while (@v_ndarrays) {
+            shift @v_ndarrays;
+            $progress->update (undef, ++$jj / $nn);
+        }
+        while (@w_ndarrays) {
+            shift @w_ndarrays;
+            $progress->update (undef, ++$jj / $nn);
+        }
+        $progress->update("Cleaning up the big one", 0.95);
+        $stats = undef;
+    }
+
+    $progress = undef;
+
+    return wantarray ? %r : \%r;
+}
+
 1;
 
 

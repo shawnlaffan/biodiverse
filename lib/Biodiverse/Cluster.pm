@@ -2670,23 +2670,20 @@ sub _link_centroid {
 }
 
 sub get_values_for_linkage {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
+
+    my ($node1, $node2, $compare_node) = @args{qw/node1 node2 compare_node/};
 
     croak "one of the nodes not specified in linkage function call\n"
       if ! defined $args{node1} || ! defined $args{node2};
-
-    my $node1 = $args{node1};
-    my $node2 = $args{node2};
-    my $check_node = $args{compare_node};
 
     my $sim_matrix = $args{matrix}
         || croak "argument 'matrix' not specified\n";
     my ($tmp1, $tmp2);
 
-    if (defined $check_node) {
-        $tmp1 = $sim_matrix->get_defined_value_aa ($check_node, $node1);
-        $tmp2 = $sim_matrix->get_defined_value_aa ($check_node, $node2);
+    if (defined $compare_node) {
+        $tmp1 = $sim_matrix->get_defined_value_aa ($compare_node, $node1);
+        $tmp2 = $sim_matrix->get_defined_value_aa ($compare_node, $node2);
     }
     else {
         warn "two node linkage case\n";

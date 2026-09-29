@@ -71,6 +71,8 @@ my $export_metadata_class = 'Biodiverse::Metadata::Export';
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
+my $all_elts_cache_key = '_all_elements';
+
 #  use the "new" sub from Tree.
 
 sub get_default_linkage {
@@ -863,6 +865,7 @@ sub build_matrices {
     my $triangular_nbr_hash;
     my $last_mx_is_shadow;
     my $place_holder = \1;
+    my %all_elts;
     #  no need the triangle if writing direct to files
     if ($mx_is_simple_triangle) {
         my %nbr_hash;
@@ -877,7 +880,6 @@ sub build_matrices {
         $nbr_hashes[0] = $triangular_nbr_hash;
     }
     else {
-        my %all_elts;
         my $im = 0;
         my $nm = @mx_names;
         my $nrows = @elements_to_calc;
@@ -1080,6 +1082,15 @@ sub build_matrices {
             }
         }
         $self->set_shadow_matrix(matrix => $shadow_matrix);
+        $self->set_cached_value ($all_elts_cache_key => \%all_elts);
+    }
+    else {
+        my %h;
+        foreach my $mx (@matrices) {
+            my $elts = $mx->get_elements_as_array;
+            @h{@$elts} = ($place_holder) x @$elts;
+        }
+        $self->set_cached_value ($all_elts_cache_key => \%h);
     }
 
     $progress_bar->update(
@@ -2828,7 +2839,22 @@ sub run_linkage {
     #  Now we need to loop over the respective nodes across
     #  the matrices and merge as appropriate.
     #  The sort guarantees same order each time.
-    my @check_node_array = sort $matrix_with_elements->get_elements_as_array;
+    my $check_node_hash = $self->get_cached_value($all_elts_cache_key);
+    my @check_node_array;
+    # say STDERR 'blort';
+    if (!defined $check_node_hash) {
+        #  if it was deleted or never built then rebuild from across the matrices
+        my %h;
+        foreach my $mx (@$matrix_array, ($self->get_shadow_matrix || ())) {
+            my $elts = $mx->get_elements_as_array;
+            @h{@$elts} = ();
+        }
+        $check_node_hash = \%h;
+        $self->set_cached_value($all_elts_cache_key => $check_node_hash);
+    }
+    @check_node_array = sort keys %$check_node_hash;
+
+
     my $num_nodes = scalar @check_node_array;
     my $progress;
     if ($args{show_gui_progress} && $num_nodes > 500) {
@@ -2892,13 +2918,17 @@ sub run_linkage {
         }
     }
 
+    delete @$check_node_hash{$node1, $node2};
+    $check_node_hash->{$new_node}++;
+
     #  forget these nodes ever existed
     #  currently inefficient as we just looped over them all
     #  and should be able to do it there
     if ($shadow_matrix) {
         $self->delete_links_from_matrix (
             %args,
-            matrix => $shadow_matrix,
+            matrix        => $shadow_matrix,
+            compare_nodes => \@check_node_array,
         );
     }
 

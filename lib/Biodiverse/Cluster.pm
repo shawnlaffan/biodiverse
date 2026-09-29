@@ -1181,7 +1181,7 @@ sub build_matrix_element_subhash {
 
     my $n = 0;
     ELEMENT2:
-    foreach my $element2 (sort @$element_list2) {
+    foreach my $element2 (@$element_list2) {
         $n++;
 
         if ($progress) {

@@ -1689,8 +1689,10 @@ sub cluster_matrix_elements {
     local $| = 1;  #  write to screen as we go
 
     my $name = $self->get_param ('NAME') || 'no_name';
-    my $progress_text = "Matrix iter $mx_iter of " . ($matrix_count - 1) . "\n";
-    $progress_text .= $args{progress_text} || $name;
+    my $mx_name = $sim_matrix->get_name;
+    my $progress_text = "Matrix: $mx_name\n";
+    $progress_text .= $args{progress_text} || '';
+    my $progress_fmt = "Clustering $name\n$progress_text\n(%d rows remaining)\nMost similar value is %.6g";
     print "[CLUSTER] Progress (% of $total elements):     ";
     
     my $show_gui_progress = 1;
@@ -1727,8 +1729,7 @@ sub cluster_matrix_elements {
         while (defined $node1) {
 
             my $text = sprintf
-                "Clustering\n%s\n(%d rows remaining)\nMost similar value is %.6g",
-                $progress_text,
+                $progress_fmt,
                 $remaining - $extra_zeroes_count - 1,
                 $most_similar_val;
 

@@ -2841,8 +2841,6 @@ sub run_linkage {
     #  the matrices and merge as appropriate.
     #  The sort guarantees same order each time.
     my $check_node_hash = $self->get_cached_value($all_elts_cache_key);
-    my @check_node_array;
-    # say STDERR 'blort';
     if (!defined $check_node_hash) {
         #  if it was deleted or never built then rebuild from across the matrices
         my %h;
@@ -2853,7 +2851,7 @@ sub run_linkage {
         $check_node_hash = \%h;
         $self->set_cached_value($all_elts_cache_key => $check_node_hash);
     }
-    @check_node_array = sort keys %$check_node_hash;
+    my @check_node_array = sort keys %$check_node_hash;
 
 
     my $num_nodes = scalar @check_node_array;

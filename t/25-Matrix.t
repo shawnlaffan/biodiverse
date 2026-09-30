@@ -602,6 +602,40 @@ sub _test_to_table {
     }
 }
 
+sub test_is_full_triangle {
+    foreach my $class (qw /Biodiverse::Matrix Biodiverse::Matrix::LowMem/) {
+        my $mx = Biodiverse::Matrix->new(name => 'yo triangle');
+
+        my @keys = ('a' .. 'e');
+        foreach my $row (0 .. $#keys) {
+            foreach my $col ($row + 1 .. $#keys) {
+                $mx->add_element_aa($keys[$row], $keys[$col], 1);
+            }
+        }
+
+        ok($mx->is_full_triangle, "$class - triangular matrix detected");
+
+        my $mx2 = $mx->clone;
+        $mx2->add_element_aa('a', 'newone', 1);
+        ok(!$mx2->is_full_triangle, "$class - non-triangular matrix detected");
+
+        my $mx3 = $mx->clone;
+        $mx3->add_element_aa('a', 'a', 1);
+        ok(!$mx3->is_full_triangle, "$class - non-triangular matrix detected");
+
+        my $mixo = Biodiverse::Matrix->new(NAME => 'mixo');
+        my $n = 0;
+        foreach my $row (0 .. $#keys) {
+            foreach my $col ($row + 1 .. $#keys) {
+                my @keys_to_insert = @keys[$n % 2 ? ($row, $col) : ($col, $row)];
+                $mixo->add_element_aa(@keys_to_insert, 1);
+                $n++;
+            }
+        }
+
+        ok($mixo->is_full_triangle, "$class - triangular matrix with mixed elements detected");
+    }
+}
 
 ######################################
 

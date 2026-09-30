@@ -1351,6 +1351,23 @@ sub get_summary_stats {
     return wantarray ? %r : \%r;
 }
 
+#  No caching as the elements could change at any time
+#  and cleaning the cache every add_element call is expensive.
+#  Callers can cache for themselves.
+sub is_full_triangle {
+    my $self = shift;
+
+    my $elements = $self->{BYELEMENT};
+
+    my $element_list = $self->get_elements_as_array;
+    my $el_count = @$element_list;
+
+    my $element_pair_count = 0;
+    $element_pair_count += (scalar keys %$_) for values %$elements;
+
+    return $element_pair_count == ($el_count * ($el_count - 1)) / 2;
+}
+
 1;
 
 

@@ -203,12 +203,13 @@ sub batch_delete_element_pairs {
 
     #  common usage is to clear the whole row
     if (my $el1_row = $by_el_index{$el1}) {
+        \my %row = $el1_row;
         if ($args{delete_row}) {
             delete $by_el_index{$el1};
         }
         else {
-            my @in_row = grep {exists $el1_row->{$_}} @$el2_list;
-            if (@in_row == keys %$el1_row) {
+            my @in_row = grep {exists $row{$_}} @$el2_list;
+            if (@in_row == keys %row) {
                 delete $by_el_index{$el1};
             }
             else {
@@ -221,8 +222,7 @@ sub batch_delete_element_pairs {
         }
         {
             no autovivification;
-            \my %exists = $el1_row;
-            my @in_col = grep {!$exists{$_} && exists $by_el_index{$_}{$el1}} @$el2_list;
+            my @in_col = grep {!exists $row{$_} && exists $by_el_index{$_}{$el1}} @$el2_list;
             @pair_exists{@in_col} = (2) x @in_col;
         }
     }

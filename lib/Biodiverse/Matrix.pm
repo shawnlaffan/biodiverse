@@ -589,20 +589,22 @@ sub batch_delete_element_pairs {
     \my %by_el_index = $self->{BYELEMENT} //= {};
 
     my $index_prec = $self->get_param('VAL_INDEX_PRECISION');
+    my $have_index_prec = defined $index_prec;
 
     my %pair_exists;
 
     #  common usage is to clear the whole row
     if (my $el1_row = $by_el_index{$el1}) {
+        \my %row = $el1_row;
         if (!$args{delete_row}) {
-            my @in_row = grep {exists $el1_row->{$_}} @$el2_list;
+            my @in_row = grep {exists $row{$_}} @$el2_list;
             @pair_exists{@in_row} = (1) x @in_row;
         }
-        if ($args{delete_row} || scalar (keys %pair_exists) == keys %$el1_row) {
+        if ($args{delete_row} || scalar (keys %pair_exists) == keys %row) {
             delete $by_el_index{$el1};
-            $el_ref{$el1} -= scalar keys %$el1_row;
-            foreach my ($el2, $value) (%$el1_row) {
-                my $index_val = defined $index_prec
+            $el_ref{$el1} -= scalar keys %row;
+            foreach my ($el2, $value) (%row) {
+                my $index_val = $have_index_prec
                     ? sprintf ($index_prec, $value)
                     : $value;
                 $self->rebuild_value_index if !$val_index{$index_val};
@@ -618,7 +620,7 @@ sub batch_delete_element_pairs {
         }
         {
             no autovivification;
-            my @in_col = grep {!$pair_exists{$_} && exists $by_el_index{$_}{$el1}} @$el2_list;
+            my @in_col = grep {!exists $row{$_} && exists $by_el_index{$_}{$el1}} @$el2_list;
             @pair_exists{@in_col} = (2) x @in_col;
         }
     }

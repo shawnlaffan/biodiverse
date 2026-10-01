@@ -2832,7 +2832,19 @@ sub run_linkage {
     my $current_mx_iter = $self->get_param ('CURRENT_MATRIX_ITER');
 
     my $matrix_with_elements = $shadow_matrix || $matrix_array->[0];
-    #  save some checks below if we have one matrix and no shadow
+
+    #  If we are working on (start with) a full triangle for the shadow or first matrix
+    #  then there is no need to check for element pair existence in the loop.
+    #  The pair will exist in one of the matrices.
+    my $need_first_exists_check
+        = $self->get_cached_value('MX_WITH_ELEMENTS_IS_NOT_FULL_TRIANGLE')
+        // do {
+        my $bool = !$matrix_with_elements->is_full_triangle;
+        $self->set_cached_value(MX_WITH_ELEMENTS_IS_NOT_FULL_TRIANGLE => $bool);
+        $bool;
+    };
+    #  Second existence check is only needed if we have more than one matrix
+    #  or the shadow is different from the first.
     my $need_second_exists_check
         = @$matrix_array > 1
         || (ref ($matrix_with_elements) ne ref ($matrix_array->[0]));
@@ -2882,7 +2894,7 @@ sub run_linkage {
 
         #  skip if we don't have both pairs check_node with node1 and with node2
         next CHECK_NODE
-            if !$matrix_with_elements->element_exists_in_two_pairs_aa ($check_node, $node1, $node2);
+            if $need_first_exists_check && !$matrix_with_elements->element_exists_in_two_pairs_aa ($check_node, $node1, $node2);
 
         if ($progress) {
             $progress->update(

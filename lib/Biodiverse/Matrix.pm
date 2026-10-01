@@ -635,13 +635,12 @@ sub batch_delete_element_pairs {
                 ? ($el1, $el2)
                 : ($el2, $el1);
 
-        my $value = $self->get_value_aa($element1, $element2, 1);
+        #  autovivification of $self->{BYELEMENT}{$element1} is avoided by $exists above
+        my $value = delete $by_el_index{$element1}{$element2};
 
         #  now we get to the cleanup, including the containing hashes if they are now empty
         #  all the undef - delete pairs are to ensure they get deleted properly
         #  the hash ref must be empty (undef) or it won't be deleted
-        #  autovivification of $self->{BYELEMENT}{$element1} is avoided by $exists above
-        delete $by_el_index{$element1}{$element2};
         if (!keys %{$by_el_index{$element1}}) {
             delete $by_el_index{$element1}
                 // warn "ISSUES BYELEMENT $element1 $element2\n";

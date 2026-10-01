@@ -2921,12 +2921,10 @@ sub run_linkage {
                 @node_count_args,
             );
 
-            my $index_val = $matrix_with_elements->get_value_index_key_aa ($value);
-
-            $shadow_matrix->add_element_aa ($new_node, $check_node, $value, $index_val)
+            $shadow_matrix->add_element_aa ($new_node, $check_node, $value)
                 if $shadow_matrix;
 
-            $mx->add_element_aa ($new_node, $check_node, $value, $index_val);
+            $mx->add_element_aa ($new_node, $check_node, $value);
 
             last MX_ITER;
         }

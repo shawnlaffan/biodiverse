@@ -2904,18 +2904,6 @@ sub run_linkage {
             );
         }
 
-        my $value = $self->$linkage_function (
-            node1        => $node1,
-            node2        => $node2,
-            compare_node => $check_node,
-            matrix       => $matrix_with_elements,
-            @node_count_args,
-        );
-        my $index_val = $matrix_with_elements->get_value_index_key_aa ($value);
-
-        $shadow_matrix->add_element_aa ($new_node, $check_node, $value, $index_val)
-            if ($shadow_matrix);
-
         #  work from the current mx forwards
         MX_ITER:
         foreach my $mx_iter ($current_mx_iter .. $#$matrix_array) {
@@ -2925,7 +2913,21 @@ sub run_linkage {
               if $need_second_exists_check &&
                   !$mx->element_exists_in_two_pairs_aa ($check_node, $node1, $node2);
 
+            my $value = $self->$linkage_function (
+                node1        => $node1,
+                node2        => $node2,
+                compare_node => $check_node,
+                matrix       => $matrix_with_elements,
+                @node_count_args,
+            );
+
+            my $index_val = $matrix_with_elements->get_value_index_key_aa ($value);
+
+            $shadow_matrix->add_element_aa ($new_node, $check_node, $value, $index_val)
+                if $shadow_matrix;
+
             $mx->add_element_aa ($new_node, $check_node, $value, $index_val);
+
             last MX_ITER;
         }
     }

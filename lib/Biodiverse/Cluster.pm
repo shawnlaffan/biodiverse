@@ -2939,6 +2939,7 @@ sub run_linkage {
         $self->delete_links_from_matrix (
             %args,
             matrix        => $shadow_matrix,
+            delete_row    => 1,
             compare_nodes => \@check_node_array,
         );
     }
@@ -2947,7 +2948,8 @@ sub run_linkage {
         #  forget this pair ever existed
         $self->delete_links_from_matrix (
             %args,
-            matrix => $mx,
+            matrix     => $mx,
+            delete_row => 1,
         );
     }
 
@@ -2967,18 +2969,22 @@ sub delete_links_from_matrix {
     #  remove elements1&2 entries from the matrix
     my $matrix = $args{matrix} || $self->get_matrix_ref;
 
+    my $delete_row = $args{delete_row} // !defined $args{compare_nodes};
+
     my $compare_nodes = $args{compare_nodes} || $matrix->get_elements_as_array;
     my $expected = 2 * scalar @$compare_nodes;  #  we expect two deletions per comparison
 
     #  clean up links from compare_nodes to elements1&2
     my $deletion_count = 0;
     $deletion_count += $matrix->batch_delete_element_pairs (
-        element1 => $element1,
-        el2_list => $compare_nodes,
+        element1   => $element1,
+        el2_list   => $compare_nodes,
+        delete_row => $delete_row,
     );
     $deletion_count += $matrix->batch_delete_element_pairs (
-        element1 => $element2,
-        el2_list => $compare_nodes,
+        element1   => $element2,
+        el2_list   => $compare_nodes,
+        delete_row => $delete_row,
     );
 
     return $expected - $deletion_count;

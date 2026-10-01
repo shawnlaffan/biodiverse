@@ -2640,8 +2640,7 @@ sub link_average_unweighted {
 #  calculate the average of the previous similarities,
 #  accounting for the number of nodes they contain
 sub link_average {  
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
     croak "one of the nodes not specified in linkage function call\n"
       if ! defined $args{node1} || ! defined $args{node2};
@@ -2653,7 +2652,9 @@ sub link_average {
         = $args{node2_tip_count}
         // $self->get_terminal_element_count (node => $args{node2});
 
-    my ($tmp1, $tmp2) = $self->get_values_for_linkage (%args);
+    my $matrix = $args{matrix};
+    my $tmp1 = $matrix->get_defined_value_aa (@args{qw/compare_node node1/});
+    my $tmp2 = $matrix->get_defined_value_aa (@args{qw/compare_node node2/});
 
     return ($el1_count * $tmp1 + $el2_count * $tmp2)
          / ($el1_count + $el2_count);

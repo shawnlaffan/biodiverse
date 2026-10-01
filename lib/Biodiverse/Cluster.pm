@@ -2895,7 +2895,8 @@ sub run_linkage {
 
         #  skip if we don't have both pairs check_node with node1 and with node2
         next CHECK_NODE
-            if $need_first_exists_check && !$matrix_with_elements->element_exists_in_two_pairs_aa ($check_node, $node1, $node2);
+            if $need_first_exists_check
+                && !$matrix_with_elements->element_exists_in_two_pairs_aa ($check_node, $node1, $node2);
 
         if ($progress) {
             $progress->update(
@@ -2917,7 +2918,7 @@ sub run_linkage {
                 node1        => $node1,
                 node2        => $node2,
                 compare_node => $check_node,
-                matrix       => $matrix_with_elements,
+                matrix       => $mx,
                 @node_count_args,
             );
 

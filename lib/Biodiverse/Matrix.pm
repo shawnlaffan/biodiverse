@@ -594,12 +594,27 @@ sub batch_delete_element_pairs {
 
     #  common usage is to clear the whole row
     if (my $el1_row = $by_el_index{$el1}) {
-        if ($args{delete_row}) {
-            @pair_exists{keys %$el1_row} = (1) x scalar keys %$el1_row;
-        }
-        else {
+        if (!$args{delete_row}) {
             my @in_row = grep {exists $el1_row->{$_}} @$el2_list;
             @pair_exists{@in_row} = (1) x @in_row;
+        }
+        if ($args{delete_row} || scalar (keys %pair_exists) == keys %$el1_row) {
+            delete $by_el_index{$el1};
+            $el_ref{$el1} -= scalar keys %$el1_row;
+            foreach my ($el2, $value) (%$el1_row) {
+                my $index_val = defined $index_prec
+                    ? sprintf ($index_prec, $value)
+                    : $value;
+                $self->rebuild_value_index if !$val_index{$index_val};
+                delete $val_index{$index_val}{$el1}{$el2};
+                if (!keys %{$val_index{$index_val}{$el1}}) {
+                    delete $val_index{$index_val}{$el1};
+                    delete $val_index{$index_val}
+                        if !keys %{$val_index{$index_val}};
+                }
+                ($el_ref{$el2}--) or delete $el_ref{$el2};  #  postfix for speed
+            }
+            %pair_exists = ();  #  reset as we have cleaned out the row
         }
         {
             no autovivification;

@@ -184,12 +184,12 @@ sub element_exists_in_two_pairs_aa {
         if ! (defined $check && defined $element1 && defined $element2);
 
     #  avoid some excess hash lookups
-    my $hash_ref = $self->{BYELEMENT};
+    \my %hash = $self->{BYELEMENT} //= {};
 
     #  need to stop autovivification of element1 or 2
     no autovivification;
-    return (exists $hash_ref->{$element1}{$check} || exists $hash_ref->{$check}{$element1})
-        && (exists $hash_ref->{$element2}{$check} || exists $hash_ref->{$check}{$element2});
+    return (exists $hash{$element1}{$check} || exists $hash{$check}{$element1})
+        && (exists $hash{$element2}{$check} || exists $hash{$check}{$element2});
 }
 
 sub get_element_pair_count {

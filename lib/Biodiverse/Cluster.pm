@@ -280,8 +280,8 @@ sub export_matrices {
     my $self = shift;
     my %args = @_;
 
-    my $matrices      = $self->get_param ('ORIGINAL_MATRICES');
-    my $shadow_matrix = $self->get_param ('ORIGINAL_SHADOW_MATRIX');
+    my $matrices      = $self->get_original_matrices;
+    my $shadow_matrix = $self->get_original_shadow_matrix;
 
     #  rebuild if needed
     if (scalar @$matrices == 0) {
@@ -1488,24 +1488,50 @@ sub add_matrices_to_basedata {
     return;
 }
 
+sub set_original_matrices {
+    my ($self, %args) = @_;
+    croak 'matrices arg undefined' if !defined $args{matrices};
+    $self->set_param(ORIGINAL_MATRICES => $args{matrices});
+}
+
+sub get_original_matrices {
+    $_[0]->get_orig_matrices;
+}
+
 sub get_orig_matrices {
     my $self = shift;
     my $matrices = $self->get_param ('ORIGINAL_MATRICES');
-    if (! $matrices) {
-        my $array = [];
-        $self->set_param (ORIGINAL_MATRICES => $array);
-        $matrices = $array;
-    }
+
+    return if !defined $matrices;
 
     return wantarray ? @$matrices : $matrices;
+}
+
+sub set_original_shadow_matrix {
+    my ($self, %args) = @_;
+
+    croak 'matrix arg not passed' if keys %args && !exists $args{matrix};
+    $self->set_param (ORIGINAL_SHADOW_MATRIX_MK2 => $args{matrix});
+}
+
+sub get_original_shadow_matrix {
+    $_[0]->get_orig_shadow_matrix;
 }
 
 sub get_orig_shadow_matrix {
     my $self = shift;
 
-    my $matrix = $self->get_param ('ORIGINAL_SHADOW_MATRIX');
+    $self->get_param ('ORIGINAL_SHADOW_MATRIX_MK2');
+}
 
-    return $matrix;
+sub delete_original_shadow_matrix {
+    $_[0]->delete_orig_shadow_matrix;
+}
+
+sub delete_orig_shadow_matrix {
+    my $self = shift;
+    $self->delete_param ('ORIGINAL_SHADOW_MATRIX');
+    $self->delete_param ('ORIGINAL_SHADOW_MATRIX_MK2');
 }
 
 sub get_matrices_ref {
@@ -1572,22 +1598,22 @@ sub clone_matrices {
 sub set_shadow_matrix {
     my $self = shift;
     my %args = @_;
-    $self->{SHADOW_MATRIX} = $args{matrix};  #  defaults to undef
+    $self->{SHADOW_MATRIX_MK2} = $args{matrix};  #  defaults to undef
     return;
 }
 
 #  get a reference to the shadow matrix object within this cluster object - this is the combination of all the matrices
 sub get_shadow_matrix {
     my $self = shift;
-    return $self->{SHADOW_MATRIX};
+    return $self->{SHADOW_MATRIX_MK2};
 }
 
 #  get a reference to the spatial matrix object within this cluster object
 sub delete_shadow_matrix {
     my $self = shift;
-    return if not exists $self->{SHADOW_MATRIX}; #  avoid autovivification
-    $self->{SHADOW_MATRIX} = undef;
-    delete $self->{SHADOW_MATRIX};
+    foreach my $key (qw/SHADOW_MATRIX SHADOW_MATRIX_MK2/) {
+        delete $self->{$key};
+    }
     return;
 }
 
@@ -2295,8 +2321,7 @@ sub cluster {
         #$self->set_shadow_matrix (matrix => $clust_mx);
         @matrices = ($clust_mx);
         #  save the matrices for later export
-        #$self->set_param (ORIGINAL_SHADOW_MATRIX => $args{matrix});
-        $self->set_param (ORIGINAL_MATRICES => [$args{matrix}]);
+        $self->set_original_matrices (matrices => [$args{matrix}]);
         $self->set_param (NO_ADD_MATRICES_TO_BASEDATA => 1);
     }
     else {
@@ -2319,27 +2344,29 @@ sub cluster {
             my $ref = $self->get_outputs_with_same_index_and_spatial_conditions (compare_with => $self);
             if ($ref && !$args{build_matrices_only} && !$args{file_handles}) {
 
-                my $other_original_matrices = $ref->get_orig_matrices;
-                my $other_orig_shadow_mx    = $ref->get_orig_shadow_matrix;
+                my $other_original_matrices = $ref->get_original_matrices;
+                my $other_orig_shadow_mx    = $ref->get_original_shadow_matrix;
+
                 #  if the shadow matrix is empty then the matrices were consumed in clustering, so don't copy
                 if (   eval {$other_orig_shadow_mx->get_element_count}
                     || eval {$other_original_matrices->[0]->get_element_count}) {
 
                     say "[CLUSTER] Recycling matrices from cluster output ", $ref->get_name;
-                    $self->set_param (ORIGINAL_MATRICES      => $other_original_matrices);
-                    $self->set_param (ORIGINAL_SHADOW_MATRIX => $other_orig_shadow_mx);
+                    $self->set_original_matrices (matrices => $other_original_matrices);
+                    $self->set_original_shadow_matrix (matrix => $other_orig_shadow_mx);
                     $matrices_recycled = 1;
                 }
             }
 
             #  Do we already have some we can work on? 
-            my $original_matrices = $self->get_param('ORIGINAL_MATRICES');
+            my $original_matrices = $self->get_original_matrices;
             if ($original_matrices) {  #  need to handle no_clone_matrices
                 say '[CLUSTER] Cloning matrices prior to destructive processing';
                 foreach my $mx (@$original_matrices) {
                     push @matrices, $mx->clone;
                 }
-                my $orig_shadow_mx = $self->get_param('ORIGINAL_SHADOW_MATRIX');
+                my $orig_shadow_mx = $self->get_original_shadow_matrix;
+
                 eval {
                     $self->set_shadow_matrix (matrix => $orig_shadow_mx->clone);
                 };
@@ -2367,8 +2394,8 @@ sub cluster {
             $self->run_indices_object_cleanup;
 
             #  assign matrices to the orig slots, no need to clone
-            $self->set_param (ORIGINAL_SHADOW_MATRIX => $self->get_shadow_matrix);
-            $self->set_param (ORIGINAL_MATRICES => \@matrices);
+            $self->set_original_shadow_matrix (matrix => $self->get_shadow_matrix);
+            $self->set_original_matrices (matrices => \@matrices);
 
             $self->add_matrices_to_basedata (matrices => \@matrices);
             #  clear the other matrices
@@ -2381,18 +2408,18 @@ sub cluster {
             if ($args{no_clone_matrices}) {  # reduce memory at the cost of later exports and visualisation
                                              # How does this interact with the matrix recycling? 
                 print "[CLUSTER] Storing matrices with no cloning - be warned that these will be destroyed in clustering\n";
-                $self->set_param (ORIGINAL_SHADOW_MATRIX => $self->get_shadow_matrix);
-                $self->set_param (ORIGINAL_MATRICES => \@matrices);
+                $self->set_original_shadow_matrix (matrix => $self->get_shadow_matrix);
+                $self->set_original_matrices (matrices => \@matrices);
             }
             elsif (!$matrices_recycled) {
                 #  save clones of the matrices for later export
                 print "[CLUSTER] Creating and storing matrix clones\n";
     
                 my $clone = eval {$self->get_shadow_matrix->clone};
-                $self->set_param (ORIGINAL_SHADOW_MATRIX => $clone);
-                #my $original_matrices = $self->clone (data => \@matrices);
+                $self->set_original_shadow_matrix (matrix => $clone);
+
                 my $original_matrices = $self->clone_matrices (matrices => \@matrices);
-                $self->set_param (ORIGINAL_MATRICES => $original_matrices);
+                $self->set_original_matrices (matrices => $original_matrices);
         
                 print "[CLUSTER] Done\n";
             }

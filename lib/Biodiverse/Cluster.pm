@@ -1053,35 +1053,10 @@ sub build_matrices {
     }
 
     if ($last_mx_is_shadow) {
-        my $shadow_matrix = $mx_class_lowmem->new(
-            JOIN_CHAR         => $bd->get_param('JOIN_CHAR'),
-            NAME              => "$name $index SHADOW_MATRIX " . time(),
-            %mx_common_args,
+        $self->build_shadow_matrix(
+            matrices => \@matrices,
+            name     => "$name $index SHADOW_MATRIX_MK2",
         );
-        # pop @matrices;
-        my $im = 0;
-        my $nm = @matrices;
-        foreach my $mx (@matrices) {
-            $im++;
-            my $to_do_rows = $mx->get_element_count;  #  row count
-            my $progress_pfx = "Populating shadow matrix from matrix $im of $nm\n";
-            my $row_count = 0;
-            foreach my $element1 ($mx->get_elements_as_array) {
-                $row_count++;
-                my $progress = $row_count / $to_do_rows;
-                $progress_bar->update(
-                    $progress_pfx . "(row $row_count / $to_do_rows)",
-                    $progress,
-                );
-                my $row = $mx->_get_row_href_aa ($element1) // next;
-                $shadow_matrix->batch_add_element(
-                    element1              => $element1,
-                    data                  => $row,
-                    no_undef_vals_in_data => 1,
-                );
-            }
-        }
-        $self->set_shadow_matrix(matrix => $shadow_matrix);
         $self->set_cached_value ($all_elts_cache_key => \%all_elts);
     }
     else {
@@ -1115,6 +1090,49 @@ sub build_matrices {
     $self->set_param (COMPLETED_MATRIX => 1);
 
     return wantarray ? @matrices : \@matrices;
+}
+
+sub build_shadow_matrix {
+    my ($self, %args) = @_;
+
+    my $progress_bar = Biodiverse::Progress->new(
+        gui_only => 1,
+    );
+
+    my $shadow_matrix = $mx_class_lowmem->new(
+        NAME => ($args{name} // ($self->get_name . " SHADOW_MATRIX")),
+        %args,
+    );
+
+    \my @matrices = $args{matrices} // croak 'matrices array not passed, cannot build shadow matrix';
+
+    my $im = -1;
+    my $nm = @matrices;
+    foreach my $mx (@matrices) {
+        $im++;
+        my $to_do_rows = $mx->get_element_count;  #  row count
+        my $progress_pfx = sprintf "Populating shadow matrix from matrix %d of $nm\n", $im+1;
+        my $row_count = 0;
+        foreach my $element1 ($mx->get_elements_as_array) {
+            $row_count++;
+            my $progress = $row_count / $to_do_rows;
+            $progress_bar->update(
+                $progress_pfx . "(row $row_count / $to_do_rows)",
+                $progress,
+            );
+            my $row = $mx->_get_row_href_aa ($element1) // next;
+            my %shadow_row;
+            @shadow_row{keys %$row} = ($im) x keys %$row;
+            $shadow_matrix->batch_add_element(
+                element1              => $element1,
+                data                  => \%shadow_row,
+                no_undef_vals_in_data => 1,
+            );
+        }
+    }
+    $self->set_shadow_matrix(matrix => $shadow_matrix);
+
+    return $shadow_matrix;
 }
 
 #  like build_matrix_element but returns a hash without any of the other jiggery pokery
@@ -1521,7 +1539,14 @@ sub get_original_shadow_matrix {
 sub get_orig_shadow_matrix {
     my $self = shift;
 
-    $self->get_param ('ORIGINAL_SHADOW_MATRIX_MK2');
+    my $mx = $self->get_param ('ORIGINAL_SHADOW_MATRIX_MK2');
+    if (!defined $mx && $self->get_param ('ORIGINAL_SHADOW_MATRIX')) {
+        if (my $matrices = $self->get_original_matrices) {
+            say '[CLUSTER] Rebuilding shadow matrix for new system';
+            $mx = $self->build_shadow_matrix(matrices => $matrices);
+        }
+    }
+    return $mx;
 }
 
 sub delete_original_shadow_matrix {
@@ -1605,7 +1630,7 @@ sub set_shadow_matrix {
 #  get a reference to the shadow matrix object within this cluster object - this is the combination of all the matrices
 sub get_shadow_matrix {
     my $self = shift;
-    return $self->{SHADOW_MATRIX_MK2};
+    $self->{SHADOW_MATRIX_MK2};
 }
 
 #  get a reference to the spatial matrix object within this cluster object
@@ -2365,8 +2390,8 @@ sub cluster {
                 foreach my $mx (@$original_matrices) {
                     push @matrices, $mx->clone;
                 }
-                my $orig_shadow_mx = $self->get_original_shadow_matrix;
 
+                my $orig_shadow_mx = $self->get_original_shadow_matrix;
                 eval {
                     $self->set_shadow_matrix (matrix => $orig_shadow_mx->clone);
                 };
@@ -2851,7 +2876,7 @@ sub run_linkage {
     my $new_node = $args{new_node_name};  #  don't calculate linkages to new node
 
     croak "one of the nodes not specified\n"
-      if ! (defined $node1 and defined $node2 and defined $new_node);
+        if ! (defined $node1 and defined $node2 and defined $new_node);
 
     my $linkage_function = $args{linkage_function} || $self->get_default_linkage;
 
@@ -2874,8 +2899,11 @@ sub run_linkage {
     #  Second existence check is only needed if we have more than one matrix
     #  or the shadow is different from the first.
     my $need_second_exists_check
-        = @$matrix_array > 1
-        || (ref ($matrix_with_elements) ne ref ($matrix_array->[0]));
+        = !$shadow_matrix
+        && (
+            @$matrix_array > 1
+            || (ref ($matrix_with_elements) ne ref ($matrix_array->[0]))
+        );
 
     #  Now we need to loop over the respective nodes across
     #  the matrices and merge as appropriate.
@@ -2932,9 +2960,14 @@ sub run_linkage {
             );
         }
 
+        #  the shadow matrix stores indices for which mx contains the pair
+        my $start_iter = $shadow_matrix
+            ? $shadow_matrix->get_defined_value_aa($check_node, $node1) // $current_mx_iter
+            : $current_mx_iter;
+
         #  work from the current mx forwards
         MX_ITER:
-        foreach my $mx_iter ($current_mx_iter .. $#$matrix_array) {
+        foreach my $mx_iter ($start_iter .. $#$matrix_array) {
             my $mx = $matrix_array->[$mx_iter];
 
             next MX_ITER
@@ -2949,7 +2982,7 @@ sub run_linkage {
                 @node_count_args,
             );
 
-            $shadow_matrix->add_element_aa ($new_node, $check_node, $value)
+            $shadow_matrix->add_element_aa ($new_node, $check_node, $mx_iter)
                 if $shadow_matrix;
 
             $mx->add_element_aa ($new_node, $check_node, $value);

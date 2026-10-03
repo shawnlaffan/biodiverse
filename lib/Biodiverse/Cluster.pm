@@ -2939,6 +2939,9 @@ sub run_linkage {
        );
     }
 
+    my @rows_to_add;
+    my %shadow_row_to_add;
+
     my $i = 0;
   CHECK_NODE:
     foreach my $check_node (@check_node_array) {  
@@ -2983,10 +2986,10 @@ sub run_linkage {
                 @node_count_args,
             );
 
-            $shadow_matrix->add_element_aa ($new_node, $check_node, $mx_iter)
-                if $shadow_matrix;
+            $rows_to_add[$mx_iter]{$check_node} = $value;
 
-            $mx->add_element_aa ($new_node, $check_node, $value);
+            $shadow_row_to_add{$check_node} = $mx_iter
+                if $shadow_matrix;
 
             last MX_ITER;
         }
@@ -3005,15 +3008,29 @@ sub run_linkage {
             delete_row    => 1,
             compare_nodes => \@check_node_array,
         );
+        $shadow_matrix->batch_add_element(
+            element1 => $new_node,
+            data     => \%shadow_row_to_add,
+            no_undef_vals_in_data => 1,
+        );
     }
 
+    my $im = -1;
     foreach my $mx (@$matrix_array) {
+        $im++;
         #  forget this pair ever existed
         $self->delete_links_from_matrix (
             %args,
             matrix     => $mx,
             delete_row => 1,
         );
+        if (my $row_data = $rows_to_add[$im]) {
+            $mx->batch_add_element(
+                element1              => $new_node,
+                data                  => $row_data,
+                no_undef_vals_in_data => 1,
+            );
+        }
     }
 
     return 1;

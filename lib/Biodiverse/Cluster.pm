@@ -2960,7 +2960,8 @@ sub run_linkage {
             );
         }
 
-        #  the shadow matrix stores indices for which mx contains the pair
+        #  The shadow matrix stores indices for which mx contains the pair.
+        #  Assumes nodes 1&2 are in the same mx as check_node.
         my $start_iter = $shadow_matrix
             ? $shadow_matrix->get_defined_value_aa($check_node, $node1) // $current_mx_iter
             : $current_mx_iter;

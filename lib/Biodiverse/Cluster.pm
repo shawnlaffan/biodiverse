@@ -2873,12 +2873,12 @@ sub run_linkage {
 
     my $node1 = $args{node1};
     my $node2 = $args{node2};
-    my $new_node = $args{new_node_name};  #  don't calculate linkages to new node
+    my $new_node = delete $args{new_node_name};  #  don't calculate linkages to new node
 
     croak "one of the nodes not specified\n"
         if ! (defined $node1 and defined $node2 and defined $new_node);
 
-    my $linkage_function = $args{linkage_function} || $self->get_default_linkage;
+    my $linkage_function = delete $args{linkage_function} || $self->get_default_linkage;
 
     my $shadow_matrix   = $self->get_shadow_matrix;
     my $matrix_array    = $self->get_matrices_ref;
@@ -2924,7 +2924,7 @@ sub run_linkage {
 
     my $num_nodes = scalar @check_node_array;
     my $progress;
-    if ($args{show_gui_progress} && $num_nodes > 500) {
+    if (delete $args{show_gui_progress} && $num_nodes > 500) {
         $progress = Biodiverse::Progress->new (
             text     => "Running linkage for $num_nodes",
             gui_only => 1,

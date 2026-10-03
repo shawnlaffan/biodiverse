@@ -2939,6 +2939,10 @@ sub run_linkage {
        );
     }
 
+    #  Not all values are in rows, but if they are then we can avoid some method call overheads.
+    \my %shadow_node1_row = $shadow_matrix ? $shadow_matrix->_get_row_href_aa($node1) // {} : {};
+    \my %shadow_node2_row = $shadow_matrix ? $shadow_matrix->_get_row_href_aa($node2) // {} : {};
+
     my @rows_to_add;
     my %shadow_row_to_add;
 
@@ -2966,7 +2970,10 @@ sub run_linkage {
         #  The shadow matrix stores indices for which mx contains the pair.
         #  Assumes nodes 1&2 are in the same mx as check_node.
         my $start_iter = $shadow_matrix
-            ? $shadow_matrix->get_defined_value_aa($check_node, $node1) // $current_mx_iter
+            ?      $shadow_node1_row{$check_node}
+                // $shadow_node2_row{$check_node}
+                // $shadow_matrix->get_defined_value_aa($check_node, $node1)
+                // $current_mx_iter
             : $current_mx_iter;
 
         #  work from the current mx forwards

@@ -39,10 +39,11 @@ jobs:
       - name: Install GDAL and other deps
         run: |
           brew update
-          brew trust aws/tap 
-          #brew unlink pkg-config@0.29.2
-          brew install pkgconf
-          brew link --overwrite pkgconf
+          # brew upgrade
+          # brew trust aws/tap 
+          # brew unlink pkg-config@0.29.2
+          # brew install pkgconf
+          # brew link --overwrite pkgconf
           brew install gdal
           # brew install --force --overwrite gdal
           brew install gsl
@@ -53,7 +54,7 @@ jobs:
       - name: Prepare for cache
         run: |
           perl -V > perlversion.txt
-          echo '20260326' >> perlversion.txt
+          echo '20261006' >> perlversion.txt
           ls -l perlversion.txt
 
       - name: Cache CPAN modules
@@ -66,6 +67,7 @@ jobs:
 
       - name: Install Dynamic Dependencies
         run: |
+          OPENSSL_PREFIX=$(brew --prefix openssl@3) cpanm Net::SSLeay
           cpanm --notest --installdeps .
       
       - name: Run Tests

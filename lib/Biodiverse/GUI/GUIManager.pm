@@ -699,6 +699,9 @@ sub update_title_bar {
     my $self = shift;
 
     my $name = $self->{filename} || q{};
+    if (length $name) {
+        $name = path($name)->basename;
+    }
 
     my $title = 'Biodiverse ' . $self->get_version . '          ' . $name;
 

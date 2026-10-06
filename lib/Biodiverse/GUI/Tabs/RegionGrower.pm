@@ -5,7 +5,7 @@ package Biodiverse::GUI::Tabs::RegionGrower;
 use strict;
 use warnings;
 
-our $VERSION = '5.99_004';
+our $VERSION = '6.0';
 
 use parent qw /
     Biodiverse::GUI::Tabs::Clustering

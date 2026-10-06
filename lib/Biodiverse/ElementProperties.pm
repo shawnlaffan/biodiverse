@@ -7,7 +7,7 @@ use Scalar::Util qw/looks_like_number/;
 
 use Biodiverse::Exception;
 
-our $VERSION = '5.99_004';
+our $VERSION = '6.0';
 
 use parent qw /Biodiverse::BaseStruct Biodiverse::Common/; #/
 use Ref::Util qw { :all };

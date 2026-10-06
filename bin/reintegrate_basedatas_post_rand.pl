@@ -1,7 +1,7 @@
 use 5.036;
 use warnings;
 
-our $VERSION = '5.99_004';
+our $VERSION = '6.0';
 
 use rlib;
 

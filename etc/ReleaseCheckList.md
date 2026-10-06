@@ -8,10 +8,9 @@ Copy and paste the markdown into an issue or project per release
 - [ ] Update news on github.io site
 - [ ] Post exe versions to downloads site
 - [ ] Update link in Downloads wiki page
-- [ ] Update SpatialConditions wiki
-- [ ] Update Indices wiki
+- [ ] Update SpatialConditions documentation
+- [ ] Update Indices documentation
 - [ ] Update ReleaseNotes wiki
-- [ ] Update Task:: files on CPAN
 - [ ] Tag release
 - [ ] Flag tag as release: https://github.com/shawnlaffan/biodiverse/releases
 - [ ] Announce to various lists

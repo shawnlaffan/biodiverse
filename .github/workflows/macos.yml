@@ -47,6 +47,7 @@ jobs:
           brew install gdal
           # brew install --force --overwrite gdal
           brew install gsl
+          brew install cmake
         
       - name: perl -V
         run: perl -V

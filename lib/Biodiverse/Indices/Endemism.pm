@@ -4,7 +4,7 @@ use warnings;
 use Carp;
 use 5.020;
 
-our $VERSION = '5.99_004';
+our $VERSION = '6.0';
 
 use experimental 'refaliasing';
 use experimental 'for_list';

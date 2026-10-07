@@ -7,7 +7,7 @@ use feature qw /signatures current_sub/;
 use List::Util qw /all shuffle/;
 use Carp qw /croak/;
 
-our $VERSION = '5.99_004';
+our $VERSION = '6.0';
 
 
 sub new ($class, $p, $r) {

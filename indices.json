@@ -1,7 +1,7 @@
 {
    "_meta" : {
       "title" : "Biodiverse calculations and indices",
-      "version" : "5.99_001"
+      "version" : "6.0"
    },
    "calculations" : {
       "calc_abc_counts" : {
@@ -144,7 +144,7 @@
          },
          "name" : "Beta diversity",
          "pre_calc" : [
-            "_calc_abc_any"
+            "_calc_abc_scalars"
          ],
          "type" : "Taxonomic Dissimilarity and Comparison",
          "uses_nbr_lists" : 2
@@ -835,7 +835,7 @@
          "pre_calc" : [
             "_calc_endemism_central"
          ],
-         "reference" : "Crisp et al. (2001) J Biogeog. https://doi.org/10.1046/j.1365-2699.2001.00524.x ; Laffan and Crisp (2003) J Biogeog. http://www3.interscience.wiley.com/journal/118882020/abstract",
+         "reference" : "Crisp et al. (2001) J Biogeog. https://doi.org/10.1046/j.1365-2699.2001.00524.x ; Laffan and Crisp (2003) J Biogeog. https://doi.org/10.1046/j.1365-2699.2003.00875.x",
          "type" : "Endemism",
          "uses_nbr_lists" : 1
       },
@@ -1479,8 +1479,7 @@
          },
          "name" : "Jaccard",
          "pre_calc" : [
-            "_calc_abc_any",
-            "is_dissimilarity_valid"
+            "_calc_abc_scalars"
          ],
          "type" : "Taxonomic Dissimilarity and Comparison",
          "uses_nbr_lists" : 2
@@ -1510,8 +1509,7 @@
          },
          "name" : "Kulczynski 2",
          "pre_calc" : [
-            "_calc_abc_any",
-            "is_dissimilarity_valid"
+            "_calc_abc_scalars"
          ],
          "type" : "Taxonomic Dissimilarity and Comparison",
          "uses_nbr_lists" : 2
@@ -2343,7 +2341,7 @@
          },
          "name" : "Nestedness-resultant",
          "pre_calc" : [
-            "_calc_abc_any"
+            "_calc_abc_scalars"
          ],
          "reference" : "Baselga (2010) Glob Ecol Biogeog.  https://doi.org/10.1111/j.1466-8238.2009.00490.x",
          "type" : "Taxonomic Dissimilarity and Comparison",
@@ -2549,7 +2547,7 @@
          "pre_calc" : [
             "_calc_nri_nti_expected_values"
          ],
-         "reference" : "Webb et al. (2008) https://doi.org/10.1093/bioinformatics/btn358, Tsirogiannis et al. (2012) https://doi.org/10.1007/978-3-642-33122-0_3",
+         "reference" : "Webb et al. (2008) https://doi.org/10.1093/bioinformatics/btn358\nTsirogiannis et al. (2012) https://doi.org/10.1007/978-3-642-33122-0_3",
          "required_args" : "tree_ref",
          "type" : "PhyloCom Indices",
          "uses_nbr_lists" : 1
@@ -3952,7 +3950,7 @@
                   0,
                   "Inf"
                ],
-               "description" : "Variance of pairwise phylogenetic distances,\nsimilar to Clarke and Warwick (2001; http://dx.doi.org/10.3354/meps216265) but uses tip-to-tip distances instead of tip to most recent common ancestor.",
+               "description" : "Variance of pairwise phylogenetic distances,\nsimilar to Clarke and Warwick (2001; https://doi.org/10.3354/meps216265) but uses tip-to-tip distances instead of tip to most recent common ancestor.",
                "distribution" : "nonnegative"
             },
             "PNTD1_MAX" : {
@@ -4080,7 +4078,7 @@
                   0,
                   "Inf"
                ],
-               "description" : "Variance of pairwise phylogenetic distances,\nsimilar to Clarke and Warwick (2001; http://dx.doi.org/10.3354/meps216265) but uses tip-to-tip distances instead of tip to most recent common ancestor.",
+               "description" : "Variance of pairwise phylogenetic distances,\nsimilar to Clarke and Warwick (2001; https://doi.org/10.3354/meps216265) but uses tip-to-tip distances instead of tip to most recent common ancestor.",
                "distribution" : "nonnegative"
             },
             "PNTD2_MAX" : {
@@ -4208,7 +4206,7 @@
                   0,
                   "Inf"
                ],
-               "description" : "Variance of pairwise phylogenetic distances,\nsimilar to Clarke and Warwick (2001; http://dx.doi.org/10.3354/meps216265) but uses tip-to-tip distances instead of tip to most recent common ancestor.",
+               "description" : "Variance of pairwise phylogenetic distances,\nsimilar to Clarke and Warwick (2001; https://doi.org/10.3354/meps216265) but uses tip-to-tip distances instead of tip to most recent common ancestor.",
                "distribution" : "nonnegative"
             },
             "PNTD3_MAX" : {
@@ -4451,7 +4449,8 @@
             "get_trimmed_tree_eq_branch_lengths_node_length_hash",
             "get_trimmed_tree_range_inverse_hash_nonzero_len",
             "get_pe_element_cache",
-            "get_rpe_element_cache"
+            "get_rpe_element_cache",
+            "get_node_range_hash"
          ],
          "reference" : "Mishler et al. (2014) https://doi.org/10.1038/ncomms5473",
          "type" : "Phylogenetic Indices (relative)",
@@ -4544,9 +4543,16 @@
          },
          "name" : "Phylo Range weighted Turnover",
          "pre_calc" : [
-            "_calc_pe_lists_per_element_set"
+            "_calc_pe_lists_per_element_set",
+            "_calc_abc_any"
+         ],
+         "pre_calc_global" : [
+            "get_node_range_hash"
          ],
          "reference" : "Laffan et al. (2016) https://doi.org/10.1111/2041-210X.12513",
+         "required_args" : [
+            "tree_ref"
+         ],
          "type" : "Phylogenetic Turnover",
          "uses_nbr_lists" : 2
       },
@@ -4985,7 +4991,7 @@
          },
          "name" : "S2",
          "pre_calc" : [
-            "_calc_abc_any"
+            "_calc_abc_scalars"
          ],
          "reference" : "Lennon et al. (2001) J Animal Ecol.  https://doi.org/10.1046/j.0021-8790.2001.00563.x",
          "type" : "Taxonomic Dissimilarity and Comparison",
@@ -5078,8 +5084,7 @@
          },
          "name" : "Sorenson",
          "pre_calc" : [
-            "_calc_abc_any",
-            "is_dissimilarity_valid"
+            "_calc_abc_scalars"
          ],
          "type" : "Taxonomic Dissimilarity and Comparison",
          "uses_nbr_lists" : 2

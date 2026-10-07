@@ -3,7 +3,7 @@ use 5.010;
 use strict;
 use warnings;
 
-our $VERSION = '5.99_004';
+our $VERSION = '6.0';
 
 use parent qw /
     Biodiverse::Cluster

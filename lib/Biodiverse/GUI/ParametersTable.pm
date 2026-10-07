@@ -61,7 +61,7 @@ use Carp;
 use English qw { -no_match_vars };
 use Scalar::Util qw /blessed/;
 
-our $VERSION = '5.99_004';
+our $VERSION = '6.0';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::SpatialParams;

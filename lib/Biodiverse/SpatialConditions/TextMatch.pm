@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.036;
 
-our $VERSION = '5.99_004';
+our $VERSION = '6.0';
 
 sub get_metadata_sp_match_text {
     my $self = shift;

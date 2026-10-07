@@ -8,7 +8,7 @@ use Ref::Util qw { :all };
 
 use Carp;
 
-our $VERSION = '5.99_004';
+our $VERSION = '6.0';
 
 use Biodiverse::Statistics;
 my $stats_package = 'Biodiverse::Statistics';

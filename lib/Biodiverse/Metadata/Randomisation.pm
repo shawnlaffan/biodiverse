@@ -5,7 +5,7 @@ use 5.016;
 
 use parent qw /Biodiverse::Metadata/;
 
-our $VERSION = '6.0';
+our $VERSION = '6.99_001';
 
 
 my %methods_and_defaults = (

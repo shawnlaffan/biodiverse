@@ -2,7 +2,7 @@ package Biodiverse::Common::ColourPalettes;
 use strict;
 use warnings;
 
-our $VERSION = '6.0';
+our $VERSION = '6.99_001';
 
 #  A set of colour palettes.
 #  Add to as needed.

@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.036;
 
-our $VERSION = '6.0';
+our $VERSION = '6.99_001';
 
 #  set any value - allows user specified additions to the core stuff
 sub set_cached_value {

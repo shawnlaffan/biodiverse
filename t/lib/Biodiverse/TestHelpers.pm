@@ -15,7 +15,7 @@ use Test2::V0;
 
 local $| = 1;
 
-our $VERSION = '6.0';
+our $VERSION = '6.99_001';
 
 
 use Data::Section::Simple qw(get_data_section);

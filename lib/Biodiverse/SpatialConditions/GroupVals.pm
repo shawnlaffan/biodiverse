@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.036;
 
-our $VERSION = '6.0';
+our $VERSION = '6.99_001';
 
 use Carp;
 use English qw /-no_match_vars/;

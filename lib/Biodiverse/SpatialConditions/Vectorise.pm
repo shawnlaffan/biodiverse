@@ -8,7 +8,7 @@ use Carp qw/croak/;
 use Ref::Util qw / is_coderef /;
 use Scalar::Util qw /weaken/;
 
-our $VERSION = '6.0';
+our $VERSION = '6.99_001';
 
 #  generalised list "and" call using PDLs
 #  assumes all ndarrays have same dimensions

@@ -11,7 +11,7 @@ use List::Util qw /sum reduce/;
 use Ref::Util qw /is_hashref/;
 use Hash::Util::Set qw /keys_intersection/;
 
-our $VERSION = '6.0';
+our $VERSION = '6.99_001';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 

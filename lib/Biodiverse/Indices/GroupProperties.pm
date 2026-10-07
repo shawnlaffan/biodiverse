@@ -8,7 +8,7 @@ use warnings;
 
 use Carp;
 
-our $VERSION = '6.0';
+our $VERSION = '6.99_001';
 
 use experimental 'for_list';
 

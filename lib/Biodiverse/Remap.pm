@@ -13,7 +13,7 @@ use Ref::Util qw { :all };
 
 use Biodiverse::RemapGuesser;
 
-our $VERSION = '6.0';
+our $VERSION = '6.99_001';
 
 use parent qw /Biodiverse::ElementProperties/;
 

@@ -31,7 +31,7 @@ use Biodiverse::GUI::Canvas::Tree;
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
-our $VERSION = '6.0';
+our $VERSION = '6.99_001';
 
 use parent qw {
     Biodiverse::GUI::Tabs::Tab

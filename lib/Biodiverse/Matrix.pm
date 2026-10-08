@@ -655,7 +655,6 @@ sub batch_delete_element_pairs {
 
         #  Decrement the ELEMENTS counts
         $el_ref{$el2}--;
-        $el_ref{$el1}--;
 
         #  Delete $el2 entry if now zero
         #  as there are no more entries with this element
@@ -664,10 +663,10 @@ sub batch_delete_element_pairs {
             or delete $el_ref{$el2} // warn "ISSUES $el2\n";
     }
 
-    #  do el1 outside the loop, although it might have already been wiped
-    if (exists $el_ref{$el1} && !$el_ref{$el1}) {
-        delete $el_ref{$el1} // warn "ISSUES $el1\n";
-    }
+    #  do el1 outside the loop
+    $el_ref{$el1} -= scalar @in_col;
+    $el_ref{$el1}
+        or delete $el_ref{$el1} // warn "ISSUES $el1\n";
 
     return 1;    # return success if we get this far
 }

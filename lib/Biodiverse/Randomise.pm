@@ -653,7 +653,9 @@ sub run_randomisation {
             my $generate_rand_analysis = 1;
             my $is_tree_object = eval {$rand_analysis->is_tree_object};
             if ($is_tree_object) {
-                $rand_analysis->delete_params (qw/ORIGINAL_MATRICES ORIGINAL_SHADOW_MATRIX/);
+                foreach my $method (qw/delete_original_matrices delete_original_shadow_matrix/) {
+                    $rand_analysis->$method if $rand_analysis->can($method);
+                }
                 eval {$rand_analysis->override_cached_spatial_calculations_arg};  #  override cluster calcs per node
                 $rand_analysis->set_param(NO_ADD_MATRICES_TO_BASEDATA => 1);  #  Avoid adding cluster matrices
                 $generate_rand_analysis = !!($generate_tree_analyses // 0);

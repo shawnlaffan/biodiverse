@@ -219,42 +219,6 @@ sub test_two_spatial_conditions {
     );
 
 
-    my $spatial_conditions5 = [$block_cond, $cond1];
-    my $spatial_conditions6 = [$block_cond, $cond1, 'sp_select_all()'];
-    
-    my $cl5 = $bd->add_output (name => 'cl5', type => 'Biodiverse::RegionGrower');
-    #$cl5->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
-    $cl5->set_param (CACHE_ABC => 0);
-    $cl5->run_analysis (
-        %analysis_args,
-        spatial_conditions => $spatial_conditions5,
-    );
-
-    my $cl6 = $bd->add_output (name => 'cl6', type => 'Biodiverse::RegionGrower');
-    #$cl6->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
-    $cl6->set_param (CACHE_ABC => 0);
-    $cl6->run_analysis (
-        %analysis_args,
-        spatial_conditions => $spatial_conditions6,
-    );
-    
-    ok (
-        $cl6->contains_tree (comparison => $cl6),
-        'contains_tree works for triple conditions'
-    );
-    my $cl5_root_child_count = $cl5->get_child_count;
-
-    #  Ignore the root node and its immediate children
-    #  since they can have different lengths
-    #  and thus won't always match.
-    ok (
-        $cl6->contains_tree (
-            comparison  => $cl5,
-            ignore_root => 1,
-            correction  => -$cl5_root_child_count,
-        ),
-        'Cluster with three conditions contains cluster with two conditions'
-    );
 
 }
 

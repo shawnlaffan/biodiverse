@@ -391,129 +391,6 @@ sub get_max_value {
     return $max;
 }
 
-#  crude summary stats.
-#  Not using Biodiverse::Statistics due to memory issues
-#  with large matrices and calculation of percentiles.
-sub get_summary_stats {
-    my $self = shift;
-
-    state $cachename = 'SUMMARY_STATS';
-    my $cached = $self->get_cached_value ($cachename);
-
-    return wantarray ? %$cached : $cached
-      if $cached;
-
-    my $n_elements = $self->get_element_count;
-    my $el_progress_thresh = 500;
-    my $progress = $n_elements > $el_progress_thresh ? Biodiverse::Progress->new(gui_only => 1) : undef;
-
-    my $progr_i = 0;
-    my (@v_ndarrays, @w_ndarrays);
-    my $n_mx_elements = 0;
-    my $n_precred_vals = 0;
-    my $prec_mult = 7;
-
-    \my %top_level = $self->{BYELEMENT};
-    foreach my $href (values %top_level) {
-        $progress && $progress->update ("Collating matrix stats data", ++$progr_i / $n_elements);
-        #  Round to save time and space - approximate vals should be OK for this.
-        #  Rounding mimics the sprintf %g formatting code.
-        my $ndarray = PDL->new(PDL::double(), [values %$href]);
-        my $m = 10 ** ($prec_mult - $ndarray->log10->floor);
-        $ndarray = ($ndarray * $m)->floor->divide($m)->badmask(0);
-        my @rle = $ndarray->inplace->qsort->rle;
-        push @w_ndarrays, $rle[0];
-        push @v_ndarrays, $rle[1];
-        $n_mx_elements  += keys %$href;
-        $n_precred_vals += $rle[0]->nelem;
-    }
-
-    my $p_v = PDL->zeroes ($n_precred_vals);
-    my $p_w = PDL->zeroes ($n_precred_vals);
-    my $ii = 0;
-    my $nd_i = 0;
-    foreach my $ndarray (@v_ndarrays) {
-        my $nmax = $ii + $ndarray->nelem - 1;
-        my $slice = $p_v->slice("$ii:$nmax");  #  debugger throws error if slice assign is all on one line
-        $slice .= $ndarray;
-        $slice = $p_w->slice("$ii:$nmax");
-        $slice .= $w_ndarrays[$nd_i];
-        $ii = $nmax + 1;
-        $nd_i++;
-    }
-
-    my %r;
-    my $stats = Statistics::Descriptive::PDL::SampleWeighted->new;
-    #  use internal methods until Statistics::Descriptive::PDL::SampleWeighted allows PDLs to be passed
-    $stats->_set_weights_piddle($p_w);
-    $stats->_set_piddle($p_v);
-
-    $progress && $progress->update("Calculating min, max, mean and SD", 0.33);
-    %r = (
-        MAX  => $stats->max,
-        MIN  => $stats->min,
-        MEAN => $stats->mean,
-        SD   => $stats->standard_deviation,
-    );
-
-    $progress && $progress->update("Calculating percentiles", 0.66);
-    if ($p_v->nelem < 5000) {
-        @r{qw/PCT025 PCT05 PCT95 PCT975/} = $stats->percentiles(2.5, 5, 95, 97.5);
-    }
-    else {
-        say sprintf ("[Matrix] Number of precision adjusted values is %d (of %d)", $p_v->nelem, $n_mx_elements);
-        say "[Matrix] Using a binned approximation to calculate percentiles, nbins is $prec_mult";
-        #  Use a histogram approximation for large data sets.
-        #  A future implementation might handle skewed distributions by using variable bin sizes.
-        my $hist_nsteps = 10 ** ($prec_mult - 1);
-        my $hist_step = ($r{MAX} - $r{MIN}) / $hist_nsteps;
-
-        my $hist = $p_v->whistogram($p_w, $hist_step, $r{MIN}, $hist_nsteps);
-        my $cumsum = $hist->cumusumover;
-        my $nn = $cumsum->at(-1);
-        #  cannot just use sprintf
-        my %pct_map = (
-            '2.5'  => 'PCT025',
-            '5'    => 'PCT05',
-            '95'   => 'PCT95',
-            '97.5' => 'PCT975',
-        );
-        foreach my $pct (2.5, 5, 95, 97.5) {
-            my $target = $nn * $pct / 100;
-            my $idx = PDL::vsearch_insert_leftmost($target, $cumsum)->sclr;
-            $idx ++ if $pct > 0.5;
-            $r{$pct_map{$pct}} = List::Util::min ($r{MAX}, $r{MIN} + $idx * $hist_step);
-        }
-    }
-
-    use constant PRECISION => 10**13;
-    foreach my $key (keys %r) {
-        $r{$key} = $self->round_to_precision_aa($r{$key}, PRECISION) + 0;
-    }
-
-    $self->set_cached_value($cachename => \%r);
-
-    #  ndarray cleanup can take user-visible time
-    if ($progress) {
-        $progress->update ("Cleaning up temporary stats objects", 0);
-        my $nn = 2.05 * @w_ndarrays;
-        my $jj;
-        while (@v_ndarrays) {
-            shift @v_ndarrays;
-            $progress->update (undef, ++$jj / $nn);
-        }
-        while (@w_ndarrays) {
-            shift @w_ndarrays;
-            $progress->update (undef, ++$jj / $nn);
-        }
-        $progress->update("Cleaning up the big one", 0.95);
-        $stats = undef;
-    }
-
-    $progress = undef;
-
-    return wantarray ? %r : \%r;
-}
 
 #  add an element pair to the object
 #  should throw an exception if it already exists
@@ -548,7 +425,7 @@ sub add_element {
 }
 
 sub add_element_aa {
-    my ($self, $element1, $element2, $val) = @_;
+    my ($self, $element1, $element2, $val, $index_val) = @_;
 
     croak "Element1 not specified in call to add_element_aa\n"
         if !defined $element1;
@@ -562,7 +439,7 @@ sub add_element_aa {
         return;
     }
 
-    my $index_val = $self->get_value_index_key_aa( $val );
+    $index_val //= $self->get_value_index_key_aa( $val );
 
     $self->{BYELEMENT}{$element1}{$element2} = $val;
     $self->{BYVALUE}{$index_val}{$element1}{$element2}++;
@@ -583,24 +460,56 @@ sub batch_add_element {
     my $data = $args{data};
     croak "data hash not specified in call to add_element\n"
         if !defined $data;
+    return if !%$data;
 
     my $index_prec = $self->get_param('VAL_INDEX_PRECISION');
     my $have_index_prec = defined $index_prec;
 
+    \my %by_el   = $self->{BYELEMENT}{$element1} //= {};
+    \my %by_val  = $self->{BYVALUE} //= {};
+    \my %el_hash = $self->{ELEMENTS} //= {};
+
+    if ($args{no_undef_vals_in_data}) {  #  promises, promises
+        $el_hash{$element1} += keys %$data;
+        if (keys %by_el) {
+            @by_el{keys %$data} = values %$data
+        }
+        else {
+            %by_el = %$data;
+        };
+        foreach my ($element2, $val) (%$data) {
+            my $idx = $have_index_prec ? sprintf $index_prec, $val : $val;
+            $by_val{$idx}{$element1}{$element2}++;
+            $el_hash{$element2}++;
+        }
+
+        return;
+    }
+
+    use List::Util qw/any/;
+    my $undef_count = 0;
+    if (any {!defined $_} values %$data) {
+        if (!$self->get_param('ALLOW_UNDEF')) {  #  filter data
+            $data = {map {$_ => $data->{$_}} grep {defined $data->{$_}} keys %$data};
+        }
+        else {
+            $undef_count = grep {!defined $_} values %$data;
+        }
+    }
+    $el_hash{$element1} += scalar (keys %$data) - $undef_count;
     foreach my ($element2, $val) (%$data) {
-        if ( !defined $val && !$self->get_param('ALLOW_UNDEF') ) {
+        if ($undef_count && !defined $val) {
             warn "[Matrix] add_element Warning: Value not defined and "
                 . "ALLOW_UNDEF not set, not adding row $element1 col $element2.\n";
-            return;
+            $el_hash{$element1}--;
+            next;
         }
 
         my $index_val = $have_index_prec ? sprintf $index_prec, $val : $val;
 
-        $self->{BYELEMENT}{$element1}{$element2} = $val;
-        $self->{BYVALUE}{$index_val}{$element1}{$element2}++;
-        #  cache the component elements to save searching through the other lists later
-        $self->{ELEMENTS}{$element1}++;
-        $self->{ELEMENTS}{$element2}++; #  also keeps a count of the elements
+        $by_el{$element2} = $val;
+        $by_val{$index_val}{$element1}{$element2}++;
+        $el_hash{$element2}++;
     }
 
     return;
@@ -609,25 +518,19 @@ sub batch_add_element {
 #  should be called delete_element_pair, but need to find where it's used first
 sub delete_element {
     my $self = shift;
-    my %args = @_;
 
     my $exists = $self->element_pair_exists(@_)
       || return 0;
 
-    #  handled in the exists check
-    # croak "element1 and/or element2 not defined\n"
-    #   if !( defined $args{element1} && defined $args{element2} );
+    #  unpack only if we passed the exists check
+    my %args = @_;
 
     my ( $element1, $element2 ) =
         $exists == 1
       ? @args{ 'element1', 'element2' }
       : @args{ 'element2', 'element1' };
 
-    my $value = $self->get_value(
-        element1    => $element1,
-        element2    => $element2,
-        pair_exists => 1,
-    );
+    my $value = $self->get_value_aa($element1, $element2, 1);
 
     #  save some repeated dereferencing below
     my $val_index   = $self->{BYVALUE};
@@ -671,6 +574,100 @@ sub delete_element {
     }
 
     #return ($self->element_pair_exists(@_)) ? undef : 1;  #  for debug
+    return 1;    # return success if we get this far
+}
+
+sub batch_delete_element_pairs {
+    my ($self, %args) = @_;
+
+    my $el1      = $args{element1};
+    my $el2_list = $args{el2_list};
+
+    #  save some repeated dereferencing below
+    \my %val_index   = $self->{BYVALUE} //= {};
+    \my %el_ref      = $self->{ELEMENTS} //= {};
+    \my %by_el_index = $self->{BYELEMENT} //= {};
+
+    my $index_prec = $self->get_param('VAL_INDEX_PRECISION');
+    my $have_index_prec = defined $index_prec;
+
+    my @in_col;
+
+    #  common usage is to clear the whole row
+    if (my $el1_row = $by_el_index{$el1}) {
+        \my %row = $el1_row;
+        my @in_row;
+        if (!$args{delete_row}) {
+            @in_row = grep {exists $row{$_}} @$el2_list;
+        }
+        if ($args{delete_row} || @in_row == keys %row) {
+            delete $by_el_index{$el1};
+            $el_ref{$el1} -= scalar keys %row;
+            foreach my ($el2, $value) (%row) {
+                my $index_val = $have_index_prec
+                    ? sprintf ($index_prec, $value)
+                    : $value;
+                $self->rebuild_value_index if !$val_index{$index_val};
+                delete $val_index{$index_val}{$el1}{$el2};
+                if (!%{$val_index{$index_val}{$el1}}) {
+                    delete $val_index{$index_val}{$el1};
+                    delete $val_index{$index_val}
+                        if !%{$val_index{$index_val}};
+                }
+                ($el_ref{$el2}--) or delete $el_ref{$el2};  #  postfix for speed
+            }
+        }
+        {
+            no autovivification;
+            @in_col = grep {!exists $row{$_} && exists $by_el_index{$_}{$el1}} @$el2_list;
+        }
+    }
+    else {
+        #  has no row so only in columns
+        no autovivification;
+        @in_col = grep {exists $by_el_index{$_}{$el1}} @$el2_list;
+    }
+
+    foreach my $el2 (@in_col) {
+        #  Autovivification of $self->{BYELEMENT}{$element1}
+        #  is avoided by the exists checks above.
+        my $value = delete $by_el_index{$el2}{$el1};
+
+        #  now we get to the column cleanup, including the containing hashes if they are now empty
+        delete $by_el_index{$el2}
+          if !%{$by_el_index{$el2}};
+
+        my $index_val = defined $index_prec
+            ? sprintf ($index_prec, $value)
+            : $value;
+
+        if (!$val_index{$index_val}) {
+            #  a bit underhanded, but this ensures we upgrade old matrices
+            $self->rebuild_value_index;
+        }
+
+        delete $val_index{$index_val}{$el2}{$el1};
+        if (!%{$val_index{$index_val}{$el2}}) {
+            delete $val_index{$index_val}{$el2};
+            delete $val_index{$index_val}
+              if !%{$val_index{$index_val}};
+        }
+
+        #  Decrement the ELEMENTS counts
+        $el_ref{$el2}--;
+
+        #  Delete $el2 entry if now zero
+        #  as there are no more entries with this element
+        #  (postfix-or for speed)
+        $el_ref{$el2}
+            or delete $el_ref{$el2} // warn "ISSUES $el2\n";
+    }
+
+    #  do el1 outside the loop
+    $el_ref{$el1} -= scalar @in_col;
+    $el_ref{$el1}
+        or delete $el_ref{$el1} // warn "ISSUES $el1\n";
+
     return 1;    # return success if we get this far
 }
 

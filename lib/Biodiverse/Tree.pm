@@ -417,19 +417,16 @@ sub get_terminal_element_count {
     my $self = shift;
     my %args = ( cache => 1, @_ );    #  cache by default
 
-    my $node_ref;
-    if ( defined $args{node} ) {
-        $node_ref = $self->get_node_ref_aa ( $args{node} );
-    }
-    else {
-        $node_ref = $self->get_tree_ref;
-    }
+    my $node_ref
+        = defined $args{node}
+        ? $self->get_node_ref_aa ( $args{node} )
+        : $self->get_tree_ref;
 
     #  follow logic of get_terminal_elements, which returns a hash of
     #  node if not a ref - good or bad idea?  Ever used?
     return 1 if !defined $node_ref;
 
-    return $node_ref->get_terminal_element_count( cache => $args{cache} );
+    return $node_ref->get_terminal_element_count( %args{cache} );
 }
 
 sub get_node_ref {
@@ -446,7 +443,7 @@ sub get_node_ref {
         #    say "key: $k";
         #}
         Biodiverse::Tree::NotExistsNode->throw(
-            "[Tree] $node does not exist, cannot get ref"
+            "[Tree] Node $node does not exist, cannot get ref"
         );
     }
 
@@ -992,7 +989,7 @@ sub export {
     my $metadata = $self->get_metadata( sub => 'export' );
 
     my $sub_to_use = $metadata->get_sub_name_from_format(%args);
-
+say STDERR "+++++++++++ $sub_to_use";
     #  remap the format name if needed - part of the matrices kludge
     my $component_map = $metadata->get_component_map;
     if ( $component_map->{ $args{format} } ) {

@@ -4,6 +4,8 @@ use 5.036;
 use strict;
 use warnings;
 
+use experimental qw /refaliasing for_list/;
+
 use Carp;
 use List::Util qw /min max/;
 
@@ -184,6 +186,54 @@ sub delete_element {  #  should be called delete_element_pair, but need to find 
     }
 
     return 1;  # return success if we get this far
+}
+
+sub get_value_index_key_aa {}
+
+sub batch_delete_element_pairs {
+    my ($self, %args) = @_;
+
+    my $el1      = $args{element1};
+    my $el2_list = $args{el2_list};
+
+    #  save some repeated dereferencing below
+    \my %by_el_index = $self->{BYELEMENT} //= {};
+
+    my @in_col;
+
+    #  common usage is to clear the whole row
+    if (my $el1_row = $by_el_index{$el1}) {
+        \my %row = $el1_row;
+        if ($args{delete_row}) {
+            delete $by_el_index{$el1};
+        }
+        else {
+            my @in_row = grep {exists $row{$_}} @$el2_list;
+            if (@in_row == keys %row) {
+                delete $by_el_index{$el1};
+            }
+        }
+        {
+            no autovivification;
+            @in_col = grep {!exists $row{$_} && exists $by_el_index{$_}{$el1}} @$el2_list;
+        }
+    }
+    else {
+        #  has no row so only in columns
+        no autovivification;
+        @in_col = grep {exists $by_el_index{$_}{$el1}} @$el2_list;
+    }
+
+    foreach my $el2 (@in_col) {
+        #  Now we get to the column cleanup.
+        #  Autovivification of $self->{BYELEMENT}{$el2}
+        #  is avoided by exists checks above.
+        delete $by_el_index{$el2}{$el1};
+        delete $by_el_index{$el2}
+          if !%{$by_el_index{$el2}};
+    }
+
+    return 1;    # return success if we get this far
 }
 
 my $ludicrously_large_pos_value = 10 ** 20;

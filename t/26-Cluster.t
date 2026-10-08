@@ -232,6 +232,7 @@ sub test_two_spatial_conditions {
     my %args = @_;
 
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+    $bd->rename (new_name => 'test_two_spatial_conditions');
     my $tie_breaker = [ENDW_WE => 'max'];
 
     my %analysis_args = (
@@ -240,10 +241,14 @@ sub test_two_spatial_conditions {
         linkage_function   => 'link_average',
     );
 
-    my $cond1 = '$nbr_y > 1500000 && $y > 1500000';
-    my $spatial_conditions1 = [$cond1];
+    my $y_cond1 = '$nbr_y > 1500000 && $y > 1500000';
+    my $y_cond2 = '$nbr_y < 1100000 && $y < 1100000';
+    my $y_cond3 = '$nbr_y > 1100000 && $y > 1100000 && $nbr_y <= 1500000 && $y <= 1500000';
+
+
+    my $spatial_conditions1 = [$y_cond1];
     my $spatial_conditions2 = [
-        $cond1,
+        $y_cond1,
         'sp_select_all()',
     ];
 
@@ -318,16 +323,22 @@ sub test_two_spatial_conditions {
     );
 
 
-    my $spatial_conditions5 = [$block_cond, $cond1];
-    my $spatial_conditions6 = [$block_cond, $cond1, 'sp_select_all()'];
-    
-    my $cl5 = $bd->add_cluster_output (name => 'cl5');
-    $cl5->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
-    $cl5->set_param (CACHE_ABC => 0);
-    $cl5->run_analysis (
-        %analysis_args,
-        spatial_conditions => $spatial_conditions5,
-    );
+    # my $spatial_conditions5 = [$y_cond2, $y_cond1];
+    my $spatial_conditions6 = [$y_cond2, $y_cond1, 'sp_select_all()'];
+
+    my @cl5_outputs;
+    my $cl_n = 0;
+    foreach my $cond ($y_cond1, $y_cond2) {
+        $cl_n++;
+        my $cl = $bd->add_cluster_output(name => "cl5_$cl_n");
+        $cl->set_param(CLUSTER_TIE_BREAKER => $tie_breaker);
+        $cl->set_param(CACHE_ABC => 0);
+        $cl->run_analysis(
+            %analysis_args,
+            spatial_conditions => [$cond],
+        );
+        push @cl5_outputs, $cl;
+    }
 
     my $cl6 = $bd->add_cluster_output (name => 'cl6');
     $cl6->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
@@ -336,26 +347,23 @@ sub test_two_spatial_conditions {
         %analysis_args,
         spatial_conditions => $spatial_conditions6,
     );
-    
-    ok (
-        $cl6->contains_tree (comparison => $cl6),
+
+    ok(
+        $cl6->contains_tree(comparison => $cl6),
         'contains_tree works for triple conditions'
     );
-    my $cl5_root_child_count = $cl5->get_child_count;
 
-    #  Ignore the root node and its immediate children
-    #  since they can have different lengths
-    #  and thus won't always match.
-    ok (
-        $cl6->contains_tree (
-            comparison  => $cl5,
-            ignore_root => 1,
-            correction  => -$cl5_root_child_count,
-        ),
-        'Cluster with three conditions contains cluster with two conditions'
-    );
-    
-    
+    foreach my $cl (@cl5_outputs) {
+        ok(
+            $cl6->contains_tree(
+                comparison  => $cl,
+                ignore_root => 1,
+            ),
+            'Cluster with three conditions contains cluster subconditions ' . ($cl->get_name),
+        );
+    }
+
+    # $bd->save;
 }
 
 

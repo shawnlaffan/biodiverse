@@ -609,10 +609,10 @@ sub batch_delete_element_pairs {
                     : $value;
                 $self->rebuild_value_index if !$val_index{$index_val};
                 delete $val_index{$index_val}{$el1}{$el2};
-                if (!keys %{$val_index{$index_val}{$el1}}) {
+                if (!%{$val_index{$index_val}{$el1}}) {
                     delete $val_index{$index_val}{$el1};
                     delete $val_index{$index_val}
-                        if !keys %{$val_index{$index_val}};
+                        if !%{$val_index{$index_val}};
                 }
                 ($el_ref{$el2}--) or delete $el_ref{$el2};  #  postfix for speed
             }
@@ -643,10 +643,8 @@ sub batch_delete_element_pairs {
         #  now we get to the cleanup, including the containing hashes if they are now empty
         #  all the undef - delete pairs are to ensure they get deleted properly
         #  the hash ref must be empty (undef) or it won't be deleted
-        if (!keys %{$by_el_index{$element1}}) {
-            delete $by_el_index{$element1}
-                // warn "ISSUES BYELEMENT $element1 $element2\n";
-        }
+        delete $by_el_index{$element1}
+          if !%{$by_el_index{$element1}};
 
         my $index_val = defined $index_prec
             ? sprintf ($index_prec, $value)
@@ -658,12 +656,10 @@ sub batch_delete_element_pairs {
         }
 
         delete $val_index{$index_val}{$element1}{$element2};
-        if (!keys %{$val_index{$index_val}{$element1}}) {
+        if (!%{$val_index{$index_val}{$element1}}) {
             delete $val_index{$index_val}{$element1};
-            if (!keys %{$val_index{$index_val}}) {
-                delete $val_index{$index_val}
-                    // warn "ISSUES BYVALUE $index_val $value $element1 $element2\n";
-            }
+            delete $val_index{$index_val}
+              if !%{$val_index{$index_val}};
         }
 
         #  Decrement the ELEMENTS counts

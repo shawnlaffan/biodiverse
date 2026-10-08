@@ -244,11 +244,8 @@ sub batch_delete_element_pairs {
         #  the hash ref must be empty (undef) or it won't be deleted
         #  autovivification of $self->{BYELEMENT}{$element1} is avoided by $exists above
         delete $by_el_index{$element1}{$element2};
-        if (!keys %{$by_el_index{$element1}}) {
-            delete $by_el_index{$element1}
-                // warn "ISSUES BYELEMENT $element1 $element2\n";
-        }
-
+        delete $by_el_index{$element1}
+          if !%{$by_el_index{$element1}};
     }
 
     return 1;    # return success if we get this far

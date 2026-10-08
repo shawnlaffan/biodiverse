@@ -199,7 +199,7 @@ sub batch_delete_element_pairs {
     #  save some repeated dereferencing below
     \my %by_el_index = $self->{BYELEMENT} //= {};
 
-    my %pair_exists;
+    my @in_col;
 
     #  common usage is to clear the whole row
     if (my $el1_row = $by_el_index{$el1}) {
@@ -212,40 +212,25 @@ sub batch_delete_element_pairs {
             if (@in_row == keys %row) {
                 delete $by_el_index{$el1};
             }
-            else {
-                @pair_exists{@in_row} = (1) x @in_row;
-                if (scalar (keys %pair_exists) == @in_row) {
-                    delete $by_el_index{$el1};
-                    %pair_exists = ();
-                }
-            }
         }
         {
             no autovivification;
-            my @in_col = grep {!exists $row{$_} && exists $by_el_index{$_}{$el1}} @$el2_list;
-            @pair_exists{@in_col} = (2) x @in_col;
+            @in_col = grep {!exists $row{$_} && exists $by_el_index{$_}{$el1}} @$el2_list;
         }
     }
     else {
         #  has no row so only in columns
         no autovivification;
-        my @in_col = grep {exists $by_el_index{$_}{$el1}} @$el2_list;
-        @pair_exists{@in_col} = (2) x @in_col;
+        @in_col = grep {exists $by_el_index{$_}{$el1}} @$el2_list;
     }
 
-    foreach my ($el2, $exists) (%pair_exists) {
-        my ($element1, $element2) =
-            $exists == 1
-                ? ($el1, $el2)
-                : ($el2, $el1);
-
-        #  now we get to the cleanup, including the containing hashes if they are now empty
-        #  all the undef - delete pairs are to ensure they get deleted properly
-        #  the hash ref must be empty (undef) or it won't be deleted
-        #  autovivification of $self->{BYELEMENT}{$element1} is avoided by $exists above
-        delete $by_el_index{$element1}{$element2};
-        delete $by_el_index{$element1}
-          if !%{$by_el_index{$element1}};
+    foreach my $el2 (@in_col) {
+        #  Now we get to the column cleanup.
+        #  Autovivification of $self->{BYELEMENT}{$el2}
+        #  is avoided by exists checks above.
+        delete $by_el_index{$el2}{$el1};
+        delete $by_el_index{$el2}
+          if !%{$by_el_index{$el2}};
     }
 
     return 1;    # return success if we get this far

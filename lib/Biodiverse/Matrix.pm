@@ -591,16 +591,16 @@ sub batch_delete_element_pairs {
     my $index_prec = $self->get_param('VAL_INDEX_PRECISION');
     my $have_index_prec = defined $index_prec;
 
-    my %pair_exists;
+    my @in_col;
 
     #  common usage is to clear the whole row
     if (my $el1_row = $by_el_index{$el1}) {
         \my %row = $el1_row;
+        my @in_row;
         if (!$args{delete_row}) {
-            my @in_row = grep {exists $row{$_}} @$el2_list;
-            @pair_exists{@in_row} = (1) x @in_row;
+            @in_row = grep {exists $row{$_}} @$el2_list;
         }
-        if ($args{delete_row} || scalar (keys %pair_exists) == keys %row) {
+        if ($args{delete_row} || @in_row == keys %row) {
             delete $by_el_index{$el1};
             $el_ref{$el1} -= scalar keys %row;
             foreach my ($el2, $value) (%row) {
@@ -616,35 +616,26 @@ sub batch_delete_element_pairs {
                 }
                 ($el_ref{$el2}--) or delete $el_ref{$el2};  #  postfix for speed
             }
-            %pair_exists = ();  #  reset as we have cleaned out the row
         }
         {
             no autovivification;
-            my @in_col = grep {!exists $row{$_} && exists $by_el_index{$_}{$el1}} @$el2_list;
-            @pair_exists{@in_col} = (2) x @in_col;
+            @in_col = grep {!exists $row{$_} && exists $by_el_index{$_}{$el1}} @$el2_list;
         }
     }
     else {
         #  has no row so only in columns
         no autovivification;
-        my @in_col = grep {exists $by_el_index{$_}{$el1}} @$el2_list;
-        @pair_exists{@in_col} = (2) x @in_col;
+        @in_col = grep {exists $by_el_index{$_}{$el1}} @$el2_list;
     }
 
-    foreach my ($el2, $exists) (%pair_exists) {
-        my ($element1, $element2) =
-            $exists == 1
-                ? ($el1, $el2)
-                : ($el2, $el1);
+    foreach my $el2 (@in_col) {
+        #  Autovivification of $self->{BYELEMENT}{$element1}
+        #  is avoided by the exists checks above.
+        my $value = delete $by_el_index{$el2}{$el1};
 
-        #  autovivification of $self->{BYELEMENT}{$element1} is avoided by $exists above
-        my $value = delete $by_el_index{$element1}{$element2};
-
-        #  now we get to the cleanup, including the containing hashes if they are now empty
-        #  all the undef - delete pairs are to ensure they get deleted properly
-        #  the hash ref must be empty (undef) or it won't be deleted
-        delete $by_el_index{$element1}
-          if !%{$by_el_index{$element1}};
+        #  now we get to the column cleanup, including the containing hashes if they are now empty
+        delete $by_el_index{$el2}
+          if !%{$by_el_index{$el2}};
 
         my $index_val = defined $index_prec
             ? sprintf ($index_prec, $value)
@@ -655,16 +646,16 @@ sub batch_delete_element_pairs {
             $self->rebuild_value_index;
         }
 
-        delete $val_index{$index_val}{$element1}{$element2};
-        if (!%{$val_index{$index_val}{$element1}}) {
-            delete $val_index{$index_val}{$element1};
+        delete $val_index{$index_val}{$el2}{$el1};
+        if (!%{$val_index{$index_val}{$el2}}) {
+            delete $val_index{$index_val}{$el2};
             delete $val_index{$index_val}
               if !%{$val_index{$index_val}};
         }
 
         #  Decrement the ELEMENTS counts
-        $el_ref{$element1}--;
-        $el_ref{$element2}--;
+        $el_ref{$el2}--;
+        $el_ref{$el1}--;
 
         #  Delete $el2 entry if now zero
         #  as there are no more entries with this element

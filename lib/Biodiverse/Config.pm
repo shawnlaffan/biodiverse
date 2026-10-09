@@ -19,6 +19,8 @@ use English ( -no_match_vars );
 
 our $VERSION = '6.99_001';
 
+use Biodiverse::Logger qw/logger/;
+
 #use Exporter;
 #use Devel::Symdump;
 
@@ -54,31 +56,6 @@ For a full copy of the license see <https://www.gnu.org/licenses/>.
 END_OF_LICENSE
   ;
 
-
-BEGIN {
-    use Log::Any;
-    use Log::Any::Adapter ('Stdout');
-
-    state $logger = Log::Any->get_logger;
-
-    #  might not need this now
-    sub set_logger_adapter {
-        my ($self, $adapter, $dispatcher) = @_;
-        Log::Any::Adapter->set($adapter, dispatcher => $dispatcher);
-    }
-
-    sub set_logger {
-        my ($self, $log_arg) = @_;
-        $logger = $log_arg;
-    }
-    sub get_logger {
-        $logger;
-    }
-    sub logger {
-        $logger;
-    }
-}
-
 BEGIN {
     if ($ENV{PAR_0}) {
         use Config;
@@ -101,7 +78,7 @@ BEGIN {
                 map {path($sbase, $_)}
                     ("/c/bin", "/perl/bin", "/perl/site/bin", "/perl/vendor/bin");
         if (@paths) {
-            say STDERR "Strawberry perl detected, prepending its bin dirs to path";
+            logger->info("Strawberry perl detected, prepending its bin dirs to path");
             unshift @PATH, @paths;
         }
     }
@@ -236,11 +213,11 @@ sub use_base {
     }
     my %check_packages;
 
-    logger->trace("[USE_BASE] Checking and loading user modules");
+    logger->info("[USE_BASE] Checking and loading user modules");
 
     my $x;
     if (-e $file) {
-        logger->trace("...from file $file");
+        logger->info("...from file $file");
         local $/ = undef;
         my $success = open (my $fh, '<', $file);
         croak "Unable to open extensions file $file\n"

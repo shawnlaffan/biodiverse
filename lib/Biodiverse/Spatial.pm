@@ -21,6 +21,7 @@ use Biodiverse::SpatialConditions;
 use Biodiverse::SpatialConditions::DefQuery;
 use Biodiverse::Progress;
 use Biodiverse::Indices;
+use Biodiverse::Logger qw /logger/;
 
 
 use parent qw /
@@ -42,7 +43,7 @@ sub _make_param_methods {
         PASS_DEF_QUERY
         INDEX_SEARCH_BLOCKS RESULTS_ARE_RECYCLABLE
     /;
-    # print "Calling _make_access_methods for $pkg";
+
     no strict 'refs';
     foreach my $param_key (@methods) {
         my $key    = lc $param_key;
@@ -250,9 +251,8 @@ sub calculate_canape {
         $self->get_hash_list_names_across_elements;
 
     #  some more debugging
-    say "Prefix is $result_list_pfx";
-    say "Target list names are: "
-      . join ' ', @target_list_names;
+    logger->info("Prefix is $result_list_pfx");
+    logger->info("Target list names are: " . join ' ', @target_list_names);
 
     my $to_do = $self->get_element_count;
     my $i = 0;
@@ -398,9 +398,8 @@ sub convert_comparisons_to_zscores {
         $self->get_hash_list_names_across_elements;
 
     #  some more debugging
-    say "Prefix is $result_list_pfx";
-    say "Target list names are: "
-      . join ' ', @target_list_names;
+    logger->info ("Prefix is $result_list_pfx");
+    logger->info ("Target list names are: " . join ' ', @target_list_names);
 
     my $to_do = $self->get_element_count;
     my $i = 0;
@@ -524,9 +523,8 @@ sub convert_comparisons_to_significances {
         $self->get_hash_list_names_across_elements;
 
     #  some more debugging
-    say "Prefix is $result_list_pfx";
-    say "Target list names are: "
-      . join ' ', @target_list_names;
+    logger->info ("Prefix is $result_list_pfx");
+    logger->info ("Target list names are: " . join ' ', @target_list_names);
 
     my $to_do = $self->get_element_count;
     my $i = 0;
@@ -753,7 +751,7 @@ sub sp_calc {
     my $self = shift;
     my %args = @_;
 
-    say "[SPATIAL] Running analysis " . $self->get_param('NAME');
+    logger->info("[SPATIAL] Running analysis " . $self->get_param('NAME'));
 
     #  don't store this arg if specified
     my $use_nbrs_from = $args{use_nbrs_from};
@@ -780,7 +778,6 @@ sub sp_calc {
     my $calc_only_elements_to_calc = $args{calc_only_elements_to_calc};
     my $use_recycling              = !$args{no_recycling};
     my $ignore_spatial_index       = $args{ignore_spatial_index};
-    #say "[SPATIAL] Using recycling: $use_recycling";
 
     my $spatial_conditions_arr  = $self->get_spatial_conditions_arr (%args);
     my $definition_query
@@ -863,8 +860,10 @@ sub sp_calc {
     #  don't pass these onwards when we call the calcs
     delete @args{qw /calculations analyses/};  
 
-    say '[SPATIAL] running calculations '
-          . join q{ }, sort keys %{$indices_object->get_valid_calculations_to_run};
+    logger->info(
+        '[SPATIAL] running calculations '
+          . join q{ }, sort keys %{$indices_object->get_valid_calculations_to_run}
+    );
 
     #  use whatever spatial index the parent is currently using if nothing already set
     #  if the basedata object has no index, then we won't either
@@ -902,35 +901,41 @@ sub sp_calc {
 
             if ($result_type eq 'always_true') {
                 #  no point using the index if we have to get them all
-                say "[SPATIAL] All groups are neighbours.  "
-                  . "Index will be ignored for neighbour set $set_i.";
+                logger->info(
+                    "[SPATIAL] All groups are neighbours.  "
+                  . "Index will be ignored for neighbour set $set_i."
+                );
                 next SPATIAL_PARAMS_LOOP;
             }
             elsif ($result_type eq 'self_only') {
-                say "[SPATIAL] No neighbours, processing group only.  "
-                  . "Index will be ignored for neighbour set $set_i.";
+                logger->info (
+                    "[SPATIAL] No neighbours, processing group only.  "
+                  . "Index will be ignored for neighbour set $set_i."
+                );
                 next SPATIAL_PARAMS_LOOP;
             }
             elsif ($result_type eq 'side') {
-                say "[SPATIAL] Sidedness condition used.  "
-                    . "Index will be ignored for neighbour set $set_i.";
+                logger->info (
+                    "[SPATIAL] Sidedness condition used.  "
+                    . "Index will be ignored for neighbour set $set_i."
+                );
                 next SPATIAL_PARAMS_LOOP;
             }
             elsif ($ignore_index
                    || $result_type eq 'always_false'
                    || $sp_cond_obj->get_param ('INDEX_NO_USE')) {
                 #  the conditions won't cooperate with the index
-                say "[SPATIAL] Index set to be ignored for neighbour set $set_i.";
+                logger->info ("[SPATIAL] Index set to be ignored for neighbour set $set_i.");
                 next SPATIAL_PARAMS_LOOP;
             }
 
-            say "[SPATIAL] Result type for neighbour set $set_i is $result_type.";
+            logger->info ("[SPATIAL] Result type for neighbour set $set_i is $result_type.");
 
             my $search_blocks = $search_blocks_arr->[$i];
 
             if (defined $sp_index && ! defined $search_blocks) {
                 if ($i == 0) {
-                    say '[SPATIAL] Using spatial index';
+                    logger->info('[SPATIAL] Using spatial index');
                 }
                 my $progress_text_pfx = 'Neighbour set ' . ($i+1);
                 $search_blocks = $sp_index->predict_offsets (
@@ -1002,7 +1007,7 @@ sub sp_calc {
     #  get the global pre_calc results
     $indices_object->run_precalc_globals(%args);
 
-    say "[SPATIAL] Creating target groups";
+    logger->info("[SPATIAL] Creating target groups");
     
     my $progress_text_create
         = $progress_text_base . "\nCreating target groups";
@@ -1066,9 +1071,7 @@ sub sp_calc {
         no_gui_progress => $no_gui_progress,
     );
 
-    my ($count, $printed_progress) = (0, -1);
-    print "[SPATIAL] Progress (% of $to_do elements):     ";
-    #$timer = [gettimeofday];    # to use with progress bar
+    my $count       = 0;
     my $recyc_count = 0;
 
 
@@ -1226,7 +1229,7 @@ sub sp_calc {
     $self->get_lists_across_elements();
 
     my $time_taken = time - $start_time;
-    printf "\n[SPATIAL] Analysis took %.3f seconds.\n", $time_taken;
+    logger->info(sprintf "\n[SPATIAL] Analysis took %.3f seconds.", $time_taken);
     $self->set_param (ANALYSIS_TIME_TAKEN => $time_taken);
 
     #  sometimes we crash out but the object still exists
@@ -1755,7 +1758,7 @@ sub get_spatial_conditions_arr {
 
         last CHECK if length $param;
 
-        say '[SPATIAL] Deleting undefined or empty spatial condition at end of conditions array';
+        logger->info ('[SPATIAL] Deleting undefined or empty spatial condition at end of conditions array');
         pop @$spatial_conditions_arr;    
     }
 
@@ -1830,8 +1833,7 @@ sub get_recyclable_nbrhoods {
     }
 
     if (1 and $recyc_result_count) {
-        say '[SPATIAL] Results are recyclable.  '
-              . 'This will save some processing';
+        logger->info('[SPATIAL] Results are recyclable.  This will save some processing');
     }
 
     #  need a better name - unique to nbrhood? same_for_whole_nbrhood?
@@ -1878,13 +1880,13 @@ sub get_groups_that_pass_def_query {
     my @comparable = $bd->get_outputs_with_same_def_query (compare_with => $self);
     if (@comparable) {
         my $comp = $comparable[0];
-        say "Re-using def query results from " . $comp->get_name;
+        logger->info("Re-using def query results from " . $comp->get_name);
         $passed = $comp->get_pass_def_query;
         $self->set_pass_def_query ($passed);
         return wantarray ? %$passed : $passed;
     }
 
-    print "Running definition query\n";
+    logger->info("Running definition query");
     my $elements_to_calc = $args{elements_to_calc};
     my $element = $elements_to_calc->[0];
     my $defq_progress = Biodiverse::Progress->new(text => 'def query');
@@ -1904,7 +1906,7 @@ sub get_groups_that_pass_def_query {
     }
 
     my $pass_count = scalar keys %$passed;
-    print "$pass_count groups passed the definition query\n";
+    logger->info("$pass_count groups passed the definition query");
 
     return wantarray ? %$passed : $passed;
 }

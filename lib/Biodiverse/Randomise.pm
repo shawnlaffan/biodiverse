@@ -43,6 +43,7 @@ my $parameter_rand_metadata_class = 'Biodiverse::Metadata::Parameter';
 
 require Biodiverse::BaseData;
 use Biodiverse::Progress;
+use Biodiverse::Logger qw /logger/;
 
 our $VERSION = '6.99_001';
 
@@ -273,7 +274,7 @@ sub export_prng_init_state {
     print {$fh} Data::Dumper::Dumper ($init_state);
     $fh->close;
 
-    say "[RANDOMISE] Dumped initial PRNG state to $filename";
+    logger->info ("[RANDOMISE] Dumped initial PRNG state to $filename");
 
     return;
 }
@@ -306,7 +307,7 @@ sub export_prng_current_state {
     print {$fh} Data::Dumper::Dumper ($init_state);
     $fh->close;
 
-    say "[RANDOMISE] Dumped current PRNG state to $filename";
+    logger->info("[RANDOMISE] Dumped current PRNG state to $filename");
 
     return;
 }
@@ -442,7 +443,6 @@ sub run_randomisation {
     my $iterations = delete $args{iterations} || 1;
     my $max_iters  = delete $args{max_iters};
 
-    #print "\n\n\nMAXITERS IS $max_iters\n\n\n";
     my $generate_tree_analyses = !!$args{build_randomised_trees};
 
     #  an in-place clean up of conditions objects
@@ -488,12 +488,14 @@ sub run_randomisation {
         my $comp = Data::Compare->new;
         my $init_states = $self->get_prng_init_states_array;
         if (grep {$comp->Cmp($_, $new_state)} @$init_states) {
-            say "[Randomisation] Reseed arg will be ignored as it has already been used";
+            logger->info("[Randomisation] Reseed arg will be ignored as it has already been used");
         }
         else {
             #  reset the results to avoid doubling up in any reintegration
             if ($self->get_param ('TOTAL_ITERATIONS')) {
-                say "[Randomisation] new_seed arg passed.  Resetting all previous results for this randomisation.";
+                logger->info(
+                    "[Randomisation] new_seed arg passed.  Resetting all previous results for this randomisation."
+                );
                 $self->get_basedata_ref->do_delete_randomisation_lists(output => $self);
                 @$init_states = ();
                 @{$self->get_prng_end_states_array}   = ();
@@ -527,9 +529,6 @@ sub run_randomisation {
         }
     }
     $scalar_args =~ s/,$//;  #  remove any trailing comma
-    #say "\n\n++++++++++++++++++++++++";
-    #say '[RANDOMISE] Scalar arguments are ' . $scalar_args;
-    #say "++++++++++++++++++++++++\n\n";
 
     my $results_list_name
         = $self->get_param ('NAME')
@@ -569,15 +568,17 @@ sub run_randomisation {
     foreach my $i (1 .. $iterations) {
 
         if ($max_iters && $$total_iterations >= $max_iters) {
-            say "[RANDOMISE] Maximum iteration count reached: $max_iters";
+            logger->info("[RANDOMISE] Maximum iteration count reached: $max_iters");
             $return_success_code = 2;
             last ITERATION;
         }
 
         $$total_iterations++;
 
-        say "[RANDOMISE] $results_list_name iteration $$total_iterations "
-            . "($i of $iterations this run)";
+        logger->info(
+            "[RANDOMISE] $results_list_name iteration $$total_iterations "
+            . "($i of $iterations this run)"
+        );
 
         $progress_bar->update (
             "Randomisation iteration $i of $iterations this run",
@@ -599,7 +600,7 @@ sub run_randomisation {
 
         my $t_diff = tv_interval ($start_time_get_rand_bd);
         my $time_taken = sprintf "%.3f", $t_diff;
-        say "[RANDOMISE] Time taken to randomise basedata: $time_taken seconds";
+        logger->info("[RANDOMISE] Time taken to randomise basedata: $time_taken seconds");
 
         $progress_timers{gen_bd} += $t_diff;
 
@@ -612,7 +613,7 @@ sub run_randomisation {
         TARGET:
         foreach my $target (@targets) {
             my $rand_analysis;
-            say "target: ", $target->get_param ('NAME') || $target;
+            logger->info("target: ", $target->get_param ('NAME') || $target);
 
             next TARGET if ! defined $target;
             if (! $target->can('run_analysis')) {
@@ -723,7 +724,7 @@ sub run_randomisation {
 
         #  this argument is not yet exposed to the GUI
         if ($args{save_rand_bd}) {
-            say "[Randomise] Saving randomised basedata";
+            logger->info("[Randomise] Saving randomised basedata");
             $rand_bd->save;
         }
         if ($return_rand_bd_array) {
@@ -742,7 +743,7 @@ sub run_randomisation {
             && $$total_iterations =~ /$args{save_checkpoint}$/
             ) {
 
-            say "[Randomise] Saving incremental basedata";
+            logger->info("[Randomise] Saving incremental basedata");
             my $file_name = $bd->get_param ('NAME');
             $file_name .= '_' . $function . '_iter_' . $$total_iterations;
             eval {
@@ -784,9 +785,10 @@ sub run_randomisation {
     #  this is just in case YAML will not work with MT::Auto
     $self->store_rand_state (rand_object => $rand_object);
 
-    say sprintf
-        "[RANDOMISATION] Time taken for %i iterations: %f seconds",
-        $iterations, time - $start_time;
+    logger->info(
+        sprintf "[RANDOMISATION] Time taken for %i iterations: %f seconds",
+            $iterations, time - $start_time
+    );
 
     #  return the rand_bd's if told to
     return (wantarray ? @rand_bd_array : \@rand_bd_array)
@@ -873,8 +875,10 @@ sub _parse_labels_not_to_randomise {
             }
         }
         my $n = max (4, $#$constant_labels);
-        say "[Randomise] Constant labels, first 0..$n are "
-            . join ' ', @$constant_labels[0 .. $n];
+        logger->info(
+            "[Randomise] Constant labels, first 0..$n are "
+            . join ' ', @$constant_labels[0 .. $n]
+        );
     }
 
     $self->set_cached_value ($cache_key => $constant_labels);
@@ -1435,7 +1439,7 @@ sub rand_nochange {
     my $self = shift;
     my %args = @_;
 
-    say "[RANDOMISE] Running 'no change' randomisation";
+    logger->info("[RANDOMISE] Running 'no change' randomisation");
 
     my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
 
@@ -1507,9 +1511,7 @@ sub rand_csr_by_group {
     #  make sure shuffle does not work on the original data
     my $rand_order = $rand->shuffle ([@orig_groups]);
 
-    say "[RANDOMISE] CSR Shuffling " . (scalar @orig_groups) . " groups";
-
-    #print join ("\n", @candidates) . "\n";
+    logger->info("[RANDOMISE] CSR Shuffling " . (scalar @orig_groups) . " groups");
 
     my $total_to_do = $#orig_groups;
 
@@ -1979,7 +1981,7 @@ sub rand_structured {
             ? $self->get_spatial_output_to_track_allocations (%args)
             : undef;
 
-    say '[RANDOMISE] Creating clone for destructive sampling';
+    logger->info('[RANDOMISE] Creating clone for destructive sampling');
     $progress_bar->update (
         "$progress_text\n"
         . "Creating clone for destructive sampling\n",
@@ -2000,8 +2002,11 @@ sub rand_structured {
     #  make sure shuffle does not work on the original data
     my $rand_label_order = $rand->shuffle ([@sorted_labels]);
 
-    printf "[RANDOMISE] Spatially structured shuffling %s labels from %s groups\n",
-       scalar @sorted_labels, scalar @sorted_groups;
+    logger->info (
+        sprintf "[RANDOMISE] Spatially structured shuffling %s labels from %s groups",
+        scalar @sorted_labels,
+        scalar @sorted_groups
+    );
 
     #  generate a hash with the target richness values
     my %target_richness;
@@ -2062,7 +2067,7 @@ sub rand_structured {
     my $label_i = 0;
     my $seed_group_flag;
     $total_to_do = scalar @$rand_label_order;
-    say "[RANDOMISE] Target is $total_to_do.  Running.";
+    logger->info("[RANDOMISE] Target is $total_to_do.  Running.");
 
     my $csv_object = $bd->get_csv_object (
         sep_char   => $bd->get_param ('JOIN_CHAR'),
@@ -2405,11 +2410,13 @@ sub rand_structured {
           . "New: gps filled, gps unfilled. Old: labels to assign, gps not emptied\n"
           ."\t%d\t\t%d\t\t%d\t\t%d\n";
 
-    printf $format,
+    logger->info (
+        sprintf $format,
            (scalar keys %filled_groups),
            (scalar keys %unfilled_groups),
            $target_label_count,
-           $target_group_count;
+           $target_group_count
+    );
 
     #  need to fill in the missing groups with empties
     if ($bd->get_group_count != $new_bd->get_group_count) {
@@ -2418,8 +2425,10 @@ sub rand_structured {
         delete @target_gps{$new_bd->get_groups};
 
         my $count = scalar keys %target_gps;
-        say '[Randomise structured] '
-              . "Creating $count empty groups in new basedata";
+        logger->info(
+            '[Randomise structured] '
+            . "Creating $count empty groups in new basedata"
+        );
 
         foreach my $gp (keys %target_gps) {
             $new_bd->add_element (group => $gp, csv_object => $csv_object);
@@ -2447,7 +2456,7 @@ sub rand_structured {
 
     my $time_taken = sprintf "%.3f", tv_interval ($start_time);
     my $function_name = $self->get_param('FUNCTION') // 'rand_structured';
-    say "[RANDOMISE] Time taken for $function_name: $time_taken seconds";
+    logger->info("[RANDOMISE] Time taken for $function_name: $time_taken seconds");
 
     if ($track_label_allocation_order) {
         #  negate any swapped out labels and set any swapped in labels to 0
@@ -2709,7 +2718,6 @@ sub get_rand_structured_subset {
             $cached_subset_basedatas->{$group} = $subset_bd;
         }
         
-        # say STDERR "Adding rand ", $self->get_name, " to basedata ", $subset_bd->get_name;
         my $subset_rand = $subset_bd->add_randomisation_output (
             name => $self->get_name
         );
@@ -2736,7 +2744,7 @@ sub get_rand_structured_subset {
         #  Also shifts off the def query if one exists
         while (scalar @subset_basedatas) {
             my $subset = shift @subset_basedatas;
-            say 'Merging basedata ' . $subset->get_name . ' into ' . $new_bd->get_name;
+            logger->info('Merging basedata ' . $subset->get_name . ' into ' . $new_bd->get_name);
             $new_bd->merge (from => $subset);
         }
 
@@ -2776,7 +2784,7 @@ sub get_rand_structured_subset {
             rand_object => $rand_object,
         );
 
-        say 'Merging basedata ' . $subset_rand_bd->get_name . ' into ' . $new_bd->get_name;
+        logger->info('Merging basedata ' . $subset_rand_bd->get_name . ' into ' . $new_bd->get_name);
         $new_bd->merge (from => $subset_rand_bd);
 
         #  keep the cached version clean of outputs
@@ -2883,7 +2891,7 @@ sub swap_to_reach_richness_targets {
                       + (scalar keys %unfilled_groups);
 
     if ($total_to_do) {
-        say "[RANDOMISE] Swapping labels to reach richness targets";
+        logger->info("[RANDOMISE] Swapping labels to reach richness targets");
     }
 
     my $swap_out_count = 0;
@@ -2980,7 +2988,7 @@ sub swap_to_reach_richness_targets {
         if (!$target_label_count) {
             #  we ran out of labels before richness criterion is met,
             #  eg if multiplier is >1.
-            say "[Randomise structured] No more labels to assign";
+            logger->info("[Randomise structured] No more labels to assign");
             last BY_UNFILLED_GP;
         }
 
@@ -3119,9 +3127,7 @@ sub swap_to_reach_richness_targets {
             #}
 
             if (! $swap_to_unfilled) {
-                #say ":: Swap to unfilled $remove_label";
-                #  We can't swap it, so put it back into the
-                #  unallocated lists.
+                #  We can't swap it, so put it back into the unallocated lists.
                 #  Use one of its old locations.
                 #  (Just use the first one).
                 my $old_gps_with_remove_label = $orig_bd_groups_with_label_a{$remove_label};
@@ -3227,7 +3233,7 @@ sub swap_to_reach_richness_targets {
             $swap_out_count ++;
 
             if (!($swap_out_count % 10000)) {
-                say "Swap count $swap_out_count";
+                logger->info("Swap count $swap_out_count");
                 #use Data::Dumper;
                 #use Test::More;
                 #local $Data::Dumper::Indent = 1;
@@ -3282,7 +3288,7 @@ sub swap_to_reach_richness_targets {
     $self->increment_param (SWAP_OUT_COUNT    => $swap_out_count);
     $self->increment_param (SWAP_INSERT_COUNT => $swap_insert_count);
 
-    say "[Randomise structured] Final swap count is $swap_out_count";
+    logger->info("[Randomise structured] Final swap count is $swap_out_count");
 
     return;
 }
@@ -3346,7 +3352,7 @@ sub process_group_props_by_set {
     my $text        = "Transferring group properties from $name to $to_name";
 
     my $total_to_do = $elements_ref->get_element_count;
-    say "[BASEDATA] Transferring properties for $total_to_do groups";
+    logger->info("[BASEDATA] Transferring properties for $total_to_do groups");
 
     my $count = 0;
     my $i = -1;
@@ -3418,7 +3424,7 @@ sub process_group_props_by_item {
     my $text        = "Transferring group properties from $name to $to_name";
 
     my $total_to_do = $to_elements_ref->get_element_count;
-    say "[BASEDATA] Transferring group properties for $total_to_do";
+    logger->info("[BASEDATA] Transferring group properties for $total_to_do");
 
     my $count = 0;
     my $i = -1;

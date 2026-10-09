@@ -40,6 +40,7 @@ use Biodiverse::Progress;
 use Biodiverse::Indices;
 use Biodiverse::Exception;
 use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
+use Biodiverse::Logger qw /logger/;
 
 use Ref::Util qw { :all };
 
@@ -414,7 +415,7 @@ sub export_shapefile {
     croak "Invalid shapetype for shapefile export\n"
       if $shape_type ne 'POINT' and $shape_type ne 'POLYGON';
 
-    say "Exporting to shapefile $file";
+    logger->info("Exporting to shapefile $file");
 
     my $def_query = $args{def_query};
     
@@ -629,7 +630,7 @@ sub process_spatial_conditions_and_def_query {
 
         last CHECK if length $condition;
 
-        say '[CLUSTER] Deleting undefined or empty spatial condition at end of conditions array';
+        logger->info('[CLUSTER] Deleting undefined or empty spatial condition at end of conditions array');
         pop @spatial_conditions;
     }
 
@@ -812,7 +813,7 @@ sub build_matrices {
     }
 
     #  we use a spatial object as it handles all the spatial checks.
-    say "[CLUSTER] Generating neighbour lists";
+    logger->info("[CLUSTER] Generating neighbour lists");
     my $sp = $bd->add_spatial_output (name => $name . "_clus_nbrs_" . time());
 
     if (not $args{keep_sp_nbrs_output}) {
@@ -967,7 +968,7 @@ sub build_matrices {
         );
     }
 
-    say "[CLUSTER] BUILDING ", scalar @matrices, " MATRICES FOR $index CLUSTERING";
+    logger->info("[CLUSTER] BUILDING ", scalar @matrices, " MATRICES FOR $index CLUSTERING");
 
     #  print headers to file handles (if such are present)
     foreach my $fh (@$file_handles) {
@@ -993,7 +994,7 @@ sub build_matrices {
         my $progress_pfx = "Building matrix\n"
             . $mx_ref->get_name
             . "\nTarget is $to_do_rows rows\n";
-        say "Processing matrix " . $mx_ref->get_name;
+        logger->info("Processing matrix " . $mx_ref->get_name);
 
         $count = 0;
         foreach my $element1 (sort keys %nbr_hash) {
@@ -1073,9 +1074,9 @@ sub build_matrices {
         $count / $to_do
     );
     $progress_bar->reset;
-    say "[CLUSTER] Completed $count of $to_do groups";
+    logger->info("[CLUSTER] Completed $count of $to_do groups");
 
-    say "[CLUSTER] Valid value count is $valid_count";
+    logger->info("[CLUSTER] Valid value count is $valid_count");
     if (! $valid_count) {
         croak "No valid results - matrix is empty\n";
     }
@@ -1085,7 +1086,7 @@ sub build_matrices {
     $indices_object->set_pairwise_mode (0);    #  turn off this flag
 
     my $time_taken = time - $start_time;
-    printf "[CLUSTER] Matrix build took %.3f seconds.\n", $time_taken;
+    logger->info(sprintf "[CLUSTER] Matrix build took %.3f seconds.", $time_taken);
     $self->set_param (ANALYSIS_TIME_TAKEN_MATRIX => $time_taken);
     $self->set_param (COMPLETED_MATRIX => 1);
 
@@ -1282,7 +1283,6 @@ sub build_matrix_elements {
 
     my $valid_count = 0;
     
-    #print "Elements to calc: ", (scalar @$element_list2), "\n";
     my $progress;
     my $to_do = scalar @$element_list2;
     if ($to_do > 100 && !$args{no_progress}) {  #  arbitrary threshold
@@ -1381,7 +1381,6 @@ sub build_matrix_elements {
                 defined $value
                     ? ($exists++)
                     : ($not_exists_iter{$iter} = 1);
-                # say "FOUND " . $mx->get_param('NAME');
                 $iter ++;
             }
 
@@ -1542,7 +1541,7 @@ sub get_orig_shadow_matrix {
     my $mx = $self->get_param ('ORIGINAL_SHADOW_MATRIX_MK2');
     if (!defined $mx && $self->get_param ('ORIGINAL_SHADOW_MATRIX')) {
         if (my $matrices = $self->get_original_matrices) {
-            say '[CLUSTER] Rebuilding shadow matrix for new system';
+            logger->info('[CLUSTER] Rebuilding shadow matrix for new system');
             $mx = $self->build_shadow_matrix(matrices => $matrices);
         }
     }
@@ -1725,8 +1724,10 @@ sub cluster_matrix_elements {
 
     my $matrix_count = $self->get_matrix_count;
 
-    say "[CLUSTER] CLUSTERING USING $linkage_function, matrix iter $mx_iter of ",
-        ($self->get_matrix_count - 1);
+    logger->info(
+        "[CLUSTER] CLUSTERING USING $linkage_function, matrix iter $mx_iter of ",
+        ($self->get_matrix_count - 1)
+    );
 
     my $new_node;
     my ($most_similar_val, $prev_min_value);
@@ -1744,15 +1745,13 @@ sub cluster_matrix_elements {
     my $progress_text = "Matrix: $mx_name\n";
     $progress_text .= $args{progress_text} || '';
     my $progress_fmt = "Clustering $name\n$progress_text\n(%d rows remaining)\nMost similar value is %.6g";
-    print "[CLUSTER] Progress (% of $total elements):     ";
+    logger->info("[CLUSTER] Progress (% of $total elements):     ");
     
     my $show_gui_progress = 1;
     my $link_count = 0;
 
   PAIR:
     while ( ($remaining = $sim_matrix->get_element_count) > 0) {
-        #print "Remaining $remaining\n";
-
         #  get the most similar two candidates
         $most_similar_val = $self->get_most_similar_matrix_value (
             matrix => $sim_matrix,
@@ -1823,11 +1822,6 @@ sub cluster_matrix_elements {
                 }
             }
     
-            #if ($new_node->get_length < 0) {
-            #    printf "[CLUSTER] Node %s has negative length of %f\n", $new_node->get_name, $new_node->get_length;
-            #}
-            #printf "[CLUSTER] Node %s has length of %f\n", $new_node->get_name, $new_node->get_length;
-    
             ###  now we rebuild the similarity matrix to include the new linkages and destroy the old ones
             my $start_time = time();
             $self->run_linkage (
@@ -1866,7 +1860,7 @@ sub cluster_matrix_elements {
         #  Actually, the syste, does that, so it is more do we want to
         #  exclude other nodes from the tree
         if (defined $max_poss_value && $max_poss_value == $most_similar_val) {
-            say "\n[CLUSTER] Maximum possible value reached, stopping clustering process.";
+            logger->info("[CLUSTER] Maximum possible value reached, stopping clustering process.");
             last PAIR;
         }
     }
@@ -2376,7 +2370,7 @@ sub cluster {
                 if (   eval {$other_orig_shadow_mx->get_element_count}
                     || eval {$other_original_matrices->[0]->get_element_count}) {
 
-                    say "[CLUSTER] Recycling matrices from cluster output ", $ref->get_name;
+                    logger->info("[CLUSTER] Recycling matrices from cluster output ", $ref->get_name);
                     $self->set_original_matrices (matrices => $other_original_matrices);
                     $self->set_original_shadow_matrix (matrix => $other_orig_shadow_mx);
                     $matrices_recycled = 1;
@@ -2386,7 +2380,7 @@ sub cluster {
             #  Do we already have some we can work on? 
             my $original_matrices = $self->get_original_matrices;
             if ($original_matrices) {  #  need to handle no_clone_matrices
-                say '[CLUSTER] Cloning matrices prior to destructive processing';
+                logger->info('[CLUSTER] Cloning matrices prior to destructive processing');
                 foreach my $mx (@$original_matrices) {
                     push @matrices, $mx->clone;
                 }
@@ -2432,21 +2426,24 @@ sub cluster {
         else {
             if ($args{no_clone_matrices}) {  # reduce memory at the cost of later exports and visualisation
                                              # How does this interact with the matrix recycling? 
-                print "[CLUSTER] Storing matrices with no cloning - be warned that these will be destroyed in clustering\n";
+                logger->info(
+                    "[CLUSTER] Storing matrices with no cloning - "
+                  . "be warned that these will be destroyed in clustering"
+                );
                 $self->set_original_shadow_matrix (matrix => $self->get_shadow_matrix);
                 $self->set_original_matrices (matrices => \@matrices);
             }
             elsif (!$matrices_recycled) {
                 #  save clones of the matrices for later export
-                print "[CLUSTER] Creating and storing matrix clones\n";
+                logger->info("[CLUSTER] Creating and storing matrix clones");
     
                 my $clone = eval {$self->get_shadow_matrix->clone};
                 $self->set_original_shadow_matrix (matrix => $clone);
 
                 my $original_matrices = $self->clone_matrices (matrices => \@matrices);
                 $self->set_original_matrices (matrices => $original_matrices);
-        
-                print "[CLUSTER] Done\n";
+
+                logger->info("[CLUSTER] Done");
             }
         }
     }
@@ -2455,7 +2452,7 @@ sub cluster {
     my $matrix_for_nodes = $self->get_shadow_matrix || $matrices[0];
 
     #  loop over the shadow matrix and create nodes for each matrix element
-    print "[CLUSTER] Creating terminal nodes\n";
+    logger->info("[CLUSTER] Creating terminal nodes");
     foreach my $element (sort $matrix_for_nodes->get_elements_as_array) {
         next if not defined $element;
         $self->add_node (name => $element);
@@ -2474,12 +2471,12 @@ sub cluster {
 
     MATRIX:
     foreach my $i (0 .. $#matrices) {  #  or maybe we should destructively sample this as well?
-        say "[CLUSTER] Using matrix $i of $i..$#matrices";
+        logger->info("[CLUSTER] Using matrix $i of $i..$#matrices");
         $self->set_param (CURRENT_MATRIX_ITER => $i);
 
         #  no elements left, so we've used this one up.  Move to the next
         next MATRIX if $matrices[$i]->get_element_count == 0;  
-# use DDP; p $matrices[$i];
+
         eval {
             $self->cluster_matrix_elements (%args);
         };
@@ -2505,12 +2502,12 @@ sub cluster {
             $i++;
             next if $root_node->is_terminal_node;
 
-            say "[CLUSTER] Root node $i: " . $root_node->get_name;
+            logger->info("[CLUSTER] Root node $i: " . $root_node->get_name);
             my @now_empty = $root_node->flatten_tree;
 
             #  now we clean up all the empty nodes in the other indexes
             if (scalar @now_empty) {
-                say '[CLUSTER] Deleting ' . scalar @now_empty . ' empty nodes';
+                logger->info('[CLUSTER] Deleting ' . scalar @now_empty . ' empty nodes');
                 $self->delete_from_node_hash (nodes => \@now_empty);
             }
         }
@@ -2568,7 +2565,9 @@ sub cluster {
     $self->clear_spatial_index_csv_object;
 
     my $time_taken = time - $start_time;
-    printf "[CLUSTER] Analysis took %.3f seconds.\n", $time_taken;
+    logger->info(
+        sprintf ("[CLUSTER] Analysis took %.3f seconds.", $time_taken)
+    );
     $self->set_param (ANALYSIS_TIME_TAKEN => $time_taken);
     $self->set_param (COMPLETED => 1);
 
@@ -3137,9 +3136,10 @@ sub sp_calc {
 
     #  NEED TO STORE A PARAMETER WITH ALL THE ARGS ETC for repeatability?
 
-    print "[CLUSTER] sp_calc Running "
+    logger->info(
+        "[CLUSTER] sp_calc Running "
         . (join (q{ }, sort keys %{$indices_object->get_valid_calculations_to_run}))
-        . "\n";
+    );
 
     $indices_object->run_precalc_globals(%args);
 
@@ -3173,7 +3173,7 @@ sub sp_calc {
         }
     }
 
-    print "[CLUSTER] Progress (% of $to_do nodes):     ";
+    logger->info("[CLUSTER] Progress (% of $to_do nodes):     ");
     my $progress_bar = Biodiverse::Progress->new();
     \my @node_refs = $self->get_node_refs;
 

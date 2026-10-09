@@ -18,6 +18,9 @@ use Time::localtime;
 use Ref::Util qw { :all };
 use Sort::Key::Natural qw /natsort rnatsort/;
 use Geo::GDAL::FFI 0.06 qw /GetDriver/;
+
+use Biodiverse::Logger qw/logger/;
+
 #  silence a used-once warning - clunky
 {
     my $xx_frob_temp_zort = $FFI::Platypus::TypeParser::ffi_type;
@@ -147,7 +150,6 @@ sub get_common_export_metadata {
         $def_query_default = $self->get_def_query()->get_conditions();
         $def_query_default =~ s/\n//g;
     }
-    #say "Default def_query value is: .$def_query_default.";
 
     my $metadata = [
         {
@@ -686,7 +688,7 @@ sub export_shapefile {
     croak "Invalid shapetype for shapefile export\n"
       if $shape_type ne 'POINT' and $shape_type ne 'POLYGON';
 
-    say "Exporting to shapefile $file";
+    logger->info("Exporting to shapefile $file");
 
     my $def_query = $args{def_query};
     
@@ -694,7 +696,7 @@ sub export_shapefile {
     if ($def_query) {
         @elements = $self->get_elements_that_pass_def_query(defq => $def_query);
         if( !scalar @elements) {
-            say "[BaseStruct] No elements passed the def query!";
+            logger->info("[BaseStruct] No elements passed the def query!");
             @elements = $self->get_element_list;
             $args{def_query} = '';
         }
@@ -897,8 +899,8 @@ sub list_contents_are_symmetric {
     my $prev_list_keys;
 
     my $check_elements = $self->get_element_list;
+    logger->info( "[BASESTRUCT] Checking elements for list symmetry: $list_name");
 
-    say "[BASESTRUCT] Checking elements for list symmetry: $list_name";
     my $i = -1;
   CHECK_ELEMENTS:
     foreach my $check_element (@$check_elements) {  # sample the lot
@@ -968,18 +970,15 @@ sub to_table {
     my $data;
 
     if (! $as_symmetric and $is_asym) {
-        say "[BASESTRUCT] Converting asymmetric data from $list_string "
-              . "to asymmetric table";
+        logger->info("[BASESTRUCT] Converting asymmetric data from $list_string to asymmetric table");
         $data = $self->to_table_asym (%args, list_names => $list_names);
     }
     elsif ($as_symmetric && $is_asym) {
-        say "[BASESTRUCT] Converting asymmetric data from $list_string "
-              . "to symmetric table";
+        logger->info ("[BASESTRUCT] Converting asymmetric data from $list_string to symmetric table");
         $data = $self->to_table_asym_as_sym (%args, list_names => $list_names);
     }
     else {
-        say "[BASESTRUCT] Converting symmetric data from $list_string "
-              . "to symmetric table";
+        logger->info("[BASESTRUCT] Converting symmetric data from $list_string to symmetric table");
         $data = $self->to_table_sym (%args, list_names => $list_names);
     }
 
@@ -1286,7 +1285,7 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
 
     my $quote_char = $self->get_param('QUOTES');
 
-    say "[BASESTRUCT] Getting keys...";
+    logger->info("[BASESTRUCT] Getting keys...");
     
     my @print_order;
 
@@ -1348,8 +1347,8 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     }
 
     push @data, \@header;
-    
-    print "[BASESTRUCT] Processing elements...\n";
+
+    logger->info("[BASESTRUCT] Processing elements...");
     
     my %default_indices_hash;
     @default_indices_hash{@print_order} = ($no_data_value) x @print_order;
@@ -1513,10 +1512,10 @@ sub write_table_asciigrid {
         next if ! defined $fh;
 
         if (close $fh) {
-            print "[BASESTRUCT] Write to file $file_names[$i] successful\n";
+            logger->info("[BASESTRUCT] Write to file $file_names[$i] successful");
         }
         else {
-            print "[BASESTRUCT] Write to file $file_names[$i] failed\n";
+            logger->info("[BASESTRUCT] Write to file $file_names[$i] failed");
         }
 
     }
@@ -1619,10 +1618,10 @@ sub write_table_floatgrid {
         next FH if ! defined $fh;
 
         if (close $fh) {
-            print "[BASESTRUCT] Write to file $file_names[$i] successful\n";
+            logger->info("[BASESTRUCT] Write to file $file_names[$i] successful");
         }
         else {
-            print "[BASESTRUCT] Write to file $file_names[$i] failed\n";
+            logger->info("[BASESTRUCT] Write to file $file_names[$i] failed");
         }
     }
 
@@ -1752,10 +1751,10 @@ sub write_table_divagis {
         next FH if ! defined $fh;
 
         if (close $fh) {
-            print "[BASESTRUCT] Write to file $file_names[$i] successful\n";
+            logger->info("[BASESTRUCT] Write to file $file_names[$i] successful");
         }
         else {
-            print "[BASESTRUCT] Write to file $file_names[$i] failed\n";
+            logger->info("[BASESTRUCT] Write to file $file_names[$i] failed");
         }
     }
 
@@ -2070,7 +2069,6 @@ sub write_table_ers {
                 croak $EVAL_ERROR if $EVAL_ERROR;
 
                 $ncols ++;
-                #print "$ID, $value\n" if $band == $band_cols[0];
             }
         }
     }
@@ -2078,7 +2076,7 @@ sub write_table_ers {
     croak "Unable to write to $data_file\n"
       if !$ofh->close;
 
-    print "[BASESTRUCT] Write to file $data_file successful\n";
+    logger->info("[BASESTRUCT] Write to file $data_file successful");
 
     #  are we LSB or MSB?
     my $is_little_endian = unpack( 'c', pack( 's', 1 ) );
@@ -2159,7 +2157,7 @@ sub write_table_ers {
     croak "Unable to write to $header_file\n"
       if !$header_fh->close;
     
-    say "[BASESTRUCT] Write to file $header_file successful";
+    logger->info("[BASESTRUCT] Write to file $header_file successful");
 
     return;
 }
@@ -2177,7 +2175,7 @@ sub raster_export_process_args {
 
     if (! defined $no_data or not looks_like_number $no_data ) {
         $no_data = -9999 ;
-        print "[BASESTRUCT] Overriding undefined or non-numeric no_data_value with $no_data\n";
+        logger->info("[BASESTRUCT] Overriding undefined or non-numeric no_data_value with $no_data");
     }
 
     my @res = defined $args{resolutions}

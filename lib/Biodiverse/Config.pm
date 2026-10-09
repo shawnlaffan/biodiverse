@@ -22,6 +22,9 @@ our $VERSION = '6.99_001';
 #use Exporter;
 #use Devel::Symdump;
 
+use Log::Any qw($log);
+use Log::Any::Adapter ('Stdout');
+
 our @ISA = qw (Exporter);
 our @EXPORT = qw /use_base add_lib_paths/;
 #our %base_packages;
@@ -84,10 +87,10 @@ BEGIN {
         eval 'use Alien::GtkStack::Windows'
           if !$ENV{BD_NO_ALIEN_GTKSTACK};  #  mainly for PAR packing
         if (!$EVAL_ERROR) {
-            say STDERR "Added Alien::GtkStack::Windows bin dir to path";
-            say STDERR "GI_TYPELIB_PATH is now $ENV{GI_TYPELIB_PATH}"
+            $log->info ("Added Alien::GtkStack::Windows bin dir to path");
+            $log->info ("GI_TYPELIB_PATH is now $ENV{GI_TYPELIB_PATH}")
                 if $ENV{GI_TYPELIB_PATH};
-            say STDERR "XDG_DATA_DIRS is now $ENV{XDG_DATA_DIRS}"
+            $log->info ("XDG_DATA_DIRS is now $ENV{XDG_DATA_DIRS}")
                 if $ENV{XDG_DATA_DIRS};
         }
         if ($ENV{PAR_0}) {
@@ -97,7 +100,7 @@ BEGIN {
             foreach my $name (qw/Glib Pango Cairo Gtk3/) {
                 my $dir = $base->child($name);
                 next if !$dir->exists;
-                say STDERR "Adding $dir to path";
+                $log->info ("Adding $dir to path");
                 push @PATH, $dir;
             }
         }
@@ -105,17 +108,17 @@ BEGIN {
     elsif ($ENV{PAR_0}) {
         my $xdg = path ($ENV{PAR_TEMP}, 'inc', 'share');
         if (-e $xdg) {
-            say STDERR "Setting \$ENV{XDG_DATA_DIRS} to $xdg";
+            $log->info ("Setting \$ENV{XDG_DATA_DIRS} to $xdg");
             $ENV{XDG_DATA_DIRS} = $xdg;
         }
         my $gir = path ($ENV{PAR_TEMP}, 'inc', 'girepository-1.0');
         if (-e $gir) {
-            say STDERR "Setting \$ENV{GI_TYPELIB_PATH} to $gir";
+            $log->info ("Setting \$ENV{GI_TYPELIB_PATH} to $gir");
             $ENV{GI_TYPELIB_PATH} = $gir;
         }
         my $proj = path "$ENV{PAR_TEMP}/inc/proj";
         if (-e $proj) {
-            say STDERR "Setting \$ENV{PROJ_DATA} to $proj";
+            $log->info ("Setting \$ENV{PROJ_DATA} to $proj");
             $ENV{PROJ_DATA} = $proj;
         }
     }
@@ -183,8 +186,8 @@ sub add_lib_paths {
 
     return if !scalar @lib_paths;
 
-    say "Adding $var paths to \@INC";
-    say join q{ }, @lib_paths;
+    $log->info("Adding $var paths to \@INC");
+    $log->info(join q{ }, @lib_paths);
 
     #no warnings 'closure';
     eval 'use lib @lib_paths';
@@ -211,11 +214,11 @@ sub use_base {
     }
     my %check_packages;
 
-    say "[USE_BASE] Checking and loading user modules";
+    $log->trace("[USE_BASE] Checking and loading user modules");
 
     my $x;
     if (-e $file) {
-        say "...from file $file";
+        $log->trace("...from file $file");
         local $/ = undef;
         my $success = open (my $fh, '<', $file);
         croak "Unable to open extensions file $file\n"

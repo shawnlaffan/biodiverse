@@ -10,6 +10,7 @@ use Carp;
 use Scalar::Util qw /looks_like_number blessed reftype/;
 use Ref::Util qw { :all };
 
+use Biodiverse::Logger qw /logger/;
 
 sub run_exclusions {
     my $self = shift;
@@ -206,7 +207,7 @@ sub run_exclusions {
             $feedback .=
               "No $lctype excluded when checking $lctype criteria.\n";
         }
-        print $feedback;
+        logger->info($feedback);
     }
 
     if ($excluded) {

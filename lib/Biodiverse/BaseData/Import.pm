@@ -32,6 +32,8 @@ use Geo::GDAL::FFI 0.07;
 
 use experimental 'declared_refs';
 
+use Biodiverse::Logger qw /logger/;
+
 
 #  how much input file to read in one go
 our $lines_to_read_per_chunk = 100000;
@@ -244,8 +246,10 @@ sub import_data {
 
     $args{sample_count_columns} //= [];
 
-    say "[BASEDATA] Loading from files "
-      . join( q{ }, @{ $args{input_files} } );
+    logger->info(
+        "[BASEDATA] Loading from files "
+            . join( q{ }, @{ $args{input_files} } )
+    );
 
     my @label_columns        = @{ $args{label_columns} };
     my @group_columns        = @{ $args{group_columns} };
@@ -324,10 +328,9 @@ sub import_data {
         allow_empty_labels => $allow_empty_labels,
     );
 
-#print "[BASEDATA] Input files to load are ", join (" ", @{$args{input_files}}), "\n";
     foreach my $file ( @{ $args{input_files} } ) {
         $file = path($file)->absolute;
-        say "[BASEDATA] INPUT FILE: $file";
+        logger->info("[BASEDATA] INPUT FILE: $file");
         my $file_base = $file->basename;
 
         my $file_handle = $self->get_file_handle (
@@ -393,8 +396,8 @@ sub import_data {
     #my $total_chunk_text = $self->get_param_as_ref ('IMPORT_TOTAL_CHUNK_TEXT');
         my $total_chunk_text = '>0';
 
-        say '[BASEDATA] Line number: 1';
-        say "[BASEDATA]  Chunk size $line_count lines";
+        logger->info('[BASEDATA] Line number: 1');
+        logger->info("[BASEDATA]  Chunk size $line_count lines");
 
         #  destroy @lines as we go, saves a bit of memory for big files
         #  keep going if we have lines to process or haven't hit the end of file
@@ -442,9 +445,11 @@ sub import_data {
                 );
 
                 if ( $line_num % 10000 == 0 ) {
-                    print "Loading $file_base line "
+                    logger->info(
+                        "Loading $file_base line "
                       . "$line_num of $line_count_text, "
-                      . "chunk $chunk_count\n";
+                      . "chunk $chunk_count"
+                    );
                 }
             }
 
@@ -594,7 +599,7 @@ sub import_data {
         }
 
         $file_handle->close;
-        say "\tDONE (used $line_count_used_this_file of $line_count lines)";
+        logger->info("\tDONE (used $line_count_used_this_file of $line_count lines)");
     }
 
     #  add the collated data
@@ -642,8 +647,10 @@ sub import_data_raster {
     my $cellsize_n      = $args{raster_cellsize_n};
     my $given_label     = $args{given_label};
 
-    say "[BASEDATA] Loading from files as GDAL "
-      . join( q{ }, @{ $args{input_files} } );
+    logger->info(
+        "[BASEDATA] Loading from files as GDAL "
+      . join( q{ }, @{ $args{input_files} } )
+    );
 
     # hack, set parameters here? using local ref arrays?
     my @cell_sizes   = $self->get_cell_sizes;
@@ -683,7 +690,6 @@ sub import_data_raster {
     );
 
   # load each file, using same arguments/parameters
-  #say "[BASEDATA] Input files to load are ", join (" ", @{$args{input_files}});
     my $file_iter      = 0;
     my $input_file_arr = $args{input_files};
     my $file_count     = scalar @$input_file_arr;
@@ -707,7 +713,7 @@ sub import_data_raster {
 
         $file = path($file)->absolute;
         my $file_base = $file->basename;
-        say "[BASEDATA] INPUT FILE: $file";
+        logger->info("[BASEDATA] INPUT FILE: $file");
 
         croak "[BASEDATA] $file DOES NOT EXIST OR CANNOT BE READ "
             . "- CANNOT LOAD DATA\n"
@@ -722,17 +728,17 @@ sub import_data_raster {
         my $gdal_driver = $data->GetDriver();
         my $band_count  = $data->GetBands;
         my ($xsize, $ysize) = ($data->GetWidth, $data->GetHeight);
-        say '[BASEDATA] Driver: ', $gdal_driver->GetName;
-        say "[BASEDATA] Size is $xsize x $ysize x $band_count";
+        logger->info('[BASEDATA] Driver: ', $gdal_driver->GetName);
+        logger->info("[BASEDATA] Size is $xsize x $ysize x $band_count");
         my $info = $data->GetInfo;
         my ($coord_sys) = grep {/Coordinate System/i} split /[\r\n]+/, $info;
         #my $x = $data->GetProjectionString;  #  should use this?
-        say '[BASEDATA] ' . ($coord_sys // '');
+        logger->info('[BASEDATA] ' . ($coord_sys // ''));
 
         my @tf = $data->GetGeoTransform();
-        say '[BASEDATA] Transform is ', join( ' ', @tf );
-        say "[BASEDATA] Origin = ($tf[0], $tf[3])";
-        say "[BASEDATA] Pixel Sizes = ($tf[1], $tf[2], $tf[4], $tf[5])";
+        logger->info('[BASEDATA] Transform is ', join( ' ', @tf ));
+        logger->info("[BASEDATA] Origin = ($tf[0], $tf[3])");
+        logger->info("[BASEDATA] Pixel Sizes = ($tf[1], $tf[2], $tf[4], $tf[5])");
         #  $tf[5] is negative to allow for line order
         #  avoid repeated array lookups below
         my ( $tf_x0, $tf_xx, $tf_xy, $tf_y0, $tf_yx, $tf_yy ) = @tf;
@@ -785,12 +791,12 @@ sub import_data_raster {
             my $nodata_is_numeric = (looks_like_number ($nodata_value) && $nodata_value !~ /nan/i);
             my $have_nodata_value = defined $nodata_value;
             if ($have_nodata_value && $last_nodata_value ne $nodata_value) {
-                say "[BASEDATA] NoData value is $nodata_value";
+                logger->info("[BASEDATA] NoData value is $nodata_value");
                 $last_nodata_value = $nodata_value;
             }
             my $this_label;
 
-            say "Band $band_id, type ", $band->GetDataType;
+            logger->info("Band $band_id, type ", $band->GetDataType);
             if ( defined $given_label ) {
                 $this_label = $given_label;
                 $labels_as_bands = !!1;
@@ -831,8 +837,7 @@ sub import_data_raster {
                 $blockw = min ($bb, $xsize);
                 $blockh = min ($bb, $ysize);
             }
-            say  "Block size ($blockw, $blockh), "
-                . "full size ($xsize, $ysize)";
+            logger->info("Block size ($blockw, $blockh), full size ($xsize, $ysize)");
 
             my $target_count    = $xsize * $ysize;
             my $processed_count = 0;
@@ -1084,11 +1089,6 @@ sub import_data_raster {
         data => \%gp_lb_hash,
     );
 
-    # say STDERR join ' ', @$input_file_arr;
-    # say STDERR join ' ', $self->get_cell_sizes;
-    # say STDERR join ' ', $self->get_cell_origins;
-    # say STDERR 'GPS: ' . join ' ', sort keys %gp_lb_hash;
-
     $self->run_import_post_processes(
         %args,
         label_axis_count => 1,    #  FIXME - might change if we have a remap
@@ -1143,8 +1143,10 @@ sub import_data_shapefile {
     my @group_origins = $self->get_cell_origins;
     my @group_sizes   = $self->get_cell_sizes;
 
-    say '[BASEDATA] Loading feature data from '
-      . join( q{ }, @{ $args{input_files} } );
+    logger->info(
+        '[BASEDATA] Loading feature data from '
+       . join( q{ }, @{ $args{input_files} } )
+    );
 
     # needed to construct the groups and labels
     my $quotes  = $self->get_param('QUOTES');      #  for storage, not import
@@ -1191,7 +1193,7 @@ sub import_data_shapefile {
     foreach my $file ( @input_files ) {
         $file_num++;
         $file = path($file)->absolute->stringify;
-        say "[BASEDATA] INPUT FILE: $file";
+        logger->info("[BASEDATA] INPUT FILE: $file");
         
         if ($file_progress) {
             $file_progress->update (
@@ -1280,7 +1282,7 @@ sub import_data_shapefile {
 
         #  force the count
         my $shape_count = $layer->GetFeatureCount(1);
-        say "File has $shape_count shapes";
+        logger->info("File has $shape_count shapes");
 
         %fld_names = %fld_names{@field_names_used_lc};
 
@@ -1293,7 +1295,6 @@ sub import_data_shapefile {
             # Get database record for this shape.
             # Same for all features in the shape.
             # Awkward - should just get the fields we need
-            #say 'Getting fields: ' . join ' ', sort keys %fld_names;
             my %db_rec = map {lc ($_) => ($shape->GetField ($_) // undef)} values %fld_names;
 
             my $ptlist = [];
@@ -1311,7 +1312,6 @@ sub import_data_shapefile {
                     #  use the centroid until we find more efficient methods
                     #  it will be snapped to the group coord lower down
                     $ptlist = $geom->Centroid->GetPoints;
-                    #say $geom->AsText;
                     if (!scalar @smp_count_field_names  ) {
                         $default_count = $shape_type =~ /gon/ ? $geom->Area : $geom->Length;
                     }
@@ -1603,7 +1603,7 @@ sub get_fishnet_identity_layer {
     };
     
     my $skip_error_re = qr/A geometry of type (MULTI(POLYGON|LINESTRING)|GEOMETRYCOLLECTION) is inserted into layer/;
-    say 'Intersecting fishnet with feature layer';
+    logger->info('Intersecting fishnet with feature layer');
     eval {
         $layer->Intersection(
             $fishnet,
@@ -1635,7 +1635,7 @@ sub get_fishnet_identity_layer {
     #}
     
     my $time_taken = time() - $start_time;
-    say "\nIntersection completed in $time_taken seconds";
+    logger->info("Intersection completed in $time_taken seconds");
     
     #  close fishnet data set
     $fishnet = undef;
@@ -1672,7 +1672,7 @@ sub get_fishnet_polygon_layer {
     );
     die "$out_fname exists" if -e $out_fname;
     #}
-    #say "Generating fishnet file $out_fname";
+
     my $schema = $args{schema};
     
     my $shape_type = $args{shape_type} // ($schema ? $schema->{GeometryFields}[0]{Type} : 'Polygon');
@@ -1707,9 +1707,9 @@ sub get_fishnet_polygon_layer {
 
     my ($xmin, $xmax, $ymin, $ymax) = @$extent;
     my ($grid_width, $grid_height)  = @$resolutions;
-    say "Height and width: $grid_height, $grid_width"; 
-    
-    say "Input bounds are $xmin, $ymin, $xmax, $ymax";
+    logger->info("Height and width: $grid_height, $grid_width");
+
+    logger->info("Input bounds are $xmin, $ymin, $xmax, $ymax");
     
     if ($origins) {    
         my @ll = ($xmin, $ymin);
@@ -1731,9 +1731,9 @@ sub get_fishnet_polygon_layer {
         }
         ($xmax, $ymax) = @ur;
     }
-    
-    say "Fishnet bounds are $xmin, $ymin, $xmax, $ymax";
-    say "Driver and layer names: $driver, $out_fname";
+
+    logger->info("Fishnet bounds are $xmin, $ymin, $xmax, $ymax");
+    logger->info("Driver and layer names: $driver, $out_fname");
 
     my $layer_name = $self->_get_scratch_name (
         prefix => 'Fishnet_Layer'
@@ -1752,8 +1752,8 @@ sub get_fishnet_polygon_layer {
 
     my $rows = ceil(($ymax - $ymin) / $grid_height);
     my $cols = ceil(($xmax - $xmin) / $grid_width);
-    say "Generating fishnet of size $rows x $cols";
-    say "Origins are: " . join ' ', @$origins;
+    logger->info("Generating fishnet of size $rows x $cols");
+    logger->info("Origins are: " . join ' ', @$origins);
 
     # start grid cell envelope
     my $ring_X_left_origin   = $xmin;
@@ -1780,7 +1780,7 @@ sub get_fishnet_polygon_layer {
                 . "$east $south, "
                 . "$east $north"
                 . '))';
-            #say $poly;
+
             my $f = Geo::GDAL::FFI::Feature->new($fishnet_lyr->GetDefn);
             $f->SetGeomField([WKT => $poly]);
             $fishnet_lyr->CreateFeature($f);
@@ -1850,12 +1850,13 @@ sub import_data_spreadsheet {
     my @group_origins = $self->get_cell_origins;
     my @group_sizes   = $self->get_cell_sizes;
 
-    say '[BASEDATA] Loading from files as spreadsheet: '
+    logger->info('[BASEDATA] Loading from files as spreadsheet: '
         . join (q{, },
             map {(is_ref ($_) && !blessed ($_)) ? '<<preloaded book>>' : $_}
             map {$_ // 'undef'}
             @{$args{input_files}}
-        );
+        )
+    );
 
     # needed to construct the groups and labels
     my $quotes  = $self->get_param('QUOTES');      #  for storage, not import
@@ -1891,7 +1892,7 @@ sub import_data_spreadsheet {
 
         if ( blessed $book || !ref $book ) {    #  we have a file name
             my $file = path($book)->absolute;
-            say "[BASEDATA] INPUT FILE: $file";
+            logger->info("[BASEDATA] INPUT FILE: $file");
             
             $book = $self->get_book_struct_from_spreadsheet_file (
                 file_name => $file,
@@ -2012,8 +2013,6 @@ sub import_data_spreadsheet {
                 list       => \@gp_fields,
                 csv_object => $out_csv,
             );
-
-   #print "adding point label $this_label group $grpstring count $this_count\n";
 
             my %elements;
             if ($data_in_matrix_form) {

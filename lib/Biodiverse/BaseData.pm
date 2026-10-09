@@ -38,6 +38,7 @@ use Biodiverse::Index;
 use Biodiverse::Randomise;
 use Biodiverse::Progress;
 use Biodiverse::Indices;
+use Biodiverse::Logger qw /logger/;
 
         
 use Biodiverse::Metadata::Parameter;
@@ -278,9 +279,6 @@ sub rename {
 
     croak "[BASEDATA] rename: argument name not supplied\n"
       if not defined $new_name;
-
-    # my $name = $self->get_param('NAME');
-    # print "[BASEDATA] Renaming $name to $new_name\n";
 
     $self->set_name_aa ( $new_name );
 
@@ -689,8 +687,6 @@ sub weaken_child_basedata_refs {
         $sub_ob
           ->weaken_parent_refs;  #  loop through tree and weaken the parent refs
     }
-
-    #print $EMPTY_STRING;
 
     return;
 }
@@ -1170,11 +1166,10 @@ sub drop_element_axis {
             $target->set_param(CELL_ORIGINS => $cell_origins);
         }
     }
-    #say "Splicing item $axis from sizes (" . (join ' ', @$cell_sizes) . ')';
+
     splice @$cell_sizes, $axis, 1;
     #  looks like we can get mismatches in cell size and origin array lengths
     if ($axis < @$cell_origins) {
-        #say "Splicing item $axis from origins (" . (join ' ', @$cell_origins) . ')';
         splice @$cell_origins, $axis, 1;
     }
     
@@ -1209,13 +1204,13 @@ sub rename_label {
 
 
     if( $label eq $new_name ) {
-        say "[BASEDATA] Tried to rename a label to itself, nothing was done.";
+        logger->info("[BASEDATA] Tried to rename a label to itself, nothing was done.");
         return;
     }
 
         
     if ( !$lb->exists_element( element => $label ) ) {
-        say "[BASEDATA] Label $label does not exist, not renaming it";
+        logger->info("[BASEDATA] Label $label does not exist, not renaming it");
         return;
     }
 
@@ -1234,7 +1229,7 @@ sub rename_label {
         $self->set_param( NUMERIC_LABELS => 0 );
     }
 
-    say "[BASEDATA] Renamed $label to $new_name"
+    logger->info("[BASEDATA] Renamed $label to $new_name")
       if !$args{silent};
 
     return 1;
@@ -1256,7 +1251,7 @@ sub rename_group {
     my $new_name = $args{new_name};
 
     if ( !$gp->exists_element( element => $group ) ) {
-        say "[BASEDATA] Element $group does not exist, not renaming it";
+        logger->info("[BASEDATA] Element $group does not exist, not renaming it");
         return;
     }
 
@@ -1272,7 +1267,7 @@ sub rename_group {
         );
     }
 
-    say "[BASEDATA] Renamed $group to $new_name"
+    logger->info("[BASEDATA] Renamed $group to $new_name")
       if !$args{silent};
 
     return;
@@ -1704,7 +1699,7 @@ sub transfer_element_properties {
         no_gui_progress => $args{no_gui_progress},
     );
     my $total_to_do  = $elements_ref->get_element_count;
-    print "[BASEDATA] Transferring properties for $total_to_do $type\n";
+    logger->info("[BASEDATA] Transferring properties for $total_to_do $type\n");
 
     my $count = 0;
     my $i     = -1;
@@ -1765,11 +1760,11 @@ sub trim {
     if ($keep) {
         $trim = undef;
         $data = $keep;
-        say "[BASEDATA] Trimming labels from basedata using keep option";
+        logger->info("[BASEDATA] Trimming labels from basedata using keep option");
     }
     else {
         $data = $trim;
-        say "[BASEDATA] Trimming labels from basedata using trim option";
+        logger->info("[BASEDATA] Trimming labels from basedata using trim option");
     }
 
     croak "keep or trim argument is not a ref\n"
@@ -1819,7 +1814,7 @@ sub trim {
     }
 
     if ($delete_count) {
-        say "Deleted $delete_count labels and $delete_sub_count groups";
+        logger->info("Deleted $delete_count labels and $delete_sub_count groups");
         $self->delete_cached_values;
         $self->get_groups_ref->delete_cached_values;
         $self->get_labels_ref->delete_cached_values;
@@ -1948,7 +1943,6 @@ sub delete_element {
 #  use the set of groups containing deleted labels that need correcting (or vice versa)
     foreach my $subelement (@$deleted_subelements) {
 
-#print "ELEMENT $element, SUBELEMENT $subelement\n";
 #  switch the element/subelement values as they are reverse indexed in $other_type
         $other_type_ref->delete_sub_element(
             %args,
@@ -2771,8 +2765,6 @@ sub get_neighbours {
     #  with all of the comparisons? (messy at the moment)
     my $type_is_subset = ( $spatial_conditions->get_result_type eq 'subset' );
 
-    #print "$element1  Evaluating ", scalar @compare_list, " nbrs\n";
-
     my $target_comparisons = scalar @compare_list;
     my $i                  = 0;
     my %valid_nbrs;
@@ -2838,7 +2830,6 @@ sub get_neighbours {
             if ($subset_nbrs) {
                 %valid_nbrs = %$subset_nbrs;
 
-                #print "Found ", scalar keys %valid_nbrs, " valid nbrs\n";
                 delete @valid_nbrs{ keys %exclude_hash };
                 $spatial_conditions->clear_cached_subset_nbrs(
                     coord_id => $element1 );
@@ -3190,15 +3181,8 @@ sub numerically {$a <=> $b};
 sub DESTROY {
     my $self = shift;
 
-    #print "DESTROYING BASEDATA $name\n";
-    #$self->delete_all_outputs;  #  delete children which refer to this object
-    #print "DELETED BASEDATA $name\n";
-
-    #$self->_delete_params_all;
-
-    foreach my $key ( sort keys %$self ) {    #  clear all the top level stuff
-                                              #$self->{$key} = undef;
-                                              #print "Deleting BD $key\n";
+    #  clear all the top level stuff
+    foreach my $key ( sort keys %$self ) {
         delete $self->{$key};
     }
     undef %$self;

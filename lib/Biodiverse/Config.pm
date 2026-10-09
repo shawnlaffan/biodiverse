@@ -76,7 +76,7 @@ BEGIN {
                 map {path($sbase, $_)}
                     ("/c/bin", "/perl/bin", "/perl/site/bin", "/perl/vendor/bin");
         if (@paths) {
-            say "Strawberry perl detected, prepending its bin dirs to path";
+            say STDERR "Strawberry perl detected, prepending its bin dirs to path";
             unshift @PATH, @paths;
         }
     }
@@ -84,10 +84,10 @@ BEGIN {
         eval 'use Alien::GtkStack::Windows'
           if !$ENV{BD_NO_ALIEN_GTKSTACK};  #  mainly for PAR packing
         if (!$EVAL_ERROR) {
-            say "Added Alien::GtkStack::Windows bin dir to path";
-            say "GI_TYPELIB_PATH is now $ENV{GI_TYPELIB_PATH}"
+            say STDERR "Added Alien::GtkStack::Windows bin dir to path";
+            say STDERR "GI_TYPELIB_PATH is now $ENV{GI_TYPELIB_PATH}"
                 if $ENV{GI_TYPELIB_PATH};
-            say "XDG_DATA_DIRS is now $ENV{XDG_DATA_DIRS}"
+            say STDERR "XDG_DATA_DIRS is now $ENV{XDG_DATA_DIRS}"
                 if $ENV{XDG_DATA_DIRS};
         }
         if ($ENV{PAR_0}) {
@@ -97,7 +97,7 @@ BEGIN {
             foreach my $name (qw/Glib Pango Cairo Gtk3/) {
                 my $dir = $base->child($name);
                 next if !$dir->exists;
-                say "Adding $dir to path";
+                say STDERR "Adding $dir to path";
                 push @PATH, $dir;
             }
         }
@@ -105,17 +105,17 @@ BEGIN {
     elsif ($ENV{PAR_0}) {
         my $xdg = path ($ENV{PAR_TEMP}, 'inc', 'share');
         if (-e $xdg) {
-            say "Setting \$ENV{XDG_DATA_DIRS} to $xdg";
+            say STDERR "Setting \$ENV{XDG_DATA_DIRS} to $xdg";
             $ENV{XDG_DATA_DIRS} = $xdg;
         }
         my $gir = path ($ENV{PAR_TEMP}, 'inc', 'girepository-1.0');
         if (-e $gir) {
-            say "Setting \$ENV{GI_TYPELIB_PATH} to $gir";
+            say STDERR "Setting \$ENV{GI_TYPELIB_PATH} to $gir";
             $ENV{GI_TYPELIB_PATH} = $gir;
         }
         my $proj = path "$ENV{PAR_TEMP}/inc/proj";
         if (-e $proj) {
-            say "Setting \$ENV{PROJ_DATA} to $proj";
+            say STDERR "Setting \$ENV{PROJ_DATA} to $proj";
             $ENV{PROJ_DATA} = $proj;
         }
     }
@@ -205,7 +205,7 @@ sub use_base {
             $file = $ENV{BIODIVERSE_EXTENSIONS};
         }
         else {
-            print "[USE_BASE] No user defined extensions\n";
+            # say STDERR "[USE_BASE] No user defined extensions\n";
             return;
         }
     }

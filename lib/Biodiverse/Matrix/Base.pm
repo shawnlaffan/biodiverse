@@ -13,6 +13,7 @@ use experimental qw /refaliasing declared_refs/;
 our $VERSION = '6.99_001';
 
 use Biodiverse::Exception;
+use Biodiverse::Logger qw /logger/;
 use Ref::Util qw { :all };
 
 
@@ -260,11 +261,12 @@ sub load_data {
 
     #  Does this really matter?
     #  It can never be triggered given they are set to be the same above
-    warn '[MATRICES] WARNING: Different numbers of matrix columns '
-        . "($label_col_count ) and cell snaps ($orig_label_col_count)\n"
-      if $label_col_count != $orig_label_col_count;
+    logger->warn(
+        '[MATRICES] WARNING: Different numbers of matrix columns '
+        . "($label_col_count ) and cell snaps ($orig_label_col_count)"
+    ) if $label_col_count != $orig_label_col_count;
 
-    say "[MATRICES] INPUT MATRIX FILE: $file";
+    logger->info ("[MATRICES] INPUT MATRIX FILE: $file");
 
     my $IDcount = 0;
     my %label_list;
@@ -424,7 +426,7 @@ sub import_data_sparse {
         $value_column = $value_column->[0];  #  take the first if we are passed an array
     }
 
-    say "[MATRICES] INPUT MATRIX FILE: $file";
+    logger->info ("[MATRICES] INPUT MATRIX FILE: $file");
 
     my $out_sep_char   = $self->get_param('JOIN_CHAR');
     my $out_quote_char = $self->get_param('QUOTES');
@@ -1060,11 +1062,11 @@ sub trim {
     if ($keep) {
         $trim = undef;
         $data = $keep;
-        say "[MATRIX] Trimming elements using keep option";
+        logger->info("[MATRIX] Trimming elements using keep option");
     }
     else {
         $data = $trim;
-        say "[MATRIX] Trimming elements using trim option";
+        logger->info("[MATRIX] Trimming elements using trim option");
     }
 
     croak "keep or trim argument is not a ref\n"
@@ -1108,7 +1110,7 @@ sub trim {
     }
 
     if ($delete_count) {
-        say "Deleted $delete_count elements and $delete_sub_count pairs";
+        logger->info("Deleted $delete_count elements and $delete_sub_count pairs");
         $self->delete_cached_values;
     }
 
@@ -1156,8 +1158,6 @@ sub rename_element {
 
     my $old_name = $args{old_name};
     my $new_name = $args{new_name};
-
-    #say "Matrix: renaming $old_name to $new_name";
 
     my $all_elements = $self->get_elements_as_array;
 
@@ -1297,8 +1297,10 @@ sub get_summary_stats {
         @r{qw/PCT025 PCT05 PCT95 PCT975/} = $stats->percentiles(2.5, 5, 95, 97.5);
     }
     else {
-        say sprintf ("[Matrix] Number of precision adjusted values is %d (of %d)", $p_v->nelem, $n_mx_elements);
-        say "[Matrix] Using a binned approximation to calculate percentiles, nbins is $prec_mult";
+        logger->info(
+            sprintf ("[Matrix] Number of precision adjusted values is %d (of %d)", $p_v->nelem, $n_mx_elements)
+        );
+        logger->info("[Matrix] Using a binned approximation to calculate percentiles, nbins is $prec_mult");
         #  Use a histogram approximation for large data sets.
         #  A future implementation might handle skewed distributions by using variable bin sizes.
         my $hist_nsteps = 10 ** ($prec_mult - 1);

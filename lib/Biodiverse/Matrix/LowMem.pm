@@ -13,6 +13,7 @@ our $VERSION = '6.99_001';
 
 use Biodiverse::Matrix;
 use Biodiverse::Exception;
+use Biodiverse::Logger qw/logger/;
 
 use parent qw /Biodiverse::Common Biodiverse::Matrix::Base/;
 
@@ -48,7 +49,7 @@ sub new {
     
     $self->set_param (NAME => $args{name}) if defined $args{name};
 
-    warn "[MATRIX] WARNING: Matrix name not specified\n"
+    logger->warn("[MATRIX] WARNING: Matrix name not specified")
         if ! defined $self->get_param('NAME');
 
     return $self;

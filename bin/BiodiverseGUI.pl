@@ -52,8 +52,6 @@ local $OUTPUT_AUTOFLUSH = 1;
 #  add the lib folder if needed
 use if !$ENV{PAR_0} => 'rlib';
 
-say '@INC: ', join q{ }, @INC;
-
 #  load up the user defined libs and settings
 use Biodiverse::Config;
 
@@ -78,6 +76,7 @@ if ($opt->version) {
 }
 
 say "\n\nUsing Biodiverse engine version $Biodiverse::Config::VERSION";
+say '@INC: ', join q{ }, @INC;
 
 #  load Gtk
 use Gtk3;

@@ -22,9 +22,6 @@ our $VERSION = '6.99_001';
 #use Exporter;
 #use Devel::Symdump;
 
-use Log::Any qw($log);
-use Log::Any::Adapter ('Stdout');
-
 our @ISA = qw (Exporter);
 our @EXPORT = qw /use_base add_lib_paths/;
 #our %base_packages;
@@ -57,6 +54,31 @@ For a full copy of the license see <https://www.gnu.org/licenses/>.
 END_OF_LICENSE
   ;
 
+
+BEGIN {
+    use Log::Any;
+    use Log::Any::Adapter ('Stdout');
+
+    state $logger = Log::Any->get_logger;
+
+    #  might not need this now
+    sub set_logger_adapter {
+        my ($self, $adapter, $dispatcher) = @_;
+        Log::Any::Adapter->set($adapter, dispatcher => $dispatcher);
+    }
+
+    sub set_logger {
+        my ($self, $log_arg) = @_;
+        $logger = $log_arg;
+    }
+    sub get_logger {
+        $logger;
+    }
+    sub logger {
+        $logger;
+    }
+}
+
 BEGIN {
     if ($ENV{PAR_0}) {
         use Config;
@@ -87,10 +109,10 @@ BEGIN {
         eval 'use Alien::GtkStack::Windows'
           if !$ENV{BD_NO_ALIEN_GTKSTACK};  #  mainly for PAR packing
         if (!$EVAL_ERROR) {
-            $log->info ("Added Alien::GtkStack::Windows bin dir to path");
-            $log->info ("GI_TYPELIB_PATH is now $ENV{GI_TYPELIB_PATH}")
+            logger->info ("Added Alien::GtkStack::Windows bin dir to path");
+            logger->info ("GI_TYPELIB_PATH is now $ENV{GI_TYPELIB_PATH}")
                 if $ENV{GI_TYPELIB_PATH};
-            $log->info ("XDG_DATA_DIRS is now $ENV{XDG_DATA_DIRS}")
+            logger->info ("XDG_DATA_DIRS is now $ENV{XDG_DATA_DIRS}")
                 if $ENV{XDG_DATA_DIRS};
         }
         if ($ENV{PAR_0}) {
@@ -100,7 +122,7 @@ BEGIN {
             foreach my $name (qw/Glib Pango Cairo Gtk3/) {
                 my $dir = $base->child($name);
                 next if !$dir->exists;
-                $log->info ("Adding $dir to path");
+                logger->info ("Adding $dir to path");
                 push @PATH, $dir;
             }
         }
@@ -108,17 +130,17 @@ BEGIN {
     elsif ($ENV{PAR_0}) {
         my $xdg = path ($ENV{PAR_TEMP}, 'inc', 'share');
         if (-e $xdg) {
-            $log->info ("Setting \$ENV{XDG_DATA_DIRS} to $xdg");
+            logger->info ("Setting \$ENV{XDG_DATA_DIRS} to $xdg");
             $ENV{XDG_DATA_DIRS} = $xdg;
         }
         my $gir = path ($ENV{PAR_TEMP}, 'inc', 'girepository-1.0');
         if (-e $gir) {
-            $log->info ("Setting \$ENV{GI_TYPELIB_PATH} to $gir");
+            logger->info ("Setting \$ENV{GI_TYPELIB_PATH} to $gir");
             $ENV{GI_TYPELIB_PATH} = $gir;
         }
         my $proj = path "$ENV{PAR_TEMP}/inc/proj";
         if (-e $proj) {
-            $log->info ("Setting \$ENV{PROJ_DATA} to $proj");
+            logger->info ("Setting \$ENV{PROJ_DATA} to $proj");
             $ENV{PROJ_DATA} = $proj;
         }
     }
@@ -186,8 +208,8 @@ sub add_lib_paths {
 
     return if !scalar @lib_paths;
 
-    $log->info("Adding $var paths to \@INC");
-    $log->info(join q{ }, @lib_paths);
+    logger->info("Adding $var paths to \@INC");
+    logger->info(join q{ }, @lib_paths);
 
     #no warnings 'closure';
     eval 'use lib @lib_paths';
@@ -214,11 +236,11 @@ sub use_base {
     }
     my %check_packages;
 
-    $log->trace("[USE_BASE] Checking and loading user modules");
+    logger->trace("[USE_BASE] Checking and loading user modules");
 
     my $x;
     if (-e $file) {
-        $log->trace("...from file $file");
+        logger->trace("...from file $file");
         local $/ = undef;
         my $success = open (my $fh, '<', $file);
         croak "Unable to open extensions file $file\n"

@@ -19,6 +19,7 @@ use Readonly;
 
 use Biodiverse::BaseStruct;
 use Biodiverse::TreeNode::BootstrapBlock;
+use Biodiverse::Logger qw/logger/;
 
 use parent qw /Biodiverse::Common/;
 
@@ -58,7 +59,6 @@ sub new {
     }
 
     if (exists $args{boot} && defined $args{boot} && length $args{boot}) {
-        #say "We found the boot arg, it is $args{boot}";
         my $booter = $self->get_bootstrap_block;
         $booter->decode (raw_bootstrap => $args{boot});
         #  store the raw text somewhere that can be deleted with impunity
@@ -270,9 +270,6 @@ sub set_child_lengths {
     defined $min_value || croak "[TREENODE] argument total_length not specified\n";
     
     foreach my $child ($self->get_children) {
-        #if ($child->get_total_length != $min_value) {
-        #    print "Length already defined, node ", $child->get_name, "\n";
-        #}
         $child->set_value (TOTAL_LENGTH => $min_value);
         if ($child->is_terminal_node) {
             $child->set_length (length => $min_value);
@@ -564,7 +561,7 @@ sub add_children {
                 #  too many parents - this is a single parent system
                 if ($args{warn}) {
                     my $name = $self->get_name;
-                    say "TreeNode WARNING: child $name already has a parent, resetting";
+                    logger->info("TreeNode WARNING: child $name already has a parent, resetting");
                 }
                 $child->get_parent->delete_child (child => $child);
             }
@@ -920,15 +917,14 @@ sub flatten_tree {
     #my $iter = 0;
     my $count = 1;
     my @empty_nodes;
-    print "[TREENODE] FLATTENING TREE.  ";
+    logger->info("[TREENODE] FLATTENING TREE.  ");
     while ($count > 0) {
         my %raised = $self->raise_zerolength_children;
-        print " Raised $raised{raised_count},";
+        logger->info(" Raised $raised{raised_count},");
         #$iter ++;
         push @empty_nodes, @{$raised{empty_node_names}};
         $count = $raised{raised_count};
     }
-    print "\n";
     return wantarray ? @empty_nodes : \@empty_nodes;
 }
 
@@ -998,8 +994,6 @@ sub raise_zerolength_children {
     elsif (! $self->is_root_node && $results{raised_count} == ($child_count - 1)) {
         
         my $child = shift @{$self->get_children};
-        #print "Raising child " . $child->get_name . "from parent " . $self->get_name .
-        #      " to " . $self->get_parent->get_name . "\n";
         $self->get_parent->add_children (children => [$child]);
         $child->set_length (length => $self->get_length + $child->get_length);
         $self->get_parent->delete_child (child => $self);
@@ -1270,7 +1264,6 @@ sub get_path_to_root_node {
 
     if ($use_cache) {
         $path = $self->get_cached_value($cache_key);
-        #print ("using cache for " . $self->get_name . "\n") if $path;
         return wantarray ? @$path : $path
           if $path;
     }
@@ -1497,7 +1490,6 @@ sub get_path_to_node {
     if (not $return_lengths) {
         foreach my $value (values %$path) {
             weaken $value if ! isweak $value;
-            #print "NOT WEAK $value\n" if ! isweak $value;
         }
     }
 
@@ -1873,8 +1865,8 @@ sub get_ancestor_by_sum_of_branch_lengths_aa {
 sub assign_plot_coords {
     my $self = shift;
     my %args = @_;
-    
-    say '[TreeNode] Assigning plot coords.  This will take a while for large trees.';
+
+    logger->info('[TreeNode] Assigning plot coords.  This will take a while for large trees.');
 
     $self->get_root_node->number_terminal_nodes;
 
@@ -2277,7 +2269,7 @@ sub to_basestruct_group_nodes {
     }
 
     if (defined $args{target_value}) {
-        say "Target value is $args{target_value}.";
+        logger->info("Target value is $args{target_value}.");
     }
 
     my %target_nodes = $self->group_nodes_below (
@@ -2286,10 +2278,10 @@ sub to_basestruct_group_nodes {
     );
 
     if (defined $args{sub_list} && $args{sub_list} !~ /(no list)/) {
-        say "[TREE] Adding values from sub list $args{sub_list} to each node";
-    } 
+        logger->info("[TREE] Adding values from sub list $args{sub_list} to each node");
+    }
 
-    say "[TREE] Actual number of groups identified is " . scalar (keys %target_nodes);
+    logger->info("[TREE] Actual number of groups identified is " . scalar (keys %target_nodes));
 
     my $want_sub_list = (defined $sub_list && $sub_list !~ /(no list)/);
 

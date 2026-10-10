@@ -28,6 +28,7 @@ my %common_reqs = (
     "List::MoreUtils"                  => "0.425",
     "List::Unique::DeterministicOrder" => "0.003",
     "List::Util"                       => "1.54",
+    "Log::Any"                         => 0,
     "Math::Polygon"                    => 0,
     "Math::Random::MT::Auto"           => "6.21",
     "PDL::GSL::CDF"                    => 0,

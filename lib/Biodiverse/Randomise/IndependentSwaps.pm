@@ -19,6 +19,8 @@ use List::Util qw /max/;
 use Statistics::Sampler::Multinomial 1.00;
 use Statistics::Sampler::Multinomial::Indexed 1.00;
 
+use Biodiverse::Logger qw /logger/;
+
 my $multinomial_class = 'Statistics::Sampler::Multinomial::Indexed';
 
 use Biodiverse::Metadata::Parameter;
@@ -238,7 +240,7 @@ sub rand_independent_swaps_modified {
     my $swap_count  = 0;
     my $attempts    = 0;
     my $moved_pairs = 0;
-    say "[RANDOMISE] Target swap count is $target_swap_count, max attempts is $max_swap_attempts";
+    logger->info("[RANDOMISE] Target swap count is $target_swap_count, max attempts is $max_swap_attempts");
 
   MAIN_ITER:
     while (   $swap_count  < $target_swap_count
@@ -328,21 +330,25 @@ sub rand_independent_swaps_modified {
 
 
     if ($attempts == $max_swap_attempts) {
-        say "[RANDOMISE] rand_independent_swaps_modified: max attempts theshold "
-          . "$max_swap_attempts reached.";
+        logger->info(
+            "[RANDOMISE] rand_independent_swaps_modified: max attempts theshold "
+          . "$max_swap_attempts reached."
+        );
     }
     elsif ($moved_pairs >= $non_zero_mx_cells) {
-        say "[RANDOMISE] rand_independent_swaps_modified: All "
-          . "group/label elements swapped at least once";
+        logger->info(
+            "[RANDOMISE] rand_independent_swaps_modified: All "
+          . "group/label elements swapped at least once"
+        );
     }
-    say "[RANDOMISE] rand_independent_swaps: ran $swap_count swaps across "
+    logger->info(
+        "[RANDOMISE] rand_independent_swaps: ran $swap_count swaps across "
       . "$attempts attempts for basedata $name with $n_labels labels and "
-      . "$n_groups groups.\n"
-      . $stop_on_all_swapped
-        ?
-          ("[RANDOMISE] Swapped $moved_pairs of the $non_zero_mx_cells group/label "
-          . "elements at least once.\n")
-        : q{};
+      . "$n_groups groups."
+    );
+    logger->info(
+        "[RANDOMISE] Swapped $moved_pairs of the $non_zero_mx_cells group/label elements at least once."
+    ) if $stop_on_all_swapped;
 
     #  now we populate a new basedata
     my $new_bd = $self->get_new_bd_from_gp_lb_hash (
@@ -456,7 +462,7 @@ sub rand_independent_swaps {
     my $attempts    = 0;
     my $moved_pairs = 0;
 
-    say "[RANDOMISE] Target swap count is $target_swap_count, max attempts is $max_swap_attempts";
+    logger->info("[RANDOMISE] Target swap count is $target_swap_count, max attempts is $max_swap_attempts");
 
   MAIN_ITER:
     while (   $swap_count  < $target_swap_count
@@ -527,18 +533,25 @@ sub rand_independent_swaps {
 
     
     if ($attempts == $max_swap_attempts) {
-        say "[RANDOMISE] rand_independent_swaps: max attempts theshold "
-          . "$max_swap_attempts reached.";
+        logger->info(
+            "[RANDOMISE] rand_independent_swaps: max attempts theshold "
+          . "$max_swap_attempts reached."
+        );
     }
     elsif ($moved_pairs >= $non_zero_mx_cells) {
-        say "[RANDOMISE] rand_independent_swaps_modified: All "
-          . "group/label elements swapped at least once";
+        logger->info(
+            "[RANDOMISE] rand_independent_swaps_modified: All "
+          . "group/label elements swapped at least once"
+        );
     }
-    say "[RANDOMISE] rand_independent_swaps: ran $swap_count swaps across "
+    logger->info(
+        "[RANDOMISE] rand_independent_swaps: ran $swap_count swaps across "
       . "$attempts attempts for basedata $name with $n_labels labels and "
-      . "$n_groups groups.\n"
-      . "[RANDOMISE]  Swapped $moved_pairs of the $non_zero_mx_cells group/label "
-      . "elements at least once.\n";
+      . "$n_groups groups."
+    );
+    logger->info (
+        "[RANDOMISE]  Swapped $moved_pairs of the $non_zero_mx_cells group/label elements at least once."
+    );
     
     #  now we populate a new basedata
     my $new_bd = $self->get_new_bd_from_gp_lb_hash (

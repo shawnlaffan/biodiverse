@@ -21,6 +21,7 @@ use Time::HiRes qw/time/;
 
 use Ref::Util qw { :all };
 use Biodiverse::Progress;
+use Biodiverse::Logger qw/logger/;
 
 my $EMPTY_STRING = q{};
 
@@ -103,7 +104,7 @@ sub _duplicate {
     my $self = shift;
     my %args = @_;
 
-    say '[MATRIX] Duplicating matrix ' . $self->get_param('NAME');
+    logger->info ('[MATRIX] Duplicating matrix ' . $self->get_param('NAME'));
 
     my $bd = $self->get_basedata_ref;
     if ($bd) {

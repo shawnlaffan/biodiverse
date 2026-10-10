@@ -335,8 +335,9 @@ sub get_element_hash_that_pass_def_query {
     my $bd = $self->get_basedata_ref;
     if (Biodiverse::MissingBasedataRef->caught) {
         # What do we do here?
-        say "[BaseStruct.pm]: Missing BaseStruct in 
-                       get_elements_hash_that_pass_def_query";
+        logger->debug(
+            "[BaseStruct]: Missing BaseData ref in get_elements_hash_that_pass_def_query"
+        );
         return;
     }
     
@@ -497,13 +498,12 @@ sub generate_element_coords {
     foreach my $element ($self->get_element_list) {
         my $element_coord = [];  #  make a copy
         my $cell_sizes = $self->get_cell_sizes;
-        #my $element_array = $self->get_array_list_values (element => $element, list => '_ELEMENT_ARRAY');
         my $element_array = eval {$self->get_element_name_as_array_aa ($element, $csv_object)};
         if (my $e = $EVAL_ERROR) {
             use Data::Dumper ();
-            print "PRIBBLEMMS";
-            say Data::Dumper::Dump $self->{ELEMENTS}{$element};
-            say $e;
+            logger->debug("PRIBBLEMMS");
+            logger->debug(Data::Dumper::Dump $self->{ELEMENTS}{$element});
+            logger->debug($e);
         }
         
 
@@ -1039,14 +1039,6 @@ sub get_array_list_values {
     my $element = $args{element} // croak "Element not specified\n";
     my $list    = $args{list}    // croak "List not specified\n";
 
-    #croak "Element $element does not exist.  Do you need to rebuild the spatial index?\n"
-    #  if ! exists $self->{ELEMENTS}{$element};
-
-#if (!$self->{ELEMENTS}{$element}{$list}) {
-#    print "PRIBLEMS with list $list in element $element";
-#    say Data::Dumper::Dumper $self->{ELEMENTS}{$element};
-#}
-
     my $list_ref = $self->{ELEMENTS}{$element}{$list}
       // Biodiverse::BaseStruct::ListDoesNotExist->throw (
             message => "Element $element does not exist or does not have a list ref for $list\n",
@@ -1361,7 +1353,6 @@ sub get_lists_across_elements {
         && $cached_list_max_search >= $max_search   #  the max search was
         ) {                                         #  the same or bigger
 
-        #print "[BASESTRUCT] Using cached list items\n";
         return (wantarray ? @$cached_list : $cached_list);   
     }
 
@@ -1937,16 +1928,9 @@ sub element_arrays_are_numeric {
 
 sub DESTROY {
     my $self = shift;
-    #my $name = $self->get_param ('NAME');
-    #print "DESTROYING BASESTRUCT $name\n";
-    #undef $name;
     $self->set_param (BASEDATA_REF => undef);
 
-    #$self->_delete_params_all;
-
     foreach my $key (sort keys %$self) {  #  clear all the top level stuff
-        #print "Deleting BS $key\n";
-        #$self->{$key} = undef;
         delete $self->{$key};
     }
     undef %$self;

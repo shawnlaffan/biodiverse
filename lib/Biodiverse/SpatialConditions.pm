@@ -15,6 +15,8 @@ use List::Util qw /min max/;
 use Ref::Util qw / is_arrayref is_coderef /;
 use PPR ();
 
+use Biodiverse::Logger qw/logger/;
+
 
 use parent qw /
     Biodiverse::SpatialConditions::SpCalc
@@ -527,9 +529,6 @@ sub parse_distances {
 
         #  haven't hit the end of line yet
 
-        #print "\nParsing $conditions\n";
-        #print "Position is " . (pos $conditions) . " of $str_len\n";
-
         #  march through any whitespace and newlines
         if ( $conditions =~ m/ \G [\s\n\r]+ /xgcs ) {
             next CHECK_CONDITIONS;
@@ -699,7 +698,6 @@ sub parse_distances {
     $conditions =~ s{$re_object_call}
                     {\$self->$1}gxms;
 
-    #print $conditions;
     $self->set_param( PARSED_CONDITIONS => $conditions );
 
     my $substitute_method;
@@ -1109,7 +1107,7 @@ sub get_conditions_code_ref {
 
     my $conditions = $self->get_conditions_parsed;
     if (!$self->get_param('NO_LOG')) {
-        say "PARSED CONDITIONS:  $conditions";
+        logger->info("PARSED CONDITIONS:  $conditions");
     }
     $conditions_code =~ s/CONDITIONS_STRING_GOES_HERE/$conditions/m;
 
@@ -1478,7 +1476,7 @@ sub get_conditions_metadata_as_markdown {
     my $md;
 
     foreach my $sub_name (sort keys %$condition_subs) {
-        say $sub_name;
+        # logger->info($sub_name);
         my $metadata = $self->get_metadata (sub => $sub_name);
         #say join ' ', sort keys %$metadata;
         my @md_this_sub;
@@ -1530,7 +1528,7 @@ sub get_conditions_metadata_as_struct {
     );
 
     foreach my $sub_name (sort keys %$condition_subs) {
-        say $sub_name;
+        # logger->info($sub_name);
         my $metadata = $self->get_metadata (sub => $sub_name);
         my %substruct;
         $substruct{description}   = $metadata->get_description;

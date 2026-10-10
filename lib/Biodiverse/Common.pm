@@ -45,6 +45,7 @@ use Math::Random::MT::Auto ();
 
 use Biodiverse::Progress;
 use Biodiverse::Exception;
+use Biodiverse::Logger qw /logger/;
 
 use Clone ();
 
@@ -97,7 +98,7 @@ sub rename_object {
 
     my $type = blessed $self;
 
-    print "Renamed $type '$old_name' to '$new_name'\n";
+    logger->info("Renamed $type '$old_name' to '$new_name'");
 
     return;
 }
@@ -188,16 +189,16 @@ sub load_sereal_file {
 
     my $type = $decoder->looks_like_sereal($string);
     if ($type eq '') {
-        say "Not a Sereal document";
+        logger->info("Not a Sereal document");
         croak "$file is not a Sereal document";
     }
     elsif ($type eq '0') {
-        say "Possibly utf8 encoded Sereal document";
+        logger->info("Possibly utf8 encoded Sereal document");
         croak "Possibly utf8 encoded Sereal document"
             . "Won't open $file as a Sereal document";
     }
     else {
-        say "Sereal document version $type";
+        logger->info("Sereal document version $type");
     }
 
     #  now get the whole file
@@ -441,7 +442,6 @@ sub weaken_param {
 
         if (is_ref ($self->{PARAMS}{$param}) && !isweak ($self->{PARAMS}{$param})) {
             weaken $self->{PARAMS}{$param};
-            #print "[COMMON] Weakened ref to $param, $self->{PARAMS}{$param}\n";
         }
         $count ++;
     }
@@ -461,7 +461,7 @@ sub _delete_params_all {
     my $params = $self->{PARAMS};
 
     foreach my $param (keys %$params) {
-        print "Deleting parameter $param\n";
+        logger->info("Deleting parameter $param");
         delete $params->{$param};
     }
     $params = undef;
@@ -472,7 +472,7 @@ sub _delete_params_all {
 sub print_params {
     my $self = shift;
     use Data::Dumper ();
-    print Data::Dumper::Dumper ($self->{PARAMS});
+    logger->info(Data::Dumper::Dumper ($self->{PARAMS}));
 
     return;
 }
@@ -596,7 +596,7 @@ sub delete_spatial_index {
 
     if ($self->get_param ('SPATIAL_INDEX')) {
         my $class = blessed $self;
-        print "[$class] Deleting spatial index from $name\n";
+        logger->info("[$class] Deleting spatial index from $name");
         $self->delete_param('SPATIAL_INDEX');
         return 1;
     }
@@ -653,7 +653,7 @@ sub update_log {
         $self->dump_to_yaml (data => \%args);
     }
     else {
-        print $args{text};
+        logger->info($args{text});
     }
 
     return;
@@ -721,11 +721,10 @@ sub save_to {
     my $result = eval {$self->$method (filename => $tmp_file_name)};
     croak $EVAL_ERROR if $EVAL_ERROR;
 
-    print "[COMMON] Renaming $tmp_file_name to $file_name ... ";
+    logger->info("[COMMON] Renaming $tmp_file_name to $file_name ... ");
     my $success = rename ($tmp_file_name, $file_name);
     croak "Unable to rename $tmp_file_name to $file_name\n"
         if !$success;
-    print "Done\n";
 
     return $file_name;
 }
@@ -742,7 +741,7 @@ sub save_to_sereal {
     }
     $file = path($file)->absolute;
 
-    say "[COMMON] WRITING TO SEREAL FORMAT FILE $file";
+    logger->info("[COMMON] WRITING TO SEREAL FORMAT FILE $file");
 
     use Sereal::Encoder ();
 
@@ -781,7 +780,7 @@ sub save_to_storable {
     }
     $file = path($file)->absolute;
 
-    print "[COMMON] WRITING TO STORABLE FORMAT FILE $file\n";
+    logger->info("[COMMON] WRITING TO STORABLE FORMAT FILE $file");
 
     local $Storable::Deparse = 0;     #  for code refs
     local $Storable::forgive_me = 1;  #  don't croak on GLOBs, regexps etc.
@@ -806,7 +805,7 @@ sub save_to_yaml {
     }
     $file = path($file)->absolute;
 
-    print "[COMMON] WRITING TO YAML FORMAT FILE $file\n";
+    logger->info("[COMMON] WRITING TO YAML FORMAT FILE $file");
 
     eval {YAML::Syck::DumpFile ($file, $self)};
     croak $EVAL_ERROR if $EVAL_ERROR;
@@ -826,7 +825,7 @@ sub save_to_data_dumper {
     }
     $file = path($file)->absolute;
 
-    print "[COMMON] WRITING TO DATA DUMPER FORMAT FILE $file\n";
+    logger->info("[COMMON] WRITING TO DATA DUMPER FORMAT FILE $file");
 
     use Data::Dumper ();
     open (my $fh, '>', $file);
@@ -846,7 +845,7 @@ sub dump_to_yaml {
 
     if (defined $args{filename}) {
         my $file = path($args{filename})->absolute;
-        say "WRITING TO YAML FORMAT FILE $file";
+        logger->info("WRITING TO YAML FORMAT FILE $file");
         YAML::Syck::DumpFile ($file, $data);
     }
     else {
@@ -869,7 +868,7 @@ sub dump_to_json {
 
     if (defined $args{filename}) {
         my $file = path($args{filename})->absolute;
-        say "WRITING TO JSON FILE $file";
+        logger->info("WRITING TO JSON FILE $file");
         open (my $fh, '>', $file)
             or croak "Cannot open $file to write to, $!\n";
         print {$fh} JSON::MaybeXS::encode_json ($data);
@@ -997,7 +996,7 @@ sub write_table {
         $self->write_table_csv (%args, data => $data);
     }
     else {
-        print "[COMMON] Not a recognised suffix $suffix, using csv/txt format\n";
+        logger->info("[COMMON] Not a recognised suffix $suffix, using csv/txt format");
         $self->write_table_csv (%args, data => $data);
     }
 }
@@ -1060,7 +1059,7 @@ sub write_table_csv {
     croak $EVAL_ERROR if $EVAL_ERROR;
 
     if ($fh->close) {
-        say "[COMMON] Write to file $file successful";
+        logger->info("[COMMON] Write to file $file successful");
     }
     else {
         croak "[COMMON] Unable to close $file\n";
@@ -1126,7 +1125,7 @@ sub write_table_html {
     croak $EVAL_ERROR if $EVAL_ERROR;
 
     if ($fh->close) {
-        print "[COMMON] Write to file $file successful\n"
+        logger->info("[COMMON] Write to file $file successful")
     }
     else {
         croak "[COMMON] Write to file $file failed, unable to close file\n"
@@ -1169,8 +1168,6 @@ sub csv2list {
     $string = $$string if ref $string;
 
     if ($csv_obj->parse($string)) {
-        #print "STRING IS: $string";
-        # my @Fld = $csv_obj->fields;
         return wantarray ? ($csv_obj->fields) : [$csv_obj->fields];
     }
     else {
@@ -1496,7 +1493,7 @@ sub guess_field_separator {
 
     #  need a better way of handling special chars - ord & chr?
     my $septext = ($separator =~ /\t/) ? '\t' : $separator;
-    say "[COMMON] Guessed field separator as '$septext'";
+    logger->info("[COMMON] Guessed field separator as '$septext'");
 
     return $separator;
 }
@@ -1555,12 +1552,8 @@ sub guess_quote_char {
     #  quotes character
     my @sorted = reverse sort numerically keys %q_count;
     my $q = (defined $sorted[0]) ? $q_count{$sorted[0]} : $q_types[0];
-    say "[COMMON] Guessed quote char as $q";
+    logger->info("[COMMON] Guessed quote char as $q");
     return $q;
-
-    #  if we get this far then there is a quote issue to deal with
-    #print "[COMMON] Could not guess quote char in $string.  Check the object QUOTES parameter and escape char in file\n";
-    #return;
 }
 
 #  guess the end of line character in a string
@@ -1937,7 +1930,7 @@ sub get_next_line_set {
             push @lines, $line;
         }
         elsif (not $csv->eof) {
-            say $csv->error_diag, ', Skipping line ', scalar @lines, ' of chunk';
+            logger->info($csv->error_diag, ', Skipping line ', scalar @lines, ' of chunk');
             $csv->SetDiag (0);
         }
         if ($csv->eof) {
@@ -2087,7 +2080,6 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
             my $val = $self->round_to_precision_aa ($value, $precision->[$depth]);
             if ($depth > 0) {
                 foreach my $element (@$so_far) {
-                    #print "$element . $sep_char . $value\n";
                     push @this_depth, $element . $sep_char . $val;
                 }
             }
@@ -2248,7 +2240,7 @@ sub initialise_rand {
     my $state = (!$args{reseed} && blessed $self ? $self->get_param ('RAND_LAST_STATE') : 0)
         || $args{state};
 
-    say "[COMMON] Ignoring PRNG seed argument ($seed) because the PRNG state is defined"
+    logger->info("[COMMON] Ignoring PRNG seed argument ($seed) because the PRNG state is defined")
         if defined $seed and defined $state;
 
     #  don't already have one, generate a new object using seed and/or state params.
@@ -2522,7 +2514,6 @@ sub assign_canape_codes_from_p_rank_results {
             : $RPE_sig > 0.975 ? 2                            #  palaeo
             : $PE_sig_obs > 0.99  && $PE_sig_alt > 0.99  ? 4  #  super
             : 3;                                              #  mixed
-        #say '';
     }
     $results_list_ref->{CANAPE_CODE} = $canape_code;
     if (defined $canape_code) {  #  numify booleans

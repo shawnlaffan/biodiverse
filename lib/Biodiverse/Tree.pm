@@ -38,6 +38,7 @@ use Biodiverse::TreeNode;
 use Biodiverse::BaseStruct;
 use Biodiverse::Progress;
 use Biodiverse::Exception;
+use Biodiverse::Logger qw/logger/;
 
 use parent qw /
   Biodiverse::Common
@@ -438,10 +439,6 @@ sub get_node_ref {
 
     if ( !exists $self->{TREE_BY_NAME}{$node} ) {
 
-        #say "Couldn't find $node, the nodes actually in the tree are:";
-        #foreach my $k (keys $self->{TREE_BY_NAME}) {
-        #    say "key: $k";
-        #}
         Biodiverse::Tree::NotExistsNode->throw(
             "[Tree] Node $node does not exist, cannot get ref"
         );
@@ -989,7 +986,6 @@ sub export {
     my $metadata = $self->get_metadata( sub => 'export' );
 
     my $sub_to_use = $metadata->get_sub_name_from_format(%args);
-say STDERR "+++++++++++ $sub_to_use";
     #  remap the format name if needed - part of the matrices kludge
     my $component_map = $metadata->get_component_map;
     if ( $component_map->{ $args{format} } ) {
@@ -1151,7 +1147,7 @@ sub export_nexus {
     my %args = @_;
 
     my $file = $args{file};
-    say "[TREE] WRITING TO TREE TO NEXUS FILE $file";
+    logger->info("[TREE] WRITING TO TREE TO NEXUS FILE $file");
     my $fh = $self->get_file_handle (
         file_name => $file,
         mode      => '>',
@@ -1229,7 +1225,7 @@ sub export_newick {
 
     my $file = $args{file};
 
-    print "[TREE] WRITING TO TREE TO NEWICK FILE $file\n";
+    logger->info("[TREE] WRITING TO TREE TO NEWICK FILE $file");
 
     my $fh = $self->get_file_handle (
         file_name => $file,
@@ -1416,8 +1412,10 @@ sub export_table_grouped {
 
     my $file = $args{file};
 
-    print "[TREE] WRITING TO TREE TO TABLE STRUCTURE "
-        . "USING TERMINAL ELEMENTS, FILE $file\n";
+    logger->info(
+        "[TREE] WRITING TO TREE TO TABLE STRUCTURE "
+        . "USING TERMINAL ELEMENTS, FILE $file\n"
+    );
 
     my $data = $self->to_table_group_nodes(@_);
 
@@ -1460,7 +1458,7 @@ sub export_range_table {
 
     my $file = $args{file};
 
-    print "[TREE] WRITING TREE RANGE TABLE, FILE $file\n";
+    logger->info("[TREE] WRITING TREE RANGE TABLE, FILE $file");
 
     my $data =
       eval { $self->get_range_table( name => $self->get_param('NAME'), @_, ) };
@@ -1582,7 +1580,7 @@ sub to_matrix {
 
     my $name = $self->get_param('NAME');
 
-    say "[TREE] Converting tree $name to matrix";
+    logger->info("[TREE] Converting tree $name to matrix");
 
     my $matrix = $class->new( NAME => ( $args{name} || ( $name . "_AS_MX" ) ) );
 
@@ -1703,10 +1701,9 @@ sub get_range_table {
     #declare progress tracking variables
     my ( %done, $progress, $progress_percent );
     my $to_do            = scalar keys %nodes;
-    my $printed_progress = 0;
 
     # progress feedback to text window
-    print "[TREE] CREATING NODE RANGE TABLE FOR TREE: $name  ";
+    logger->info("[TREE] CREATING NODE RANGE TABLE FOR TREE: $name  ");
 
     foreach my $node1 ( values %nodes ) {
         my $name1   = $node1->get_name;
@@ -2161,8 +2158,6 @@ sub compare {
       $comparison->get_param('NAME');
     $progress->update( $progress_text, 0 );
 
-    #print "\n[TREE] " . $progress_text;
-
     #  set up the comparison operators if it has spatial results
     my $has_spatial_results =
       defined $self->get_list_ref( list => 'SPATIAL_RESULTS', );
@@ -2252,8 +2247,6 @@ sub compare {
                             $found_perfect_match{$compare_node_name}
                               = $len_base;
                         }
-
-                        #else {say "$compare_node_name, $len_comp, $len_base"}
                     }
                     last COMP;
                 }
@@ -2715,7 +2708,7 @@ sub trim {
     my $self = shift;
     my %args = @_;
 
-    say '[TREE] Trimming tree';
+    logger->info('[TREE] Trimming tree');
 
     #  delete internals by default
     my $delete_internals = $args{delete_internals} // 1;
@@ -2815,12 +2808,12 @@ sub trim {
 
     $progress->close_off;
     my $deleted_count = scalar keys %deleted_h;
-    say "[TREE] Deleted $deleted_count nodes ", join ' ', sort keys %deleted_h;
+    logger->info("[TREE] Deleted $deleted_count nodes ", join ' ', sort keys %deleted_h);
 
     #  delete any internal nodes with no named descendents
     my $deleted_internal_count = 0;
     if ( $delete_internals and scalar keys %deleted_h ) {
-        say '[TREE] Cleaning up internal nodes';
+        logger->info('[TREE] Cleaning up internal nodes');
 
         my %node_hash = $self->get_node_hash;
         $to_do = scalar keys %node_hash;
@@ -2858,8 +2851,10 @@ sub trim {
         $progress->close_off;
 
         $deleted_internal_count = scalar keys %deleted_hash;
-        say "[TREE] Deleted $deleted_internal_count internal nodes "
-           . "with no named descendents";
+        logger->info(
+            "[TREE] Deleted $deleted_internal_count internal nodes "
+           . "with no named descendents"
+        );
     }
     
     if ($trim_to_lca) {
@@ -2880,7 +2875,7 @@ sub trim {
     }
     $keep = undef;    #  was leaking - not sure it matters, though
 
-    say '[TREE] Trimming completed';
+    logger->info('[TREE] Trimming completed');
 
     $progress = undef;
 
@@ -2944,7 +2939,6 @@ sub merge_knuckle_nodes {
         next if @$children != 1;  # check again as we might have added a child to this node in a previous iteration
         my $child = $children->[0];
 
-        #say "Merging parent $node_name with child " . $child->get_name;
         #  we retain tip node, otherwise named node nearer the tip, otherwise the parent
         if ($child->is_terminal_node || !$child->is_internal_node) {
             $child->set_length_aa ($node_ref->get_length + $child->get_length);
@@ -3030,7 +3024,6 @@ sub AUTOLOAD {
 
     if ( defined $root_node and $root_node->can($method) ) {
 
-        #print "[TREE] Using AUTOLOADER method $method\n";
         #  could check eval errors, but would need to
         #  handle list context in the caller
         return $root_node->$method(@_);
@@ -3078,8 +3071,8 @@ sub collapse_tree {
     my %node_hash = $self->get_node_hash;
 
     if ($verbose) {
-        say "[TREE] Total length: $total_tree_length";
-        say '[TREE] Node count: ' . ( scalar keys %node_hash );
+        logger->info("[TREE] Total length: $total_tree_length");
+        logger->info('[TREE] Node count: ' . ( scalar keys %node_hash ));
     }
 
     my $node;
@@ -3135,7 +3128,7 @@ sub collapse_tree {
         $node->set_length( length => $new_length );
 
         if ($verbose) {
-            say "$name: new length is $new_length";
+            logger->info("$name: new length is $new_length");
         }
     }
 
@@ -3149,7 +3142,7 @@ sub collapse_tree {
 
     #  now we clean up all the empty nodes in the other indexes
     if ($verbose) {
-        say "[TREE] Deleting " . scalar @now_empty . ' empty nodes';
+        logger->info("[TREE] Deleting " . scalar @now_empty . ' empty nodes');
     }
 
     #foreach my $now_empty (@now_empty) {
@@ -3161,8 +3154,8 @@ sub collapse_tree {
     $self->get_total_tree_length;
 
     if ($verbose) {
-        say '[TREE] Total length: ' . $self->get_tree_length;
-        say '[TREE] Node count: ' . $self->get_node_count;
+        logger->info('[TREE] Total length: ' . $self->get_tree_length);
+        logger->info('[TREE] Node count: ' . $self->get_node_count);
     }
 
     return $self;
@@ -3203,7 +3196,6 @@ sub collapse_tree_below {
         #  still need to ensure they are in the node hash
         $node->add_children( children => [ sort values %terminals ] );
 
-        #print "";
     }
 
     return 1;
@@ -3295,7 +3287,7 @@ sub clone_without_caches {
     my $new_tree = do {
         #  we have to delete the new tree's caches so avoid cloning them in the first place
         delete local $self->{_cache};
-        delete local $self->{PARAMS} or say STDERR 'woap?';
+        delete local $self->{PARAMS} or logger->debug('woap?');
         #  seem not to be able to use delete local on compound structure
         #  or maybe it is the foreach loop even though postfix
         $saved_node_caches{$_} = delete $self->{TREE_BY_NAME}{$_}{_cache}

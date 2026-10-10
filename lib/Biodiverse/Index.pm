@@ -28,6 +28,7 @@ use List::Util;
 use Ref::Util qw { :all };
 
 use Biodiverse::Progress;
+use Biodiverse::Logger qw/logger/;
 
 our $VERSION = '6.99_001';
 
@@ -71,7 +72,7 @@ sub build {
         $resolutions[$i] = 0 if $resolutions[$i] < 0;  #  no negatives
     }
 
-    say '[INDEX] Building index for resolution ', join (',', @resolutions);
+    logger->info('[INDEX] Building index for resolution ', join (',', @resolutions));
 
     $self->set_param (RESOLUTIONS => \@resolutions);
 
@@ -93,7 +94,6 @@ sub build {
               || $element_hash->{$element};
 
         foreach my $i (0 .. $#resolutions) {
-            #print "COLUMNS: $column, $i\n";
             $count{$i}{$coord_array->[$i]}++;
             if ($resolutions[$i] == 0) {
                 $bounds{max}[$i] = 0;
@@ -125,7 +125,11 @@ sub build {
     $self->set_param(MAXIMA => \@maxima);
     $self->set_param(MINIMA => \@minima);
 
-    print "[INDEX] Index bounds are: Max=[", join (", ", @maxima), "], Min=[", join (", ", @minima), "]\n";
+    logger->info(
+        sprintf "[INDEX] Index bounds are: Max=[%s], Min=[%s]",
+        join (", ", @maxima),
+        join (", ", @minima),
+    );
 
     return;
 }
@@ -468,7 +472,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
             csv_object => $csv_object,
         );
         my %valid_offsets = ($offsets => $off_array);
-        say "Done (and what's more I cheated)";
+        logger->info("Done (and what's more I cheated)");
         return wantarray ? %valid_offsets : \%valid_offsets;
     }
     elsif ($spatial_conditions->get_result_type eq 'side') {
@@ -536,7 +540,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
             );
         }
         else {  #  just use a box of offsets
-            say "[INDEX] Max search dist is $index_max_search_dist - using shortcut";
+            logger->info("[INDEX] Max search dist is $index_max_search_dist - using shortcut");
             my %offsets;
             foreach my $offset (@$poss_offset_array) {
                 $offsets{$offset} = [split $sep_char, $offset];
@@ -604,7 +608,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     my $resolutions_text = join (q{ }, @{$self->get_param ('RESOLUTIONS')});
     my ($count, $printed_progress) = (0, -1);
     my %index_element_arrays;  #  keep a cache of the arrays to save converting them
-    print "[INDEX] Case of $to_do: ";
+    logger->info("[INDEX] Case of $to_do: ");
 
     foreach my $extreme_element (keys %element_search_list) {  #  loop over the corner cases
 
@@ -687,16 +691,10 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
         foreach my $offset (@$poss_offset_array) {
             $offsets{$offset} = [split $sep_char, $offset];
         }
-        say "\nDone - using box of offsets ($index_max_search_dist based)";
+        logger->info("Done - using box of offsets ($index_max_search_dist based)");
         return wantarray ? %offsets : \%offsets;
     }
 
-    #print Data::Dumper::Dumper(\%valid_index_offsets);
-    #print Data::Dumper::Dumper (\@min_offset);
-    #print Data::Dumper::Dumper (\@max_offset);
-    #say 'Using ', scalar keys %valid_index_offsets, ' of ', scalar @$poss_offset_array, ' i_dist is ', ($index_max_search_dist // 'undef')
-    #  if $index_max_search_dist;
-    say "\nDone";
     return wantarray ? %valid_index_offsets : \%valid_index_offsets;
 }
 

@@ -18,6 +18,7 @@ use Biodiverse::Tree;
 use Biodiverse::TreeNode;
 use Biodiverse::Exception;
 use Biodiverse::Progress;
+use Biodiverse::Logger qw/logger/;
 
 our $VERSION = '6.99_001';
 
@@ -224,7 +225,7 @@ sub import_newick {
     );
     
     my $elapsed_time = time() - $start_time;
-    say "Elapsed time:  $elapsed_time";
+    logger->info("Elapsed time:  $elapsed_time");
     
     $self->add_tree (tree => $tree);
 
@@ -291,7 +292,7 @@ sub import_phylip {
         }
         
         my $elapsed_time = time() - $start_time;
-        say "Elapsed_time: $elapsed_time";
+        logger->info("Elapsed_time: $elapsed_time");
 
         $self->add_tree (tree => $tree);
     }
@@ -461,7 +462,7 @@ sub import_nexus {
             );
             
             my $elapsed_time = time() - $start_time;
-            say "Elapsed time: $elapsed_time";
+            logger->info("Elapsed time: $elapsed_time");
 
             $self->add_tree (tree => $tree);
     }
@@ -516,7 +517,7 @@ sub import_tabular_tree {
     foreach my $p (sort keys %header_col_nums) { #/
         my $param = $p . '_COL';
         $col_nums{$param} //= $header_col_nums{$p};
-        say "Param $param col $col_nums{$param}";
+        logger->info("Param $param col $col_nums{$param}");
     }
     my $max_target_col = max (values %col_nums);
 
@@ -728,10 +729,6 @@ sub import_R_phylo {
         my $parent_idx = $parent_arr[$idx];
         my $child_idx  = $node_arr[$idx];
         my $child_ref  = $node_refs{$child_idx};
-        #say "$parent_idx, $child_idx, ",
-        #  $node_refs{$parent_idx}->get_name, " ",
-        #  $child_ref->get_name;
-        #warn 'issues' if !defined $child_ref;
         $node_refs{$parent_idx}->add_children (
             children => [$child_ref],
             is_treenodes => 1,
@@ -739,7 +736,7 @@ sub import_R_phylo {
     }
 
     my $elapsed_time = time() - $start_time;
-    say "Elapsed time:  $elapsed_time";
+    logger->info("Elapsed time:  $elapsed_time");
     
     $self->add_tree (tree => $tree);
 
@@ -775,7 +772,7 @@ sub process_zero_length_trees {
             next BY_LOADED_TREE if $node->get_length;
         }
 
-        say '[READNEXUS] All nodes are of length zero, converting all to length 1';
+        logger->info('[READNEXUS] All nodes are of length zero, converting all to length 1');
         foreach my $node (values %$nodes) {
             $node->set_length_aa (1);
         }
@@ -844,7 +841,6 @@ sub parse_newick {
     if (!$progress_bar) {
         $est_node_count = $string =~ tr/,(//;  #  tr shortcuts to count items matching /,(/
         $est_node_count ||= 1;
-        #say "Estimated node count is $est_node_count";
         $tree->set_cached_value (ESTIMATED_NODE_COUNT => $est_node_count);
         $tree->set_node_hash_key_count ($est_node_count);
         $progress_bar = Biodiverse::Progress->new ();
@@ -891,7 +887,7 @@ sub parse_newick {
                 if (defined $element) {
                     my $original_name = $name;
                     $name = $element;
-                    say "$tree_name: Remapped $original_name to $element";
+                    logger->info("$tree_name: Remapped $original_name to $element");
                 }
             }
 
@@ -1051,7 +1047,7 @@ sub parse_newick {
         if (defined $element) {
             my $original_name = $name;
             $name = $element;
-            say "$tree_name: Remapped $original_name to $element";
+            logger->info("$tree_name: Remapped $original_name to $element");
         }
     }
 

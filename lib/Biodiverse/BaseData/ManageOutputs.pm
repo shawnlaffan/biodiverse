@@ -12,6 +12,7 @@ use English qw /-no_match_vars/;
 use Ref::Util qw { :all };
 use Sort::Key::Natural qw /natkeysort/;
 
+use Biodiverse::Logger qw /logger/;
 
 our $EMPTY_STRING = q{};
 
@@ -42,7 +43,7 @@ sub rename_output {
 
     my $type = $class;
     $type =~ s/.*://;
-    say "[BASEDATA] Renaming output $name to $new_name, type is $type";
+    logger->info("[BASEDATA] Renaming output $name to $new_name, type is $type");
 
     # only if it exists in this basedata
     if ( exists $hash_ref->{$name} ) {
@@ -134,7 +135,7 @@ sub delete_output {
     my $class = blessed($object) || $EMPTY_STRING;
     my $type = $class;
     $type =~ s/.*://;    #  get the last part
-    print "[BASEDATA] Deleting $type output $name\n";
+    logger->info("[BASEDATA] Deleting $type output $name");
 
     my $output_key;
 
@@ -174,7 +175,7 @@ sub do_delete_randomisation_lists {
     my $object = $args{output};
     my $name   = $object->get_name;
 
-    say "[BASEDATA] Deleting randomisation output lists associated with $name";
+    logger->info("[BASEDATA] Deleting randomisation output lists associated with $name");
 
     #  loop over the spatial outputs and clear the lists
   BY_SPATIAL_OUTPUT:

@@ -210,8 +210,6 @@ sub sp_select_sequence {
         for ( my $i = $offset; $i <= $#groups; $i += $spacing ) {
             my $ii = int $i;
 
-            #print "$ii ";
-
             next if $ii == $last_i;    #  if we get spacings less than 1
 
             my $gp = $groups[$ii];

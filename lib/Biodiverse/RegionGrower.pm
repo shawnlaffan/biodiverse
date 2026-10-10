@@ -5,6 +5,8 @@ use warnings;
 
 our $VERSION = '6.99_001';
 
+use Biodiverse::Logger qw/logger/;
+
 use parent qw /
     Biodiverse::Cluster
 /;
@@ -95,7 +97,7 @@ sub get_max_poss_matrix_value {
     my $index_value = $results->{$index};
 
     if (defined $index_value) {
-        say "[REGIONGROWER] Early stopping enabled, target value is $index_value";
+        logger->info("[REGIONGROWER] Early stopping enabled, target value is $index_value");
     }
 
     return $index_value;

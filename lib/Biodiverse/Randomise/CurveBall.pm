@@ -23,6 +23,8 @@ use Statistics::Sampler::Multinomial::Indexed 1.00;
 use Hash::Util::Set qw /keys_difference/;
 use POSIX qw /floor ceil/;
 
+use Biodiverse::Logger qw/logger/;
+
 use Biodiverse::Metadata::Parameter;
 my $parameter_rand_metadata_class = 'Biodiverse::Metadata::Parameter';
 
@@ -170,7 +172,7 @@ sub rand_curveball {
         }
     }
 
-    say "[RANDOMISE] Randomise using curveball algorithm for $n_labels labels from $n_groups groups";
+    logger->info("[RANDOMISE] Randomise using curveball algorithm for $n_labels labels from $n_groups groups");
 
     #  No need to consider groups that cannot be swapped out.
     #  Could use a binary search but this is only done once per iteration.
@@ -210,7 +212,7 @@ sub rand_curveball {
                 my $sp_cond_obj = $spatial_conditions_arr->[0];
                 my $result_type = $sp_cond_obj->get_result_type;
                 if ($result_type eq 'always_true') {
-                    say "[Randomise] spatial condition always_true, reverting to non-spatial allocation";
+                    logger->info("[Randomise] spatial condition always_true, reverting to non-spatial allocation");
                 }
                 elsif ($result_type =~ /^always_false|self_only$/) {
                     croak "Spatial condition type $result_type means it is impossible for groups to have neighbours, "
@@ -226,7 +228,7 @@ sub rand_curveball {
                     }
                     @gps_with_nbrs = sort keys %sp_swap_list;
                     my $n_gps_w_nbrs = @gps_with_nbrs;
-                    say "[Randomise] $n_gps_w_nbrs of $n_groups groups have swappable neighbours";
+                    logger->info("[Randomise] $n_gps_w_nbrs of $n_groups groups have swappable neighbours");
                     croak "[Randomise] Curveball spatial: No groups have neighbours, cannot swap labels"
                         if !@gps_with_nbrs;
                 }
@@ -257,7 +259,7 @@ sub rand_curveball {
     #  we slice from this when using the hypergeometric sampler
     my $kk = $use_hyper ? PDL->sequence(PDL::indx(), $n_labels) : undef;
 
-    say "[RANDOMISE] Target swap count is $target_swap_count, max attempts is $max_swap_attempts";
+    logger->info("[RANDOMISE] Target swap count is $target_swap_count, max attempts is $max_swap_attempts");
 
     #  handle pathological case of only one group
     my $gt_one_gp = $n_groups > 1;
@@ -439,9 +441,6 @@ sub rand_curveball {
             next MAIN_ITER if !@swap_from1;
         }
 
-        # die "Horribly" if @swap_from1 != @swap_from2;
-        # say STDERR join ' ', scalar @swap_from1, scalar @swap_from2;
-
         #  track before moving
         if ($stop_on_all_swapped && @swap_from1) {
             foreach my $i (0..$#swap_from1) {
@@ -475,19 +474,20 @@ sub rand_curveball {
 
 
     if ($attempts == $max_swap_attempts) {
-        say "[RANDOMISE] rand_curveball: max attempts threshold "
-            . "$max_swap_attempts reached.";
+        logger->info ("[RANDOMISE] rand_curveball: max attempts threshold $max_swap_attempts reached.");
     }
     elsif ($moved_pairs >= $non_zero_mx_cells) {
-        say "[RANDOMISE] rand_curveball: All "
-            . "group/label elements swapped at least once";
+        logger->info("[RANDOMISE] rand_curveball: All group/label elements swapped at least once");
     }
-    say "[RANDOMISE] rand_curveball: ran $swap_count swaps across "
+    logger->info (
+          "[RANDOMISE] rand_curveball: ran $swap_count swaps across "
         . "$attempts attempts for basedata $name with $n_labels labels and "
-        . "$n_groups groups";
+        . "$n_groups groups"
+    );
     if ($moved_pairs > 0) {
-        say "[RANDOMISE]  Swapped $moved_pairs of the $non_zero_mx_cells group/label "
-            . "elements at least once.\n";
+        logger->info (
+            "[RANDOMISE]  Swapped $moved_pairs of the $non_zero_mx_cells group/label elements at least once."
+        );
     }
 
     #  now we populate a new basedata
@@ -500,7 +500,6 @@ sub rand_curveball {
         transpose        => 1,
     );
 
-    # say 'Done';
     return $new_bd;
 }
 

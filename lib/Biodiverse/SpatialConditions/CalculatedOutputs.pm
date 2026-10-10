@@ -155,7 +155,7 @@ sub vec_sp_get_spatial_output_list_value {
         my %results;
         foreach my $element (sort $bd->get_groups) {
             my $list = $sp->get_list_ref_aa($element, $list_name) // {};
-            # say STDERR "$list, $element";
+
             my $val = $list->{$index}; #  need to handle array refs
             $results{$element} = $val;
             if (defined $val) {

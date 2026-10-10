@@ -102,7 +102,7 @@ sub vec_sp_circle {
     my $in_circle
         = (($all_coord_pdl - $this_coord_pdl)**2)->sumover
         <= $args{radius} ** 2;
-    # say STDERR $in_circle;
+
     return $in_circle;
 }
 
@@ -664,19 +664,13 @@ sub __vec_sp_ellipse {
 
     my $a_dist = ( $r_y ** 2 ) / ( $major_radius ** 2 );
     my $b_dist = ( $r_x ** 2 ) / ( $minor_radius ** 2 );
-    # my $xx = $a_dist;
-    # say STDERR $a_dist->transpose;
-    #  round precision
-    # my $precision = (1.4 * (10 ** 10));
-    # $a_dist = ($a_dist * $precision)->floor / $precision;
+
     $a_dist = ($a_dist * $precision)->floor / $precision;
     $b_dist = ($b_dist * $precision)->floor / $precision;
-    # $b_dist = ($b_dist * $precision)->floor / $precision;
 
     my $test = 1 >= ( $a_dist + $b_dist );
     $test = $test->transpose;
 
-# say STDERR $test;
     return $test;
 }
 

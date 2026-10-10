@@ -8,6 +8,8 @@ use Carp qw/croak/;
 use Ref::Util qw / is_coderef /;
 use Scalar::Util qw /weaken/;
 
+use Biodiverse::Logger qw/logger/;
+
 our $VERSION = '6.99_001';
 
 #  generalised list "and" call using PDLs
@@ -255,11 +257,8 @@ sub get_vector_set_cell_coords_pdl {
 
     my $cellsize_pdl = pdl \@cellsizes;
     my $origin_pdl   = pdl \@origins;
-# say STDERR $cellsize_pdl;
-#     say STDERR $origin_pdl;
-#     say STDERR $all_coord_pdl;
     my $cell_ndarray = ($all_coord_pdl - $origin_pdl)->inplace->divide($cellsize_pdl)->floor;
-# say STDERR $cell_ndarray->transpose;
+
     $cache->set_cached_value ($cache_key => $cell_ndarray);
     return $all_coord_pdl;
 }
@@ -334,7 +333,7 @@ sub get_vectorised_conditions_code_ref {
     }
 
     if (!$self->get_param('NO_LOG')) {
-        say "PARSED CONDITIONS (VECTORISED):  $conditions";
+        logger->info("PARSED CONDITIONS (VECTORISED):  $conditions");
     }
     $conditions_code =~ s/CONDITIONS_STRING_GOES_HERE/$conditions/m;
 

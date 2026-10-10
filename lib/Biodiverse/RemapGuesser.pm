@@ -16,6 +16,7 @@ use List::Util qw /min max/;
 use List::MoreUtils qw /minmax/;
 
 use Biodiverse::Progress;
+use Biodiverse::Logger qw/logger/;
 
 our $VERSION = '6.99_001';
 
@@ -157,8 +158,6 @@ sub guess_remap {
         $no_punct_hash{$key} = $label;
     }
 
-    #say "no_punct_hash keys: ", keys %no_punct_hash;
-
     # look for no punct matches for each of the unmatched new labels
     my @punct_matches;
     @unprocessed_from_labels = ();
@@ -174,9 +173,8 @@ sub guess_remap {
             str         => $from_label,
             ignore_case => $ignore_case,
         );
-        #say "Looking in the no_punct_hash for $from_label";
+
         if (exists $no_punct_hash{$key}) {
-            #say "Found it in there";
             $remap{$from_label} = $no_punct_hash{$key};
             push @punct_matches, $from_label;
 
@@ -184,7 +182,6 @@ sub guess_remap {
             delete $target_labels_hash{$key};
         }
         else {
-            #say "Couldn't find it in there";
             push @unprocessed_from_labels, $from_label;
         }
     }
@@ -269,9 +266,11 @@ sub guess_remap {
                 if ( scalar @$match_subset > 1) {
                     my $count = @$match_subset;
                     $ambiguous_matches{$from_label} = $match_subset;
-                    say "No definitive match for $from_label,"
+                    logger->info(
+                        "No definitive match for $from_label,"
                       . " there were $count matches with the same distance "
-                      . "($min_distance).";
+                      . "($min_distance)."
+                    );
                 }
                 push @unprocessed_from_labels, $from_label;
             }

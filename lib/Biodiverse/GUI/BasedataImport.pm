@@ -17,7 +17,6 @@ use Text::Wrapper;
 use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /all min/;
 use List::MoreUtils qw /first_index/;
-use Spreadsheet::Read 0.60;
 use Ref::Util qw { :all };
 use Geo::GDAL::FFI;
 use Path::Tiny qw /path/;
@@ -463,7 +462,6 @@ sub run {
         }
         else {                    #  we have a spreadsheet
             #  this is almost the same as in BaseData::Import
-            use Spreadsheet::Read;
 
             my $book
               = Biodiverse::Common->get_book_struct_from_spreadsheet_file (

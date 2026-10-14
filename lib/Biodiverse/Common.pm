@@ -1738,7 +1738,9 @@ sub unlink_file {
 sub get_book_struct_from_spreadsheet_file {
     my ($self, %args) = @_;
 
-    use Spreadsheet::Read qw( ReadData );
+    #  Defer loading to run time for speed reasons,
+    #  and it is not often used.
+    require Spreadsheet::Read;
 
     my $book;
     my $file = $args{file_name}
@@ -1760,11 +1762,11 @@ sub get_book_struct_from_spreadsheet_file {
         my $fh = $self->get_file_handle (
             file_name => $file,
         );
-        $book = ReadData($fh, parser => $extension);
+        $book = Spreadsheet::Read::ReadData($fh, parser => $extension);
     }
     else {
         #  sxc files and similar
-        $book = ReadData($file);
+        $book = Spreadsheet::Read::ReadData($file);
         if (!$book && $self->file_exists_aa($file)) {
             croak "[BASEDATA] Failed to read $file with SpreadSheet.\n"
                 . "If the file name contains non-ascii characters "

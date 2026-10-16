@@ -1511,10 +1511,10 @@ sub make_filename_dialog {
             patterns => [ qw/csv txt/ ],
         },
         shapefile => {
-            patterns => [ 'shp' ],
+            patterns => [ 'shp', 'shz' ],
         },
         'feature data'  => {
-            patterns => [ qw/shp gpkg gdbtable/ ],
+            patterns => [ qw/shp shz gpkg gdbtable/ ],
         },
         'spreadsheet' => {
             name     => 'spreadsheets',

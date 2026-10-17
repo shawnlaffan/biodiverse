@@ -33,11 +33,17 @@ sub _parse_gdal_dataset_layer_string_aa {
 
     #  Shapefiles can be passed without an extension in the spatial conditions
     #  as Geo::Shapefile, which was what we used, supports this.
-    if (!$self->file_exists_aa($fname) && $self->file_exists_aa("$fname.shp")) {
-        $fname .= '.shp';
+    if (!$self->file_exists_aa($fname)) {
+        foreach my $ext (qw/shz shp/) {
+            if ($self->file_exists_aa("$fname.$ext")) {
+                $fname .= ".$ext";
+            }
+        }
         $p = path($fname);
     }
 
+    #  The shp layer name is its basename while shz files have layer names
+    #  as the zip name can differ from the component shapefile.
     if ($fname =~ /\.shp$/) {
         $layer_name = $p->basename =~ s/.shp$//r;
     }

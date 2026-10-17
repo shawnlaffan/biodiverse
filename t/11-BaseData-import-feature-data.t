@@ -335,6 +335,17 @@ sub test_import_shapefile_polyline_default {
     );
 }
 
+sub test_import_shapefile_polyline_zipped {
+    use FindBin qw /$Bin/;
+    my $fname = $Bin . '/data/polyline data.shz';
+    _test_import_shapefile_polygon (
+        fname   => $fname,
+        is_line => 1,
+        expected_total_count => 369,
+    );
+}
+
+
 sub test_import_shapefile_polyline_length {
     use FindBin qw /$Bin/;
     my $fname = $Bin . '/data/polyline data.shp';

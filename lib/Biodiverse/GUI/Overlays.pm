@@ -374,6 +374,7 @@ sub on_add {
     );
     my @filters = (
         'shapefiles'  => '*.shp',
+        'shapezips'   => '*.shz',
         'geopackages' => '*.gpkg',
         'ESRI file geodatabases' => '*.gdbtable',
     );

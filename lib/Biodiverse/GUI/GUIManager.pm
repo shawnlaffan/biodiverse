@@ -741,6 +741,7 @@ sub do_save_as {
             [ 'bps', 'bps' ],
             \@formats,
         );
+        $format //= '';
         if ( $format =~ /old/ ) {
             $method = 'save_to_storable';
         }
@@ -1423,6 +1424,8 @@ sub save_object {
         [ $suffix_str, $suffix_str, $suffix_yaml ],
         [ @formats,    'yaml format' ],
     );
+
+    $format //= '';
 
     if ( $format =~ /^old / ) {
         $method = 'save_to_storable';

@@ -683,7 +683,7 @@ sub remove_selected_labels_from_list {
 
     my $selection = $treeview1->get_selection;
     my ($p, $model) = $selection->get_selected_rows();
-    my @paths = $p ? @$p : [];
+    my @paths = $p ? @$p : ();
 
     my $global_model = $self->{labels_model};
 
@@ -758,7 +758,7 @@ sub get_selected_records {
     # Get the current selection
     my $selection = $self->get_xmlpage_object('listLabels1')->get_selection();
     my ($p, $model) = $selection->get_selected_rows();
-    my @paths = $p ? @$p : [];
+    my @paths = $p ? @$p : ();
     #my @selected = map { ($_->get_indices)[0] } @paths;
     my $sorted_model = $selection->get_tree_view()->get_model();
     my $global_model = $self->{labels_model};

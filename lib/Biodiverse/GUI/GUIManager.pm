@@ -732,17 +732,13 @@ sub do_save_as {
     my $method = 'save_to_sereal';
 
     if ( !defined $filename ) {
-        my @formats = ( 'new file format', 'old file format' );
-        if ( $self->get_last_file_serialisation_format eq 'storable' ) {
-            @formats = reverse @formats;
-        }
+        my @formats = ( 'default' );
         ( $filename, $format ) = $self->show_save_dialog(
             'Save Project',
-            [ 'bps', 'bps' ],
+            [ 'bps' ],
             \@formats,
         );
-        $format //= '';
-        if ( $format =~ /old/ ) {
+        if ( $self->get_last_file_serialisation_format eq 'storable' ) {
             $method = 'save_to_storable';
         }
     }
@@ -1414,24 +1410,21 @@ sub save_object {
 
     my $method = 'save_to_sereal';
 
-    my @formats = ( 'new file format', 'old file format' );
-    if ( $object->get_last_file_serialisation_format eq 'storable' ) {
-        @formats = reverse @formats;
-    }
+    my @formats = ( 'default' );
 
     my ( $filename, $format ) = $self->show_save_dialog(
         'Save Object',
-        [ $suffix_str, $suffix_str, $suffix_yaml ],
-        [ @formats,    'yaml format' ],
+        [ $suffix_str, $suffix_yaml ],
+        [ @formats,    'yaml' ],
     );
 
     $format //= '';
 
-    if ( $format =~ /^old / ) {
-        $method = 'save_to_storable';
-    }
-    elsif ( $format =~ /^yaml / ) {
+    if ( $format =~ /^yaml / ) {
         $method = 'save_to_yaml';
+    }
+    elsif ( $object->get_last_file_serialisation_format eq 'storable' ) {
+        $method = 'save_to_storable';
     }
 
     if ( defined $filename ) {

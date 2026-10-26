@@ -682,7 +682,7 @@ sub get_last_file_serialisation_format {
 sub save_to {
     my $self = shift;
     my %args = @_;
-    my $file_name = $args{filename}
+    my $file_name = delete $args{filename}
         || $args{OUTPFX}
         || $self->get_param('NAME')
         || $self->get_param('OUTPFX');
@@ -706,7 +706,7 @@ sub save_to {
     my $tmp_file_name = $file_name . '.tmp';
 
     #my $method = $suffix eq $yaml_suffix ? 'save_to_yaml' : 'save_to_storable';
-    my $method = $args{method};
+    my $method = delete $args{method};
     if (!defined $method) {
         my $last_fmt_is_sereal = $self->get_last_file_serialisation_format eq 'sereal';
         $method
@@ -718,7 +718,7 @@ sub save_to {
     croak "Invalid save method name $method\n"
         if not $method =~ /^save_to_\w+$/;
 
-    my $result = eval {$self->$method (filename => $tmp_file_name)};
+    my $result = eval {$self->$method (filename => $tmp_file_name, %args)};
     croak $EVAL_ERROR if $EVAL_ERROR;
 
     logger->info("[COMMON] Renaming $tmp_file_name to $file_name ... ");
@@ -747,8 +747,9 @@ sub save_to_sereal {
 
     my $encoder = Sereal::Encoder->new({
         undef_unknown    => 1, #  strip any code refs
-        protocol_version => 3, #  keep compatibility with older files - should be an argument
+        protocol_version => 4, #  should be an argument
         freeze_callbacks => 1,
+        compress         => $args{compress} // Sereal::Encoder::SRL_ZSTD,
     });
 
     open (my $fh, '>', $file) or die "Cannot open $file";

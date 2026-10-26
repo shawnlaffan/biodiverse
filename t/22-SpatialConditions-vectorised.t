@@ -295,6 +295,4 @@ sub test_vectorised_conditions {
         is \%got_hash, \%exp_hash, "expected nbrs for $cond";
     }
 
-    $bd->save;
-
 }

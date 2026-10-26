@@ -51,6 +51,7 @@ sub main {
 
     test_vcache();
 
+    test_save_and_reload_uncompressed ($bd);
     test_save_and_reload_no_suffix ($bd);
     test_save_and_reload_bung_file ($bd);
 
@@ -168,6 +169,15 @@ sub test_save_and_reload {
         ) or note ($@);
     }
 
+}
+
+#  more for sanity than anything else
+sub test_save_and_reload_uncompressed {
+    my $object = shift;
+
+    use Sereal::Encoder ();
+
+    test_save_and_reload ($object, compress => Sereal::Encoder::SRL_UNCOMPRESSED);
 }
 
 sub test_clone {

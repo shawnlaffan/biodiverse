@@ -364,5 +364,77 @@ sub get_sig_rank_from_comp_results {
     return wantarray ? %results_list_ref : \%results_list_ref;
 }
 
+sub clear_spatial_condition_caches {
+    my $self = shift;
+    my %args = @_;
+
+    eval {
+        foreach my $sp (@{$self->get_spatial_conditions}) {
+            $sp->delete_cached_values (keys => $args{keys});
+        }
+    };
+    eval {
+        my $def_query = $self->get_def_query;
+        if ($def_query) {
+            $def_query->delete_cached_values (keys => $args{keys});
+        }
+    };
+
+    return;
+}
+
+#  Text::CSV_XS seems to have cache problems that borks Clone::clone and YAML::Syck::to_yaml
+sub clear_spatial_index_csv_object {
+    my $self = shift;
+
+    my $cleared;
+
+    if (my $sp_index = $self->get_param ('SPATIAL_INDEX')) {
+        $sp_index->delete_param('CSV_OBJECT');
+        $sp_index->delete_cached_values (keys => ['CSV_OBJECT']);
+        $cleared = 1;
+    }
+
+    return $cleared;
+}
+
+sub get_analysis_args_from_object {
+    my $self = shift;
+    my %args = @_;
+
+    my $object = $args{object};
+
+    my $get_copy = $args{get_copy} // 1;
+
+    my $analysis_args;
+    my $p_key;
+    ARGS_PARAM:
+    for my $key (qw/ANALYSIS_ARGS SP_CALC_ARGS/) {
+        $analysis_args = $object->get_param ($key);
+        $p_key = $key;
+        last ARGS_PARAM if defined $analysis_args;
+    }
+
+    my $return_hash = $get_copy ? {%$analysis_args} : $analysis_args;
+
+    my @results = (
+        $p_key,
+        $return_hash,
+    );
+
+    return wantarray ? @results : \@results;
+}
+
+#  Get the spatial conditions for this object if set
+#  Allow for back-compat.
+sub get_spatial_conditions {
+    my $self = shift;
+
+    my $conditions =  $self->get_param ('SPATIAL_CONDITIONS')
+        // $self->get_param ('SPATIAL_PARAMS');
+
+    return $conditions;
+}
+
 
 1;

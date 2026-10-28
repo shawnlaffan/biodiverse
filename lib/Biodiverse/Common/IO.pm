@@ -19,6 +19,7 @@ use Sereal::Encoder qw //;
 use Sereal::Decoder qw //;
 use File::Basename qw( fileparse );
 use Path::Tiny qw /path/;
+use Ref::Util qw/is_arrayref/;
 
 use Biodiverse::Logger qw/logger/;
 
@@ -482,6 +483,190 @@ sub escape_filename {
     }
 
     return $escaped_string;
+}
+
+#  handler for the available set of structures.
+#  IS THIS CALLED ANYMORE?
+sub write_table {
+    my $self = shift;
+    my %args = @_;
+    defined $args{file} || croak "file argument not specified\n";
+    my $data = $args{data} || croak "data argument not specified\n";
+    is_arrayref($data) || croak "data arg must be an array ref\n";
+
+    $args{file} = path($args{file})->absolute;
+
+    #  now do stuff depending on what format was chosen, based on the suffix
+    my (undef, $suffix) = lc ($args{file}) =~ /(.*?)\.(.*?)$/;
+    if (! defined $suffix) {
+        $suffix = 'csv';  #  does not affect the actual file name, as it is not passed onwards
+    }
+
+    if ($suffix =~ /csv|txt/i) {
+        $self->write_table_csv (%args);
+    }
+    #elsif ($suffix =~ /dbf/i) {
+    #    $self->write_table_dbf (%args);
+    #}
+    elsif ($suffix =~ /htm/i) {
+        $self->write_table_html (%args);
+    }
+    elsif ($suffix =~ /yml/i) {
+        $self->write_table_yaml (%args);
+    }
+    elsif ($suffix =~ /json/i) {
+        $self->write_table_json (%args);
+    }
+    #elsif ($suffix =~ /shp/) {
+    #    $self->write_table_shapefile (%args);
+    #}
+    elsif ($suffix =~ /mrt/i) {
+        #  some humourless souls might regard this as unnecessary...
+        warn "I pity the fool who thinks Mister T is a file format.\n";
+        warn "[COMMON] Not a recognised suffix $suffix, using csv/txt format\n";
+        $self->write_table_csv (%args, data => $data);
+    }
+    else {
+        logger->info("[COMMON] Not a recognised suffix $suffix, using csv/txt format");
+        $self->write_table_csv (%args, data => $data);
+    }
+}
+
+
+sub get_csv_object_for_export {
+    my $self = shift;
+    my %args = @_;
+
+    my $sep_char = $args{sep_char}
+        || $self->get_param ('OUTPUT_SEP_CHAR')
+        || q{,};
+
+    my $quote_char = $args{quote_char}
+        || $self->get_param ('OUTPUT_QUOTE_CHAR')
+        || q{"};
+
+    if ($quote_char =~ /space/) {
+        $quote_char = "\ ";
+    }
+    elsif ($quote_char =~ /tab/) {
+        $quote_char = "\t";
+    }
+
+    if ($sep_char =~ /space/) {
+        $sep_char = "\ ";
+    }
+    elsif ($sep_char =~ /tab/) {
+        $sep_char = "\t";
+    }
+
+    my $csv_obj = $self->get_csv_object (
+        %args,
+        sep_char   => $sep_char,
+        quote_char => $quote_char,
+    );
+
+    return $csv_obj;
+}
+
+
+sub write_table_csv {
+    my $self = shift;
+    my %args = @_;
+    my $data = $args{data} || croak "data arg not specified\n";
+    is_arrayref($data) || croak "data arg must be an array ref\n";
+    my $file = $args{file} || croak "file arg not specified\n";
+
+    my $csv_obj = $self->get_csv_object_for_export (%args);
+
+    my $fh = $self->get_file_handle (file_name => $file, mode => '>');
+
+    eval {
+        foreach my $line_ref (@$data) {
+            my $string = $self->list2csv (  #  should pass csv object
+                list       => $line_ref,
+                csv_object => $csv_obj,
+            );
+            say {$fh} $string;
+        }
+    };
+    croak $EVAL_ERROR if $EVAL_ERROR;
+
+    if ($fh->close) {
+        logger->info("[COMMON] Write to file $file successful");
+    }
+    else {
+        croak "[COMMON] Unable to close $file\n";
+    };
+
+    return;
+}
+
+
+sub write_table_yaml {  #  dump the table to a YAML file.
+    my $self = shift;
+    my %args = @_;
+
+    my $data = $args{data} // croak "data arg not specified\n";
+    is_arrayref($data) // croak "data arg must be an array ref\n";
+    my $file = $args{file} // croak "file arg not specified\n";
+
+    eval {
+        $self->dump_to_yaml (
+            %args,
+            filename => $file,
+        )
+    };
+    croak $EVAL_ERROR if $EVAL_ERROR;
+
+    return;
+}
+
+sub write_table_json {  #  dump the table to a JSON file.
+    my $self = shift;
+    my %args = @_;
+
+    my $data = $args{data} // croak "data arg not specified\n";
+    is_arrayref($data) // croak "data arg must be an array ref\n";
+    my $file = $args{file} // croak "file arg not specified\n";
+
+    eval {
+        $self->dump_to_json (
+            %args,
+            filename => $file,
+        )
+    };
+    croak $EVAL_ERROR if $EVAL_ERROR;
+
+    return;
+}
+
+sub write_table_html {
+    my $self = shift;
+    my %args = @_;
+    my $data = $args{data} || croak "data arg not specified\n";
+    is_arrayref($data) || croak "data arg must be an array ref\n";
+    my $file = $args{file} || croak "file arg not specified\n";
+
+    use HTML::QuickTable ();
+    my $qt = HTML::QuickTable->new();
+
+    my $table = $qt->render($args{data});
+
+    open my $fh, '>', $file;
+
+    eval {
+        print {$fh} $table;
+    };
+    croak $EVAL_ERROR if $EVAL_ERROR;
+
+    if ($fh->close) {
+        logger->info("[COMMON] Write to file $file successful")
+    }
+    else {
+        croak "[COMMON] Write to file $file failed, unable to close file\n"
+    }
+
+    return;
 }
 
 

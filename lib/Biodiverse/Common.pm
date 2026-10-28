@@ -14,9 +14,7 @@ use English ( -no_match_vars );
 use constant ON_WINDOWS => ($OSNAME eq 'MSWin32');
 use if ON_WINDOWS, 'Win32::LongPath';
 
-#use Data::Dumper  qw /Dumper/;
 use YAML::Syck ();
-#use YAML::XS;
 use Text::CSV_XS 1.52 ();
 use Scalar::Util qw /blessed isweak reftype weaken/;
 use List::MoreUtils qw /none/;
@@ -41,10 +39,6 @@ BEGIN {
 
 use Math::Random::MT::Auto ();
 
-#use Regexp::Common qw /number/;
-
-use Biodiverse::Progress;
-use Biodiverse::Exception;
 use Biodiverse::Logger qw /logger/;
 
 use Clone ();
@@ -1722,6 +1716,8 @@ sub get_csv_object_using_guesswork {
 sub get_next_line_set {
     my $self = shift;
     my %args = @_;
+
+    use Biodiverse::Progress;
 
     my $progress_bar        = Biodiverse::Progress->new (gui_only => 1);
     my $file_handle         = $args{file_handle};

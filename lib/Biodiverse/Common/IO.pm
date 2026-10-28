@@ -669,5 +669,140 @@ sub write_table_html {
     return;
 }
 
+sub get_shortpath_filename {
+    my ($self, %args) = @_;
+
+    my $file_name = $args{file_name}
+        // croak 'file_name not specified';
+
+    return $file_name if not ON_WINDOWS;
+
+    my $short_path = $self->file_exists_aa($file_name) ? shortpathL ($file_name) : '';
+
+    # die "unable to get short name for $file_name ($^E)"
+    #   if $short_path eq '';
+
+    return $short_path;
+}
+
+sub get_file_handle {
+    my ($self, %args) = @_;
+
+    my $file_name = $args{file_name}
+        // croak 'file_name not specified';
+
+    my $mode = $args{mode} // $args{layers};
+    $mode ||= '<';
+    if ($args{use_bom}) {
+        $mode .= ':via(File::BOM)';
+    }
+
+    my $fh;
+
+    if (ON_WINDOWS && !-e $file_name) {
+        openL (\$fh, $mode, $file_name)
+            or die ("unable to open $file_name ($^E)");
+    }
+    else {
+        open $fh, $mode, $file_name
+            or die "Unable to open $file_name, $!";
+    }
+
+    croak "CANNOT GET FILE HANDLE FOR $file_name\n"
+        . "MODE IS $mode\n"
+        if !$fh;
+
+    return $fh;
+}
+
+sub file_exists_aa {
+    $_[0]->file_exists (file_name => $_[1]);
+}
+
+sub file_exists {
+    my ($self, %args) = @_;
+
+    my $file_name = $args{file_name};
+
+    return 1 if -e $file_name;
+
+    if (ON_WINDOWS) {
+        return testL ('e', $file_name);
+    }
+
+    return;
+}
+
+sub dir_exists_aa {
+    my ($self, $dir) = @_;
+
+    return 1 if -d $dir;
+
+    return testL ('d', $dir)
+        if ON_WINDOWS;
+
+    return;
+}
+
+sub file_is_readable_aa {
+    $_[0]->file_is_readable (file_name => $_[1]);
+}
+
+sub file_is_readable {
+    my ($self, %args) = @_;
+
+    my $file_name = $args{file_name};
+
+    return 1 if -r $file_name;
+
+    if (ON_WINDOWS) {
+        #  Win32::LongPath always returns 1 for r
+        return testL ('e', $file_name) && testL ('r', $file_name);
+    }
+
+    return;
+}
+
+sub get_file_size_aa {
+    $_[0]->get_file_size (file_name => $_[1]);
+}
+
+sub get_file_size {
+    my ($self, %args) = @_;
+
+    my $file_name = $args{file_name};
+
+    my $file_size;
+
+    if (-e $file_name) {
+        $file_size = -s $file_name;
+    }
+    elsif (ON_WINDOWS) {
+        my $stat = statL ($file_name)
+            or die ("unable to get stat for $file_name ($^E)");
+        $file_size = $stat->{size};
+    }
+    else {
+        croak "[BASEDATA] get_file_size $file_name DOES NOT EXIST OR CANNOT BE READ\n";
+    }
+
+    return $file_size;
+}
+
+sub unlink_file {
+    my ($self, %args) = @_;
+    my $file_name = $args{file_name}
+        // croak 'file_name arg not specified';
+
+    my $count = 0;
+    if (ON_WINDOWS) {
+        $count = unlinkL ($file_name) or die "unable to delete file ($^E)";
+    }
+    else {
+        $count = unlink ($file_name) or die "unable to delete file ($^E)";
+    }
+
+    return $count;
+}
 
 1;

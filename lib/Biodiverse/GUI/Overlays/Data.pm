@@ -14,7 +14,7 @@ use Ref::Util qw /is_arrayref/;
 
 use Biodiverse::GUI::Overlays::Geometry;
 
-use parent 'Biodiverse::Common';
+use parent 'Biodiverse::Common::IO';
 
 #  filebase matches Geo::Shapefile and makes some things easier later on
 sub new {

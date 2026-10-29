@@ -246,7 +246,7 @@ sub run {
 
     # set visible fields in import dialog
     if ( !!$read_format_is_text ) {
-        my $csv = Biodiverse::Common->get_csv_object_using_guesswork (fname => $filenames[0]);
+        my $csv = Biodiverse::Common::CSV->get_csv_object_using_guesswork (fname => $filenames[0]);
 
         my %text_args = $basedata_ref->get_args(
             sub              => 'import_data_text',
@@ -377,7 +377,7 @@ sub run {
         croak 'no files given' if !scalar @filenames;
 
         my $fnamebase  = $filenames[0];
-        my $layer = Biodiverse::Common->get_gdal_feature_class_layer_from_path(path => $fnamebase);
+        my $layer = Biodiverse::Common::IO->get_gdal_feature_class_layer_from_path(path => $fnamebase);
         my $schema     = $layer->GetDefn->GetSchema;
         my $shape_type = $schema->{GeometryFields}[0]{Type};
 
@@ -464,7 +464,7 @@ sub run {
             #  this is almost the same as in BaseData::Import
 
             my $book
-              = Biodiverse::Common->get_book_struct_from_spreadsheet_file (
+              = Biodiverse::Common::IO->get_book_struct_from_spreadsheet_file (
                 file_name => $filename_utf8,  
             );
 
@@ -795,7 +795,7 @@ sub run {
                 foreach my $file (@$filelist) {
                     #  not sure we want to go through the lot - what if we have 1000 point files?
                     my ($ds_name, $layer_name)
-                        = Biodiverse::Common->_parse_gdal_dataset_layer_string_aa($file);
+                        = Biodiverse::Common::IO->_parse_gdal_dataset_layer_string_aa($file);
                     my $ds  = eval {
                         Geo::GDAL::FFI::Open($ds_name);
                     };
@@ -1975,7 +1975,7 @@ sub get_remap_info {
     # Get header columns
     say "[GUI] Discovering columns from $filename";
 
-    my $input_fh = Biodiverse::Common->get_file_handle (
+    my $input_fh = Biodiverse::Common::IO->get_file_handle (
         file_name => $filename,
         use_bom   => 1,
     );

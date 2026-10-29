@@ -426,7 +426,7 @@ sub on_add {
 
     if ($filename =~ /.shp$/) {
         my $shx = $filename =~ s/.shp$/.shx/r;
-        if (!Biodiverse::Common->file_exists_aa ($shx)) {
+        if (!Biodiverse::Common::IO->file_exists_aa ($shx)) {
             my $dlg_text =<<~'EOT'
 
                 Shapefile is missing required .shx file, create it?

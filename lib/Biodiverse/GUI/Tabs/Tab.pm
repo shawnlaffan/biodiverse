@@ -1895,7 +1895,7 @@ sub load_range_table_as_hash {
     # Get header columns
     say "[GUI] Discovering columns from $filename";
 
-    my $input_fh = Biodiverse::Common->get_file_handle (
+    my $input_fh = Biodiverse::Common::IO->get_file_handle (
         file_name => $filename,
         use_bom   => 1,
     );
@@ -1983,7 +1983,7 @@ sub load_range_table_as_hash {
     my $range_col     = $column_settings->{range}[0]{name};
 
     my %range_data;
-    my $fh = Biodiverse::Common->get_file_handle (
+    my $fh = Biodiverse::Common::IO->get_file_handle (
         file_name => $filename,
         use_bom   => 1,
     );

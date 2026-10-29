@@ -14,7 +14,7 @@ use Biodiverse::GUI::Project;
 use Biodiverse::GUI::BasedataImport
   ;    #  needed for the remap dialogue - should shift that to its own package
 use Biodiverse::ElementProperties;
-use Biodiverse::Common;
+use Biodiverse::Common::IO;
 
 ##################################################
 # High-level procedure
@@ -54,7 +54,7 @@ sub run {
 
     my $line;
 
-    my $fh = Biodiverse::Common->get_file_handle (
+    my $fh = Biodiverse::Common::IO->get_file_handle (
         file_name => $filename,
         use_bom   => 1,
     );

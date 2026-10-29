@@ -86,6 +86,31 @@ sub get_palette_colorbrewer_dark2 {
     return wantarray ? @palette : [@palette];
 }
 
+# Not sure these rgb_* methods are used anywhere
+sub rgb_12bit_to_8bit_aa {
+    my ($self, $colour) = @_;
+
+    return $colour if !defined $colour || $colour !~ /^#[a-fA-F\d]{12}$/;
+
+    my $proper_form_string = "#";
+    my @wanted_indices = (1, 2, 5, 6, 9, 10);
+    foreach my $index (@wanted_indices) {
+        $proper_form_string .= substr($colour, $index, 1);
+    }
+
+    return $proper_form_string;
+}
+
+sub rgb_12bit_to_8bit  {
+    my ($self, %args) = @_;
+    my $colour = $args{colour};
+
+    #  only worry about #RRRRGGGGBBBB
+    return $colour if !defined $colour || $colour !~ /^#[a-fA-F\d]{12}$/;
+
+    return $self->rgb_12bit_to_8bit_aa ($colour);
+}
+
 
 
 1;

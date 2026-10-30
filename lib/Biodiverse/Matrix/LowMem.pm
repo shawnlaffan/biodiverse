@@ -16,10 +16,6 @@ use Biodiverse::Exception;
 use Biodiverse::Logger qw/logger/;
 
 use parent qw /
-    Biodiverse::Common::Params
-    Biodiverse::Common::CSV
-    Biodiverse::Common::Caching
-    Biodiverse::Common
     Biodiverse::Matrix::Base
 /;
 

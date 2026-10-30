@@ -16,6 +16,13 @@ use Biodiverse::Exception;
 use Biodiverse::Logger qw /logger/;
 use Ref::Util qw { :all };
 
+use parent qw /
+    Biodiverse::Common::Params
+    Biodiverse::Common::CSV
+    Biodiverse::Common::Caching
+    Biodiverse::Common::Metadata
+    Biodiverse::Common
+/;
 
 my $EMPTY_STRING = q{};
 my $lowmem_class = 'Biodiverse::Matrix::LowMem';

@@ -28,10 +28,6 @@ my $EMPTY_STRING = q{};
 #  access the miscellaneous functions as methods
 use parent qw /
     Biodiverse::Common::IO
-    Biodiverse::Common::Params
-    Biodiverse::Common::CSV
-    Biodiverse::Common::Caching
-    Biodiverse::Common
     Biodiverse::Matrix::Base
 /;
 

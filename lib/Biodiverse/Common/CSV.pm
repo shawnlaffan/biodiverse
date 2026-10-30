@@ -10,6 +10,11 @@ use English ( -no_match_vars );
 
 use Biodiverse::Logger qw /logger/;
 
+use parent qw /
+    Biodiverse::Common::IO
+    Biodiverse::Common::Params
+/;
+
 my $EMPTY_STRING = q{};
 
 sub list2csv {  #  return a csv string from a list of values

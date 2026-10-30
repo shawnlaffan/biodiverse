@@ -170,7 +170,7 @@ sub get_column_use {
     say "[GUI] Discovering columns from $tree_filename";
     my ($line, $line_unchomped);
 
-    my $fh = Biodiverse::Common->get_file_handle (
+    my $fh = Biodiverse::Common::IO->get_file_handle (
         file_name => $tree_filename,
         use_bom   => 1,
     );
@@ -301,7 +301,7 @@ sub get_remap_info {
     say "[GUI] Discovering columns from $filename";
     my $line;
 
-    my $fh = Biodiverse::Common->get_file_handle (
+    my $fh = Biodiverse::Common::IO->get_file_handle (
         file_name => $filename,
         use_bom   => 1,
     );

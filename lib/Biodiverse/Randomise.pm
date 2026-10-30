@@ -485,7 +485,7 @@ sub run_randomisation {
 
     my $rand_object = $self->initialise_rand(%args);
     if (defined $new_seed) {
-        my $rand_reseeded = Biodiverse::Common->initialise_rand(seed => $new_seed);
+        my $rand_reseeded = Biodiverse::Common::Rand->initialise_rand(seed => $new_seed);
         my $new_state = $rand_reseeded->get_state;
         my $comp = Data::Compare->new;
         my $init_states = $self->get_prng_init_states_array;

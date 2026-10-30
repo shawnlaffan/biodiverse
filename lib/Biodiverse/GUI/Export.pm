@@ -110,7 +110,7 @@ sub Run {
     my $chooser = $results->{chooser};
 
     my $filename = $chooser->get_filename;
-    if (!length $filename || Biodiverse::Common->dir_exists_aa ($filename)) {
+    if (!length $filename || Biodiverse::Common::IO->dir_exists_aa ($filename)) {
         $dlg->destroy;
 
         Biodiverse::GUI::YesNoCancel->run({
@@ -128,7 +128,7 @@ sub Run {
     $filename = path($filename)->stringify;
 
     my $writefile = 'yes';
-    while (Biodiverse::Common->file_exists_aa($filename)) {
+    while (Biodiverse::Common::IO->file_exists_aa($filename)) {
         $writefile = Biodiverse::GUI::YesNoCancel->run({
             header => "Overwrite file $filename?"
         });

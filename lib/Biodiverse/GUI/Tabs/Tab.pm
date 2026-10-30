@@ -15,6 +15,11 @@ use Carp;
 use Sort::Key::Natural qw /natsort/;
 use Ref::Util qw /is_arrayref is_coderef/;
 
+use parent qw/
+    Biodiverse::Common::Params
+    Biodiverse::Common::Caching
+/;
+
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
@@ -1011,58 +1016,6 @@ sub get_dendrogram_background_colour {
     return $colour;
 }
 
-########
-##
-##  Some cache methods which have been copied across from Biodiverse::Common
-##  since we don't want all the methods.
-##  Need to refactor Biodiverse::Common.
-
-
-#  set any value - allows user specified additions to the core stuff
-sub set_cached_value {
-    my $self = shift;
-    my %args = @_;
-    @{$self->{_cache}}{keys %args} = values %args;
-
-    return;
-}
-
-sub set_cached_values {
-    my $self = shift;
-    $self->set_cached_value (@_);
-}
-
-#  hot path, so needs to be lean and mean, even if less readable
-sub get_cached_value {
-    return if ! exists $_[0]->{_cache}{$_[1]};
-    return $_[0]->{_cache}{$_[1]};
-}
-
-sub get_cached_value_keys {
-    my $self = shift;
-    
-    return if ! exists $self->{_cache};
-    
-    return wantarray
-        ? keys %{$self->{_cache}}
-        : [keys %{$self->{_cache}}];
-}
-
-sub delete_cached_values {
-    my $self = shift;
-    my %args = @_;
-    
-    return if ! exists $self->{_cache};
-
-    my $keys = $args{keys} || $self->get_cached_value_keys;
-    return if not defined $keys or scalar @$keys == 0;
-
-    delete @{$self->{_cache}}{@$keys};
-    delete $self->{_cache} if scalar keys %{$self->{_cache}} == 0;
-
-    return;
-}
-
 sub update_export_menu {
     my $self = shift;
 
@@ -1895,7 +1848,7 @@ sub load_range_table_as_hash {
     # Get header columns
     say "[GUI] Discovering columns from $filename";
 
-    my $input_fh = Biodiverse::Common->get_file_handle (
+    my $input_fh = Biodiverse::Common::IO->get_file_handle (
         file_name => $filename,
         use_bom   => 1,
     );
@@ -1983,7 +1936,7 @@ sub load_range_table_as_hash {
     my $range_col     = $column_settings->{range}[0]{name};
 
     my %range_data;
-    my $fh = Biodiverse::Common->get_file_handle (
+    my $fh = Biodiverse::Common::IO->get_file_handle (
         file_name => $filename,
         use_bom   => 1,
     );

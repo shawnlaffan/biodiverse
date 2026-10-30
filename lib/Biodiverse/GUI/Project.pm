@@ -9,7 +9,7 @@ use Path::Tiny qw /path/;
 #use Data::Structure::Util qw /has_circular_ref get_refs/; #  hunting for circular refs
 
 use Biodiverse::BaseData;
-use Biodiverse::Common;
+use Biodiverse::Common::IO;
 use Biodiverse::Matrix;
 use Biodiverse::ReadNexus;
 
@@ -20,7 +20,6 @@ use English ( -no_match_vars );
 our $VERSION = '6.99_001';
 
 require Exporter;
-use parent qw/Exporter Biodiverse::Common/;
 our @EXPORT = qw(
   MODEL_BASEDATA
   MODEL_OUTPUT
@@ -31,10 +30,13 @@ our @EXPORT = qw(
   MODEL_OUTPUT_TYPE
 );
 
-#use Storable ();
+use parent qw/
+    Exporter
+    Biodiverse::Common::IO
+    Biodiverse::Common::Params
+    Biodiverse::Common::CSV
+/;
 
-#use Geo::Shapelib;
-use Geo::ShapeFile;
 use Tie::RefHash;
 use Scalar::Util qw /blessed/;
 
@@ -1609,7 +1611,7 @@ sub init_overlay_hash {
             $db = $name;  #  shapefiles are not in databases
         }
 
-        if ( Biodiverse::Common->file_is_readable (file_name => $db) ) {
+        if ( Biodiverse::Common::IO->file_is_readable (file_name => $db) ) {
             # Set hash entry to undef - will load on demand
             $self->{overlay_objects}{$name} = undef;
             push @existing_overlays, $entry;

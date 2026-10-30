@@ -35,7 +35,6 @@ our $VERSION = '6.99_001';
 
 use parent qw {
     Biodiverse::GUI::Tabs::Tab
-    Biodiverse::Common
 };
 
 use constant LABELS_MODEL_NAME          => 0;

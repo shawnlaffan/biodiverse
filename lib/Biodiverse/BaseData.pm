@@ -47,8 +47,11 @@ my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 our $VERSION = '6.99_001';
 
 use parent qw {
-    Biodiverse::Common
+    Biodiverse::Common::Params
     Biodiverse::Common::IO
+    Biodiverse::Common::Caching
+    Biodiverse::Common::CSV
+    Biodiverse::Common
     Biodiverse::BaseData::Import
     Biodiverse::BaseData::ManageOutputs
     Biodiverse::BaseData::Exclusions

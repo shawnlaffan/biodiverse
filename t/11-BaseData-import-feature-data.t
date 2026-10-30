@@ -131,7 +131,7 @@ sub test_import_roundtrip_shapefile {
         ok (!$e, "no exceptions exporting $format to $fname");
         diag $e if $e;
         ok (
-            Biodiverse::Common->file_exists_aa ($fname . '.shp'),
+            Biodiverse::Common::IO->file_exists_aa ($fname . '.shp'),
             "$fname.shp exists",
         );
 

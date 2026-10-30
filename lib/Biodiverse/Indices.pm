@@ -47,6 +47,7 @@ use parent qw {
   Biodiverse::Common::Caching
   Biodiverse::Common::Params
   Biodiverse::Common::CSV
+  Biodiverse::Common::Metadata
   Biodiverse::Common
 };
 

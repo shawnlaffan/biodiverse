@@ -15,6 +15,7 @@ use constant DEFAULT_PRECISION_SMALL => 1e-10;
 
 use parent qw /
     Biodiverse::Common::Rand
+    Biodiverse::Common::Metadata
 /;
 
 #  Keying by sha allows more general re-use by other code,

@@ -31,6 +31,7 @@ use parent qw /
     Biodiverse::SpatialConditions::Vectorise
     Biodiverse::Common::Params
     Biodiverse::Common::Caching
+    Biodiverse::Common::Metadata
     Biodiverse::Common
 /;
 

@@ -29,8 +29,9 @@ use parent qw /
     Biodiverse::SpatialConditions::TextMatch
     Biodiverse::SpatialConditions::GroupVals
     Biodiverse::SpatialConditions::Vectorise
+    Biodiverse::Common::Params
+    Biodiverse::Common::Caching
     Biodiverse::Common
-    Biodiverse::Common::IO
 /;
 
 our $VERSION = '6.99_001';

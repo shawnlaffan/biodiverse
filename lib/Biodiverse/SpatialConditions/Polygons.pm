@@ -20,6 +20,10 @@ use Path::Tiny qw /path/;
 use Hash::Util::Set qw/keys_disjoint/;
 use Geo::GDAL::FFI;
 
+use parent qw/
+    Biodiverse::Common::IO
+/;
+
 use Biodiverse::Metadata::SpatialConditions;
 
 my $NULL_STRING = q{};

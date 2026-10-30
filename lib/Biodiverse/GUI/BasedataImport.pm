@@ -27,8 +27,9 @@ no warnings 'redefine';  #  getting redefine warnings, which aren't a problem fo
 use Biodiverse::GUI::Project;
 use Biodiverse::ElementProperties;
 
-#  for use in check_if_r_data_frame
-use Biodiverse::Common;
+#  we use some package methods
+use Biodiverse::Common::CSV;
+use Biodiverse::Common::IO;
 
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
@@ -1021,15 +1022,14 @@ sub cleanup_new_basedatas {
 sub check_if_r_data_frame {
     my %args = @_;
 
-    my $package = 'Biodiverse::Common';
-    my $csv = $args{csv_object} // $package->get_csv_object(@_);
+    my $csv = $args{csv_object} // Biodiverse::Common::CSV->get_csv_object(@_);
 
-    my $fh = $package->get_file_handle (
+    my $fh = Biodiverse::Common::IO->get_file_handle (
         file_name => $args{file},
         use_bom   => 1,
     );
 
-    my @lines = $package->get_next_line_set(
+    my @lines = Biodiverse::Common::IO->get_next_line_set(
         target_line_count => 10,
         file_handle       => $fh,
         csv_object        => $csv,

@@ -37,11 +37,6 @@ use parent qw/
     Biodiverse::Common::CSV
 /;
 
-
-#use Storable ();
-
-#use Geo::Shapelib;
-use Geo::ShapeFile;
 use Tie::RefHash;
 use Scalar::Util qw /blessed/;
 

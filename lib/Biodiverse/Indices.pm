@@ -46,6 +46,7 @@ use parent qw {
   Biodiverse::Indices::RWiBaLD
   Biodiverse::Common::Caching
   Biodiverse::Common::Params
+  Biodiverse::Common::CSV
   Biodiverse::Common
 };
 

@@ -13,6 +13,9 @@ use experimental qw /refaliasing for_list/;
 
 use constant DEFAULT_PRECISION_SMALL => 1e-10;
 
+use parent qw /
+    Biodiverse::Common::Rand
+/;
 
 #  Keying by sha allows more general re-use by other code,
 #  e.g. derived eq length trees have the same topology.

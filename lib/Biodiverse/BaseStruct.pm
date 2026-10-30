@@ -32,7 +32,9 @@ our $VERSION = '6.99_001';
 my $EMPTY_STRING = q{};
 
 use parent qw /
-    Biodiverse::Common
+    Biodiverse::Common::Caching
+    Biodiverse::Common::Params
+    Biodiverse::Common::CSV
     Biodiverse::BaseStruct::Export
 /;
 

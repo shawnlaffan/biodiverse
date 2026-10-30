@@ -32,7 +32,12 @@ use Biodiverse::Logger qw/logger/;
 
 our $VERSION = '6.99_001';
 
-use parent qw /Biodiverse::Common/;
+use parent qw /
+    Biodiverse::Common::Caching
+    Biodiverse::Common::Params
+    Biodiverse::Common::CSV
+    Biodiverse::Common
+/;
 
 
 sub new {

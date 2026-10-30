@@ -34,15 +34,6 @@ use Biodiverse::Logger qw /logger/;
 
 use Clone ();
 
-use parent qw(
-    Biodiverse::Common::Caching
-    Biodiverse::Common::IO
-    Biodiverse::Common::Params
-    Biodiverse::Common::Metadata
-    Biodiverse::Common::CSV
-    Biodiverse::Common::Rand
-);
-
 our $VERSION = '6.99_001';
 
 my $EMPTY_STRING = q{};

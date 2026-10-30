@@ -41,8 +41,13 @@ use Biodiverse::Exception;
 use Biodiverse::Logger qw/logger/;
 
 use parent qw /
-  Biodiverse::Common
-  /;    #/
+    Biodiverse::Common::IO
+    Biodiverse::Common::Caching
+    Biodiverse::Common::Params
+    Biodiverse::Common::Rand
+    Biodiverse::Common::CSV
+    Biodiverse::Common
+/;
 
 my $EMPTY_STRING = q{};
 

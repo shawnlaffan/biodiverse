@@ -15,6 +15,11 @@ use Carp;
 use Sort::Key::Natural qw /natsort/;
 use Ref::Util qw /is_arrayref is_coderef/;
 
+use parent qw/
+    Biodiverse::Common::Params
+    Biodiverse::Common::Caching
+/;
+
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 

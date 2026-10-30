@@ -32,7 +32,10 @@ use Biodiverse::SpatialConditions;
 use Biodiverse::SpatialConditions::DefQuery;
 use Ref::Util qw /is_blessed_ref/;
 
-use parent qw /Biodiverse::Common/;  #  need get/set_param
+use parent qw /
+    Biodiverse::Common::Params
+    Biodiverse::Common::Caching
+/;
 
 sub new {
     my ($class, %args) = @_;

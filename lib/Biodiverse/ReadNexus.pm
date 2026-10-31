@@ -22,7 +22,11 @@ use Biodiverse::Logger qw/logger/;
 
 our $VERSION = '6.99_001';
 
-use parent qw /Biodiverse::Common/;
+use parent qw /
+    Biodiverse::Common::IO
+    Biodiverse::Common::Params
+    Biodiverse::Common::CSV
+/;
 
 #  hunt for any decimal number format
 use Regexp::Common qw /number delimited/;

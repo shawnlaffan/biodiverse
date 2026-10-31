@@ -21,7 +21,12 @@ use Biodiverse::BaseStruct;
 use Biodiverse::TreeNode::BootstrapBlock;
 use Biodiverse::Logger qw/logger/;
 
-use parent qw /Biodiverse::Common/;
+use parent qw /
+    Biodiverse::Common::Caching
+    Biodiverse::Common::Params
+    Biodiverse::Common::Rand
+    Biodiverse::Common::CSV
+/;
 
 our $VERSION = '6.99_001';
 

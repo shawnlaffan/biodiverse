@@ -26,7 +26,10 @@ use Biodiverse::Logger qw/logger/;
 my $EMPTY_STRING = q{};
 
 #  access the miscellaneous functions as methods
-use parent qw /Biodiverse::Common Biodiverse::Matrix::Base/;
+use parent qw /
+    Biodiverse::Common::IO
+    Biodiverse::Matrix::Base
+/;
 
 sub new {
     my $class = shift;

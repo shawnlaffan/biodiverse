@@ -9,7 +9,10 @@ use Biodiverse::Exception;
 
 our $VERSION = '6.99_001';
 
-use parent qw /Biodiverse::BaseStruct Biodiverse::Common/; #/
+use parent qw /
+    Biodiverse::BaseStruct
+/;
+
 use Ref::Util qw { :all };
 
 

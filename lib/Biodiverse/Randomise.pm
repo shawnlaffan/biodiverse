@@ -55,6 +55,10 @@ my $progress_update_interval = $Biodiverse::Config::progress_update_interval;
 use parent qw {
     Biodiverse::Randomise::IndependentSwaps
     Biodiverse::Randomise::CurveBall
+    Biodiverse::Common::Caching
+    Biodiverse::Common::Params
+    Biodiverse::Common::Rand
+    Biodiverse::Common::IO
     Biodiverse::Common
     Biodiverse::Analyses
 };

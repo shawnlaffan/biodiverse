@@ -15,7 +15,9 @@ use Biodiverse::Matrix;
 use Biodiverse::Exception;
 use Biodiverse::Logger qw/logger/;
 
-use parent qw /Biodiverse::Common Biodiverse::Matrix::Base/;
+use parent qw /
+    Biodiverse::Matrix::Base
+/;
 
 sub new {
     my $class = shift;

@@ -44,6 +44,10 @@ use parent qw {
   Biodiverse::Indices::RWTurnover
   Biodiverse::Indices::RichnessEstimation
   Biodiverse::Indices::RWiBaLD
+  Biodiverse::Common::Caching
+  Biodiverse::Common::Params
+  Biodiverse::Common::CSV
+  Biodiverse::Common::Metadata
   Biodiverse::Common
 };
 

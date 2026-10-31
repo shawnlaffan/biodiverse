@@ -53,8 +53,6 @@ use constant SOURCES_MODEL_CALLBACK => 1;
 
 # Data types that we can paste into the clipboard
 use constant TYPE_TEXT => 1;
-use constant TYPE_HTML => 2; # spreadsheet programs should understand HTML tables
-
 
 #NOTE: we store the dialog's xml, not the actual widget
 my %g_dialogs;      # Maps cell -> dialog

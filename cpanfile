@@ -17,7 +17,6 @@ requires "Geo::ShapeFile", "3.00",
 requires "Getopt::Long::Descriptive";
 requires "Hash::Util::Set";
 requires "Hash::Util::Set::XS";
-requires "HTML::QuickTable";
 requires "JSON::MaybeXS", "1.003";
 requires "JSON::PP";
 requires "List::MoreUtils", "0.425";

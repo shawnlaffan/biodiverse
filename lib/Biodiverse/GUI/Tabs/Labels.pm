@@ -17,8 +17,6 @@ use Ref::Util qw /is_ref is_arrayref is_hashref/;
 use POSIX qw /floor ceil/;
 use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
 
-use HTML::QuickTable;
-
 use Gtk3;
 use Carp;
 use Biodiverse::GUI::GUIManager;
@@ -54,7 +52,6 @@ my $selected_list1_name = 'Selected';
 my $selected_list2_name = 'Col selected';
 
 use constant TYPE_TEXT => 1;
-use constant TYPE_HTML => 2; # some programs want HTML tables
 
 #  The row updates in set_selected_list_cols run quadratically
 #  for later values in the list.

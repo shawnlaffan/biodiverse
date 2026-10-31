@@ -23,7 +23,6 @@ use Storable qw /nstore retrieve/;
 use File::Basename qw( fileparse );
 use Path::Tiny qw /path/;
 use POSIX ();
-use HTML::QuickTable ();
 #use XBase;
 #use MRO::Compat;
 use Class::Inspector ();

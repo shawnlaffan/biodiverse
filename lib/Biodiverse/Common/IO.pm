@@ -505,12 +505,6 @@ sub write_table {
     if ($suffix =~ /csv|txt/i) {
         $self->write_table_csv (%args);
     }
-    #elsif ($suffix =~ /dbf/i) {
-    #    $self->write_table_dbf (%args);
-    #}
-    elsif ($suffix =~ /htm/i) {
-        $self->write_table_html (%args);
-    }
     elsif ($suffix =~ /yml/i) {
         $self->write_table_yaml (%args);
     }
@@ -636,35 +630,6 @@ sub write_table_json {  #  dump the table to a JSON file.
         )
     };
     croak $EVAL_ERROR if $EVAL_ERROR;
-
-    return;
-}
-
-sub write_table_html {
-    my $self = shift;
-    my %args = @_;
-    my $data = $args{data} || croak "data arg not specified\n";
-    is_arrayref($data) || croak "data arg must be an array ref\n";
-    my $file = $args{file} || croak "file arg not specified\n";
-
-    use HTML::QuickTable ();
-    my $qt = HTML::QuickTable->new();
-
-    my $table = $qt->render($args{data});
-
-    open my $fh, '>', $file;
-
-    eval {
-        print {$fh} $table;
-    };
-    croak $EVAL_ERROR if $EVAL_ERROR;
-
-    if ($fh->close) {
-        logger->info("[COMMON] Write to file $file successful")
-    }
-    else {
-        croak "[COMMON] Write to file $file failed, unable to close file\n"
-    }
 
     return;
 }

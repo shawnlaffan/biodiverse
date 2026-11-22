@@ -46,6 +46,7 @@ require Biodiverse::Remap;
 use Ref::Util qw { :all };
 
 use parent qw /
+    Biodiverse::Common::IO
     Biodiverse::GUI::Manager::BaseDatas
     Biodiverse::GUI::Help
 /;

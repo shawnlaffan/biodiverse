@@ -23,6 +23,8 @@ use Ref::Util qw/is_arrayref/;
 
 use Biodiverse::Logger qw/logger/;
 
+use parent qw/Biodiverse::Common::Params/;
+
 use constant ON_WINDOWS => ($OSNAME eq 'MSWin32');
 use if ON_WINDOWS, 'Win32::LongPath';
 

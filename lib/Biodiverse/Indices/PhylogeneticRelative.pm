@@ -712,6 +712,7 @@ sub get_trimmed_tree_with_equalised_branch_lengths {
 
     #  lengths will be non-zero, but not 1
     my $new_tree = $tree_ref->clone_tree_with_equalised_branch_lengths;
+    $new_tree->rename (new_name => 'trimmed ' . $new_tree->get_name);
 
     my %results = (
         TREE_REF_EQUALISED_BRANCHES_TRIMMED => $new_tree,

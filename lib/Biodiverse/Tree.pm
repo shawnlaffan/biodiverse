@@ -3795,30 +3795,32 @@ sub DESTROY {
     #  let the system handle global destruction
     return if ${^GLOBAL_PHASE} eq 'DESTRUCT';
 
-    #  Get a ref to each node to linearise destruction of each node at the end.
+    my $node_hash = delete $self->{TREE_BY_NAME};
+
+    #  Get a list of nodes to linearise destruction at the end.
     #  Speeds up destruction of large trees by avoiding recursion.
-    #  Avoid method calls on $self just in case.  
     my %d;
-    my @nodes_by_depth
-      = sort {($d{$b} //= $b->get_depth) <=> ($d{$a} //= $a->get_depth)}
-        values %{$self->{TREE_BY_NAME}};
+    my @node_names_by_depth
+      = map {$_->get_name}
+        sort {($d{$b} //= $b->get_depth) <=> ($d{$a} //= $a->get_depth)}
+        values %$node_hash;
     undef %d;
 
     #  clear the ref to the parent basedata object
     $self->set_param( BASEDATA_REF => undef );
 
-    $self->{TREE}         = undef;    # empty the ref to the tree
-    $self->{TREE_BY_NAME} = undef;    #  empty the list of nodes
-    $self->{_cache}       = undef;    #  and the cache
-
     #  Clean up the caches before final cleanup
-    foreach my $node (@nodes_by_depth) {
-        next if !$node;  #  just in case
+    delete $self->{_cache};    #  clear the cache
+    foreach my $node (values %$node_hash) {
+        next if !defined $node;  #  just in case
         $node->delete_cached_values;
     }
+
     #  Now make the nodes go out of scope from the bottom up
-    #  so we avoid recursion in the cleanup.
-    shift @nodes_by_depth while @nodes_by_depth;
+    #  to hopefully avoid recursion in the cleanup.
+    foreach my $name (@node_names_by_depth) {
+        delete $node_hash->{$name};
+    }
 
     return;
 }

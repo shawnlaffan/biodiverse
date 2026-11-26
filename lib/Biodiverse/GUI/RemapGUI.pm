@@ -26,6 +26,7 @@ use constant ORIGINAL_LABEL_COL => $i || 0;
 use constant REMAPPED_LABEL_COL => ++$i;
 use constant PERFORM_COL        => ++$i;
 use constant EDIT_DISTANCE_COL  => ++$i;
+use constant EXACT_MATCH_COL    => ++$i;
 
 # tooltips
 use constant EXACT_MATCH_PANEL_TOOLTIP  => "";
@@ -972,23 +973,31 @@ sub copy_selected_tree_data_to_clipboard {
 
     my @tree_arg_names = qw /exact_match no_match punctuation typos/;
 
-    my @copy_strings = ();
-    foreach my $tree (@{$trees}{@tree_arg_names}) {
-        my $selected_list = $self->get_comma_separated_selected_treeview_list ( 
-            tree => $tree,
+    my @rows = ();
+    foreach my $arg_name (@tree_arg_names) {
+        my $selected_list = $self->get_selected_treeview_list (
+            tree => $trees->{$arg_name},
         );
-        push @copy_strings, @$selected_list;
+        if ($arg_name =~ /match/ and @$selected_list) {
+            my $val = $arg_name eq 'exact_match';
+            $selected_list = [map {$_->[EXACT_MATCH_COL] = $val; $_} @$selected_list];
+        }
+        push @rows, @$selected_list;
     }
 
     # if they've selected nothing, get everything
-    if(scalar @copy_strings == 0) {
+    if(scalar @rows == 0) {
         say "Copying to clipboard -> copying everything.";
-        
-        foreach my $tree (@{$trees}{@tree_arg_names}) {
-            my $selected_list = $self->get_comma_separated_complete_treeview_list ( 
-                tree => $tree,
+
+        foreach my $arg_name (@tree_arg_names) {
+            my $selected_list = $self->get_complete_treeview_list (
+                tree => $trees->{$arg_name},
             );
-            push @copy_strings, @$selected_list;
+            if ($arg_name =~ /match/ and @$selected_list) {
+                my $val = $arg_name eq 'exact_match';
+                $selected_list = [map {$_->[EXACT_MATCH_COL] = $val; $_} @$selected_list];
+            }
+            push @rows, @$selected_list;
         }
     }
    
@@ -998,30 +1007,24 @@ sub copy_selected_tree_data_to_clipboard {
     
 
     # find out how many fields the biggest copy string uses.
-    my $max_comma_count = 0;
-    foreach my $copy_string (@copy_strings) {
-        my $comma_count = $copy_string =~ tr/,//;
-        $max_comma_count = $comma_count if( $comma_count > $max_comma_count ); 
+    my $max_cols = 0;
+    foreach my $aref (@rows) {
+        $max_cols = $#$aref if $#$aref > $max_cols;
     }
 
-    # now pad out the other strings to use this many commas as well.
-    my @new_copy_strings = ();
-    foreach my $copy_string (@copy_strings) {
-        push ( @new_copy_strings, 
-               $self->pad_string_to_n_commas(str=>$copy_string, 
-                                      num_commas=>$max_comma_count)
-            );
+    # now pad out the array refs so they have the expected number of columns
+    foreach my $aref (@rows) {
+        $#$aref = $max_cols;
     }
-    @copy_strings = @new_copy_strings;
-    
+
     # now add the appropriate number of headers on the front
     my @headers = ("original_label", "remapped_label",
-                   "include", "edit_distance");
+                   "include", "edit_distance", "exact_match_status");
 
-    my $header_string = join(",", @headers[0..$max_comma_count]);
-    unshift @copy_strings, $header_string;
+    #  header
+    unshift @rows, [@headers[0..$max_cols]];
 
-    my $copy_string = join("\n", @copy_strings);
+    my $copy_string = join("\n", map {join ',', map {$_ // ''} @$_} @rows);
 
     my $clipboard = Gtk3::Clipboard::get(
         Gtk3::Gdk::Atom::intern('CLIPBOARD', Glib::FALSE)
@@ -1046,6 +1049,60 @@ sub pad_string_to_n_commas {
     $str .= ',' x $comma_delta;
 
     return $str;
+}
+
+#  these next two methods should be combined
+sub get_selected_treeview_list {
+    my ($self, %args) = @_;
+    my $tree = $args{tree};
+
+    my @value_list = ();
+
+    my $selection = $tree->get_selection();
+    my $model = $tree->get_model();
+    my $columns = $model->get_n_columns();
+    my ($p, undef) = $selection->get_selected_rows();
+    my (@pathlist) = @{$p // []};
+
+    foreach my $path (@pathlist) {
+        my @column_data = ();
+        my $tree_iter = $model->get_iter($path);
+
+        foreach my $i (0..$columns-1) {
+            my $value = $model->get_value($tree_iter, $i);
+            push @column_data, $value
+        }
+
+        push @value_list, \@column_data;
+    }
+
+    return \@value_list;
+}
+
+sub get_complete_treeview_list {
+    my ($self, %args) = @_;
+
+    my $tree = $args{tree};
+    my $model = $tree->get_model();
+    my $columns = $model->get_n_columns();
+
+    my @value_list = ();
+
+    my $iter = $model->get_iter_first();
+    while(defined $iter) {
+        my @column_data = ();
+
+        foreach my $i (0..$columns-1) {
+            my $value = $model->get_value($iter, $i);
+            push @column_data, $value
+        }
+
+        push @value_list, \@column_data;
+
+        last if !$model->iter_next( $iter );
+    }
+
+    return \@value_list;
 }
 
 # get selected rows of a treeview as comma separated strings.

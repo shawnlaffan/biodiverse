@@ -1111,64 +1111,6 @@ sub get_complete_treeview_list {
     return \@value_list;
 }
 
-# get selected rows of a treeview as comma separated strings.
-sub get_comma_separated_selected_treeview_list {
-    my ($self, %args) = @_;
-    my $tree = $args{tree};
-
-    my @value_list = ();
-    
-    my $selection = $tree->get_selection();
-    my $model = $tree->get_model();
-    my $columns = $model->get_n_columns();
-    my ($p, undef) = $selection->get_selected_rows();
-    my (@pathlist) = @{$p // []};
-
-    foreach my $path (@pathlist) {
-        my @column_data = ();
-        my $tree_iter = $model->get_iter($path);
-
-        foreach my $i (0..$columns-1) {
-            my $value = $model->get_value($tree_iter, $i);
-            push @column_data, $value
-        }
-
-        my $this_row = join (",", @column_data);
-        push @value_list, $this_row;
-    }
-    
-    return \@value_list;
-}
-
-# get all rows of a treeview as comma separated strings.
-sub get_comma_separated_complete_treeview_list {
-    my ($self, %args) = @_;
-    
-    my $tree = $args{tree};
-    my $model = $tree->get_model();
-    my $columns = $model->get_n_columns();
-        
-    my @value_list = ();
-
-    my $iter = $model->get_iter_first();
-    while(defined $iter) {
-        my @column_data = ();
-        
-        foreach my $i (0..$columns-1) {
-            my $value = $model->get_value($iter, $i);
-            push @column_data, $value
-        }
-
-        my $this_row = join (",", @column_data);
-        push @value_list, $this_row;
-
-        last if !$model->iter_next( $iter );
-    }
-
-    return \@value_list;
-}
-
-
 # you can't just use set_tooltip_text for treeview columns for some
 # reason, so this is a little helper function to do the rigmarole with
 # making a label, tooltipping it and adding it to the column.

@@ -973,6 +973,11 @@ sub copy_selected_tree_data_to_clipboard {
 
     my @tree_arg_names = qw /exact_match no_match punctuation typos/;
 
+    # Some tables don't contain all the fields. For consistency, we
+    # want to leave missing fields as empty comma separated values
+    # e.g. value1,value2,, rather than just value1,value2.
+    my $max_col_idx = 0;
+
     my @rows = ();
     foreach my $arg_name (@tree_arg_names) {
         my $selected_list = $self->get_selected_treeview_list (
@@ -983,11 +988,16 @@ sub copy_selected_tree_data_to_clipboard {
             $selected_list = [map {$_->[EXACT_MATCH_COL] = $val; $_} @$selected_list];
         }
         push @rows, @$selected_list;
+        # find out how many fields the biggest copy string uses.
+        my $aref = $selected_list->[0];
+        $max_col_idx = $#$aref if $#$aref > $max_col_idx;
     }
 
     # if they've selected nothing, get everything
     if(scalar @rows == 0) {
         say "Copying to clipboard -> copying everything.";
+
+        $max_col_idx = EXACT_MATCH_COL;
 
         foreach my $arg_name (@tree_arg_names) {
             my $selected_list = $self->get_complete_treeview_list (
@@ -995,26 +1005,22 @@ sub copy_selected_tree_data_to_clipboard {
             );
             if ($arg_name =~ /match/ and @$selected_list) {
                 my $val = $arg_name eq 'exact_match';
-                $selected_list = [map {$_->[EXACT_MATCH_COL] = $val; $_} @$selected_list];
+                $selected_list = [map {$_->[$max_col_idx] = $val; $_} @$selected_list];
+            }
+            else {
+                # these need padding
+                foreach my $aref (@rows) {
+                    $#$aref = $max_col_idx;
+                }
             }
             push @rows, @$selected_list;
         }
     }
-   
-    # Some tables don't contain all the fields. For consistency, we
-    # want to leave missing fields as empty comma separated values
-    # e.g. value1,value2,, rather than just value1,value2.
-    
-
-    # find out how many fields the biggest copy string uses.
-    my $max_cols = 0;
-    foreach my $aref (@rows) {
-        $max_cols = $#$aref if $#$aref > $max_cols;
-    }
-
-    # now pad out the array refs so they have the expected number of columns
-    foreach my $aref (@rows) {
-        $#$aref = $max_cols;
+    else {
+        # pad out the array refs so they have the expected number of columns
+        foreach my $aref (@rows) {
+            $#$aref = $max_col_idx;
+        }
     }
 
     # now add the appropriate number of headers on the front
@@ -1022,7 +1028,7 @@ sub copy_selected_tree_data_to_clipboard {
                    "include", "edit_distance", "exact_match_status");
 
     #  header
-    unshift @rows, [@headers[0..$max_cols]];
+    unshift @rows, [@headers[0..$max_col_idx]];
 
     my $copy_string = join("\n", map {join ',', map {$_ // ''} @$_} @rows);
 

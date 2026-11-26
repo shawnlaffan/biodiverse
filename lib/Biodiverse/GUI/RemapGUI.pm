@@ -437,10 +437,12 @@ sub remap_results_dialog {
     
     $copy_button->signal_connect('clicked' => sub {
         $self->copy_selected_tree_data_to_clipboard(
-            trees => [
-                    $exact_match_tree,  $not_matched_tree, 
-                    $punct_tree,        $typo_tree,
-            ],
+            trees => {
+                exact_match => $exact_match_tree,
+                no_match    => $not_matched_tree,
+                punctuation => $punct_tree,
+                typos       => $typo_tree,
+            },
         )
     });
 
@@ -968,8 +970,10 @@ sub copy_selected_tree_data_to_clipboard {
     my ($self, %args) = @_;
     my $trees = $args{trees};
 
+    my @tree_arg_names = qw /exact_match no_match punctuation typos/;
+
     my @copy_strings = ();
-    foreach my $tree (@{$trees}) { 
+    foreach my $tree (@{$trees}{@tree_arg_names}) {
         my $selected_list = $self->get_comma_separated_selected_treeview_list ( 
             tree => $tree,
         );
@@ -980,7 +984,7 @@ sub copy_selected_tree_data_to_clipboard {
     if(scalar @copy_strings == 0) {
         say "Copying to clipboard -> copying everything.";
         
-        foreach my $tree (@$trees) { 
+        foreach my $tree (@{$trees}{@tree_arg_names}) {
             my $selected_list = $self->get_comma_separated_complete_treeview_list ( 
                 tree => $tree,
             );

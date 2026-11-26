@@ -984,7 +984,7 @@ sub copy_selected_tree_data_to_clipboard {
             tree => $trees->{$arg_name},
         );
         if ($arg_name =~ /match/ and @$selected_list) {
-            my $val = $arg_name eq 'exact_match';
+            my $val = ($arg_name eq 'exact_match') || 0;
             $selected_list = [map {$_->[EXACT_MATCH_COL] = $val; $_} @$selected_list];
         }
         push @rows, @$selected_list;
@@ -1004,12 +1004,12 @@ sub copy_selected_tree_data_to_clipboard {
                 tree => $trees->{$arg_name},
             );
             if ($arg_name =~ /match/ and @$selected_list) {
-                my $val = $arg_name eq 'exact_match';
+                my $val = ($arg_name eq 'exact_match') || 0;
                 $selected_list = [map {$_->[$max_col_idx] = $val; $_} @$selected_list];
             }
             else {
                 # these need padding
-                foreach my $aref (@rows) {
+                foreach my $aref (@$selected_list) {
                     $#$aref = $max_col_idx;
                 }
             }

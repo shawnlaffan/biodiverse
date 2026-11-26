@@ -277,8 +277,8 @@ sub on_show {
     # The latter happens when new projects are loaded or data are imported into an empty project.
     if (!defined $selected or $selected->{type} eq 'basedata') {
         my $labels = eval {Biodiverse::GUI::Tabs::Labels->new()};
-        if ($EVAL_ERROR) {
-            $self->{gui}->report_error ($EVAL_ERROR);
+        if (my $e = $EVAL_ERROR) {
+            $self->{gui}->report_error ($e);
             return;
         }
     }

@@ -432,11 +432,11 @@ sub set_tip_count_colour_thresh {
 }
 
 sub get_colour_start_node {
-    $_->{colour_start_node};
+    $_[0]->{colour_start_node};
 }
 
 sub set_colour_start_node {
-    $_->{colour_start_node} = $_[1];
+    $_[0]->{colour_start_node} = $_[1];
 }
 
 
